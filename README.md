@@ -1,36 +1,33 @@
 # CineVault By Sasuu
 
-A Vite + React movie discovery application by Prosper Sasuu.
-
-## Local development
-
-Requirements: Node.js 18+.
-
-```bash
-npm install
-npm run dev
-```
-
-The local development server is provided by `server.ts`.
+Vite + React movie discovery application prepared for Vercel.
 
 ## Vercel deployment
 
-The project is configured for Vercel as a Vite frontend with serverless movie API routes under `api/movies/[action].ts`.
-
-Supported API endpoints:
+The project uses Vercel serverless functions under `api/movies/[action].ts` for the movie API routes:
 
 - `/api/movies/list`
 - `/api/movies/details`
 - `/api/movies/suggestions`
 - `/api/movies/parental_guides`
 
-No environment variables are required by the current CineVault implementation.
+No environment variables are required for the current movie API implementation.
 
-### Deploy from GitHub
+### Important
 
-1. Import `Ccroxx1/cinevault-movies` into Vercel.
-2. Select **Vite** as the application preset if Vercel asks.
-3. Leave Environment Variables empty.
-4. Click **Deploy**.
+Do not add a catch-all Vercel rewrite to `/index.html`. Such a rewrite would also intercept `/api/movies/*` requests and return the HTML page, which causes browser errors such as `Unexpected token '<', "<!doctype"... is not valid JSON`.
 
-Vercel automatically detects the `api/` serverless functions and the Vite build output.
+Vercel detects the functions in the `api/` directory automatically, so no `vercel.json` file is required for this project.
+
+## Local development
+
+```bash
+npm install
+npm run dev
+```
+
+## Production build
+
+```bash
+npm run build
+```
