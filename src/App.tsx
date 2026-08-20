@@ -4,6 +4,7 @@ import { Movie, FilterParams } from './types';
 import { fetchMovies } from './services/movieApi';
 import { Header } from './components/Header';
 import { FeaturedHero } from './components/FeaturedHero';
+import { PopularTopFive } from './components/PopularTopFive';
 import { FilterBar } from './components/FilterBar';
 import { MovieCard } from './components/MovieCard';
 import { MovieDetailsModal } from './components/MovieDetailsModal';
@@ -30,6 +31,7 @@ export default function App() {
   const [filters, setFilters] = useState<FilterParams>(DEFAULT_FILTERS);
   const [movies, setMovies] = useState<Movie[]>([]);
   const [featuredMovies, setFeaturedMovies] = useState<Movie[]>([]);
+  const [isFeaturedLoading, setIsFeaturedLoading] = useState<boolean>(true);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -74,16 +76,38 @@ export default function App() {
     }
   }, [watchlist]);
 
-  // Fetch Featured Carousel Movies once on mount
+  // Fetch Featured & Top Popular Movies for the current year once on mount
   useEffect(() => {
     const loadFeatured = async () => {
+      setIsFeaturedLoading(true);
+      const currentYear = new Date().getFullYear().toString();
       try {
-        const data = await fetchMovies({ sort_by: 'download_count', limit: 5 });
-        if (data.movies && data.movies.length > 0) {
-          setFeaturedMovies(data.movies);
+        // First try fetching latest popular movies for current year (and previous year if early in year)
+        let data = await fetchMovies({ 
+          query_term: currentYear, 
+          sort_by: 'download_count', 
+          limit: 10 
+        });
+
+        // Filter and get 5 latest popular movies
+        let validMovies = (data.movies || []).filter(m => m && m.medium_cover_image);
+
+        // If fewer than 5 found for current year, fetch top downloaded movies
+        if (validMovies.length < 5) {
+          const fallbackData = await fetchMovies({ sort_by: 'download_count', limit: 10 });
+          const additional = (fallbackData.movies || []).filter(
+            m => m && !validMovies.some(existing => existing.id === m.id)
+          );
+          validMovies = [...validMovies, ...additional];
+        }
+
+        if (validMovies.length > 0) {
+          setFeaturedMovies(validMovies.slice(0, 5));
         }
       } catch (err) {
         console.error('Error loading featured movies:', err);
+      } finally {
+        setIsFeaturedLoading(false);
       }
     };
     loadFeatured();
@@ -234,6 +258,17 @@ export default function App() {
                 onToggleWatchlist={handleToggleWatchlist}
               />
             )}
+
+            {/* 5 Latest Popular Movies - Always on Top */}
+            <PopularTopFive
+              movies={featuredMovies}
+              isLoading={isFeaturedLoading}
+              onSelectMovie={(m) => setSelectedMovie(m)}
+              onPlayTrailer={handlePlayTrailer}
+              onCopyMagnet={handleCopyMagnet}
+              isWatchlisted={(id) => isMovieWatchlisted(id)}
+              onToggleWatchlist={handleToggleWatchlist}
+            />
 
             {/* Section Heading & Filter Bar */}
             <div className="space-y-4">
