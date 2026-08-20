@@ -92,49 +92,49 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-[#0a0a0a]/90 backdrop-blur-xl border-b border-white/10 transition-all">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-20 gap-4">
+    <header className="sticky top-0 z-40 w-full bg-[#0a0a0a]/95 backdrop-blur-xl border-b border-white/10 transition-all">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-14 sm:h-16 md:h-20 gap-2 sm:gap-4">
           
           {/* Brand Logo */}
           <div
             onClick={() => onNavSelect('browse')}
-            className="flex items-center gap-3 cursor-pointer group shrink-0"
+            className="flex items-center gap-2 sm:gap-3 cursor-pointer group shrink-0"
           >
-            <div className="w-10 h-10 rounded-lg bg-rose-600 flex items-center justify-center shadow-lg shadow-rose-900/30 group-hover:scale-105 transition-transform">
-              <Film className="w-5 h-5 text-white font-bold" />
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-rose-600 flex items-center justify-center shadow-lg shadow-rose-900/30 group-hover:scale-105 transition-transform">
+              <Film className="w-4 h-4 sm:w-5 sm:h-5 text-white font-bold" />
             </div>
             <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-display font-black text-xl tracking-tight text-white group-hover:text-rose-500 transition-colors">
+              <div className="flex items-center gap-1 sm:gap-1.5">
+                <span className="font-display font-black text-base sm:text-xl tracking-tight text-white group-hover:text-rose-500 transition-colors">
                   CineVault
                 </span>
-                <span className="px-1.5 py-0.5 text-[10px] font-bold tracking-wider uppercase bg-rose-600/20 text-rose-400 border border-rose-500/30 rounded">
+                <span className="px-1 sm:px-1.5 py-0.5 text-[9px] sm:text-[10px] font-bold tracking-wider uppercase bg-rose-600/20 text-rose-400 border border-rose-500/30 rounded">
                   By Sasuu
                 </span>
               </div>
-              <p className="text-[11px] text-neutral-400 hidden sm:block">
+              <p className="text-[11px] text-neutral-400 hidden lg:block">
                 Curated Cinema & HD Downloads
               </p>
             </div>
           </div>
 
           {/* Search Bar with Quick Dropdown */}
-          <div className="relative flex-1 max-w-lg mx-2">
+          <div className="relative flex-1 max-w-xs sm:max-w-md lg:max-w-lg mx-1 sm:mx-2">
             <form onSubmit={handleFormSubmit} className="relative">
               <div className="relative flex items-center">
-                <Search className="absolute left-3.5 w-4 h-4 text-neutral-400 pointer-events-none" />
+                <Search className="absolute left-3 sm:left-3.5 w-3.5 h-3.5 sm:w-4 sm:h-4 text-neutral-400 pointer-events-none" />
                 <input
                   ref={searchInputRef}
                   type="text"
                   value={searchQuery}
                   onChange={(e) => onSearchChange(e.target.value)}
                   onFocus={() => setIsSearchFocused(true)}
-                  placeholder="Search movies, actors, directors, IMDb code..."
-                  className="w-full pl-10 pr-16 py-2 sm:py-2.5 text-sm bg-[#0f0f0f] hover:bg-[#141414] focus:bg-[#141414] border border-white/10 focus:border-rose-500/80 rounded-xl text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 transition-all"
+                  placeholder="Search movies..."
+                  className="w-full pl-8 sm:pl-10 pr-8 sm:pr-16 py-1.5 sm:py-2.5 text-xs sm:text-sm bg-[#0f0f0f] hover:bg-[#141414] focus:bg-[#141414] border border-white/10 focus:border-rose-500/80 rounded-xl text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 transition-all"
                 />
                 
-                <div className="absolute right-2.5 flex items-center gap-1">
+                <div className="absolute right-2 sm:right-2.5 flex items-center gap-1">
                   {searchQuery && (
                     <button
                       type="button"
@@ -147,7 +147,7 @@ export const Header: React.FC<HeaderProps> = ({
                       <X className="w-3.5 h-3.5" />
                     </button>
                   )}
-                  <kbd className="hidden md:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono text-neutral-400 bg-neutral-800 border border-white/10 rounded">
+                  <kbd className="hidden lg:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono text-neutral-400 bg-neutral-800 border border-white/10 rounded">
                     /
                   </kbd>
                 </div>
@@ -166,7 +166,7 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
 
                 {quickResults.length > 0 ? (
-                  <div className="divide-y divide-white/5">
+                  <div className="divide-y divide-white/5 max-h-72 overflow-y-auto">
                     {quickResults.map((movie) => (
                       <div
                         key={movie.id}
@@ -174,33 +174,31 @@ export const Header: React.FC<HeaderProps> = ({
                           onSelectMovie(movie);
                           setIsSearchFocused(false);
                         }}
-                        className="flex items-center gap-3 p-2.5 hover:bg-white/5 cursor-pointer transition-colors"
+                        className="flex items-center gap-2.5 sm:gap-3 p-2 sm:p-2.5 hover:bg-white/5 cursor-pointer transition-colors"
                       >
                         <img
                           src={movie.small_cover_image || movie.medium_cover_image}
                           alt={movie.title}
-                          className="w-10 h-14 object-cover rounded bg-neutral-900 shrink-0"
+                          className="w-8 h-11 sm:w-10 sm:h-14 object-cover rounded bg-neutral-900 shrink-0"
                           onError={(e) => {
                             (e.target as HTMLElement).style.display = 'none';
                           }}
                         />
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-sm font-semibold text-neutral-100 truncate hover:text-rose-500">
+                          <h4 className="text-xs sm:text-sm font-semibold text-neutral-100 truncate hover:text-rose-500">
                             {movie.title}
                           </h4>
-                          <div className="flex items-center gap-2 text-xs text-neutral-400 mt-0.5">
+                          <div className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-neutral-400 mt-0.5">
                             <span>{movie.year}</span>
                             <span>•</span>
                             <div className="flex items-center gap-0.5 text-amber-400">
                               <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                               <span className="font-semibold">{movie.rating}</span>
                             </div>
-                            <span>•</span>
-                            <span className="truncate">{movie.genres?.slice(0, 2).join(', ')}</span>
                           </div>
                         </div>
                         <div className="flex flex-col items-end gap-1 shrink-0">
-                          <span className="text-[10px] font-mono text-neutral-300 bg-neutral-800 px-1.5 py-0.5 rounded border border-white/10">
+                          <span className="text-[9px] sm:text-[10px] font-mono text-neutral-300 bg-neutral-800 px-1.5 py-0.5 rounded border border-white/10">
                             {movie.torrents?.[0]?.quality || 'HD'}
                           </span>
                         </div>
@@ -219,7 +217,7 @@ export const Header: React.FC<HeaderProps> = ({
                 ) : (
                   !isSearchingQuick && (
                     <div className="p-4 text-center text-xs text-neutral-400">
-                      No movies found matching "{searchQuery}". Press Enter to perform a full search.
+                      No movies found matching "{searchQuery}".
                     </div>
                   )
                 )}
@@ -227,83 +225,83 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </div>
 
-          {/* Navigation Links */}
-          <nav className="flex items-center gap-1 sm:gap-2">
+          {/* Navigation Links (Desktop & Tablet) */}
+          <nav className="flex items-center gap-1 sm:gap-1.5">
             <button
               onClick={() => onNavSelect('browse')}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold transition-all ${
+              className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
                 currentNav === 'browse'
                   ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
                   : 'text-neutral-400 hover:text-white hover:bg-white/5'
               }`}
             >
-              <Clapperboard className="w-4 h-4" />
-              <span className="hidden md:inline">Browse</span>
+              <Clapperboard className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Browse</span>
             </button>
 
             <button
               onClick={() => onNavSelect('trending')}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold transition-all ${
+              className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
                 currentNav === 'trending'
                   ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
                   : 'text-neutral-400 hover:text-white hover:bg-white/5'
               }`}
             >
-              <Flame className="w-4 h-4 text-rose-500" />
-              <span className="hidden md:inline">Trending</span>
+              <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-500" />
+              <span className="hidden sm:inline">Trending</span>
             </button>
 
             <button
               onClick={() => onNavSelect('4k')}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold transition-all ${
+              className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
                 currentNav === '4k'
                   ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
                   : 'text-neutral-400 hover:text-white hover:bg-white/5'
               }`}
             >
-              <Sparkles className="w-4 h-4 text-rose-400" />
-              <span className="hidden md:inline">4K UHD</span>
+              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-400" />
+              <span className="hidden sm:inline">4K</span>
             </button>
 
             <button
               onClick={() => onNavSelect('top')}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold transition-all ${
+              className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
                 currentNav === 'top'
                   ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
                   : 'text-neutral-400 hover:text-white hover:bg-white/5'
               }`}
             >
-              <Star className="w-4 h-4 text-amber-400" />
+              <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
               <span className="hidden md:inline">Top Rated</span>
             </button>
 
             {/* Watchlist Button with Badge */}
             <button
               onClick={() => onNavSelect('watchlist')}
-              className={`relative flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold transition-all ${
+              className={`relative flex items-center gap-1 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
                 currentNav === 'watchlist'
                   ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
                   : 'text-neutral-400 hover:text-white hover:bg-white/5'
               }`}
               title="My Watchlist"
             >
-              <Bookmark className="w-4 h-4" />
-              <span className="hidden lg:inline">Watchlist</span>
+              <Bookmark className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden xl:inline">Watchlist</span>
               {watchlistCount > 0 && (
-                <span className="ml-0.5 px-1.5 py-0.2 text-[11px] font-mono font-bold bg-rose-600 text-white rounded-full">
+                <span className="ml-0.5 px-1.5 py-0.2 text-[10px] font-mono font-bold bg-rose-600 text-white rounded-full">
                   {watchlistCount}
                 </span>
               )}
             </button>
 
-            {/* Download / Magnet Guide Modal Trigger */}
+            {/* Guide Trigger */}
             <button
               onClick={onOpenGuide}
-              className="p-2 text-neutral-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
-              title="How to download & use magnet links"
+              className="p-1.5 sm:p-2 text-neutral-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors shrink-0"
+              title="Download Guide & Trackers"
               aria-label="Download Guide"
             >
-              <HelpCircle className="w-5 h-5" />
+              <HelpCircle className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </nav>
 

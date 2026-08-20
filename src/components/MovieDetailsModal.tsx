@@ -131,13 +131,13 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
         </div>
 
         {/* Modal Body Container (Scrollable) */}
-        <div className="p-4 sm:p-6 md:p-8 overflow-y-auto flex-1 space-y-8 -mt-32 sm:-mt-40 relative z-10">
+        <div className="p-4 sm:p-6 md:p-8 overflow-y-auto flex-1 space-y-6 sm:space-y-8 -mt-28 sm:-mt-40 relative z-10">
           
           {/* Top Intro Section: Poster + Main Details */}
-          <div className="flex flex-col md:flex-row gap-6 items-start">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-center sm:items-start text-center sm:text-left">
             
             {/* Movie Poster */}
-            <div className="relative w-40 sm:w-52 shrink-0 aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-[#050505] mx-auto md:mx-0">
+            <div className="relative w-36 sm:w-44 md:w-52 shrink-0 aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-[#050505] mx-auto sm:mx-0">
               <img
                 src={movie.large_cover_image || movie.medium_cover_image || movie.small_cover_image}
                 alt={movie.title}
@@ -146,21 +146,21 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
             </div>
 
             {/* Title & Metadata Details */}
-            <div className="flex-1 min-w-0 space-y-3 text-left">
+            <div className="flex-1 min-w-0 space-y-2.5 sm:space-y-3">
               
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 sm:gap-2">
                 {movie.mpa_rating && (
                   <span className="px-2 py-0.5 text-xs font-bold bg-neutral-800 text-neutral-300 border border-white/10 rounded">
                     {movie.mpa_rating}
                   </span>
                 )}
-                <span className="text-sm font-semibold text-neutral-400">
+                <span className="text-xs sm:text-sm font-semibold text-neutral-400">
                   {movie.year}
                 </span>
                 {movie.runtime > 0 && (
                   <>
                     <span className="text-neutral-600">•</span>
-                    <span className="flex items-center gap-1 text-sm text-neutral-400">
+                    <span className="flex items-center gap-1 text-xs sm:text-sm text-neutral-400">
                       <Clock className="w-3.5 h-3.5" />
                       {Math.floor(movie.runtime / 60)}h {movie.runtime % 60}m
                     </span>
@@ -169,23 +169,23 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
                 {movie.language && (
                   <>
                     <span className="text-neutral-600">•</span>
-                    <span className="text-xs uppercase font-mono text-neutral-400 bg-neutral-800/80 px-2 py-0.5 rounded border border-white/10">
+                    <span className="text-[10px] sm:text-xs uppercase font-mono text-neutral-400 bg-neutral-800/80 px-2 py-0.5 rounded border border-white/10">
                       {movie.language}
                     </span>
                   </>
                 )}
               </div>
 
-              <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-white tracking-tight leading-snug">
+              <h2 className="font-display font-black text-xl sm:text-3xl md:text-4xl text-white tracking-tight leading-snug">
                 {movie.title}
               </h2>
 
               {/* Ratings & IMDb Link */}
-              <div className="flex flex-wrap items-center gap-3 pt-1">
-                <div className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/30 px-3.5 py-1.5 rounded-full text-amber-400 font-bold">
-                  <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                  <span className="text-base">{movie.rating?.toFixed(1) || 'N/A'}</span>
-                  <span className="text-xs text-amber-400/70 font-normal">/ 10 (IMDb)</span>
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-3 pt-1">
+                <div className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/30 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-amber-400 font-bold">
+                  <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-amber-400 text-amber-400" />
+                  <span className="text-sm sm:text-base">{movie.rating?.toFixed(1) || 'N/A'}</span>
+                  <span className="text-[10px] sm:text-xs text-amber-400/70 font-normal">/ 10</span>
                 </div>
 
                 {movie.imdb_code && (
@@ -193,30 +193,30 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
                     href={`https://www.imdb.com/title/${movie.imdb_code}/`}
                     target="_blank"
                     rel="noreferrer noopener"
-                    className="flex items-center gap-1.5 text-xs font-semibold text-neutral-300 hover:text-amber-400 bg-white/5 hover:bg-white/10 px-3.5 py-2 rounded-full border border-white/10 transition-colors"
+                    className="flex items-center gap-1.5 text-xs font-semibold text-neutral-300 hover:text-amber-400 bg-white/5 hover:bg-white/10 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-white/10 transition-colors"
                   >
-                    <span>View on IMDb</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>IMDb</span>
+                    <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                   </a>
                 )}
 
                 {movie.yt_trailer_code && (
                   <button
                     onClick={() => onPlayTrailer(movie.yt_trailer_code, movie.title)}
-                    className="flex items-center gap-1.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 px-4 py-2 rounded-full shadow-lg shadow-rose-900/30 transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full shadow-lg shadow-rose-900/30 transition-colors cursor-pointer"
                   >
-                    <Play className="w-3.5 h-3.5 fill-current" />
+                    <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current" />
                     <span>Watch Trailer</span>
                   </button>
                 )}
               </div>
 
               {/* Genre Pills */}
-              <div className="flex flex-wrap gap-1.5 pt-1">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1 sm:gap-1.5 pt-1">
                 {movie.genres?.map((g) => (
                   <span
                     key={g}
-                    className="text-xs font-semibold text-neutral-300 bg-white/5 border border-white/10 px-3 py-1 rounded-full"
+                    className="text-[10px] sm:text-xs font-semibold text-neutral-300 bg-white/5 border border-white/10 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full"
                   >
                     {g}
                   </span>
@@ -224,8 +224,8 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
               </div>
 
               {/* Synopsis / Description */}
-              <div className="pt-2">
-                <p className="text-neutral-300 text-sm sm:text-base leading-relaxed">
+              <div className="pt-1 sm:pt-2">
+                <p className="text-neutral-300 text-xs sm:text-sm md:text-base leading-relaxed line-clamp-4 sm:line-clamp-none">
                   {movie.description_full || movie.summary || movie.synopsis || 'No description available for this title.'}
                 </p>
               </div>

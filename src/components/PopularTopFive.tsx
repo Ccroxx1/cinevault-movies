@@ -68,13 +68,13 @@ export const PopularTopFive: React.FC<PopularTopFiveProps> = ({
         </div>
       </div>
 
-      {/* 5-Cards Grid */}
+      {/* 5-Cards Grid with Mobile Horizontal Scroll or Responsive Wrap */}
       {isLoading && topFive.length === 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3.5 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
           {Array.from({ length: 5 }).map((_, i) => (
             <div
               key={`pop-skeleton-${i}`}
-              className="aspect-[2/3] rounded-2xl bg-[#101010] border border-white/5 animate-pulse flex flex-col justify-end p-3.5 space-y-2"
+              className="aspect-[2/3] rounded-2xl bg-[#101010] border border-white/5 animate-pulse flex flex-col justify-end p-3 space-y-2"
             >
               <div className="h-4 bg-[#1e1e1e] rounded w-3/4" />
               <div className="h-3 bg-[#1e1e1e]/60 rounded w-1/2" />
@@ -82,7 +82,7 @@ export const PopularTopFive: React.FC<PopularTopFiveProps> = ({
           ))}
         </div>
       ) : topFive.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3.5 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
           {topFive.map((movie, index) => {
             const rank = rankBadges[index] || { label: `#${index + 1}`, bg: 'bg-neutral-800 text-white' };
             const primaryTorrent = movie.torrents?.[0];
@@ -105,16 +105,16 @@ export const PopularTopFive: React.FC<PopularTopFiveProps> = ({
                   />
 
                   {/* Rank Badge */}
-                  <div className="absolute top-2.5 left-2.5 z-10">
-                    <span className={`px-2 py-0.5 rounded-md text-[11px] font-black uppercase tracking-wider shadow-lg ${rank.bg}`}>
+                  <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 z-10">
+                    <span className={`px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-black uppercase tracking-wider shadow-lg ${rank.bg}`}>
                       {rank.label}
                     </span>
                   </div>
 
                   {/* 4K Badge & Watchlist Button */}
-                  <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5">
+                  <div className="absolute top-2 right-2 sm:top-2.5 sm:right-2.5 z-10 flex items-center gap-1">
                     {has4k && (
-                      <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-rose-600 text-white shadow-md">
+                      <span className="px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-black bg-rose-600 text-white shadow-md">
                         4K
                       </span>
                     )}
@@ -130,13 +130,14 @@ export const PopularTopFive: React.FC<PopularTopFiveProps> = ({
                           : 'bg-black/60 text-neutral-300 hover:text-white border-white/20 hover:bg-black/80'
                       }`}
                       title={isWatch ? 'Remove from Watchlist' : 'Add to Watchlist'}
+                      aria-label="Toggle Watchlist"
                     >
-                      <Bookmark className={`w-3.5 h-3.5 ${isWatch ? 'fill-current' : ''}`} />
+                      <Bookmark className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${isWatch ? 'fill-current' : ''}`} />
                     </button>
                   </div>
 
-                  {/* Hover Overlay with Quick Actions */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 space-y-2 z-10">
+                  {/* Hover & Mobile Actions Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-2.5 sm:p-3 space-y-1.5 sm:space-y-2 z-10">
                     {/* Rating & Year */}
                     <div className="flex items-center justify-between text-xs font-bold">
                       <span className="flex items-center gap-1 text-amber-400">
@@ -161,7 +162,7 @@ export const PopularTopFive: React.FC<PopularTopFiveProps> = ({
                             e.stopPropagation();
                             onPlayTrailer(movie.yt_trailer_code, movie.title);
                           }}
-                          className="h-7.5 px-2 bg-white/15 hover:bg-white/25 text-white rounded-lg text-[11px] font-bold flex items-center justify-center gap-1 backdrop-blur-md transition-colors"
+                          className="h-7 sm:h-7.5 px-1.5 sm:px-2 bg-white/15 hover:bg-white/25 text-white rounded-lg text-[10px] sm:text-[11px] font-bold flex items-center justify-center gap-1 backdrop-blur-md transition-colors"
                           title="Watch Trailer"
                         >
                           <Play className="w-3 h-3 fill-rose-500 text-rose-500" />
@@ -170,7 +171,7 @@ export const PopularTopFive: React.FC<PopularTopFiveProps> = ({
                       ) : (
                         <button
                           onClick={() => onSelectMovie(movie)}
-                          className="h-7.5 px-2 bg-white/15 hover:bg-white/25 text-white rounded-lg text-[11px] font-bold flex items-center justify-center gap-1 backdrop-blur-md transition-colors"
+                          className="h-7 sm:h-7.5 px-1.5 sm:px-2 bg-white/15 hover:bg-white/25 text-white rounded-lg text-[10px] sm:text-[11px] font-bold flex items-center justify-center gap-1 backdrop-blur-md transition-colors"
                         >
                           <Eye className="w-3 h-3" />
                           <span>Details</span>
@@ -180,18 +181,18 @@ export const PopularTopFive: React.FC<PopularTopFiveProps> = ({
                       {primaryTorrent && (
                         <button
                           onClick={(e) => handleCopyMagnet(e, movie)}
-                          className="h-7.5 px-2 bg-[#6ac045] hover:bg-[#5ca63c] text-white rounded-lg text-[11px] font-bold flex items-center justify-center gap-1 transition-colors"
+                          className="h-7 sm:h-7.5 px-1.5 sm:px-2 bg-[#6ac045] hover:bg-[#5ca63c] text-white rounded-lg text-[10px] sm:text-[11px] font-bold flex items-center justify-center gap-1 transition-colors"
                           title="Copy Magnet Link"
                         >
                           {copiedId === movie.id ? (
                             <>
                               <Check className="w-3 h-3" />
-                              <span>Copied</span>
+                              <span className="text-[9px] sm:text-[10px]">Copied</span>
                             </>
                           ) : (
                             <>
                               <Copy className="w-3 h-3" />
-                              <span>Magnet</span>
+                              <span className="text-[9px] sm:text-[10px]">Magnet</span>
                             </>
                           )}
                         </button>
@@ -201,7 +202,7 @@ export const PopularTopFive: React.FC<PopularTopFiveProps> = ({
                 </div>
 
                 {/* Movie Title & Info Footer */}
-                <div className="p-3 flex-1 flex flex-col justify-between space-y-1">
+                <div className="p-2.5 sm:p-3 flex-1 flex flex-col justify-between space-y-1">
                   <h3
                     className="font-bold text-xs sm:text-sm text-neutral-100 line-clamp-1 group-hover:text-rose-400 transition-colors"
                     title={movie.title}
@@ -209,7 +210,7 @@ export const PopularTopFive: React.FC<PopularTopFiveProps> = ({
                     {movie.title}
                   </h3>
 
-                  <div className="flex items-center justify-between text-[11px] text-neutral-400">
+                  <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-neutral-400">
                     <span>{movie.year}</span>
                     <span className="flex items-center gap-1 text-amber-400 font-semibold">
                       <Star className="w-3 h-3 fill-amber-400" />

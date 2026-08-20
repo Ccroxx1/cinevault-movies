@@ -13,6 +13,9 @@ import { WatchlistView } from './components/WatchlistView';
 import { DownloadGuideModal } from './components/DownloadGuideModal';
 import { Pagination } from './components/Pagination';
 import { ToastContainer, ToastMessage } from './components/Toast';
+import { AdSensePolicyModal } from './components/AdSensePolicyModal';
+import { CookieConsentBanner } from './components/CookieConsentBanner';
+import { AdSenseSlot } from './components/AdSenseSlot';
 
 const DEFAULT_FILTERS: FilterParams = {
   query_term: '',
@@ -41,6 +44,7 @@ export default function App() {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [trailerData, setTrailerData] = useState<{ ytCode: string; title: string } | null>(null);
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
+  const [policyModalTab, setPolicyModalTab] = useState<'privacy' | 'terms' | 'about' | 'contact' | 'dmca' | null>(null);
   
   // Watchlist Persistence
   const [watchlist, setWatchlist] = useState<Movie[]>(() => {
@@ -374,6 +378,9 @@ export default function App() {
               )
             )}
 
+            {/* AdSense In-Feed / Banner Placement compliant with ad-to-content ratio */}
+            <AdSenseSlot slotId="content_banner_bottom" format="horizontal" />
+
             {/* Pagination */}
             {!isLoading && totalCount > filters.limit && (
               <Pagination
@@ -388,7 +395,7 @@ export default function App() {
 
       </main>
 
-      {/* Footer */}
+      {/* Footer & AdSense Required Legal Compliance Links */}
       <footer className="w-full border-t border-white/10 bg-[#050505] mt-16 py-10 text-xs text-neutral-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -405,26 +412,48 @@ export default function App() {
               </span>
             </div>
 
-            <div className="flex items-center gap-4 text-xs">
+            {/* Compliance Navigation Links */}
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs">
+              <button
+                onClick={() => setPolicyModalTab('privacy')}
+                className="hover:text-rose-400 transition-colors cursor-pointer"
+              >
+                Privacy Policy
+              </button>
+              <span>•</span>
+              <button
+                onClick={() => setPolicyModalTab('terms')}
+                className="hover:text-rose-400 transition-colors cursor-pointer"
+              >
+                Terms of Service
+              </button>
+              <span>•</span>
+              <button
+                onClick={() => setPolicyModalTab('dmca')}
+                className="hover:text-rose-400 transition-colors cursor-pointer"
+              >
+                DMCA
+              </button>
+              <span>•</span>
+              <button
+                onClick={() => setPolicyModalTab('about')}
+                className="hover:text-rose-400 transition-colors cursor-pointer"
+              >
+                About Us
+              </button>
+              <span>•</span>
+              <button
+                onClick={() => setPolicyModalTab('contact')}
+                className="hover:text-rose-400 transition-colors cursor-pointer"
+              >
+                Contact
+              </button>
+              <span>•</span>
               <button
                 onClick={() => setIsGuideOpen(true)}
                 className="hover:text-rose-400 transition-colors cursor-pointer"
               >
-                Download Guide & Trackers
-              </button>
-              <span>•</span>
-              <button
-                onClick={() => handleNavSelect('browse')}
-                className="hover:text-rose-400 transition-colors cursor-pointer"
-              >
-                Browse All
-              </button>
-              <span>•</span>
-              <button
-                onClick={() => handleNavSelect('4k')}
-                className="hover:text-rose-400 transition-colors cursor-pointer"
-              >
-                4K UHD
+                Guides
               </button>
             </div>
 
@@ -432,14 +461,27 @@ export default function App() {
 
           <div className="pt-4 border-t border-white/5 flex flex-wrap items-center justify-between gap-2 text-[11px]">
             <p>
-              Powered by the YTS REST API v2. High-speed metadata, trailers, IMDb data & magnet URIs.
+              CineVault operates strictly as a metadata directory and film indexer. Content is aggregated from public REST APIs for informational and discovery purposes.
             </p>
             <p className="text-neutral-600">
-              CineVault By Sasuu © 2026. All film posters and stills belong to their respective copyright holders.
+              CineVault By Sasuu © 2026. All trademarks and media belong to their respective copyright holders.
             </p>
           </div>
         </div>
       </footer>
+
+      {/* AdSense Policy & Legal Modal */}
+      {policyModalTab && (
+        <AdSensePolicyModal
+          initialTab={policyModalTab}
+          onClose={() => setPolicyModalTab(null)}
+        />
+      )}
+
+      {/* Cookie & GDPR/CCPA Consent Banner */}
+      <CookieConsentBanner
+        onOpenPrivacy={() => setPolicyModalTab('privacy')}
+      />
 
       {/* Movie Details Modal */}
       {selectedMovie && (
