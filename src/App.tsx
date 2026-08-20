@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Film, Sparkles, Flame, Star, Search, RefreshCw, AlertCircle, Bookmark, Clapperboard, Heart } from 'lucide-react';
+import { Analytics } from '@vercel/analytics/react';
 import { Movie, FilterParams } from './types';
 import { fetchMovies } from './services/movieApi';
 import { Header } from './components/Header';
@@ -440,6 +441,9 @@ export default function App() {
 
       {/* Notifications Toast Container */}
       <ToastContainer toasts={toasts} onDismiss={removeToast} />
+
+      {/* Vercel Web Analytics */}
+      <Analytics />
 
     </div>
   );
