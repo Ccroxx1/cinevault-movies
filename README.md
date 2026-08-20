@@ -1,33 +1,20 @@
-# CineVault By Sasuu
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
+</div>
 
-Vite + React movie discovery application prepared for Vercel.
+# Run and deploy your AI Studio app
 
-## Vercel deployment
+This contains everything you need to run your app locally.
 
-The project uses Vercel serverless functions under `api/movies/[action].ts` for the movie API routes:
+View your app in AI Studio: https://ai.studio/apps/f9d24072-0b1a-45ed-8361-995f1e0f8ad6
 
-- `/api/movies/list`
-- `/api/movies/details`
-- `/api/movies/suggestions`
-- `/api/movies/parental_guides`
+## Run Locally
 
-No environment variables are required for the current movie API implementation.
+**Prerequisites:**  Node.js
 
-### Important
 
-Do not add a catch-all Vercel rewrite to `/index.html`. Such a rewrite would also intercept `/api/movies/*` requests and return the HTML page, which causes browser errors such as `Unexpected token '<', "<!doctype"... is not valid JSON`.
-
-Vercel detects the functions in the `api/` directory automatically, so no `vercel.json` file is required for this project.
-
-## Local development
-
-```bash
-npm install
-npm run dev
-```
-
-## Production build
-
-```bash
-npm run build
-```
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`

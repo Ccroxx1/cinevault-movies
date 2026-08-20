@@ -102,52 +102,113 @@ export const SORT_OPTIONS = [
   { label: 'Downloads', value: 'download_count', order: 'desc' }
 ] as const;
 
+// API mirror candidates to fetch data reliably across development, Vercel, and Blogger embeds
+const PUBLIC_MIRRORS = [
+  '/api/movies',
+  'https://movies-api.accel.li/api/v2',
+  'https://yts.mx/api/v2',
+  'https://yts.lt/api/v2',
+  'https://yts.am/api/v2'
+];
+
+async function fetchFromMirrors(
+  endpointName: 'list' | 'details' | 'suggestions' | 'parental_guides',
+  queryParams: Record<string, string>
+): Promise<any> {
+  const queryString = new URLSearchParams(queryParams).toString();
+  let lastError: Error | null = null;
+
+  // Endpoint mapping
+  const fileEndpointMap: Record<string, string> = {
+    list: 'list_movies.json',
+    details: 'movie_details.json',
+    suggestions: 'movie_suggestions.json',
+    parental_guides: 'movie_parental_guides.json'
+  };
+
+  const fileEndpoint = fileEndpointMap[endpointName] || 'list_movies.json';
+
+  for (const mirror of PUBLIC_MIRRORS) {
+    try {
+      let targetUrl = '';
+      if (mirror.startsWith('/api')) {
+        targetUrl = `${mirror}/${endpointName}?${queryString}`;
+      } else {
+        targetUrl = `${mirror}/${fileEndpoint}?${queryString}`;
+      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+      const response = await fetch(targetUrl, {
+        headers: {
+          'Accept': 'application/json'
+        },
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        continue;
+      }
+
+      const text = await response.text();
+      const trimmed = text.trim();
+
+      // Ensure response is valid JSON and not an HTML error document
+      if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+        const parsed = JSON.parse(trimmed);
+        if (parsed && (parsed.status === 'ok' || parsed.data || parsed.movies)) {
+          return parsed;
+        }
+      }
+    } catch (err: any) {
+      lastError = err;
+      // Try next mirror
+    }
+  }
+
+  throw new Error(lastError?.message || 'Unable to connect to movie catalog. Please check your internet connection or retry in a moment.');
+}
+
 export async function fetchMovies(params: Partial<FilterParams> = {}): Promise<{
   movies: Movie[];
   totalCount: number;
   limit: number;
   page: number;
 }> {
-  const query = new URLSearchParams();
+  const queryParams: Record<string, string> = {};
 
-  if (params.page) query.set('page', params.page.toString());
-  if (params.limit) query.set('limit', params.limit.toString());
-  
-  // Construct search query term, incorporating year if selected and single query
-  let combinedQuery = params.query_term ? params.query_term.trim() : '';
+  if (params.page) queryParams.page = params.page.toString();
+  if (params.limit) queryParams.limit = params.limit.toString();
   
   if (params.query_term && params.query_term.trim()) {
-    query.set('query_term', params.query_term.trim());
+    queryParams.query_term = params.query_term.trim();
   } else if (params.year && params.year !== 'All' && !params.year.includes('-')) {
-    // If no query text but a specific year like 2024 is chosen
-    query.set('query_term', params.year);
+    queryParams.query_term = params.year;
   }
 
   if (params.genre && params.genre !== 'All') {
-    query.set('genre', params.genre.toLowerCase());
+    queryParams.genre = params.genre.toLowerCase();
   }
   if (params.quality && params.quality !== 'All') {
-    query.set('quality', params.quality);
+    queryParams.quality = params.quality;
   }
   if (params.minimum_rating && params.minimum_rating > 0) {
-    query.set('minimum_rating', params.minimum_rating.toString());
+    queryParams.minimum_rating = params.minimum_rating.toString();
   }
   if (params.sort_by) {
-    query.set('sort_by', params.sort_by);
+    queryParams.sort_by = params.sort_by;
   }
   if (params.order_by) {
-    query.set('order_by', params.order_by);
+    queryParams.order_by = params.order_by;
   }
 
-  query.set('with_rt_ratings', 'true');
+  queryParams.with_rt_ratings = 'true';
 
-  const res = await fetch(`/api/movies/list?${query.toString()}`);
-  if (!res.ok) {
-    throw new Error(`Movie API error: ${res.status} ${res.statusText || 'Bad Gateway'}`);
-  }
-
-  const json = await res.json();
-  const data = json.data || {};
+  const json = await fetchFromMirrors('list', queryParams);
+  const data = json?.data || {};
   let movies: Movie[] = data.movies || [];
 
   // Optional client-side refinements if year range or language were selected
@@ -169,26 +230,26 @@ export async function fetchMovies(params: Partial<FilterParams> = {}): Promise<{
 
   return {
     movies,
-    totalCount: data.movie_count || 0,
+    totalCount: data.movie_count || movies.length,
     limit: data.limit || 20,
     page: data.page_number || 1
   };
 }
 
 export async function fetchMovieDetails(movieId: number | string): Promise<Movie | null> {
-  const res = await fetch(`/api/movies/details?movie_id=${movieId}&with_images=true&with_cast=true`);
-  if (!res.ok) {
-    throw new Error(`Failed to fetch movie details: ${res.status} ${res.statusText || 'Bad Gateway'}`);
-  }
-  const json = await res.json();
+  const json = await fetchFromMirrors('details', {
+    movie_id: movieId.toString(),
+    with_images: 'true',
+    with_cast: 'true'
+  });
   return json?.data?.movie || null;
 }
 
 export async function fetchMovieSuggestions(movieId: number | string): Promise<Movie[]> {
   try {
-    const res = await fetch(`/api/movies/suggestions?movie_id=${movieId}`);
-    if (!res.ok) return [];
-    const json = await res.json();
+    const json = await fetchFromMirrors('suggestions', {
+      movie_id: movieId.toString()
+    });
     return json?.data?.movies || [];
   } catch {
     return [];
@@ -197,9 +258,9 @@ export async function fetchMovieSuggestions(movieId: number | string): Promise<M
 
 export async function fetchParentalGuides(movieId: number | string): Promise<ParentalGuide[]> {
   try {
-    const res = await fetch(`/api/movies/parental_guides?movie_id=${movieId}`);
-    if (!res.ok) return [];
-    const json = await res.json();
+    const json = await fetchFromMirrors('parental_guides', {
+      movie_id: movieId.toString()
+    });
     return json?.data?.parent_guides || [];
   } catch {
     return [];
