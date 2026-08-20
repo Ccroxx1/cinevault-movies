@@ -1,20 +1,36 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# CineVault By Sasuu
 
-# Run and deploy your AI Studio app
+A Vite + React movie discovery application by Prosper Sasuu.
 
-This contains everything you need to run your app locally.
+## Local development
 
-View your app in AI Studio: https://ai.studio/apps/f9d24072-0b1a-45ed-8361-995f1e0f8ad6
+Requirements: Node.js 18+.
 
-## Run Locally
+```bash
+npm install
+npm run dev
+```
 
-**Prerequisites:**  Node.js
+The local development server is provided by `server.ts`.
 
+## Vercel deployment
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+The project is configured for Vercel as a Vite frontend with serverless movie API routes under `api/movies/[action].ts`.
+
+Supported API endpoints:
+
+- `/api/movies/list`
+- `/api/movies/details`
+- `/api/movies/suggestions`
+- `/api/movies/parental_guides`
+
+No environment variables are required by the current CineVault implementation.
+
+### Deploy from GitHub
+
+1. Import `Ccroxx1/cinevault-movies` into Vercel.
+2. Select **Vite** as the application preset if Vercel asks.
+3. Leave Environment Variables empty.
+4. Click **Deploy**.
+
+Vercel automatically detects the `api/` serverless functions and the Vite build output.

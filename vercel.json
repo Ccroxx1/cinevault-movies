@@ -1,10 +1,6 @@
 {
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "https://yts.mx/api/v2/$1"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

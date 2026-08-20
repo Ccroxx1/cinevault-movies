@@ -143,7 +143,7 @@ export async function fetchMovies(params: Partial<FilterParams> = {}): Promise<{
 
   const res = await fetch(`/api/movies/list?${query.toString()}`);
   if (!res.ok) {
-    throw new Error(`API error: ${res.statusText}`);
+    throw new Error(`Movie API error: ${res.status} ${res.statusText || 'Bad Gateway'}`);
   }
 
   const json = await res.json();
@@ -178,7 +178,7 @@ export async function fetchMovies(params: Partial<FilterParams> = {}): Promise<{
 export async function fetchMovieDetails(movieId: number | string): Promise<Movie | null> {
   const res = await fetch(`/api/movies/details?movie_id=${movieId}&with_images=true&with_cast=true`);
   if (!res.ok) {
-    throw new Error(`Failed to fetch movie details: ${res.statusText}`);
+    throw new Error(`Failed to fetch movie details: ${res.status} ${res.statusText || 'Bad Gateway'}`);
   }
   const json = await res.json();
   return json?.data?.movie || null;
