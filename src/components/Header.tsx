@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Movie, FilterParams } from '../types';
 import { GENRES } from '../services/movieApi';
+import { CineVaultLogo, CineVaultBrowseIcon } from './CineVaultLogo';
 
 interface HeaderProps {
   searchQuery: string;
@@ -164,24 +165,9 @@ export const Header: React.FC<HeaderProps> = ({
                   onNavSelect('browse');
                   setIsMobileMenuOpen(false);
                 }}
-                className="flex items-center gap-2 sm:gap-3 cursor-pointer group shrink-0"
+                className="cursor-pointer group shrink-0"
               >
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-rose-700 to-rose-500 flex items-center justify-center shadow-lg shadow-rose-900/30 group-hover:scale-105 transition-transform">
-                  <Film className="w-4 h-4 sm:w-5 sm:h-5 text-white font-bold" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-1 sm:gap-1.5">
-                    <span className="font-display font-black text-base sm:text-xl tracking-tight text-white group-hover:text-rose-500 transition-colors">
-                      CineVault
-                    </span>
-                    <span className="px-1 sm:px-1.5 py-0.5 text-[9px] sm:text-[10px] font-bold tracking-wider uppercase bg-rose-600/20 text-rose-400 border border-rose-500/30 rounded">
-                      By Sasuu
-                    </span>
-                  </div>
-                  <p className="text-[10px] sm:text-[11px] text-neutral-400 hidden sm:block">
-                    Curated Cinema & HD Downloads
-                  </p>
-                </div>
+                <CineVaultLogo variant="header" size="md" />
               </div>
             </div>
 
@@ -304,11 +290,11 @@ export const Header: React.FC<HeaderProps> = ({
                 onClick={() => onNavSelect('browse')}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   currentNav === 'browse'
-                    ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
+                    ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30 shadow-[0_0_12px_rgba(229,9,20,0.25)]'
                     : 'text-neutral-300 hover:text-white hover:bg-white/5'
                 }`}
               >
-                <Clapperboard className="w-3.5 h-3.5" />
+                <CineVaultBrowseIcon size={16} />
                 <span>Browse</span>
               </button>
 
@@ -457,15 +443,7 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="space-y-6">
               {/* Header inside drawer */}
               <div className="flex items-center justify-between pb-4 border-b border-white/10">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-rose-600 flex items-center justify-center">
-                    <Film className="w-4 h-4 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-white text-base">CineVault Menu</h3>
-                    <p className="text-[10px] text-neutral-400">Navigation & Categories</p>
-                  </div>
-                </div>
+                <CineVaultLogo variant="header" size="sm" />
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="p-1.5 text-neutral-400 hover:text-white hover:bg-white/10 rounded-lg cursor-pointer"
@@ -487,12 +465,12 @@ export const Header: React.FC<HeaderProps> = ({
                   }}
                   className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold cursor-pointer ${
                     currentNav === 'browse'
-                      ? 'bg-rose-600 text-white font-bold'
+                      ? 'bg-rose-600 text-white font-bold shadow-lg shadow-rose-950/50'
                       : 'text-neutral-300 hover:bg-white/5'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <Clapperboard className="w-4 h-4" />
+                    <CineVaultBrowseIcon size={16} />
                     <span>Browse All Cinema</span>
                   </div>
                   <ChevronRight className="w-3.5 h-3.5 opacity-60" />

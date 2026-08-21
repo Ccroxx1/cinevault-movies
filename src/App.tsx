@@ -17,6 +17,7 @@ import { ToastContainer, ToastMessage } from './components/Toast';
 import { AdSensePolicyModal } from './components/AdSensePolicyModal';
 import { CookieConsentBanner } from './components/CookieConsentBanner';
 import { AdSenseSlot } from './components/AdSenseSlot';
+import { CineVaultLogo } from './components/CineVaultLogo';
 
 const DEFAULT_FILTERS: FilterParams = {
   query_term: '',
@@ -490,16 +491,8 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-xl bg-rose-600 flex items-center justify-center text-white font-bold shadow-md shadow-rose-900/40">
-                <Film className="w-4 h-4" />
-              </div>
-              <span className="font-display font-black text-sm text-neutral-200">
-                CineVault By Sasuu
-              </span>
-              <span className="text-[11px] text-neutral-500 hidden sm:inline">
-                — Curated High-Definition Film Discovery & Downloads
-              </span>
+            <div className="flex items-center gap-3">
+              <CineVaultLogo variant="header" size="sm" showTagline={true} />
             </div>
 
             {/* Compliance Navigation Links */}
