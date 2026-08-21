@@ -273,6 +273,16 @@ export default function App() {
         watchlistCount={watchlist.length}
         onOpenGuide={() => setIsGuideOpen(true)}
         onSelectMovie={(m) => setSelectedMovie(m)}
+        onSelectGenre={(genre) => {
+          setCurrentNav('browse');
+          setFilters((prev) => ({
+            ...prev,
+            genre: genre,
+            page: 1
+          }));
+          window.scrollTo({ top: 450, behavior: 'smooth' });
+        }}
+        onOpenPolicy={(tab) => setPolicyModalTab(tab)}
       />
 
       {/* Main Content Area */}
@@ -315,6 +325,9 @@ export default function App() {
               isWatchlisted={(id) => isMovieWatchlisted(id)}
               onToggleWatchlist={handleToggleWatchlist}
             />
+
+            {/* Top Responsive AdSense Leaderboard Placement */}
+            <AdSenseSlot format="auto" responsive={true} className="my-6" />
 
             {/* Curated Cinema Categories (Rendered on Home Browse View) */}
             {currentNav === 'browse' && !filters.query_term && filters.page === 1 && filters.genre === 'All' && filters.quality === 'All' && (
@@ -456,7 +469,7 @@ export default function App() {
             )}
 
             {/* AdSense In-Feed / Banner Placement compliant with ad-to-content ratio */}
-            <AdSenseSlot slotId="content_banner_bottom" format="horizontal" />
+            <AdSenseSlot format="auto" responsive={true} className="my-8" />
 
             {/* Pagination */}
             {!isLoading && totalCount > filters.limit && (

@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { Movie, Torrent, ParentalGuide, buildMagnetLink, RECOMMENDED_TRACKERS } from '../types';
 import { fetchMovieDetails, fetchMovieSuggestions, fetchParentalGuides } from '../services/movieApi';
+import { AdSenseSlot } from './AdSenseSlot';
 
 interface MovieDetailsModalProps {
   movie: Movie;
@@ -515,6 +516,11 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
               </div>
             </div>
           )}
+
+          {/* Responsive In-Modal Ad Placement */}
+          <div className="pt-4 border-t border-white/5">
+            <AdSenseSlot format="auto" responsive={true} className="my-2" />
+          </div>
 
           {/* Similar Movie Suggestions Section */}
           {suggestions.length > 0 && (
