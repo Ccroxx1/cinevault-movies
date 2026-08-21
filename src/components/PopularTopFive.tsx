@@ -101,6 +101,7 @@ export const PopularTopFive: React.FC<PopularTopFiveProps> = ({
                     src={movie.medium_cover_image || movie.large_cover_image}
                     alt={movie.title}
                     loading="lazy"
+                    referrerPolicy="no-referrer"
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-108"
                   />
 

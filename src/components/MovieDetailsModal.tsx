@@ -141,6 +141,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
               <img
                 src={movie.large_cover_image || movie.medium_cover_image || movie.small_cover_image}
                 alt={movie.title}
+                referrerPolicy="no-referrer"
                 className="w-full h-full object-cover"
               />
             </div>

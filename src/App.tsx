@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Film, Sparkles, Flame, Star, Search, RefreshCw, AlertCircle, Bookmark, Clapperboard, Heart } from 'lucide-react';
+import { Film, Sparkles, Flame, Star, Search, RefreshCw, AlertCircle, Bookmark, Clapperboard, Heart, Layers } from 'lucide-react';
 import { Movie, FilterParams } from './types';
 import { fetchMovies } from './services/movieApi';
 import { Header } from './components/Header';
 import { FeaturedHero } from './components/FeaturedHero';
 import { PopularTopFive } from './components/PopularTopFive';
+import { MovieSectionRow, CURATED_SECTIONS, CuratedSectionConfig } from './components/MovieSectionRow';
 import { FilterBar } from './components/FilterBar';
 import { MovieCard } from './components/MovieCard';
 import { MovieDetailsModal } from './components/MovieDetailsModal';
@@ -38,6 +39,10 @@ export default function App() {
   const [totalCount, setTotalCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Curated sections state map: sectionId -> Movie[]
+  const [sectionMovies, setSectionMovies] = useState<Record<string, Movie[]>>({});
+  const [isSectionsLoading, setIsSectionsLoading] = useState<boolean>(true);
   
   // Navigation & Views
   const [currentNav, setCurrentNav] = useState<string>('browse');
@@ -86,19 +91,19 @@ export default function App() {
       setIsFeaturedLoading(true);
       const currentYear = new Date().getFullYear().toString();
       try {
-        // First try fetching latest popular movies for current year (and previous year if early in year)
+        // First try fetching latest popular movies for current year
         let data = await fetchMovies({ 
           query_term: currentYear, 
           sort_by: 'download_count', 
-          limit: 10 
+          limit: 15 
         });
 
-        // Filter and get 5 latest popular movies
-        let validMovies = (data.movies || []).filter(m => m && m.medium_cover_image);
+        // Filter valid movies with artwork
+        let validMovies = (data.movies || []).filter(m => m && (m.large_cover_image || m.medium_cover_image));
 
-        // If fewer than 5 found for current year, fetch top downloaded movies
-        if (validMovies.length < 5) {
-          const fallbackData = await fetchMovies({ sort_by: 'download_count', limit: 10 });
+        // If fewer than 10 found, fetch top downloaded movies
+        if (validMovies.length < 10) {
+          const fallbackData = await fetchMovies({ sort_by: 'download_count', limit: 20 });
           const additional = (fallbackData.movies || []).filter(
             m => m && !validMovies.some(existing => existing.id === m.id)
           );
@@ -106,7 +111,7 @@ export default function App() {
         }
 
         if (validMovies.length > 0) {
-          setFeaturedMovies(validMovies.slice(0, 5));
+          setFeaturedMovies(validMovies.slice(0, 10));
         }
       } catch (err) {
         console.error('Error loading featured movies:', err);
@@ -115,6 +120,43 @@ export default function App() {
       }
     };
     loadFeatured();
+  }, []);
+
+  // Fetch all Curated Homepage Sections in parallel on mount
+  useEffect(() => {
+    const loadCuratedSections = async () => {
+      setIsSectionsLoading(true);
+      try {
+        const results = await Promise.allSettled(
+          CURATED_SECTIONS.map(async (sec) => {
+            const data = await fetchMovies({
+              ...DEFAULT_FILTERS,
+              ...sec.filterParams,
+              limit: 10
+            });
+            return {
+              id: sec.id,
+              movies: (data.movies || []).filter(m => m && (m.medium_cover_image || m.large_cover_image))
+            };
+          })
+        );
+
+        const newMap: Record<string, Movie[]> = {};
+        results.forEach((res, index) => {
+          const sectionId = CURATED_SECTIONS[index].id;
+          if (res.status === 'fulfilled' && res.value.movies.length > 0) {
+            newMap[sectionId] = res.value.movies;
+          }
+        });
+        setSectionMovies(newMap);
+      } catch (err) {
+        console.error('Error loading curated movie sections:', err);
+      } finally {
+        setIsSectionsLoading(false);
+      }
+    };
+
+    loadCuratedSections();
   }, []);
 
   // Fetch Main Movies Catalog based on active filters
@@ -273,6 +315,41 @@ export default function App() {
               isWatchlisted={(id) => isMovieWatchlisted(id)}
               onToggleWatchlist={handleToggleWatchlist}
             />
+
+            {/* Curated Cinema Categories (Rendered on Home Browse View) */}
+            {currentNav === 'browse' && !filters.query_term && filters.page === 1 && filters.genre === 'All' && filters.quality === 'All' && (
+              <div className="space-y-6 my-10 border-t border-b border-white/5 py-6">
+                <div className="flex items-center gap-2">
+                  <Layers className="w-5 h-5 text-rose-500" />
+                  <div>
+                    <h2 className="text-xl font-bold text-white tracking-tight">Curated Film Collections</h2>
+                    <p className="text-xs text-neutral-400">Explore cinematic worlds categorized by prestigious themes, box office records, and genres</p>
+                  </div>
+                </div>
+
+                {CURATED_SECTIONS.map((section) => (
+                  <MovieSectionRow
+                    key={section.id}
+                    section={section}
+                    movies={sectionMovies[section.id] || []}
+                    isLoading={isSectionsLoading}
+                    onSelectMovie={(m) => setSelectedMovie(m)}
+                    onPlayTrailer={handlePlayTrailer}
+                    onCopyMagnet={handleCopyMagnet}
+                    isWatchlisted={isMovieWatchlisted}
+                    onToggleWatchlist={handleToggleWatchlist}
+                    onViewAll={() => {
+                      setFilters({
+                        ...DEFAULT_FILTERS,
+                        ...section.filterParams,
+                        page: 1
+                      });
+                      window.scrollTo({ top: 500, behavior: 'smooth' });
+                    }}
+                  />
+                ))}
+              </div>
+            )}
 
             {/* Section Heading & Filter Bar */}
             <div className="space-y-4">
