@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { ChevronLeft, ChevronRight, Sparkles, Flame, Trophy, Award, Clapperboard, Heart, Laugh, Shield, Skull, Atom, Calendar, Eye, Play, Copy, Check, Bookmark, Star } from 'lucide-react';
 import { Movie, buildMagnetLink } from '../types';
+import { getMoviePath } from '../utils/seo';
 
 export interface CuratedSectionConfig {
   id: string;
@@ -240,16 +241,22 @@ export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
             const isSaved = isWatchlisted(movie.id);
 
             return (
-              <div
+              <a
                 key={`${section.id}-${movie.id}`}
-                onClick={() => onSelectMovie(movie)}
-                className="group relative shrink-0 w-36 sm:w-44 md:w-48 snap-start rounded-2xl overflow-hidden bg-[#0e0e0e] border border-white/10 hover:border-white/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/80 flex flex-col cursor-pointer"
+                href={getMoviePath(movie)}
+                onClick={(e) => {
+                  if (!e.ctrlKey && !e.metaKey && !e.shiftKey && e.button === 0) {
+                    e.preventDefault();
+                    onSelectMovie(movie);
+                  }
+                }}
+                className="group relative shrink-0 w-36 sm:w-44 md:w-48 snap-start rounded-2xl overflow-hidden bg-[#0e0e0e] border border-white/10 hover:border-white/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/80 flex flex-col cursor-pointer no-underline text-inherit"
               >
                 {/* Poster Image */}
                 <div className="relative aspect-[2/3] w-full overflow-hidden bg-neutral-900">
                   <img
                     src={movie.medium_cover_image || movie.large_cover_image || movie.small_cover_image}
-                    alt={movie.title}
+                    alt={`${movie.title} (${movie.year})`}
                     referrerPolicy="no-referrer"
                     loading="lazy"
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -271,7 +278,9 @@ export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
                     <div className="flex items-center gap-1.5">
                       {movie.yt_trailer_code && (
                         <button
+                          type="button"
                           onClick={(e) => {
+                            e.preventDefault();
                             e.stopPropagation();
                             onPlayTrailer(movie.yt_trailer_code, movie.title);
                           }}
@@ -284,7 +293,11 @@ export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
 
                       {torrent && (
                         <button
-                          onClick={(e) => handleCopy(e, movie)}
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleCopy(e, movie);
+                          }}
                           className="p-1.5 bg-[#6ac045]/20 hover:bg-[#6ac045]/30 border border-[#6ac045]/40 text-[#6ac045] rounded-lg transition-colors cursor-pointer"
                           title="Copy Magnet Link"
                         >
@@ -324,7 +337,7 @@ export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
                     )}
                   </div>
                 </div>
-              </div>
+              </a>
             );
           })
         ) : (

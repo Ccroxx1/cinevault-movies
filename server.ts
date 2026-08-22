@@ -14,9 +14,10 @@ app.use(express.json());
 // API Base URLs to try in priority order
 const API_BASE_URLS = [
   'https://movies-api.accel.li/api/v2',
-  'https://yts.mx/api/v2',
+  'https://yts.am/api/v2',
   'https://yts.lt/api/v2',
-  'https://yts.am/api/v2'
+  'https://yts.bz/api/v2',
+  'https://yts.mx/api/v2'
 ];
 
 // Simple in-memory cache to make browsing super fast and resilient
@@ -32,13 +33,13 @@ async function fetchFromApi(endpoint: string, queryParams: Record<string, string
     return cached.data;
   }
 
-  let lastError: any = null;
+  let lastErrorMessage = 'Failed to fetch from all movie API mirrors';
 
   for (const baseUrl of API_BASE_URLS) {
     try {
       const targetUrl = `${baseUrl}/${endpoint}?${queryString}`;
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const timeoutId = setTimeout(() => controller.abort(), 7000);
 
       const response = await fetch(targetUrl, {
         headers: {
@@ -51,14 +52,24 @@ async function fetchFromApi(endpoint: string, queryParams: Record<string, string
       clearTimeout(timeoutId);
 
       if (response.ok) {
-        const json = await response.json();
-        if (json && (json.status === 'ok' || json.data)) {
-          cache.set(cacheKey, { timestamp: Date.now(), data: json });
-          return json;
+        const text = await response.text();
+        const trimmed = text ? text.trim() : '';
+
+        // Verify response contains valid JSON structure
+        if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+          try {
+            const json = JSON.parse(trimmed);
+            if (json && (json.status === 'ok' || json.data)) {
+              cache.set(cacheKey, { timestamp: Date.now(), data: json });
+              return json;
+            }
+          } catch {
+            // Malformed JSON from this mirror; try next mirror
+          }
         }
       }
     } catch (err: any) {
-      lastError = err;
+      lastErrorMessage = err?.message || lastErrorMessage;
       // continue to next base URL
     }
   }
@@ -68,7 +79,7 @@ async function fetchFromApi(endpoint: string, queryParams: Record<string, string
     return cached.data;
   }
 
-  throw new Error(lastError?.message || 'Failed to fetch from all movie API mirrors');
+  throw new Error(lastErrorMessage);
 }
 
 // API Routes

@@ -1,4 +1,5 @@
 import { Movie, FilterParams, ParentalGuide } from '../types';
+import { slugify, parseMovieSlug } from '../utils/seo';
 
 export const GENRES = [
   'All',
@@ -106,9 +107,10 @@ export const SORT_OPTIONS = [
 const PUBLIC_MIRRORS = [
   '/api/movies',
   'https://movies-api.accel.li/api/v2',
-  'https://yts.mx/api/v2',
+  'https://yts.am/api/v2',
   'https://yts.lt/api/v2',
-  'https://yts.am/api/v2'
+  'https://yts.bz/api/v2',
+  'https://yts.mx/api/v2'
 ];
 
 async function fetchFromMirrors(
@@ -116,7 +118,7 @@ async function fetchFromMirrors(
   queryParams: Record<string, string>
 ): Promise<any> {
   const queryString = new URLSearchParams(queryParams).toString();
-  let lastError: Error | null = null;
+  let lastErrorMessage = 'Unable to connect to movie catalog';
 
   // Endpoint mapping
   const fileEndpointMap: Record<string, string> = {
@@ -154,22 +156,26 @@ async function fetchFromMirrors(
       }
 
       const text = await response.text();
-      const trimmed = text.trim();
+      const trimmed = text ? text.trim() : '';
 
       // Ensure response is valid JSON and not an HTML error document
       if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
-        const parsed = JSON.parse(trimmed);
-        if (parsed && (parsed.status === 'ok' || parsed.data || parsed.movies)) {
-          return parsed;
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (parsed && (parsed.status === 'ok' || parsed.data || parsed.movies)) {
+            return parsed;
+          }
+        } catch {
+          // JSON parsing failed for this mirror, proceed to next
         }
       }
     } catch (err: any) {
-      lastError = err;
+      lastErrorMessage = err?.message || lastErrorMessage;
       // Try next mirror
     }
   }
 
-  throw new Error(lastError?.message || 'Unable to connect to movie catalog. Please check your internet connection or retry in a moment.');
+  throw new Error(lastErrorMessage);
 }
 
 export async function fetchMovies(params: Partial<FilterParams> = {}): Promise<{
@@ -237,12 +243,17 @@ export async function fetchMovies(params: Partial<FilterParams> = {}): Promise<{
 }
 
 export async function fetchMovieDetails(movieId: number | string): Promise<Movie | null> {
-  const json = await fetchFromMirrors('details', {
-    movie_id: movieId.toString(),
-    with_images: 'true',
-    with_cast: 'true'
-  });
-  return json?.data?.movie || null;
+  try {
+    const json = await fetchFromMirrors('details', {
+      movie_id: movieId.toString(),
+      with_images: 'true',
+      with_cast: 'true'
+    });
+    return json?.data?.movie || null;
+  } catch (err) {
+    console.warn(`Movie details could not be retrieved for ID ${movieId}:`, err);
+    return null;
+  }
 }
 
 export async function fetchMovieSuggestions(movieId: number | string): Promise<Movie[]> {
@@ -266,3 +277,90 @@ export async function fetchParentalGuides(movieId: number | string): Promise<Par
     return [];
   }
 }
+
+// In-memory cache for slug to movie resolution
+const slugCache = new Map<string, Movie>();
+
+export async function fetchMovieBySlug(slug: string): Promise<Movie | null> {
+  const normalizedSlug = slugify(slug);
+  if (!normalizedSlug) return null;
+
+  if (slugCache.has(normalizedSlug)) {
+    return slugCache.get(normalizedSlug)!;
+  }
+
+  try {
+    const { titleQuery, year } = parseMovieSlug(normalizedSlug);
+    if (!titleQuery) return null;
+
+    // First attempt: search by parsed title query + year
+    let searchRes = await fetchMovies({
+      query_term: titleQuery,
+      year: year ? String(year) : undefined,
+      limit: 15
+    });
+
+    let movies = searchRes.movies || [];
+
+    // If not found with year filter, try searching without year constraint
+    if (movies.length === 0 && year) {
+      searchRes = await fetchMovies({
+        query_term: titleQuery,
+        limit: 20
+      });
+      movies = searchRes.movies || [];
+    }
+
+    if (movies.length === 0) {
+      // Direct search using full slug
+      searchRes = await fetchMovies({
+        query_term: normalizedSlug.replace(/-/g, ' '),
+        limit: 20
+      });
+      movies = searchRes.movies || [];
+    }
+
+    if (movies.length === 0) return null;
+
+    // Find closest exact match
+    let matchedMovie = movies.find(m => {
+      const mSlug = slugify(m.slug || '');
+      const computedSlug = slugify(`${m.title}-${m.year}`);
+      const computedEnglishSlug = slugify(`${m.title_english || ''}-${m.year}`);
+      return (
+        mSlug === normalizedSlug ||
+        computedSlug === normalizedSlug ||
+        computedEnglishSlug === normalizedSlug
+      );
+    });
+
+    // Fallback: match by title and year
+    if (!matchedMovie && year) {
+      matchedMovie = movies.find(m => {
+        const titleMatch = slugify(m.title) === slugify(titleQuery) || slugify(m.title_english || '') === slugify(titleQuery);
+        return titleMatch && m.year === year;
+      });
+    }
+
+    // Fallback: match by title alone
+    if (!matchedMovie) {
+      matchedMovie = movies.find(m => slugify(m.title) === slugify(titleQuery));
+    }
+
+    // Fallback: first movie in list
+    if (!matchedMovie) {
+      matchedMovie = movies[0];
+    }
+
+    // Fetch full details with cast, screenshots, etc.
+    const fullMovie = await fetchMovieDetails(matchedMovie.id);
+    const finalMovie = fullMovie || matchedMovie;
+
+    slugCache.set(normalizedSlug, finalMovie);
+    return finalMovie;
+  } catch (err) {
+    console.error(`Failed to fetch movie for slug ${slug}:`, err);
+    return null;
+  }
+}
+

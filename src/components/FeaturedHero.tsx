@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Play, Sparkles, Star, Clock, Bookmark, ChevronLeft, ChevronRight, Copy, Check, Eye, Pause } from 'lucide-react';
+import { Play, Sparkles, Star, Clock, Bookmark, ChevronLeft, ChevronRight, Copy, Check, Eye, Pause, Magnet } from 'lucide-react';
 import { Movie, buildMagnetLink } from '../types';
+import { getMoviePath } from '../utils/seo';
 
 interface FeaturedHeroProps {
   movies: Movie[];
@@ -158,7 +159,18 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
 
           {/* Title */}
           <h1 className="font-display font-black text-2xl sm:text-4xl md:text-5xl text-white tracking-tight leading-tight">
-            {currentMovie.title}
+            <a
+              href={getMoviePath(currentMovie)}
+              onClick={(e) => {
+                if (!e.ctrlKey && !e.metaKey && !e.shiftKey && e.button === 0) {
+                  e.preventDefault();
+                  onSelectMovie(currentMovie);
+                }
+              }}
+              className="hover:text-rose-400 transition-colors"
+            >
+              {currentMovie.title}
+            </a>
           </h1>
 
           {/* Genres */}
@@ -180,13 +192,19 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
 
           {/* Action Buttons */}
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 sm:gap-3 pt-2">
-            <button
-              onClick={() => onSelectMovie(currentMovie)}
+            <a
+              href={getMoviePath(currentMovie)}
+              onClick={(e) => {
+                if (!e.ctrlKey && !e.metaKey && !e.shiftKey && e.button === 0) {
+                  e.preventDefault();
+                  onSelectMovie(currentMovie);
+                }
+              }}
               className="flex items-center gap-1.5 sm:gap-2 px-5 sm:px-7 py-2.5 bg-white text-black font-bold text-xs sm:text-sm rounded-full hover:bg-neutral-200 transition-all shadow-xl cursor-pointer"
             >
               <Eye className="w-4 h-4" />
               <span>Details</span>
-            </button>
+            </a>
 
             {currentMovie.yt_trailer_code && (
               <button
@@ -199,23 +217,29 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
             )}
 
             {primaryTorrent && (
-              <button
-                onClick={handleCopyMagnet}
-                className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2.5 bg-[#6ac045]/20 hover:bg-[#6ac045]/30 border border-[#6ac045]/40 text-[#6ac045] font-bold text-xs sm:text-sm rounded-full backdrop-blur-md transition-all cursor-pointer"
-                title="Copy Magnet Link for 1-Click Torrenting"
-              >
-                {copiedHash === primaryTorrent.hash ? (
-                  <>
-                    <Check className="w-4 h-4 text-[#6ac045]" />
-                    <span>Copied</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-4 h-4 text-[#6ac045]" />
-                    <span>Magnet ({primaryTorrent.quality})</span>
-                  </>
-                )}
-              </button>
+              <>
+                <a
+                  href={buildMagnetLink(primaryTorrent.hash, currentMovie.title_long || currentMovie.title)}
+                  className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm rounded-full backdrop-blur-md shadow-lg shadow-emerald-950/40 transition-all cursor-pointer"
+                  title="Direct Magnet Download"
+                >
+                  <Magnet className="w-4 h-4 text-emerald-200" />
+                  <span>Magnet ({primaryTorrent.quality})</span>
+                </a>
+
+                <button
+                  onClick={handleCopyMagnet}
+                  className="p-2.5 sm:p-3 bg-white/10 hover:bg-white/20 text-neutral-200 rounded-full border border-white/20 backdrop-blur-md transition-all cursor-pointer"
+                  title="Copy raw Magnet URI"
+                  aria-label="Copy raw Magnet URI"
+                >
+                  {copiedHash === primaryTorrent.hash ? (
+                    <Check className="w-4 h-4 text-emerald-400" />
+                  ) : (
+                    <Copy className="w-4 h-4 text-neutral-300" />
+                  )}
+                </button>
+              </>
             )}
 
             <button

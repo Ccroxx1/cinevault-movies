@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Flame, Star, Play, Copy, Check, Eye, Bookmark, Sparkles, TrendingUp } from 'lucide-react';
+import { Flame, Star, Play, Copy, Check, Eye, Bookmark, Sparkles, TrendingUp, Magnet } from 'lucide-react';
 import { Movie, buildMagnetLink } from '../types';
+import { getMoviePath } from '../utils/seo';
 
 interface PopularTopFiveProps {
   movies: Movie[];
@@ -90,16 +91,22 @@ export const PopularTopFive: React.FC<PopularTopFiveProps> = ({
             const isWatch = isWatchlisted(movie.id);
 
             return (
-              <div
+              <a
                 key={`pop-${movie.id}`}
-                onClick={() => onSelectMovie(movie)}
-                className="group relative bg-[#0e0e0e] hover:bg-[#141414] border border-white/10 hover:border-rose-500/60 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-2xl hover:shadow-rose-950/30 flex flex-col"
+                href={getMoviePath(movie)}
+                onClick={(e) => {
+                  if (!e.ctrlKey && !e.metaKey && !e.shiftKey && e.button === 0) {
+                    e.preventDefault();
+                    onSelectMovie(movie);
+                  }
+                }}
+                className="group relative bg-[#0e0e0e] hover:bg-[#141414] border border-white/10 hover:border-rose-500/60 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-2xl hover:shadow-rose-950/30 flex flex-col no-underline text-inherit"
               >
                 {/* Poster Image Container */}
                 <div className="relative aspect-[2/3] w-full overflow-hidden bg-[#050505]">
                   <img
                     src={movie.medium_cover_image || movie.large_cover_image}
-                    alt={movie.title}
+                    alt={`${movie.title} (${movie.year})`}
                     loading="lazy"
                     referrerPolicy="no-referrer"
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-108"
@@ -121,7 +128,9 @@ export const PopularTopFive: React.FC<PopularTopFiveProps> = ({
                     )}
 
                     <button
+                      type="button"
                       onClick={(e) => {
+                        e.preventDefault();
                         e.stopPropagation();
                         onToggleWatchlist(movie);
                       }}
@@ -182,17 +191,17 @@ export const PopularTopFive: React.FC<PopularTopFiveProps> = ({
                       {primaryTorrent && (
                         <button
                           onClick={(e) => handleCopyMagnet(e, movie)}
-                          className="h-7 sm:h-7.5 px-1.5 sm:px-2 bg-[#6ac045] hover:bg-[#5ca63c] text-white rounded-lg text-[10px] sm:text-[11px] font-bold flex items-center justify-center gap-1 transition-colors"
-                          title="Copy Magnet Link"
+                          className="h-7 sm:h-7.5 px-1.5 sm:px-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] sm:text-[11px] font-bold flex items-center justify-center gap-1 transition-colors"
+                          title={`Copy Magnet URI (${primaryTorrent.quality})`}
                         >
                           {copiedId === movie.id ? (
                             <>
-                              <Check className="w-3 h-3" />
+                              <Check className="w-3 h-3 text-emerald-200" />
                               <span className="text-[9px] sm:text-[10px]">Copied</span>
                             </>
                           ) : (
                             <>
-                              <Copy className="w-3 h-3" />
+                              <Magnet className="w-3 h-3 text-emerald-200" />
                               <span className="text-[9px] sm:text-[10px]">Magnet</span>
                             </>
                           )}
@@ -219,7 +228,7 @@ export const PopularTopFive: React.FC<PopularTopFiveProps> = ({
                     </span>
                   </div>
                 </div>
-              </div>
+              </a>
             );
           })}
         </div>

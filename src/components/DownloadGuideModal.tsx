@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, HelpCircle, Download, Copy, Check, ShieldCheck, Terminal, HardDrive, Sparkles } from 'lucide-react';
+import { X, HelpCircle, Download, Copy, Check, ShieldCheck, Terminal, HardDrive, Sparkles, Magnet, Cloud } from 'lucide-react';
 import { RECOMMENDED_TRACKERS } from '../types';
 
 interface DownloadGuideModalProps {
@@ -28,15 +28,15 @@ export const DownloadGuideModal: React.FC<DownloadGuideModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-rose-600/10 border border-rose-500/20 text-rose-500 rounded-xl">
-              <HelpCircle className="w-5 h-5" />
+            <div className="p-2.5 bg-emerald-600/10 border border-emerald-500/20 text-emerald-400 rounded-xl">
+              <Magnet className="w-5 h-5" />
             </div>
             <div>
               <h3 className="text-lg font-display font-black text-white">
-                How to Browse & Download Films
+                Magnet URIs & Download Methods
               </h3>
               <p className="text-xs text-neutral-400">
-                Guide to magnet links, .torrent files, and high-speed trackers
+                Direct magnet downloads, raw magnet URIs, debrid cloud tools, and .torrent files
               </p>
             </div>
           </div>
@@ -53,37 +53,41 @@ export const DownloadGuideModal: React.FC<DownloadGuideModalProps> = ({
         <div className="space-y-3.5 text-sm text-neutral-300">
           
           <div className="flex items-start gap-3.5 p-4 bg-[#050505] rounded-2xl border border-white/10">
-            <div className="w-7 h-7 rounded-full bg-rose-600/20 text-rose-400 border border-rose-500/30 flex items-center justify-center font-bold text-xs shrink-0">
+            <div className="w-7 h-7 rounded-full bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-xs shrink-0">
               1
             </div>
             <div>
-              <div className="font-bold text-white text-sm">Install a Modern Client</div>
+              <div className="font-bold text-white text-sm flex items-center gap-2">
+                <span>Direct "Magnet Download" (One-Click Launch)</span>
+              </div>
               <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
-                To download films via peer-to-peer or magnet URIs, use a clean, ad-free client such as <strong>qBittorrent</strong>, <strong>Transmission</strong>, or <strong>LibreTorrent</strong> (Android).
+                Clicking the green <strong>"Magnet Download"</strong> button invokes your device's registered <code>magnet:</code> protocol handler directly, immediately opening your torrent client (e.g. <strong>qBittorrent</strong>, <strong>Transmission</strong>, <strong>LibreTorrent</strong>, or <strong>Flud</strong>) without needing to download separate files.
               </p>
             </div>
           </div>
 
           <div className="flex items-start gap-3.5 p-4 bg-[#050505] rounded-2xl border border-white/10">
-            <div className="w-7 h-7 rounded-full bg-rose-600/20 text-rose-400 border border-rose-500/30 flex items-center justify-center font-bold text-xs shrink-0">
+            <div className="w-7 h-7 rounded-full bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-xs shrink-0">
               2
             </div>
             <div>
-              <div className="font-bold text-white text-sm">One-Click Magnet Links</div>
+              <div className="font-bold text-white text-sm flex items-center gap-2">
+                <span>Raw Magnet URIs for Cloud & Debrid Services</span>
+              </div>
               <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
-                Click <strong>"Copy Magnet"</strong> on any movie card or detail view to instantly copy a magnet URI configured with the high-speed tracker list, or click the link icon to open your client directly.
+                Click <strong>"Copy URI"</strong> or <strong>"URI Details"</strong> to copy the complete raw URI string (<code>magnet:?xt=urn:btih:...</code>). You can paste this directly into cloud downloaders like <strong>Real-Debrid</strong>, <strong>Seedr.cc</strong>, <strong>Put.io</strong>, or <strong>Offcloud</strong> for high-speed cloud caching and direct streaming.
               </p>
             </div>
           </div>
 
           <div className="flex items-start gap-3.5 p-4 bg-[#050505] rounded-2xl border border-white/10">
-            <div className="w-7 h-7 rounded-full bg-rose-600/20 text-rose-400 border border-rose-500/30 flex items-center justify-center font-bold text-xs shrink-0">
+            <div className="w-7 h-7 rounded-full bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-xs shrink-0">
               3
             </div>
             <div>
-              <div className="font-bold text-white text-sm">Direct .torrent Files</div>
+              <div className="font-bold text-white text-sm">Direct .torrent Metadata Files</div>
               <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
-                Click <strong>"Download .torrent"</strong> in the movie file matrix to download the standard metadata file and drag it into your player or client.
+                Click <strong>".Torrent"</strong> to save the standard metadata file locally on your disk, useful for offline archiving or media servers like Plex/Jellyfin.
               </p>
             </div>
           </div>
@@ -94,22 +98,22 @@ export const DownloadGuideModal: React.FC<DownloadGuideModalProps> = ({
         <div className="p-4 bg-[#050505] border border-white/10 rounded-2xl space-y-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-xs font-bold text-neutral-300">
-              <Terminal className="w-3.5 h-3.5 text-rose-500" />
+              <Terminal className="w-3.5 h-3.5 text-emerald-400" />
               <span>Recommended Open BitTorrent Trackers ({RECOMMENDED_TRACKERS.length})</span>
             </div>
 
             <button
               onClick={handleCopyTrackers}
-              className="flex items-center gap-1 text-xs text-rose-400 hover:text-rose-300 font-semibold px-3 py-1 bg-rose-600/10 rounded-full border border-rose-500/20 transition-colors cursor-pointer"
+              className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 font-semibold px-3 py-1 bg-emerald-600/10 rounded-full border border-emerald-500/20 transition-colors cursor-pointer"
             >
               {copiedTrackers ? (
                 <>
-                  <Check className="w-3 h-3 text-rose-400" />
+                  <Check className="w-3 h-3 text-emerald-400" />
                   <span>Copied All Trackers</span>
                 </>
               ) : (
                 <>
-                  <Copy className="w-3 h-3 text-rose-400" />
+                  <Copy className="w-3 h-3 text-emerald-400" />
                   <span>Copy All Trackers</span>
                 </>
               )}
@@ -127,7 +131,7 @@ export const DownloadGuideModal: React.FC<DownloadGuideModalProps> = ({
         <div className="pt-2">
           <button
             onClick={onClose}
-            className="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm rounded-full shadow-lg shadow-rose-900/30 transition-colors cursor-pointer"
+            className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-full shadow-lg shadow-emerald-950/30 transition-colors cursor-pointer"
           >
             Got it, Let's Explore Films
           </button>

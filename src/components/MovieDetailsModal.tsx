@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
   X, Star, Clock, Download, Play, Copy, Check, ExternalLink, HardDrive,
-  Users, Film, ShieldAlert, Sparkles, Bookmark, Share2, ArrowDownToLine, Image as ImageIcon
+  Users, Film, ShieldAlert, Sparkles, Bookmark, Share2, ArrowDownToLine, Image as ImageIcon,
+  Magnet, Terminal, ChevronDown, ChevronUp, Zap
 } from 'lucide-react';
 import { Movie, Torrent, ParentalGuide, buildMagnetLink, RECOMMENDED_TRACKERS } from '../types';
 import { fetchMovieDetails, fetchMovieSuggestions, fetchParentalGuides } from '../services/movieApi';
@@ -33,6 +34,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
   const [copiedTorrentHash, setCopiedTorrentHash] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'torrents' | 'cast' | 'screenshots' | 'guides'>('torrents');
   const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(null);
+  const [expandedMagnetHash, setExpandedMagnetHash] = useState<string | null>(null);
 
   // Fetch full details (cast, screenshots, etc.), suggestions, and parental guides
   useEffect(() => {
@@ -309,6 +311,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
                   {movie.torrents.map((torrent) => {
                     const magnetUrl = buildMagnetLink(torrent.hash, movie.title_long || movie.title);
                     const isCopied = copiedTorrentHash === torrent.hash;
+                    const isExpanded = expandedMagnetHash === torrent.hash;
 
                     return (
                       <div
@@ -366,49 +369,92 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
                         </div>
 
                         {/* Action Buttons for this Torrent */}
-                        <div className="flex items-center gap-2 pt-2 border-t border-white/10">
+                        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/10">
                           
-                          {/* Direct .torrent Download Button */}
+                          {/* 1. Direct Magnet Download */}
+                          <a
+                            href={magnetUrl}
+                            className="flex-1 min-w-[130px] flex items-center justify-center gap-1.5 py-2.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-950/30 transition-colors"
+                            title="Direct Magnet Download (Opens your BitTorrent client)"
+                          >
+                            <Magnet className="w-3.5 h-3.5 text-emerald-200" />
+                            <span>Magnet Download</span>
+                          </a>
+
+                          {/* 2. Copy Magnet URI Button */}
+                          <button
+                            onClick={() => handleCopyMagnet(torrent)}
+                            className="flex-1 min-w-[100px] flex items-center justify-center gap-1.5 py-2.5 px-3 bg-white/10 hover:bg-white/20 text-neutral-200 font-semibold text-xs rounded-xl border border-white/10 transition-colors cursor-pointer"
+                            title="Copy raw magnet URI to clipboard"
+                          >
+                            {isCopied ? (
+                              <>
+                                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                <span className="text-emerald-400 font-bold">Copied URI</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3.5 h-3.5 text-neutral-300" />
+                                <span>Copy URI</span>
+                              </>
+                            )}
+                          </button>
+
+                          {/* 3. Direct .torrent Download Button */}
                           <a
                             href={torrent.url}
                             target="_blank"
                             rel="noreferrer noopener"
                             download
-                            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 bg-white hover:bg-neutral-200 text-black font-bold text-xs rounded-full shadow-md transition-colors"
+                            className="p-2.5 bg-white/5 hover:bg-white/15 text-neutral-300 rounded-xl border border-white/10 transition-colors"
+                            title="Download .torrent file"
                           >
-                            <ArrowDownToLine className="w-3.5 h-3.5" />
-                            <span>Download .torrent</span>
+                            <ArrowDownToLine className="w-4 h-4" />
                           </a>
 
-                          {/* Copy Magnet URL Button */}
+                          {/* 4. Inspect Magnet URI Toggle */}
                           <button
-                            onClick={() => handleCopyMagnet(torrent)}
-                            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 bg-white/10 hover:bg-white/20 text-neutral-200 font-semibold text-xs rounded-full border border-white/10 transition-colors cursor-pointer"
-                            title="Copy magnet link to clipboard"
+                            onClick={() => setExpandedMagnetHash(isExpanded ? null : torrent.hash)}
+                            className="p-2.5 bg-white/5 hover:bg-white/15 text-neutral-300 rounded-xl border border-white/10 transition-colors cursor-pointer"
+                            title="Inspect full Magnet URI, Hash, and Trackers"
                           >
-                            {isCopied ? (
-                              <>
-                                <Check className="w-3.5 h-3.5 text-rose-400" />
-                                <span className="text-rose-400 font-bold">Copied!</span>
-                              </>
-                            ) : (
-                              <>
-                                <Copy className="w-3.5 h-3.5 text-neutral-300" />
-                                <span>Copy Magnet</span>
-                              </>
-                            )}
+                            <Terminal className="w-4 h-4 text-neutral-400" />
                           </button>
 
-                          {/* Open Magnet Link Directly */}
-                          <a
-                            href={magnetUrl}
-                            className="p-2.5 bg-white/10 hover:bg-white/20 text-rose-400 hover:text-rose-300 rounded-full border border-white/10 transition-colors"
-                            title="Open Magnet in Default Torrent Client"
-                          >
-                            <ExternalLink className="w-4 h-4" />
-                          </a>
-
                         </div>
+
+                        {/* Collapsible Magnet URI Inspector */}
+                        {isExpanded && (
+                          <div className="p-3 bg-black/60 rounded-xl border border-white/10 space-y-2 text-xs animate-in fade-in duration-150">
+                            <div className="flex items-center justify-between text-neutral-400 font-mono text-[10px]">
+                              <span>RAW MAGNET URI</span>
+                              <span>BTIH: {torrent.hash.slice(0, 12)}...</span>
+                            </div>
+                            <textarea
+                              readOnly
+                              rows={2}
+                              value={magnetUrl}
+                              onClick={(e) => (e.target as HTMLTextAreaElement).select()}
+                              className="w-full p-2 bg-[#080808] text-emerald-400 font-mono text-[10px] rounded-lg border border-white/10 focus:outline-none resize-none select-all"
+                            />
+                            <div className="flex items-center justify-between gap-2 pt-1 text-[11px]">
+                              <a
+                                href={magnetUrl}
+                                className="text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1"
+                              >
+                                <Magnet className="w-3 h-3" />
+                                <span>Launch in Client</span>
+                              </a>
+                              <button
+                                onClick={() => handleCopyMagnet(torrent)}
+                                className="text-neutral-300 hover:text-white font-semibold flex items-center gap-1 cursor-pointer"
+                              >
+                                <Copy className="w-3 h-3" />
+                                <span>{isCopied ? 'Copied' : 'Copy URI'}</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     );
                   })}

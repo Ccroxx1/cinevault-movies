@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Film, Sparkles, Flame, Star, Search, RefreshCw, AlertCircle, Bookmark, Clapperboard, Heart, Layers } from 'lucide-react';
+import { Film, Sparkles, Flame, Star, Search, RefreshCw, AlertCircle, Bookmark, Clapperboard, Heart, Layers, ArrowLeft } from 'lucide-react';
 import { Movie, FilterParams } from './types';
-import { fetchMovies } from './services/movieApi';
+import { fetchMovies, fetchMovieBySlug } from './services/movieApi';
 import { Header } from './components/Header';
 import { FeaturedHero } from './components/FeaturedHero';
 import { PopularTopFive } from './components/PopularTopFive';
 import { MovieSectionRow, CURATED_SECTIONS, CuratedSectionConfig } from './components/MovieSectionRow';
 import { FilterBar } from './components/FilterBar';
 import { MovieCard } from './components/MovieCard';
-import { MovieDetailsModal } from './components/MovieDetailsModal';
+import { MovieDetailPage } from './components/MovieDetailPage';
 import { TrailerModal } from './components/TrailerModal';
 import { WatchlistView } from './components/WatchlistView';
 import { DownloadGuideModal } from './components/DownloadGuideModal';
@@ -18,6 +18,7 @@ import { AdSensePolicyModal } from './components/AdSensePolicyModal';
 import { CookieConsentBanner } from './components/CookieConsentBanner';
 import { AdSenseSlot } from './components/AdSenseSlot';
 import { CineVaultLogo } from './components/CineVaultLogo';
+import { getMoviePath, getMovieSlug, updateDocumentSeo, parseMovieSlug } from './utils/seo';
 
 const DEFAULT_FILTERS: FilterParams = {
   query_term: '',
@@ -32,6 +33,12 @@ const DEFAULT_FILTERS: FilterParams = {
   limit: 20
 };
 
+interface AppRoute {
+  type: 'browse' | 'movie' | 'watchlist';
+  slug?: string;
+  movie?: Movie | null;
+}
+
 export default function App() {
   const [filters, setFilters] = useState<FilterParams>(DEFAULT_FILTERS);
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -41,13 +48,17 @@ export default function App() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Router State
+  const [route, setRoute] = useState<AppRoute>({ type: 'browse' });
+  const [isMovieSlugLoading, setIsMovieSlugLoading] = useState<boolean>(false);
+  const [movieSlugError, setMovieSlugError] = useState<string | null>(null);
+
   // Curated sections state map: sectionId -> Movie[]
   const [sectionMovies, setSectionMovies] = useState<Record<string, Movie[]>>({});
   const [isSectionsLoading, setIsSectionsLoading] = useState<boolean>(true);
   
-  // Navigation & Views
+  // Navigation & Modals
   const [currentNav, setCurrentNav] = useState<string>('browse');
-  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [trailerData, setTrailerData] = useState<{ ytCode: string; title: string } | null>(null);
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
   const [policyModalTab, setPolicyModalTab] = useState<'privacy' | 'terms' | 'about' | 'contact' | 'dmca' | null>(null);
@@ -86,23 +97,155 @@ export default function App() {
     }
   }, [watchlist]);
 
+  // Initial Route Parser & Browser History Listener
+  useEffect(() => {
+    const resolveLocation = async () => {
+      const pathname = window.location.pathname;
+      const searchParams = new URLSearchParams(window.location.search);
+
+      // Check if URL matches /movies/:slug
+      const movieMatch = pathname.match(/^\/movies\/([^\/]+)/);
+
+      if (movieMatch) {
+        const slug = movieMatch[1];
+        setRoute((prev) => {
+          if (prev.type === 'movie' && prev.slug === slug && prev.movie) {
+            return prev;
+          }
+          return { type: 'movie', slug, movie: null };
+        });
+
+        setIsMovieSlugLoading(true);
+        setMovieSlugError(null);
+
+        try {
+          const found = await fetchMovieBySlug(slug);
+          if (found) {
+            setRoute({ type: 'movie', slug, movie: found });
+          } else {
+            setMovieSlugError(`Movie "${slug}" could not be located in the catalog.`);
+          }
+        } catch (err: any) {
+          setMovieSlugError('Failed to load movie details. Please check your internet connection.');
+        } finally {
+          setIsMovieSlugLoading(false);
+        }
+        return;
+      }
+
+      // Check if Watchlist route
+      if (pathname === '/watchlist') {
+        setRoute({ type: 'watchlist' });
+        setCurrentNav('watchlist');
+        updateDocumentSeo({
+          title: 'My Saved Watchlist — CineVault By Sasuu',
+          description: 'View your saved bookmarked films and download torrents on CineVault.'
+        });
+        return;
+      }
+
+      // Default Browse Route
+      setRoute({ type: 'browse' });
+      setCurrentNav('browse');
+
+      // Check for search or genre query parameters in URL
+      const genreParam = searchParams.get('genre');
+      const queryParam = searchParams.get('q') || searchParams.get('query');
+      const yearParam = searchParams.get('year');
+
+      if (genreParam || queryParam || yearParam) {
+        setFilters((prev) => ({
+          ...prev,
+          genre: genreParam || prev.genre,
+          query_term: queryParam || prev.query_term,
+          year: yearParam || prev.year,
+          page: 1
+        }));
+      }
+
+      updateDocumentSeo({});
+    };
+
+    resolveLocation();
+
+    // Listen for forward/backward browser navigation
+    const handlePopState = () => {
+      resolveLocation();
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Navigation Handlers
+  const handleSelectMovie = (movie: Movie) => {
+    const movieSlug = getMovieSlug(movie);
+    const moviePath = getMoviePath(movie);
+
+    setRoute({
+      type: 'movie',
+      slug: movieSlug,
+      movie: movie
+    });
+    setMovieSlugError(null);
+
+    // Push URL without page reload
+    if (window.location.pathname !== moviePath) {
+      window.history.pushState({ type: 'movie', slug: movieSlug }, '', moviePath);
+    }
+  };
+
+  const handleNavigateHome = () => {
+    setRoute({ type: 'browse' });
+    setCurrentNav('browse');
+    setMovieSlugError(null);
+
+    if (window.location.pathname !== '/') {
+      window.history.pushState({ type: 'browse' }, '', '/');
+    }
+
+    updateDocumentSeo({});
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleNavigateWatchlist = () => {
+    setRoute({ type: 'watchlist' });
+    setCurrentNav('watchlist');
+    setMovieSlugError(null);
+
+    if (window.location.pathname !== '/watchlist') {
+      window.history.pushState({ type: 'watchlist' }, '', '/watchlist');
+    }
+
+    updateDocumentSeo({
+      title: 'My Saved Watchlist — CineVault By Sasuu',
+      description: 'View your saved bookmarked films and download torrents on CineVault.'
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      handleNavigateHome();
+    }
+  };
+
   // Fetch Featured & Top Popular Movies for the current year once on mount
   useEffect(() => {
     const loadFeatured = async () => {
       setIsFeaturedLoading(true);
       const currentYear = new Date().getFullYear().toString();
       try {
-        // First try fetching latest popular movies for current year
         let data = await fetchMovies({ 
           query_term: currentYear, 
           sort_by: 'download_count', 
           limit: 15 
         });
 
-        // Filter valid movies with artwork
         let validMovies = (data.movies || []).filter(m => m && (m.large_cover_image || m.medium_cover_image));
 
-        // If fewer than 10 found, fetch top downloaded movies
         if (validMovies.length < 10) {
           const fallbackData = await fetchMovies({ sort_by: 'download_count', limit: 20 });
           const additional = (fallbackData.movies || []).filter(
@@ -162,7 +305,7 @@ export default function App() {
 
   // Fetch Main Movies Catalog based on active filters
   const loadMovies = useCallback(async () => {
-    if (currentNav === 'watchlist') return;
+    if (route.type === 'watchlist' || route.type === 'movie') return;
 
     setIsLoading(true);
     setError(null);
@@ -178,7 +321,7 @@ export default function App() {
     } finally {
       setIsLoading(false);
     }
-  }, [filters, currentNav]);
+  }, [filters, route.type]);
 
   useEffect(() => {
     loadMovies();
@@ -186,6 +329,19 @@ export default function App() {
 
   // Handle Navigation Category switching
   const handleNavSelect = (nav: string) => {
+    if (nav === 'watchlist') {
+      handleNavigateWatchlist();
+      return;
+    }
+
+    if (route.type !== 'browse') {
+      setRoute({ type: 'browse' });
+      if (window.location.pathname !== '/') {
+        window.history.pushState({ type: 'browse' }, '', '/');
+      }
+      updateDocumentSeo({});
+    }
+
     setCurrentNav(nav);
     if (nav === 'browse') {
       setFilters(DEFAULT_FILTERS);
@@ -213,6 +369,14 @@ export default function App() {
 
   // Filter updates
   const handleFilterChange = (newFilters: Partial<FilterParams>) => {
+    if (route.type !== 'browse') {
+      setRoute({ type: 'browse' });
+      if (window.location.pathname !== '/') {
+        window.history.pushState({ type: 'browse' }, '', '/');
+      }
+      updateDocumentSeo({});
+    }
+
     setFilters((prev) => ({
       ...prev,
       ...newFilters
@@ -224,6 +388,14 @@ export default function App() {
   };
 
   const handleSearchSubmit = (query: string) => {
+    if (route.type !== 'browse') {
+      setRoute({ type: 'browse' });
+      if (window.location.pathname !== '/') {
+        window.history.pushState({ type: 'browse' }, '', '/');
+      }
+      updateDocumentSeo({});
+    }
+
     setCurrentNav('browse');
     setFilters((prev) => ({
       ...prev,
@@ -269,12 +441,19 @@ export default function App() {
         searchQuery={filters.query_term}
         onSearchChange={(q) => setFilters((prev) => ({ ...prev, query_term: q }))}
         onSearchSubmit={handleSearchSubmit}
-        currentNav={currentNav}
+        currentNav={route.type === 'watchlist' ? 'watchlist' : currentNav}
         onNavSelect={handleNavSelect}
         watchlistCount={watchlist.length}
         onOpenGuide={() => setIsGuideOpen(true)}
-        onSelectMovie={(m) => setSelectedMovie(m)}
+        onSelectMovie={handleSelectMovie}
         onSelectGenre={(genre) => {
+          if (route.type !== 'browse') {
+            setRoute({ type: 'browse' });
+            if (window.location.pathname !== '/') {
+              window.history.pushState({ type: 'browse' }, '', `/?genre=${encodeURIComponent(genre)}`);
+            }
+            updateDocumentSeo({});
+          }
           setCurrentNav('browse');
           setFilters((prev) => ({
             ...prev,
@@ -289,11 +468,69 @@ export default function App() {
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         
-        {/* Watchlist View */}
-        {currentNav === 'watchlist' ? (
+        {/* Route 1: Dedicated Movie Detail Page */}
+        {route.type === 'movie' ? (
+          <div>
+            {isMovieSlugLoading ? (
+              <div className="space-y-6 animate-pulse py-8">
+                <div className="h-8 bg-neutral-900 rounded-lg w-1/3" />
+                <div className="h-96 bg-neutral-900 rounded-3xl border border-white/5" />
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-2 h-64 bg-neutral-900 rounded-2xl" />
+                  <div className="h-64 bg-neutral-900 rounded-2xl" />
+                </div>
+              </div>
+            ) : movieSlugError ? (
+              <div className="py-20 text-center flex flex-col items-center justify-center bg-[#0a0a0a] border border-white/10 rounded-3xl p-8 space-y-4 my-8">
+                <div className="w-16 h-16 rounded-2xl bg-rose-950/40 border border-rose-500/30 flex items-center justify-center text-rose-500">
+                  <AlertCircle className="w-8 h-8" />
+                </div>
+                <div className="space-y-1 max-w-md">
+                  <h3 className="text-xl font-bold text-white">Movie Not Found</h3>
+                  <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                    {movieSlugError}
+                  </p>
+                </div>
+                <button
+                  onClick={handleBack}
+                  className="px-6 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs sm:text-sm rounded-full shadow-lg shadow-rose-900/30 transition-colors flex items-center gap-2 cursor-pointer"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Back</span>
+                </button>
+              </div>
+            ) : route.movie ? (
+              <MovieDetailPage
+                movie={route.movie}
+                onBack={handleBack}
+                onNavigateHome={handleNavigateHome}
+                onSelectMovie={handleSelectMovie}
+                onSelectGenre={(genre) => {
+                  setRoute({ type: 'browse' });
+                  if (window.location.pathname !== '/') {
+                    window.history.pushState({ type: 'browse' }, '', `/?genre=${encodeURIComponent(genre)}`);
+                  }
+                  updateDocumentSeo({});
+                  setCurrentNav('browse');
+                  setFilters((prev) => ({
+                    ...prev,
+                    genre: genre,
+                    page: 1
+                  }));
+                }}
+                onPlayTrailer={handlePlayTrailer}
+                onCopyMagnet={handleCopyMagnet}
+                isWatchlisted={isMovieWatchlisted}
+                onToggleWatchlist={handleToggleWatchlist}
+                onOpenGuide={() => setIsGuideOpen(true)}
+              />
+            ) : null}
+          </div>
+        ) : route.type === 'watchlist' ? (
+          /* Route 2: Watchlist View */
           <WatchlistView
             watchlist={watchlist}
-            onSelectMovie={(m) => setSelectedMovie(m)}
+            onSelectMovie={handleSelectMovie}
             onPlayTrailer={handlePlayTrailer}
             onCopyMagnet={handleCopyMagnet}
             onToggleWatchlist={handleToggleWatchlist}
@@ -303,12 +540,13 @@ export default function App() {
             }}
           />
         ) : (
+          /* Route 3: Browse Homepage & Catalog View */
           <>
             {/* Featured Hero Premiere Carousel (Only on browse homepage when no search active) */}
             {currentNav === 'browse' && !filters.query_term && filters.page === 1 && filters.genre === 'All' && filters.quality === 'All' && (
               <FeaturedHero
                 movies={featuredMovies}
-                onSelectMovie={(m) => setSelectedMovie(m)}
+                onSelectMovie={handleSelectMovie}
                 onPlayTrailer={handlePlayTrailer}
                 onCopyMagnet={handleCopyMagnet}
                 isWatchlisted={isMovieWatchlisted}
@@ -320,7 +558,7 @@ export default function App() {
             <PopularTopFive
               movies={featuredMovies}
               isLoading={isFeaturedLoading}
-              onSelectMovie={(m) => setSelectedMovie(m)}
+              onSelectMovie={handleSelectMovie}
               onPlayTrailer={handlePlayTrailer}
               onCopyMagnet={handleCopyMagnet}
               isWatchlisted={(id) => isMovieWatchlisted(id)}
@@ -347,7 +585,7 @@ export default function App() {
                     section={section}
                     movies={sectionMovies[section.id] || []}
                     isLoading={isSectionsLoading}
-                    onSelectMovie={(m) => setSelectedMovie(m)}
+                    onSelectMovie={handleSelectMovie}
                     onPlayTrailer={handlePlayTrailer}
                     onCopyMagnet={handleCopyMagnet}
                     isWatchlisted={isMovieWatchlisted}
@@ -439,7 +677,7 @@ export default function App() {
                   <MovieCard
                     key={movie.id}
                     movie={movie}
-                    onSelect={(m) => setSelectedMovie(m)}
+                    onSelect={handleSelectMovie}
                     onPlayTrailer={handlePlayTrailer}
                     onCopyMagnet={handleCopyMagnet}
                     isWatchlisted={isMovieWatchlisted(movie.id)}
@@ -492,7 +730,16 @@ export default function App() {
           <div className="flex flex-wrap items-center justify-between gap-4">
             
             <div className="flex items-center gap-3">
-              <CineVaultLogo variant="header" size="sm" showTagline={true} />
+              <a
+                href="/"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleNavigateHome();
+                }}
+                className="cursor-pointer"
+              >
+                <CineVaultLogo variant="header" size="sm" showTagline={true} />
+              </a>
             </div>
 
             {/* Compliance Navigation Links */}
@@ -566,19 +813,6 @@ export default function App() {
         onOpenPrivacy={() => setPolicyModalTab('privacy')}
       />
 
-      {/* Movie Details Modal */}
-      {selectedMovie && (
-        <MovieDetailsModal
-          movie={selectedMovie}
-          onClose={() => setSelectedMovie(null)}
-          onSelectSuggestion={(sug) => setSelectedMovie(sug)}
-          onPlayTrailer={handlePlayTrailer}
-          onCopyMagnet={handleCopyMagnet}
-          isWatchlisted={isMovieWatchlisted(selectedMovie.id)}
-          onToggleWatchlist={handleToggleWatchlist}
-        />
-      )}
-
       {/* YouTube Trailer Modal */}
       {trailerData && (
         <TrailerModal
@@ -604,3 +838,4 @@ export default function App() {
     </div>
   );
 }
+
