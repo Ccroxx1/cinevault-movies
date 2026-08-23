@@ -68,13 +68,15 @@ export function setCachedVisitorCount(count: number): void {
  */
 export async function trackVisitorHit(): Promise<VisitorStatsResult> {
   const visitorId = getOrCreateVisitorId();
-  const alreadyHitThisSession = sessionStorage.getItem(SESSION_RECORDED_KEY);
+  const today = new Date().toISOString().split('T')[0];
+  const recordedSessionDate = sessionStorage.getItem(SESSION_RECORDED_KEY);
+  const alreadyHitTodayInSession = recordedSessionDate === today;
 
   try {
-    // If already recorded in this active tab session, just fetch latest stats without redundant hit
-    const endpoint = alreadyHitThisSession ? '/api/visitors/stats' : '/api/visitors/hit';
-    const method = alreadyHitThisSession ? 'GET' : 'POST';
-    const body = alreadyHitThisSession ? undefined : JSON.stringify({ visitorId });
+    // If already recorded today in this active tab session, just fetch latest stats without redundant hit
+    const endpoint = alreadyHitTodayInSession ? '/api/visitors/stats' : '/api/visitors/hit';
+    const method = alreadyHitTodayInSession ? 'GET' : 'POST';
+    const body = alreadyHitTodayInSession ? undefined : JSON.stringify({ visitorId });
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 4000);
@@ -95,7 +97,7 @@ export async function trackVisitorHit(): Promise<VisitorStatsResult> {
       const data = await res.json();
       if (typeof data.totalVisitors === 'number') {
         try {
-          sessionStorage.setItem(SESSION_RECORDED_KEY, 'true');
+          sessionStorage.setItem(SESSION_RECORDED_KEY, today);
         } catch {
           // ignore
         }

@@ -15,10 +15,46 @@ app.use(express.json());
 // Persistent visitor counter setup
 const STATS_FILE = path.join(process.cwd(), 'data', 'visitor_stats.json');
 
+// Upstash Redis Cloud Database Configuration
+const UPSTASH_REDIS_REST_URL = process.env.UPSTASH_REDIS_REST_URL || 'https://relaxing-flounder-42041.upstash.io';
+const UPSTASH_REDIS_REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || 'AqQ5AAIgcDG6sdewCbB8RVIClvvFRhx-qV5AxGKoy6NUZFNOcbj1qw';
+
+async function runUpstashPipeline(commands: any[][]): Promise<any[] | null> {
+  const url = UPSTASH_REDIS_REST_URL;
+  const token = UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) return null;
+
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 3500);
+    const res = await fetch(`${url.replace(/\/$/, '')}/pipeline`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(commands),
+      signal: controller.signal
+    });
+    clearTimeout(timer);
+
+    if (!res.ok) {
+      console.warn(`Upstash Redis returned status ${res.status}`);
+      return null;
+    }
+    const data = await res.json();
+    return Array.isArray(data) ? data.map(item => item?.result) : null;
+  } catch (err: any) {
+    console.warn('Upstash Redis sync deferred (falling back to local cache):', err?.message || err);
+    return null;
+  }
+}
+
 interface VisitorStats {
   totalVisitors: number;
   knownVisitorIds: string[];
   todayVisitors: number;
+  todayVisitorIds: string[];
   lastDate: string;
 }
 
@@ -26,6 +62,7 @@ let statsCache: VisitorStats = {
   totalVisitors: 0,
   knownVisitorIds: [],
   todayVisitors: 0,
+  todayVisitorIds: [],
   lastDate: new Date().toISOString().split('T')[0]
 };
 
@@ -42,6 +79,7 @@ function loadVisitorStats() {
         statsCache.totalVisitors = parsed.totalVisitors;
         statsCache.knownVisitorIds = Array.isArray(parsed.knownVisitorIds) ? parsed.knownVisitorIds : [];
         statsCache.todayVisitors = typeof parsed.todayVisitors === 'number' ? parsed.todayVisitors : 0;
+        statsCache.todayVisitorIds = Array.isArray(parsed.todayVisitorIds) ? parsed.todayVisitorIds : [];
         statsCache.lastDate = parsed.lastDate || new Date().toISOString().split('T')[0];
       }
     } else {
@@ -68,8 +106,25 @@ function saveVisitorStats() {
   }, 300);
 }
 
-// Initialize on startup
+// Initialize on startup & sync with Upstash Redis
 loadVisitorStats();
+(async () => {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const redisResults = await runUpstashPipeline([
+      ['SCARD', 'cinevault:visitors:all'],
+      ['SCARD', `cinevault:visitors:daily:${today}`]
+    ]);
+    if (redisResults && typeof redisResults[0] === 'number') {
+      statsCache.totalVisitors = redisResults[0];
+      statsCache.todayVisitors = typeof redisResults[1] === 'number' ? redisResults[1] : statsCache.todayVisitors;
+      saveVisitorStats();
+    }
+  } catch {
+    // Graceful fallback to local cache
+  }
+})();
+
 
 // API Base URLs to try in priority order
 const API_BASE_URLS = [
@@ -216,64 +271,137 @@ app.get('/api/movies/parental_guides', async (req, res) => {
   }
 });
 
-// Visitor Counter Endpoints
-app.get('/api/visitors/stats', (_req, res) => {
+// Visitor Counter Endpoints with Upstash Redis Cloud Database & Local Fallback
+app.get('/api/visitors/stats', async (_req, res) => {
   try {
     const today = new Date().toISOString().split('T')[0];
+
+    // Query Upstash Redis cloud database
+    const redisResults = await runUpstashPipeline([
+      ['SCARD', 'cinevault:visitors:all'],
+      ['SCARD', `cinevault:visitors:daily:${today}`]
+    ]);
+
+    if (redisResults && typeof redisResults[0] === 'number') {
+      const total = redisResults[0];
+      const todayCount = typeof redisResults[1] === 'number' ? redisResults[1] : 0;
+      statsCache.totalVisitors = total;
+      statsCache.todayVisitors = todayCount;
+      statsCache.lastDate = today;
+      saveVisitorStats();
+
+      return res.json({
+        totalVisitors: total,
+        todayVisitors: todayCount,
+        status: 'ok',
+        source: 'cloud_redis'
+      });
+    }
+
+    // Fallback to local memory / file cache
     if (statsCache.lastDate !== today) {
       statsCache.lastDate = today;
       statsCache.todayVisitors = 0;
+      statsCache.todayVisitorIds = [];
       saveVisitorStats();
     }
     res.json({
       totalVisitors: statsCache.totalVisitors,
       todayVisitors: statsCache.todayVisitors,
-      status: 'ok'
+      status: 'ok',
+      source: 'local_fallback'
     });
   } catch (error: any) {
     console.error('Error fetching visitor stats:', error);
-    res.status(500).json({ status: 'error', totalVisitors: statsCache.totalVisitors });
+    res.status(500).json({ status: 'error', totalVisitors: statsCache.totalVisitors, todayVisitors: statsCache.todayVisitors });
   }
 });
 
-app.post('/api/visitors/hit', (req, res) => {
+app.post('/api/visitors/hit', async (req, res) => {
   try {
     const visitorId = (req.body?.visitorId || req.ip || 'anon').toString().slice(0, 100);
     const today = new Date().toISOString().split('T')[0];
 
-    // Reset daily count if date changed
+    // Pipeline to Upstash Redis for atomic set insertion and cardinality counts
+    const redisResults = await runUpstashPipeline([
+      ['SADD', 'cinevault:visitors:all', visitorId],
+      ['SCARD', 'cinevault:visitors:all'],
+      ['SADD', `cinevault:visitors:daily:${today}`, visitorId],
+      ['EXPIRE', `cinevault:visitors:daily:${today}`, 604800], // 7 days retention
+      ['SCARD', `cinevault:visitors:daily:${today}`]
+    ]);
+
+    if (redisResults && typeof redisResults[1] === 'number') {
+      const isNewLifetime = redisResults[0] === 1;
+      const total = redisResults[1];
+      const todayCount = typeof redisResults[4] === 'number' ? redisResults[4] : 1;
+
+      statsCache.totalVisitors = total;
+      statsCache.todayVisitors = todayCount;
+      statsCache.lastDate = today;
+      if (!statsCache.knownVisitorIds.includes(visitorId)) {
+        statsCache.knownVisitorIds.push(visitorId);
+      }
+      saveVisitorStats();
+
+      return res.json({
+        totalVisitors: total,
+        todayVisitors: todayCount,
+        isNew: isNewLifetime,
+        status: 'ok',
+        source: 'cloud_redis'
+      });
+    }
+
+    // Fallback to local cache if cloud database is unreachable
     if (statsCache.lastDate !== today) {
       statsCache.lastDate = today;
       statsCache.todayVisitors = 0;
+      statsCache.todayVisitorIds = [];
     }
 
-    const isKnown = statsCache.knownVisitorIds.includes(visitorId);
-    let isNew = false;
+    let modified = false;
+    let isNewLifetime = false;
 
-    if (!isKnown) {
+    // Check lifetime visitor
+    if (!statsCache.knownVisitorIds.includes(visitorId)) {
       statsCache.totalVisitors += 1;
-      statsCache.todayVisitors += 1;
-      isNew = true;
       statsCache.knownVisitorIds.push(visitorId);
+      isNewLifetime = true;
+      modified = true;
       
-      // Limit array size to prevent unbounded memory growth while keeping a large unique pool
-      if (statsCache.knownVisitorIds.length > 25000) {
-        statsCache.knownVisitorIds = statsCache.knownVisitorIds.slice(-20000);
+      if (statsCache.knownVisitorIds.length > 50000) {
+        statsCache.knownVisitorIds = statsCache.knownVisitorIds.slice(-40000);
       }
+    }
+
+    // Check daily visitor
+    if (!statsCache.todayVisitorIds.includes(visitorId)) {
+      statsCache.todayVisitors += 1;
+      statsCache.todayVisitorIds.push(visitorId);
+      modified = true;
+      if (statsCache.todayVisitorIds.length > 25000) {
+        statsCache.todayVisitorIds = statsCache.todayVisitorIds.slice(-20000);
+      }
+    }
+
+    if (modified) {
       saveVisitorStats();
     }
 
     res.json({
       totalVisitors: statsCache.totalVisitors,
       todayVisitors: statsCache.todayVisitors,
-      isNew,
-      status: 'ok'
+      isNew: isNewLifetime,
+      status: 'ok',
+      source: 'local_fallback'
     });
   } catch (error: any) {
     console.error('Error processing visitor hit:', error);
-    res.status(500).json({ status: 'error', totalVisitors: statsCache.totalVisitors });
+    res.status(500).json({ status: 'error', totalVisitors: statsCache.totalVisitors, todayVisitors: statsCache.todayVisitors });
   }
 });
+
 
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
