@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
 
@@ -10,6 +11,65 @@ const app = express();
 const PORT = 3000;
 
 app.use(express.json());
+
+// Persistent visitor counter setup
+const STATS_FILE = path.join(process.cwd(), 'data', 'visitor_stats.json');
+
+interface VisitorStats {
+  totalVisitors: number;
+  knownVisitorIds: string[];
+  todayVisitors: number;
+  lastDate: string;
+}
+
+let statsCache: VisitorStats = {
+  totalVisitors: 0,
+  knownVisitorIds: [],
+  todayVisitors: 0,
+  lastDate: new Date().toISOString().split('T')[0]
+};
+
+function loadVisitorStats() {
+  try {
+    const dataDir = path.join(process.cwd(), 'data');
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    if (fs.existsSync(STATS_FILE)) {
+      const raw = fs.readFileSync(STATS_FILE, 'utf-8');
+      const parsed = JSON.parse(raw);
+      if (typeof parsed.totalVisitors === 'number') {
+        statsCache.totalVisitors = parsed.totalVisitors;
+        statsCache.knownVisitorIds = Array.isArray(parsed.knownVisitorIds) ? parsed.knownVisitorIds : [];
+        statsCache.todayVisitors = typeof parsed.todayVisitors === 'number' ? parsed.todayVisitors : 0;
+        statsCache.lastDate = parsed.lastDate || new Date().toISOString().split('T')[0];
+      }
+    } else {
+      saveVisitorStats();
+    }
+  } catch (err) {
+    console.error('Error loading visitor stats:', err);
+  }
+}
+
+let saveTimeout: NodeJS.Timeout | null = null;
+function saveVisitorStats() {
+  if (saveTimeout) clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(() => {
+    try {
+      const dataDir = path.join(process.cwd(), 'data');
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+      }
+      fs.writeFileSync(STATS_FILE, JSON.stringify(statsCache, null, 2), 'utf-8');
+    } catch (err) {
+      console.error('Error saving visitor stats:', err);
+    }
+  }, 300);
+}
+
+// Initialize on startup
+loadVisitorStats();
 
 // API Base URLs to try in priority order
 const API_BASE_URLS = [
@@ -153,6 +213,65 @@ app.get('/api/movies/parental_guides', async (req, res) => {
   } catch (error: any) {
     console.error('Error fetching parental guides:', error.message);
     res.status(500).json({ status: 'error', status_message: error.message, data: { parent_guides: [] } });
+  }
+});
+
+// Visitor Counter Endpoints
+app.get('/api/visitors/stats', (_req, res) => {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    if (statsCache.lastDate !== today) {
+      statsCache.lastDate = today;
+      statsCache.todayVisitors = 0;
+      saveVisitorStats();
+    }
+    res.json({
+      totalVisitors: statsCache.totalVisitors,
+      todayVisitors: statsCache.todayVisitors,
+      status: 'ok'
+    });
+  } catch (error: any) {
+    console.error('Error fetching visitor stats:', error);
+    res.status(500).json({ status: 'error', totalVisitors: statsCache.totalVisitors });
+  }
+});
+
+app.post('/api/visitors/hit', (req, res) => {
+  try {
+    const visitorId = (req.body?.visitorId || req.ip || 'anon').toString().slice(0, 100);
+    const today = new Date().toISOString().split('T')[0];
+
+    // Reset daily count if date changed
+    if (statsCache.lastDate !== today) {
+      statsCache.lastDate = today;
+      statsCache.todayVisitors = 0;
+    }
+
+    const isKnown = statsCache.knownVisitorIds.includes(visitorId);
+    let isNew = false;
+
+    if (!isKnown) {
+      statsCache.totalVisitors += 1;
+      statsCache.todayVisitors += 1;
+      isNew = true;
+      statsCache.knownVisitorIds.push(visitorId);
+      
+      // Limit array size to prevent unbounded memory growth while keeping a large unique pool
+      if (statsCache.knownVisitorIds.length > 25000) {
+        statsCache.knownVisitorIds = statsCache.knownVisitorIds.slice(-20000);
+      }
+      saveVisitorStats();
+    }
+
+    res.json({
+      totalVisitors: statsCache.totalVisitors,
+      todayVisitors: statsCache.todayVisitors,
+      isNew,
+      status: 'ok'
+    });
+  } catch (error: any) {
+    console.error('Error processing visitor hit:', error);
+    res.status(500).json({ status: 'error', totalVisitors: statsCache.totalVisitors });
   }
 });
 

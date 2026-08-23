@@ -18,6 +18,7 @@ import { AdSensePolicyModal } from './components/AdSensePolicyModal';
 import { CookieConsentBanner } from './components/CookieConsentBanner';
 import { AdSenseSlot } from './components/AdSenseSlot';
 import { CineVaultLogo } from './components/CineVaultLogo';
+import { VisitorCounter } from './components/VisitorCounter';
 import { getMoviePath, getMovieSlug, updateDocumentSeo, parseMovieSlug } from './utils/seo';
 
 const DEFAULT_FILTERS: FilterParams = {
@@ -730,9 +731,9 @@ export default function App() {
       {/* Footer & AdSense Required Legal Compliance Links */}
       <footer className="w-full border-t border-white/10 bg-[#050505] mt-16 py-10 text-xs text-neutral-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full md:w-auto justify-between sm:justify-start">
               <a
                 href="/"
                 onClick={(e) => {
@@ -743,10 +744,11 @@ export default function App() {
               >
                 <CineVaultLogo variant="header" size="sm" showTagline={true} />
               </a>
+              <VisitorCounter />
             </div>
 
             {/* Compliance Navigation Links */}
-            <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs">
+            <div className="flex flex-wrap items-center justify-center md:justify-end gap-3 sm:gap-4 text-xs">
               <button
                 onClick={() => setPolicyModalTab('privacy')}
                 className="hover:text-rose-400 transition-colors cursor-pointer"
