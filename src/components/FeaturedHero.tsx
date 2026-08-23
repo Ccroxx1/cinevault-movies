@@ -158,7 +158,7 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
           </div>
 
           {/* Title */}
-          <h1 className="font-display font-black text-2xl sm:text-4xl md:text-5xl text-white tracking-tight leading-tight">
+          <h2 className="font-display font-black text-2xl sm:text-4xl md:text-5xl text-white tracking-tight leading-tight">
             <a
               href={getMoviePath(currentMovie)}
               onClick={(e) => {
@@ -171,7 +171,7 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
             >
               {currentMovie.title}
             </a>
-          </h1>
+          </h2>
 
           {/* Genres */}
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-1 sm:gap-1.5 pt-0.5">

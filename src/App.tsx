@@ -542,6 +542,9 @@ export default function App() {
         ) : (
           /* Route 3: Browse Homepage & Catalog View */
           <>
+            {/* Primary Main H1 for SEO */}
+            <h1 className="sr-only">CineVault By Sasuu — HD Movie Library & Downloads</h1>
+
             {/* Featured Hero Premiere Carousel (Only on browse homepage when no search active) */}
             {currentNav === 'browse' && !filters.query_term && filters.page === 1 && filters.genre === 'All' && filters.quality === 'All' && (
               <FeaturedHero
