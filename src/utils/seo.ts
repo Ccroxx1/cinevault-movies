@@ -118,19 +118,59 @@ export function updateDocumentSeo(options: SeoMetaOptions): void {
   }
   canonicalEl.setAttribute('href', canonicalUrl);
 
-  // Open Graph
+  // Open Graph Core & Media
   setMetaTag('meta[property="og:site_name"]', 'property', 'og:site_name', SITE_NAME);
   setMetaTag('meta[property="og:title"]', 'property', 'og:title', title);
   setMetaTag('meta[property="og:description"]', 'property', 'og:description', description);
   setMetaTag('meta[property="og:url"]', 'property', 'og:url', canonicalUrl);
   setMetaTag('meta[property="og:type"]', 'property', 'og:type', ogType);
   setMetaTag('meta[property="og:image"]', 'property', 'og:image', ogImage);
+  setMetaTag('meta[property="og:image:secure_url"]', 'property', 'og:image:secure_url', ogImage);
+  setMetaTag('meta[property="og:image:alt"]', 'property', 'og:image:alt', options.movie ? `${options.movie.title} (${options.movie.year || ''}) Official Artwork` : SITE_NAME);
+  setMetaTag('meta[property="og:image:width"]', 'property', 'og:image:width', '1200');
+  setMetaTag('meta[property="og:image:height"]', 'property', 'og:image:height', '630');
+  setMetaTag('meta[property="og:locale"]', 'property', 'og:locale', 'en_US');
 
-  // Twitter Card
+  // Video OpenGraph metadata for movie pages
+  if (options.movie) {
+    const m = options.movie;
+    if (m.year) {
+      setMetaTag('meta[property="video:release_date"]', 'property', 'video:release_date', String(m.year));
+    }
+    if (m.runtime) {
+      setMetaTag('meta[property="video:duration"]', 'property', 'video:duration', String(m.runtime * 60));
+    }
+    if (Array.isArray(m.genres)) {
+      m.genres.forEach((g) => {
+        setMetaTag(`meta[property="video:tag"][content="${g}"]`, 'property', 'video:tag', g);
+      });
+    }
+    if (Array.isArray(m.cast)) {
+      m.cast.slice(0, 5).forEach((actor) => {
+        if (actor?.name) {
+          setMetaTag(`meta[property="video:actor"][content="${actor.name}"]`, 'property', 'video:actor', actor.name);
+        }
+      });
+    }
+  }
+
+  // Twitter Card Meta Tags
   setMetaTag('meta[name="twitter:card"]', 'name', 'twitter:card', 'summary_large_image');
+  setMetaTag('meta[name="twitter:site"]', 'name', 'twitter:site', '@CineVault');
+  setMetaTag('meta[name="twitter:creator"]', 'name', 'twitter:creator', '@Sasuu');
   setMetaTag('meta[name="twitter:title"]', 'name', 'twitter:title', title);
   setMetaTag('meta[name="twitter:description"]', 'name', 'twitter:description', description);
   setMetaTag('meta[name="twitter:image"]', 'name', 'twitter:image', ogImage);
+  setMetaTag('meta[name="twitter:image:alt"]', 'name', 'twitter:image:alt', options.movie ? `${options.movie.title} (${options.movie.year || ''}) Poster` : SITE_NAME);
+
+  if (options.movie) {
+    const m = options.movie;
+    const qualities = m.torrents?.map((t) => t.quality).filter((v, i, a) => a.indexOf(v) === i).join(', ');
+    setMetaTag('meta[name="twitter:label1"]', 'name', 'twitter:label1', 'IMDb Rating');
+    setMetaTag('meta[name="twitter:data1"]', 'name', 'twitter:data1', m.rating ? `${m.rating.toFixed(1)} / 10 ★` : 'Not Rated');
+    setMetaTag('meta[name="twitter:label2"]', 'name', 'twitter:label2', 'Quality & Format');
+    setMetaTag('meta[name="twitter:data2"]', 'name', 'twitter:data2', qualities || '720p, 1080p, 4K');
+  }
 
   // 3. Schema.org JSON-LD Structured Data
   let scriptEl = document.getElementById('schema-jsonld') as HTMLScriptElement | null;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Flame, Star, Play, Copy, Check, Eye, Bookmark, Sparkles, TrendingUp, Magnet } from 'lucide-react';
+import { Flame, Star, Play, Copy, Check, Eye, Bookmark, Magnet } from 'lucide-react';
 import { Movie, buildMagnetLink } from '../types';
 import { getMoviePath } from '../utils/seo';
 
@@ -56,11 +56,8 @@ export const PopularTopFive: React.FC<PopularTopFiveProps> = ({
             <Flame className="w-5 h-5 fill-current" />
           </div>
           <div>
-            <h2 className="text-lg sm:text-xl font-extrabold text-white tracking-tight flex items-center gap-2">
-              <span>5 Latest Popular Movies ({currentYear})</span>
-              <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded-full">
-                <TrendingUp className="w-3 h-3" /> Most Downloaded in {currentYear}
-              </span>
+            <h2 className="text-lg sm:text-xl font-extrabold text-white tracking-tight">
+              5 Latest Popular Movies ({currentYear})
             </h2>
             <p className="text-xs text-neutral-400">
               Top trending box office releases & highest-seeded torrents of {currentYear}
@@ -91,16 +88,15 @@ export const PopularTopFive: React.FC<PopularTopFiveProps> = ({
             const isWatch = isWatchlisted(movie.id);
 
             return (
-              <a
+              <div
                 key={`pop-${movie.id}`}
-                href={getMoviePath(movie)}
                 onClick={(e) => {
                   if (!e.ctrlKey && !e.metaKey && !e.shiftKey && e.button === 0) {
                     e.preventDefault();
                     onSelectMovie(movie);
                   }
                 }}
-                className="group relative bg-[#0e0e0e] hover:bg-[#141414] border border-white/10 hover:border-rose-500/60 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-2xl hover:shadow-rose-950/30 flex flex-col no-underline text-inherit"
+                className="group relative bg-[#0e0e0e] hover:bg-[#141414] border border-white/10 hover:border-rose-500/60 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-2xl hover:shadow-rose-950/30 flex flex-col text-inherit select-none"
               >
                 {/* Poster Image Container */}
                 <div className="relative aspect-[2/3] w-full overflow-hidden bg-[#050505]">
@@ -168,6 +164,7 @@ export const PopularTopFive: React.FC<PopularTopFiveProps> = ({
                     <div className="grid grid-cols-2 gap-1.5 pt-1">
                       {movie.yt_trailer_code ? (
                         <button
+                          type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             onPlayTrailer(movie.yt_trailer_code, movie.title);
@@ -180,6 +177,7 @@ export const PopularTopFive: React.FC<PopularTopFiveProps> = ({
                         </button>
                       ) : (
                         <button
+                          type="button"
                           onClick={() => onSelectMovie(movie)}
                           className="h-7 sm:h-7.5 px-1.5 sm:px-2 bg-white/15 hover:bg-white/25 text-white rounded-lg text-[10px] sm:text-[11px] font-bold flex items-center justify-center gap-1 backdrop-blur-md transition-colors"
                         >
@@ -190,6 +188,7 @@ export const PopularTopFive: React.FC<PopularTopFiveProps> = ({
 
                       {primaryTorrent && (
                         <button
+                          type="button"
                           onClick={(e) => handleCopyMagnet(e, movie)}
                           className="h-7 sm:h-7.5 px-1.5 sm:px-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] sm:text-[11px] font-bold flex items-center justify-center gap-1 transition-colors"
                           title={`Copy Magnet URI (${primaryTorrent.quality})`}
@@ -217,7 +216,18 @@ export const PopularTopFive: React.FC<PopularTopFiveProps> = ({
                     className="font-bold text-xs sm:text-sm text-neutral-100 line-clamp-1 group-hover:text-rose-400 transition-colors"
                     title={movie.title}
                   >
-                    {movie.title}
+                    <a
+                      href={getMoviePath(movie)}
+                      onClick={(e) => {
+                        if (!e.ctrlKey && !e.metaKey && !e.shiftKey && e.button === 0) {
+                          e.preventDefault();
+                          onSelectMovie(movie);
+                        }
+                      }}
+                      className="hover:underline"
+                    >
+                      {movie.title}
+                    </a>
                   </h3>
 
                   <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-neutral-400">
@@ -228,7 +238,7 @@ export const PopularTopFive: React.FC<PopularTopFiveProps> = ({
                     </span>
                   </div>
                 </div>
-              </a>
+              </div>
             );
           })}
         </div>

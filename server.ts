@@ -43,7 +43,14 @@ async function runUpstashPipeline(commands: any[][]): Promise<any[] | null> {
       return null;
     }
     const data = await res.json();
-    return Array.isArray(data) ? data.map(item => item?.result) : null;
+    if (!Array.isArray(data)) return null;
+    
+    // Check if any command returned an error (e.g. NOPERM on read-only tokens)
+    const hasError = data.some(item => item && item.error);
+    if (hasError) {
+      return null;
+    }
+    return data.map(item => item?.result);
   } catch (err: any) {
     console.warn('Upstash Redis sync deferred (falling back to local cache):', err?.message || err);
     return null;
@@ -72,15 +79,23 @@ function loadVisitorStats() {
     if (!fs.existsSync(dataDir)) {
       fs.mkdirSync(dataDir, { recursive: true });
     }
+    const today = new Date().toISOString().split('T')[0];
     if (fs.existsSync(STATS_FILE)) {
       const raw = fs.readFileSync(STATS_FILE, 'utf-8');
       const parsed = JSON.parse(raw);
-      if (typeof parsed.totalVisitors === 'number') {
-        statsCache.totalVisitors = parsed.totalVisitors;
+      if (typeof parsed.totalVisitors === 'number' || Array.isArray(parsed.knownVisitorIds)) {
         statsCache.knownVisitorIds = Array.isArray(parsed.knownVisitorIds) ? parsed.knownVisitorIds : [];
-        statsCache.todayVisitors = typeof parsed.todayVisitors === 'number' ? parsed.todayVisitors : 0;
-        statsCache.todayVisitorIds = Array.isArray(parsed.todayVisitorIds) ? parsed.todayVisitorIds : [];
-        statsCache.lastDate = parsed.lastDate || new Date().toISOString().split('T')[0];
+        statsCache.totalVisitors = Math.max(parsed.totalVisitors || 0, statsCache.knownVisitorIds.length);
+        
+        statsCache.lastDate = parsed.lastDate || today;
+        if (statsCache.lastDate === today) {
+          statsCache.todayVisitorIds = Array.isArray(parsed.todayVisitorIds) ? parsed.todayVisitorIds : [];
+          statsCache.todayVisitors = Math.max(parsed.todayVisitors || 0, statsCache.todayVisitorIds.length);
+        } else {
+          statsCache.lastDate = today;
+          statsCache.todayVisitors = 0;
+          statsCache.todayVisitorIds = [];
+        }
       }
     } else {
       saveVisitorStats();
@@ -103,10 +118,10 @@ function saveVisitorStats() {
     } catch (err) {
       console.error('Error saving visitor stats:', err);
     }
-  }, 300);
+  }, 100);
 }
 
-// Initialize on startup & sync with Upstash Redis
+// Initialize on startup & sync with Upstash Redis if read-write is available
 loadVisitorStats();
 (async () => {
   try {
@@ -115,9 +130,9 @@ loadVisitorStats();
       ['SCARD', 'cinevault:visitors:all'],
       ['SCARD', `cinevault:visitors:daily:${today}`]
     ]);
-    if (redisResults && typeof redisResults[0] === 'number') {
-      statsCache.totalVisitors = redisResults[0];
-      statsCache.todayVisitors = typeof redisResults[1] === 'number' ? redisResults[1] : statsCache.todayVisitors;
+    if (redisResults && typeof redisResults[0] === 'number' && redisResults[0] > 0) {
+      statsCache.totalVisitors = Math.max(statsCache.totalVisitors, redisResults[0]);
+      statsCache.todayVisitors = typeof redisResults[1] === 'number' ? Math.max(statsCache.todayVisitors, redisResults[1]) : statsCache.todayVisitors;
       saveVisitorStats();
     }
   } catch {
@@ -126,18 +141,20 @@ loadVisitorStats();
 })();
 
 
-// API Base URLs to try in priority order
+// API Base URLs to try in priority order with official & high-uptime mirrors
 const API_BASE_URLS = [
-  'https://movies-api.accel.li/api/v2',
+  'https://yts.mx/api/v2',
   'https://yts.am/api/v2',
   'https://yts.lt/api/v2',
   'https://yts.bz/api/v2',
-  'https://yts.mx/api/v2'
+  'https://yts.do/api/v2',
+  'https://yts.rs/api/v2',
+  'https://movies-api.accel.li/api/v2'
 ];
 
 // Simple in-memory cache to make browsing super fast and resilient
 const cache = new Map<string, { timestamp: number; data: any }>();
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes cache
 
 async function fetchFromApi(endpoint: string, queryParams: Record<string, string>): Promise<any> {
   const queryString = new URLSearchParams(queryParams).toString();
@@ -154,11 +171,11 @@ async function fetchFromApi(endpoint: string, queryParams: Record<string, string
     try {
       const targetUrl = `${baseUrl}/${endpoint}?${queryString}`;
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 7000);
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
 
       const response = await fetch(targetUrl, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
           'Accept': 'application/json'
         },
         signal: controller.signal
@@ -276,15 +293,15 @@ app.get('/api/visitors/stats', async (_req, res) => {
   try {
     const today = new Date().toISOString().split('T')[0];
 
-    // Query Upstash Redis cloud database
+    // Query Upstash Redis cloud database if available
     const redisResults = await runUpstashPipeline([
       ['SCARD', 'cinevault:visitors:all'],
       ['SCARD', `cinevault:visitors:daily:${today}`]
     ]);
 
-    if (redisResults && typeof redisResults[0] === 'number') {
-      const total = redisResults[0];
-      const todayCount = typeof redisResults[1] === 'number' ? redisResults[1] : 0;
+    if (redisResults && typeof redisResults[0] === 'number' && redisResults[0] > 0) {
+      const total = Math.max(statsCache.totalVisitors, redisResults[0]);
+      const todayCount = typeof redisResults[1] === 'number' ? Math.max(statsCache.todayVisitors, redisResults[1]) : statsCache.todayVisitors;
       statsCache.totalVisitors = total;
       statsCache.todayVisitors = todayCount;
       statsCache.lastDate = today;
@@ -403,6 +420,85 @@ app.post('/api/visitors/hit', async (req, res) => {
 });
 
 
+async function injectDynamicMetaTags(htmlTemplate: string, reqUrl: string): Promise<string> {
+  const SITE_BASE_URL = 'https://cinevault-movies-one.vercel.app';
+  
+  try {
+    const urlObj = new URL(reqUrl, SITE_BASE_URL);
+    const pathname = urlObj.pathname;
+
+    // Check if this is a movie path: /movies/:slug
+    const movieMatch = pathname.match(/^\/movies\/([a-zA-Z0-9_-]+)/);
+    if (movieMatch) {
+      const rawSlug = movieMatch[1];
+      const yearMatch = rawSlug.match(/^(.*?)-(\d{4})$/);
+      const queryTerm = yearMatch ? yearMatch[1].replace(/-/g, ' ') : rawSlug.replace(/-/g, ' ');
+      const queryYear = yearMatch ? parseInt(yearMatch[2], 10) : null;
+
+      const listData = await fetchFromApi('list_movies.json', { query_term: queryTerm, limit: '5' });
+      let movie = null;
+      if (listData?.data?.movies?.length > 0) {
+        if (queryYear) {
+          movie = listData.data.movies.find((m: any) => m.year === queryYear) || listData.data.movies[0];
+        } else {
+          movie = listData.data.movies[0];
+        }
+      }
+
+      if (movie) {
+        const title = `${movie.title} (${movie.year || 'HD'}) — Watch & Download | CineVault By Sasuu`;
+        const synopsis = (movie.description_full || movie.summary || movie.synopsis || `Download & stream ${movie.title} (${movie.year}) in 720p, 1080p, and 4K on CineVault.`).slice(0, 180).replace(/"/g, '&quot;');
+        const canonicalUrl = `${SITE_BASE_URL}/movies/${rawSlug}`;
+        const image = movie.large_cover_image || movie.background_image_original || movie.medium_cover_image || `${SITE_BASE_URL}/favicon.svg`;
+        const rating = movie.rating ? `${movie.rating.toFixed(1)} / 10 ★` : 'HD';
+        const qualities = movie.torrents?.map((t: any) => t.quality).filter((v: any, i: number, a: any[]) => a.indexOf(v) === i).join(', ') || '720p, 1080p, 4K';
+
+        let modifiedHtml = htmlTemplate;
+
+        // Clean out static meta tags that we will override
+        modifiedHtml = modifiedHtml
+          .replace(/<title>.*?<\/title>/i, `<title>${title}</title>`)
+          .replace(/<meta\s+name=["']description["'].*?>/gi, `<meta name="description" content="${synopsis}" />`)
+          .replace(/<link\s+rel=["']canonical["'].*?>/gi, `<link rel="canonical" href="${canonicalUrl}" />`)
+          .replace(/<meta\s+property=["']og:title["'].*?>/gi, `<meta property="og:title" content="${title}" />`)
+          .replace(/<meta\s+property=["']og:description["'].*?>/gi, `<meta property="og:description" content="${synopsis}" />`)
+          .replace(/<meta\s+property=["']og:url["'].*?>/gi, `<meta property="og:url" content="${canonicalUrl}" />`)
+          .replace(/<meta\s+property=["']og:type["'].*?>/gi, `<meta property="og:type" content="video.movie" />`)
+          .replace(/<meta\s+property=["']og:image["'].*?>/gi, `<meta property="og:image" content="${image}" />`)
+          .replace(/<meta\s+name=["']twitter:title["'].*?>/gi, `<meta name="twitter:title" content="${title}" />`)
+          .replace(/<meta\s+name=["']twitter:description["'].*?>/gi, `<meta name="twitter:description" content="${synopsis}" />`)
+          .replace(/<meta\s+name=["']twitter:image["'].*?>/gi, `<meta name="twitter:image" content="${image}" />`);
+
+        const extraTags = `
+    <!-- Dynamic Social Media & Bot Tags -->
+    <meta property="og:site_name" content="CineVault By Sasuu" />
+    <meta property="og:image:secure_url" content="${image}" />
+    <meta property="og:image:alt" content="${movie.title} (${movie.year}) Artwork" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="en_US" />
+    ${movie.year ? `<meta property="video:release_date" content="${movie.year}" />` : ''}
+    ${movie.runtime ? `<meta property="video:duration" content="${movie.runtime * 60}" />` : ''}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@CineVault" />
+    <meta name="twitter:creator" content="@Sasuu" />
+    <meta name="twitter:label1" content="IMDb Rating" />
+    <meta name="twitter:data1" content="${rating}" />
+    <meta name="twitter:label2" content="Available Format" />
+    <meta name="twitter:data2" content="${qualities}" />
+        `;
+
+        modifiedHtml = modifiedHtml.replace('</head>', `${extraTags}\n  </head>`);
+        return modifiedHtml;
+      }
+    }
+  } catch (err) {
+    console.warn('Meta tag injection skipped:', err);
+  }
+
+  return htmlTemplate;
+}
+
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
@@ -410,11 +506,38 @@ async function startServer() {
       appType: 'spa',
     });
     app.use(vite.middlewares);
+
+    // Fallback for HTML navigation with dynamic SEO tags
+    app.use('*', async (req, res, next) => {
+      const url = req.originalUrl;
+      if (url.startsWith('/api')) return next();
+
+      try {
+        const indexPath = path.join(process.cwd(), 'index.html');
+        let template = fs.readFileSync(indexPath, 'utf-8');
+        template = await vite.transformIndexHtml(url, template);
+        const html = await injectDynamicMetaTags(template, url);
+        res.status(200).set({ 'Content-Type': 'text/html' }).end(html);
+      } catch (e) {
+        vite.ssrFixStacktrace(e as Error);
+        next(e);
+      }
+    });
   } else {
     const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
-    app.get('*', (_req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
+    const indexHtmlPath = path.join(distPath, 'index.html');
+    app.use(express.static(distPath, { index: false }));
+    app.get('*', async (req, res) => {
+      try {
+        if (fs.existsSync(indexHtmlPath)) {
+          const rawTemplate = fs.readFileSync(indexHtmlPath, 'utf-8');
+          const html = await injectDynamicMetaTags(rawTemplate, req.originalUrl);
+          return res.status(200).set({ 'Content-Type': 'text/html' }).send(html);
+        }
+        res.sendFile(indexHtmlPath);
+      } catch {
+        res.sendFile(indexHtmlPath);
+      }
     });
   }
 

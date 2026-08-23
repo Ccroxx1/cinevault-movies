@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Play, Sparkles, Star, Clock, Bookmark, ChevronLeft, ChevronRight, Copy, Check, Eye, Pause, Magnet } from 'lucide-react';
+import { Play, Star, Clock, Bookmark, ChevronLeft, ChevronRight, Copy, Check, Eye, Pause, Magnet } from 'lucide-react';
 import { Movie, buildMagnetLink } from '../types';
 import { getMoviePath } from '../utils/seo';
 
@@ -133,13 +133,8 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
         {/* Left Side: Movie Information & Actions */}
         <div className="space-y-3 sm:space-y-4 max-w-2xl flex-1 text-center md:text-left">
           
-          {/* Top Badges */}
+          {/* Metadata badges */}
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-1.5 sm:gap-2">
-            <span className="flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-widest bg-rose-600 text-white shadow-lg shadow-rose-900/30">
-              <Sparkles className="w-3 h-3 fill-current" />
-              Featured #{currentIndex + 1} of {heroMovies.length}
-            </span>
-
             <div className="flex items-center gap-1 text-amber-400 bg-black/60 border border-white/15 px-2.5 py-1 rounded-lg text-xs font-bold backdrop-blur-md">
               <Star className="w-3.5 h-3.5 fill-amber-400" />
               <span>IMDb {currentMovie.rating?.toFixed(1) || '8.0'}</span>

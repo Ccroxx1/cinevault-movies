@@ -3,13 +3,15 @@ import {
   Star, Clock, Download, Play, Copy, Check, ExternalLink, HardDrive,
   Users, Film, ShieldAlert, Sparkles, Bookmark, Share2, ArrowLeft,
   ChevronRight, Home, Flame, Image as ImageIcon, CheckCircle, AlertCircle,
-  Magnet, ChevronDown, ChevronUp, Terminal, Zap
+  Magnet, ChevronDown, ChevronUp, Terminal, Zap, FileText, SlidersHorizontal
 } from 'lucide-react';
 import { Movie, Torrent, ParentalGuide, buildMagnetLink, RECOMMENDED_TRACKERS } from '../types';
 import { fetchMovieDetails, fetchMovieSuggestions, fetchParentalGuides } from '../services/movieApi';
 import { getMoviePath, getMovieCanonicalUrl, updateDocumentSeo } from '../utils/seo';
 import { AdSenseSlot } from './AdSenseSlot';
 import { MovieCard } from './MovieCard';
+import { SubtitlesModal } from './SubtitlesModal';
+import { BatchQualityModal } from './BatchQualityModal';
 
 interface MovieDetailPageProps {
   movie: Movie;
@@ -45,6 +47,8 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
   const [activeTab, setActiveTab] = useState<'torrents' | 'cast' | 'screenshots' | 'guides'>('torrents');
   const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(null);
   const [expandedMagnetHash, setExpandedMagnetHash] = useState<string | null>(null);
+  const [isSubtitlesOpen, setIsSubtitlesOpen] = useState(false);
+  const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
 
   // Sync state if initialMovie changes
   useEffect(() => {
@@ -383,6 +387,26 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                       )}
                     </button>
                   </>
+                )}
+
+                <button
+                  onClick={() => setIsSubtitlesOpen(true)}
+                  className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-neutral-200 hover:text-white font-semibold text-xs sm:text-sm rounded-full border border-white/10 transition-colors flex items-center gap-1.5 cursor-pointer"
+                  title="Search & Download Synced Subtitles (YIFY, OpenSubtitles, Subscene)"
+                >
+                  <FileText className="w-4 h-4 text-rose-400" />
+                  <span>Subtitles</span>
+                </button>
+
+                {movie.torrents && movie.torrents.length > 1 && (
+                  <button
+                    onClick={() => setIsBatchModalOpen(true)}
+                    className="px-4 py-2.5 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 hover:text-white font-semibold text-xs sm:text-sm rounded-full border border-emerald-500/30 transition-colors flex items-center gap-1.5 cursor-pointer"
+                    title="Compare all resolutions & batch copy magnets"
+                  >
+                    <SlidersHorizontal className="w-4 h-4 text-emerald-400" />
+                    <span>Compare Qualities ({movie.torrents.length})</span>
+                  </button>
                 )}
 
                 <button
@@ -890,6 +914,21 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
           />
         </div>
       )}
+
+      {/* Subtitles Search Modal */}
+      <SubtitlesModal
+        movie={movie}
+        isOpen={isSubtitlesOpen}
+        onClose={() => setIsSubtitlesOpen(false)}
+      />
+
+      {/* Batch Quality Comparison Modal */}
+      <BatchQualityModal
+        movie={movie}
+        isOpen={isBatchModalOpen}
+        onClose={() => setIsBatchModalOpen(false)}
+        onCopyMagnet={onCopyMagnet}
+      />
 
     </div>
   );

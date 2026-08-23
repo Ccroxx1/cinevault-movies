@@ -258,31 +258,67 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       </div>
 
       {/* Genre Horizontal Pill Bar for fast one-tap browsing */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none no-scrollbar">
-        <button
-          onClick={() => onFilterChange({ genre: 'All', page: 1 })}
-          className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all shrink-0 cursor-pointer ${
-            filters.genre === 'All'
-              ? 'bg-rose-600 text-white shadow-md shadow-rose-900/30'
-              : 'bg-[#101010] hover:bg-[#1c1c1c] text-neutral-400 hover:text-white border border-white/10'
-          }`}
-        >
-          All
-        </button>
-
-        {GENRES.filter((g) => g !== 'All').map((g) => (
+      <div className="space-y-2">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none no-scrollbar">
+          <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider shrink-0 mr-1">
+            Genre:
+          </span>
           <button
-            key={g}
-            onClick={() => onFilterChange({ genre: g, page: 1 })}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all shrink-0 cursor-pointer ${
-              filters.genre.toLowerCase() === g.toLowerCase()
+            onClick={() => onFilterChange({ genre: 'All', page: 1 })}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all shrink-0 cursor-pointer ${
+              filters.genre === 'All'
                 ? 'bg-rose-600 text-white shadow-md shadow-rose-900/30'
                 : 'bg-[#101010] hover:bg-[#1c1c1c] text-neutral-400 hover:text-white border border-white/10'
             }`}
           >
-            {g}
+            All
           </button>
-        ))}
+
+          {GENRES.filter((g) => g !== 'All').map((g) => (
+            <button
+              key={g}
+              onClick={() => onFilterChange({ genre: g, page: 1 })}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all shrink-0 cursor-pointer ${
+                filters.genre.toLowerCase() === g.toLowerCase()
+                  ? 'bg-rose-600 text-white shadow-md shadow-rose-900/30'
+                  : 'bg-[#101010] hover:bg-[#1c1c1c] text-neutral-400 hover:text-white border border-white/10'
+              }`}
+            >
+              {g}
+            </button>
+          ))}
+        </div>
+
+        {/* Quick Era / Decade Filters */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none no-scrollbar">
+          <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider shrink-0 mr-1">
+            Era:
+          </span>
+          {[
+            { label: 'All Years', value: 'All' },
+            { label: '2026', value: '2026' },
+            { label: '2025', value: '2025' },
+            { label: '2024', value: '2024' },
+            { label: '2020-2023', value: '2020' },
+            { label: '2010s', value: '2010-2014' },
+            { label: '2000s', value: '2000-2009' },
+            { label: '90s Classics', value: '1990-1999' },
+            { label: '80s Retro', value: '1980-1989' },
+            { label: 'Vintage Pre-80s', value: '1950-1969' }
+          ].map((era) => (
+            <button
+              key={era.label}
+              onClick={() => onFilterChange({ year: era.value, page: 1 })}
+              className={`px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-all shrink-0 cursor-pointer ${
+                (filters.year || 'All') === era.value
+                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold'
+                  : 'bg-[#0d0d0d] hover:bg-[#181818] text-neutral-400 hover:text-neutral-200 border border-white/5'
+              }`}
+            >
+              {era.label}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

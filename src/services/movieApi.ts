@@ -1,5 +1,6 @@
 import { Movie, FilterParams, ParentalGuide } from '../types';
 import { slugify, parseMovieSlug } from '../utils/seo';
+import { FALLBACK_FEATURED_MOVIES } from '../data/fallbackMovies';
 
 export const GENRES = [
   'All',
@@ -106,11 +107,11 @@ export const SORT_OPTIONS = [
 // API mirror candidates to fetch data reliably across development, Vercel, and Blogger embeds
 const PUBLIC_MIRRORS = [
   '/api/movies',
-  'https://movies-api.accel.li/api/v2',
+  'https://yts.mx/api/v2',
   'https://yts.am/api/v2',
   'https://yts.lt/api/v2',
   'https://yts.bz/api/v2',
-  'https://yts.mx/api/v2'
+  'https://movies-api.accel.li/api/v2'
 ];
 
 async function fetchFromMirrors(
@@ -140,7 +141,8 @@ async function fetchFromMirrors(
       }
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 6000);
+      const timeoutMs = mirror.startsWith('/api') ? 12000 : 4000;
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
       const response = await fetch(targetUrl, {
         headers: {
@@ -213,33 +215,52 @@ export async function fetchMovies(params: Partial<FilterParams> = {}): Promise<{
 
   queryParams.with_rt_ratings = 'true';
 
-  const json = await fetchFromMirrors('list', queryParams);
-  const data = json?.data || {};
-  let movies: Movie[] = data.movies || [];
+  try {
+    const json = await fetchFromMirrors('list', queryParams);
+    const data = json?.data || {};
+    let movies: Movie[] = data.movies || [];
 
-  // Optional client-side refinements if year range or language were selected
-  if (params.year && params.year !== 'All') {
-    if (params.year.includes('-')) {
-      const [start, end] = params.year.split('-').map(Number);
-      movies = movies.filter(m => m.year >= start && m.year <= end);
-    } else {
-      const targetYear = Number(params.year);
-      if (!isNaN(targetYear)) {
-        movies = movies.filter(m => m.year === targetYear);
+    // Optional client-side refinements if year range or language were selected
+    if (params.year && params.year !== 'All') {
+      if (params.year.includes('-')) {
+        const [start, end] = params.year.split('-').map(Number);
+        movies = movies.filter(m => m.year >= start && m.year <= end);
+      } else {
+        const targetYear = Number(params.year);
+        if (!isNaN(targetYear)) {
+          movies = movies.filter(m => m.year === targetYear);
+        }
       }
     }
-  }
 
-  if (params.language && params.language !== 'All') {
-    movies = movies.filter(m => m.language?.toLowerCase() === params.language?.toLowerCase());
-  }
+    if (params.language && params.language !== 'All') {
+      movies = movies.filter(m => m.language?.toLowerCase() === params.language?.toLowerCase());
+    }
 
-  return {
-    movies,
-    totalCount: data.movie_count || movies.length,
-    limit: data.limit || 20,
-    page: data.page_number || 1
-  };
+    return {
+      movies,
+      totalCount: data.movie_count || movies.length,
+      limit: data.limit || 20,
+      page: data.page_number || 1
+    };
+  } catch (err) {
+    console.warn('Live API list fetch failed, utilizing resilient fallback dataset:', err);
+    // If live API is down, filter fallback movies so user can still browse and test
+    let fallback = [...FALLBACK_FEATURED_MOVIES];
+    if (params.query_term) {
+      const q = params.query_term.toLowerCase();
+      fallback = fallback.filter(m => m.title.toLowerCase().includes(q) || m.summary?.toLowerCase().includes(q));
+    }
+    if (params.genre && params.genre !== 'All') {
+      fallback = fallback.filter(m => m.genres?.some(g => g.toLowerCase() === params.genre?.toLowerCase()));
+    }
+    return {
+      movies: fallback,
+      totalCount: fallback.length,
+      limit: params.limit || 20,
+      page: params.page || 1
+    };
+  }
 }
 
 export async function fetchMovieDetails(movieId: number | string): Promise<Movie | null> {

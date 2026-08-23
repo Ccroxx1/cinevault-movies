@@ -182,14 +182,9 @@ export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
             {renderIcon(section.iconName)}
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">
-                {section.title}
-              </h2>
-              <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/10 text-neutral-300 border border-white/10 uppercase tracking-wider">
-                {section.badge}
-              </span>
-            </div>
+            <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">
+              {section.title}
+            </h2>
             <p className="text-xs text-neutral-400">
               {section.subtitle}
             </p>
@@ -241,16 +236,15 @@ export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
             const isSaved = isWatchlisted(movie.id);
 
             return (
-              <a
+              <div
                 key={`${section.id}-${movie.id}`}
-                href={getMoviePath(movie)}
                 onClick={(e) => {
                   if (!e.ctrlKey && !e.metaKey && !e.shiftKey && e.button === 0) {
                     e.preventDefault();
                     onSelectMovie(movie);
                   }
                 }}
-                className="group relative shrink-0 w-36 sm:w-44 md:w-48 snap-start rounded-2xl overflow-hidden bg-[#0e0e0e] border border-white/10 hover:border-white/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/80 flex flex-col cursor-pointer no-underline text-inherit"
+                className="group relative shrink-0 w-36 sm:w-44 md:w-48 snap-start rounded-2xl overflow-hidden bg-[#0e0e0e] border border-white/10 hover:border-white/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/80 flex flex-col cursor-pointer text-inherit select-none"
               >
                 {/* Poster Image */}
                 <div className="relative aspect-[2/3] w-full overflow-hidden bg-neutral-900">
@@ -274,7 +268,7 @@ export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
                   </div>
 
                   {/* Hover Quick Action Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 space-y-2">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 space-y-2 z-10">
                     <div className="flex items-center gap-1.5">
                       {movie.yt_trailer_code && (
                         <button
@@ -306,7 +300,9 @@ export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
                       )}
 
                       <button
+                        type="button"
                         onClick={(e) => {
+                          e.preventDefault();
                           e.stopPropagation();
                           onToggleWatchlist(movie);
                         }}
@@ -326,7 +322,18 @@ export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
                 {/* Movie Title & Info */}
                 <div className="p-2.5 flex-1 flex flex-col justify-between space-y-1">
                   <h3 className="text-xs sm:text-sm font-bold text-white line-clamp-1 group-hover:text-rose-400 transition-colors">
-                    {movie.title}
+                    <a
+                      href={getMoviePath(movie)}
+                      onClick={(e) => {
+                        if (!e.ctrlKey && !e.metaKey && !e.shiftKey && e.button === 0) {
+                          e.preventDefault();
+                          onSelectMovie(movie);
+                        }
+                      }}
+                      className="hover:underline"
+                    >
+                      {movie.title}
+                    </a>
                   </h3>
                   <div className="flex items-center justify-between text-[10px] text-neutral-400">
                     <span className="line-clamp-1">{movie.genres?.[0] || 'Feature'}</span>
@@ -337,7 +344,7 @@ export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
                     )}
                   </div>
                 </div>
-              </a>
+              </div>
             );
           })
         ) : (

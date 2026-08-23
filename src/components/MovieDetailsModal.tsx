@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import {
   X, Star, Clock, Download, Play, Copy, Check, ExternalLink, HardDrive,
   Users, Film, ShieldAlert, Sparkles, Bookmark, Share2, ArrowDownToLine, Image as ImageIcon,
-  Magnet, Terminal, ChevronDown, ChevronUp, Zap
+  Magnet, Terminal, ChevronDown, ChevronUp, Zap, FileText, SlidersHorizontal
 } from 'lucide-react';
 import { Movie, Torrent, ParentalGuide, buildMagnetLink, RECOMMENDED_TRACKERS } from '../types';
 import { fetchMovieDetails, fetchMovieSuggestions, fetchParentalGuides } from '../services/movieApi';
 import { AdSenseSlot } from './AdSenseSlot';
+import { SubtitlesModal } from './SubtitlesModal';
+import { BatchQualityModal } from './BatchQualityModal';
 
 interface MovieDetailsModalProps {
   movie: Movie;
@@ -35,6 +37,8 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
   const [activeTab, setActiveTab] = useState<'torrents' | 'cast' | 'screenshots' | 'guides'>('torrents');
   const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(null);
   const [expandedMagnetHash, setExpandedMagnetHash] = useState<string | null>(null);
+  const [isSubtitlesOpen, setIsSubtitlesOpen] = useState(false);
+  const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
 
   // Fetch full details (cast, screenshots, etc.), suggestions, and parental guides
   useEffect(() => {
@@ -211,6 +215,26 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
                   >
                     <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current" />
                     <span>Watch Trailer</span>
+                  </button>
+                )}
+
+                <button
+                  onClick={() => setIsSubtitlesOpen(true)}
+                  className="flex items-center gap-1.5 text-xs font-semibold text-neutral-200 hover:text-white bg-white/5 hover:bg-white/10 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full border border-white/10 transition-colors cursor-pointer"
+                  title="Search and download synchronized subtitles"
+                >
+                  <FileText className="w-3.5 h-3.5 text-rose-400" />
+                  <span>Subtitles</span>
+                </button>
+
+                {movie.torrents && movie.torrents.length > 1 && (
+                  <button
+                    onClick={() => setIsBatchModalOpen(true)}
+                    className="flex items-center gap-1.5 text-xs font-semibold text-neutral-200 hover:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full border border-emerald-500/30 transition-colors cursor-pointer"
+                    title="Compare all resolutions and copy batch magnet links"
+                  >
+                    <SlidersHorizontal className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Compare Qualities ({movie.torrents.length})</span>
                   </button>
                 )}
               </div>
@@ -633,6 +657,21 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
           </div>
         </div>
       )}
+
+      {/* Subtitles Search Modal */}
+      <SubtitlesModal
+        movie={movie}
+        isOpen={isSubtitlesOpen}
+        onClose={() => setIsSubtitlesOpen(false)}
+      />
+
+      {/* Batch Quality Comparison Modal */}
+      <BatchQualityModal
+        movie={movie}
+        isOpen={isBatchModalOpen}
+        onClose={() => setIsBatchModalOpen(false)}
+        onCopyMagnet={onCopyMagnet}
+      />
 
     </div>
   );

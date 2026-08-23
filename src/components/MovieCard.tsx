@@ -66,10 +66,9 @@ export const MovieCard: React.FC<MovieCardProps> = ({
   };
 
   return (
-    <a
-      href={moviePath}
+    <div
       onClick={handleCardClick}
-      className="group relative bg-[#0a0a0a] hover:bg-[#111111] border border-white/5 hover:border-rose-500/50 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-2xl hover:shadow-rose-950/20 flex flex-col no-underline text-inherit"
+      className="group relative bg-[#0a0a0a] hover:bg-[#111111] border border-white/5 hover:border-rose-500/50 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-2xl hover:shadow-rose-950/20 flex flex-col text-inherit select-none"
     >
       {/* Poster Image Container */}
       <div className="relative aspect-[2/3] w-full overflow-hidden bg-[#050505]">
@@ -125,7 +124,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
         </div>
 
         {/* Hover Quick Action Buttons Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3.5 gap-2">
+        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3.5 gap-2 z-10">
           
           <div className="flex items-center gap-1.5">
             <div
@@ -191,7 +190,18 @@ export const MovieCard: React.FC<MovieCardProps> = ({
           </div>
 
           <h3 className="font-display font-bold text-sm text-neutral-100 group-hover:text-rose-500 transition-colors line-clamp-1">
-            {movie.title}
+            <a
+              href={moviePath}
+              onClick={(e) => {
+                if (!e.ctrlKey && !e.metaKey && !e.shiftKey && e.button === 0) {
+                  e.preventDefault();
+                  onSelect(movie);
+                }
+              }}
+              className="hover:underline"
+            >
+              {movie.title}
+            </a>
           </h3>
 
           <div className="flex flex-wrap gap-1 mt-1.5">
@@ -218,7 +228,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
           </div>
         </div>
       </div>
-    </a>
+    </div>
   );
 };
 

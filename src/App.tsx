@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Film, Sparkles, Flame, Star, Search, RefreshCw, AlertCircle, Bookmark, Clapperboard, Heart, Layers, ArrowLeft } from 'lucide-react';
+import { Film, Flame, Star, Search, RefreshCw, AlertCircle, Bookmark, Clapperboard, Heart, Layers, ArrowLeft } from 'lucide-react';
 import { Movie, FilterParams } from './types';
 import { fetchMovies, fetchMovieBySlug } from './services/movieApi';
+import { FALLBACK_FEATURED_MOVIES } from './data/fallbackMovies';
 import { Header } from './components/Header';
 import { FeaturedHero } from './components/FeaturedHero';
 import { PopularTopFive } from './components/PopularTopFive';
@@ -19,6 +20,9 @@ import { CookieConsentBanner } from './components/CookieConsentBanner';
 import { AdSenseSlot } from './components/AdSenseSlot';
 import { CineVaultLogo } from './components/CineVaultLogo';
 import { VisitorCounter } from './components/VisitorCounter';
+import { CuratedCollections } from './components/CuratedCollections';
+import { RecentlyViewedStrip } from './components/RecentlyViewedStrip';
+import { PersonalizedRecommendations } from './components/PersonalizedRecommendations';
 import { getMoviePath, getMovieSlug, updateDocumentSeo, parseMovieSlug } from './utils/seo';
 
 const DEFAULT_FILTERS: FilterParams = {
@@ -74,6 +78,19 @@ export default function App() {
     }
   });
 
+  // Recently Viewed Movies Persistence
+  const [recentlyViewed, setRecentlyViewed] = useState<Movie[]>(() => {
+    try {
+      const saved = localStorage.getItem('cinevault_recent_views');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Active Curated Collection Pill (if any)
+  const [activeCollectionId, setActiveCollectionId] = useState<string | null>(null);
+
   // Toasts
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
@@ -97,6 +114,15 @@ export default function App() {
       console.error('Failed to save watchlist to localStorage:', e);
     }
   }, [watchlist]);
+
+  // Save recentlyViewed to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('cinevault_recent_views', JSON.stringify(recentlyViewed));
+    } catch (e) {
+      console.error('Failed to save recently viewed to localStorage:', e);
+    }
+  }, [recentlyViewed]);
 
   // Initial Route Parser & Browser History Listener
   useEffect(() => {
@@ -183,6 +209,12 @@ export default function App() {
     const movieSlug = getMovieSlug(movie);
     const moviePath = getMoviePath(movie);
 
+    // Track recently viewed
+    setRecentlyViewed((prev) => {
+      const filtered = prev.filter((m) => m.id !== movie.id);
+      return [movie, ...filtered].slice(0, 15);
+    });
+
     setRoute({
       type: 'movie',
       slug: movieSlug,
@@ -248,18 +280,25 @@ export default function App() {
         let validMovies = (data.movies || []).filter(m => m && (m.large_cover_image || m.medium_cover_image));
 
         if (validMovies.length < 10) {
-          const fallbackData = await fetchMovies({ sort_by: 'download_count', limit: 20 });
-          const additional = (fallbackData.movies || []).filter(
-            m => m && !validMovies.some(existing => existing.id === m.id)
-          );
-          validMovies = [...validMovies, ...additional];
+          try {
+            const fallbackData = await fetchMovies({ sort_by: 'download_count', limit: 20 });
+            const additional = (fallbackData.movies || []).filter(
+              m => m && !validMovies.some(existing => existing.id === m.id)
+            );
+            validMovies = [...validMovies, ...additional];
+          } catch {
+            // keep validMovies
+          }
         }
 
-        if (validMovies.length > 0) {
-          setFeaturedMovies(validMovies.slice(0, 10));
+        if (validMovies.length === 0) {
+          validMovies = FALLBACK_FEATURED_MOVIES;
         }
+
+        setFeaturedMovies(validMovies.slice(0, 10));
       } catch (err) {
-        console.error('Error loading featured movies:', err);
+        console.warn('Using offline catalog for featured hero:', err);
+        setFeaturedMovies(FALLBACK_FEATURED_MOVIES);
       } finally {
         setIsFeaturedLoading(false);
       }
@@ -539,6 +578,15 @@ export default function App() {
               setWatchlist([]);
               addToast('info', 'Watchlist Cleared');
             }}
+            onImportWatchlist={(imported) => {
+              setWatchlist((prev) => {
+                const existingIds = new Set(prev.map((m) => m.id));
+                const newItems = imported.filter((m) => !existingIds.has(m.id));
+                addToast('success', 'Watchlist Imported', `Added ${newItems.length} new titles to your library.`);
+                return [...newItems, ...prev];
+              });
+            }}
+            onExploreCatalog={() => handleNavSelect('browse')}
           />
         ) : (
           /* Route 3: Browse Homepage & Catalog View */
@@ -558,6 +606,22 @@ export default function App() {
               />
             )}
 
+            {/* Recently Viewed Strip (If history exists) */}
+            {recentlyViewed.length > 0 && !filters.query_term && (
+              <div className="mb-6">
+                <RecentlyViewedStrip
+                  recentMovies={recentlyViewed}
+                  onSelectMovie={handleSelectMovie}
+                  onClearRecent={() => {
+                    setRecentlyViewed([]);
+                    addToast('info', 'Viewing History Cleared');
+                  }}
+                  onPlayTrailer={handlePlayTrailer}
+                  onCopyMagnet={handleCopyMagnet}
+                />
+              </div>
+            )}
+
             {/* 5 Latest Popular Movies - Always on Top */}
             <PopularTopFive
               movies={featuredMovies}
@@ -569,8 +633,41 @@ export default function App() {
               onToggleWatchlist={handleToggleWatchlist}
             />
 
+            {/* Personalized Recommendations based on Watchlist & History */}
+            {currentNav === 'browse' && !filters.query_term && (watchlist.length > 0 || recentlyViewed.length > 0) && (
+              <div className="my-8">
+                <PersonalizedRecommendations
+                  watchlist={watchlist}
+                  recentlyViewed={recentlyViewed}
+                  onSelectMovie={handleSelectMovie}
+                  onPlayTrailer={handlePlayTrailer}
+                  onCopyMagnet={handleCopyMagnet}
+                  isWatchlisted={isMovieWatchlisted}
+                  onToggleWatchlist={handleToggleWatchlist}
+                />
+              </div>
+            )}
+
             {/* Top Responsive AdSense Leaderboard Placement */}
             <AdSenseSlot format="auto" responsive={true} className="my-6" />
+
+            {/* Thematic & Mood-based Collections Bar */}
+            {currentNav === 'browse' && !filters.query_term && filters.page === 1 && (
+              <div className="my-6">
+                <CuratedCollections
+                  activeCollectionId={activeCollectionId}
+                  onSelectCollection={(filterParams) => {
+                    setActiveCollectionId(filterParams.genre || 'all');
+                    setFilters((prev) => ({
+                      ...DEFAULT_FILTERS,
+                      ...filterParams,
+                      page: 1
+                    }));
+                    document.getElementById('movie-search-filters')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                />
+              </div>
+            )}
 
             {/* Curated Cinema Categories (Rendered on Home Browse View) */}
             {currentNav === 'browse' && !filters.query_term && filters.page === 1 && filters.genre === 'All' && filters.quality === 'All' && (
@@ -600,7 +697,7 @@ export default function App() {
                         ...section.filterParams,
                         page: 1
                       });
-                      window.scrollTo({ top: 500, behavior: 'smooth' });
+                      document.getElementById('movie-search-filters')?.scrollIntoView({ behavior: 'smooth' });
                     }}
                   />
                 ))}
@@ -608,18 +705,20 @@ export default function App() {
             )}
 
             {/* Section Heading & Filter Bar */}
-            <div className="space-y-4">
+            <div id="movie-catalog-section" className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-xl sm:text-2xl font-black font-display text-white flex items-center gap-2.5">
                     {currentNav === 'trending' && <Flame className="w-6 h-6 text-rose-500" />}
-                    {currentNav === '4k' && <Sparkles className="w-6 h-6 text-rose-400" />}
+                    {currentNav === '4k' && <Film className="w-6 h-6 text-rose-400" />}
                     {currentNav === 'top' && <Star className="w-6 h-6 text-amber-400" />}
                     {currentNav === 'browse' && <Clapperboard className="w-6 h-6 text-rose-500" />}
                     
                     <span>
                       {filters.query_term
                         ? `Search: "${filters.query_term}"`
+                        : filters.genre && filters.genre !== 'All'
+                        ? `Explore ${filters.genre} Cinema`
                         : currentNav === 'trending'
                         ? 'Trending & Popular Films'
                         : currentNav === '4k'

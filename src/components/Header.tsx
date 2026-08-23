@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Film, Search, Bookmark, HelpCircle, Flame, Star, Sparkles, X, 
-  Clapperboard, Menu, Grid, Layers, Shield, Atom, Heart, Laugh, 
-  Skull, Tv, Compass, Info, FileText, ChevronRight, SlidersHorizontal, Eye
+  Search, Bookmark, HelpCircle, Flame, Star, X, 
+  Menu, Grid, FileText, ChevronRight, SlidersHorizontal
 } from 'lucide-react';
 import { Movie, FilterParams } from '../types';
 import { GENRES } from '../services/movieApi';
@@ -135,14 +134,7 @@ export const Header: React.FC<HeaderProps> = ({
     }
   };
 
-  const popularGenres = [
-    { name: 'Action', icon: Shield, color: 'text-blue-400 bg-blue-500/10' },
-    { name: 'Sci-Fi', icon: Atom, color: 'text-cyan-400 bg-cyan-500/10' },
-    { name: 'Drama', icon: Heart, color: 'text-rose-400 bg-rose-500/10' },
-    { name: 'Comedy', icon: Laugh, color: 'text-lime-400 bg-lime-500/10' },
-    { name: 'Horror', icon: Skull, color: 'text-purple-400 bg-purple-500/10' },
-    { name: 'Animation', icon: Sparkles, color: 'text-amber-400 bg-amber-500/10' }
-  ];
+  const popularGenres = ['Action', 'Sci-Fi', 'Drama', 'Comedy', 'Horror', 'Animation', 'Thriller', 'Romance'];
 
   return (
     <>
@@ -183,11 +175,11 @@ export const Header: React.FC<HeaderProps> = ({
                     onChange={(e) => onSearchChange(e.target.value)}
                     onFocus={() => setIsSearchFocused(true)}
                     placeholder="Search movies by title, actor, director..."
-                    className="w-full pl-8 sm:pl-10 pr-8 sm:pr-16 py-1.5 sm:py-2.5 text-xs sm:text-sm bg-[#0f0f0f] hover:bg-[#141414] focus:bg-[#141414] border border-white/10 focus:border-rose-500/80 rounded-xl text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 transition-all"
+                    className="w-full pl-8 sm:pl-10 pr-8 sm:pr-10 py-1.5 sm:py-2.5 text-xs sm:text-sm bg-[#0f0f0f] hover:bg-[#141414] focus:bg-[#141414] border border-white/10 focus:border-rose-500/80 rounded-xl text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 transition-all"
                   />
                   
-                  <div className="absolute right-2 sm:right-2.5 flex items-center gap-1">
-                    {searchQuery && (
+                  {searchQuery && (
+                    <div className="absolute right-2 sm:right-2.5 flex items-center">
                       <button
                         type="button"
                         onClick={() => {
@@ -195,14 +187,12 @@ export const Header: React.FC<HeaderProps> = ({
                           searchInputRef.current?.focus();
                         }}
                         className="p-1 text-neutral-400 hover:text-neutral-200 rounded cursor-pointer"
+                        title="Clear search"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
-                    )}
-                    <kbd className="hidden lg:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono text-neutral-400 bg-neutral-800 border border-white/10 rounded">
-                      /
-                    </kbd>
-                  </div>
+                    </div>
+                  )}
                 </div>
               </form>
 
@@ -318,7 +308,6 @@ export const Header: React.FC<HeaderProps> = ({
                     : 'text-neutral-300 hover:text-white hover:bg-white/5'
                 }`}
               >
-                <Sparkles className="w-3.5 h-3.5 text-rose-400" />
                 <span>4K UHD</span>
               </button>
 
@@ -506,7 +495,7 @@ export const Header: React.FC<HeaderProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <Sparkles className="w-4 h-4 text-rose-400" />
+                    <span className="w-2 h-2 rounded-full bg-rose-500" />
                     <span>4K Ultra HD</span>
                   </div>
                   <ChevronRight className="w-3.5 h-3.5 opacity-60" />
@@ -559,21 +548,15 @@ export const Header: React.FC<HeaderProps> = ({
                   Popular Film Genres
                 </div>
                 <div className="grid grid-cols-2 gap-1.5">
-                  {popularGenres.map((g) => {
-                    const Icon = g.icon;
-                    return (
-                      <button
-                        key={g.name}
-                        onClick={() => handleGenreClick(g.name)}
-                        className="flex items-center gap-2 p-2 rounded-xl bg-neutral-900/80 hover:bg-neutral-800 border border-white/5 text-xs text-neutral-200 transition-colors cursor-pointer"
-                      >
-                        <div className={`p-1 rounded-lg ${g.color}`}>
-                          <Icon className="w-3 h-3" />
-                        </div>
-                        <span className="font-semibold truncate">{g.name}</span>
-                      </button>
-                    );
-                  })}
+                  {popularGenres.map((g) => (
+                    <button
+                      key={g}
+                      onClick={() => handleGenreClick(g)}
+                      className="px-3 py-2 text-left rounded-xl bg-neutral-900/90 hover:bg-neutral-800 border border-white/5 text-xs text-neutral-200 hover:text-white transition-colors cursor-pointer font-medium"
+                    >
+                      {g}
+                    </button>
+                  ))}
                 </div>
               </div>
 
@@ -599,7 +582,7 @@ export const Header: React.FC<HeaderProps> = ({
                       }}
                       className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-neutral-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
                     >
-                      <Shield className="w-4 h-4 text-neutral-400" />
+                      <FileText className="w-4 h-4 text-neutral-400" />
                       <span>Privacy & Cookies</span>
                     </button>
 
