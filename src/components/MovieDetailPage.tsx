@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import {
   Star, Clock, Download, Play, Copy, Check, ExternalLink, HardDrive,
   Users, Film, ShieldAlert, Sparkles, Bookmark, Share2, ArrowLeft,
-  ChevronRight, Home, Flame, Image as ImageIcon, CheckCircle, AlertCircle,
-  Magnet, ChevronDown, ChevronUp, Terminal, Zap, FileText, SlidersHorizontal
+  ChevronRight, ChevronLeft, X, Home, Flame, Image as ImageIcon, CheckCircle, AlertCircle,
+  Magnet, FileText, SlidersHorizontal, FolderArchive, Loader2
 } from 'lucide-react';
 import { Movie, Torrent, ParentalGuide, buildMagnetLink, RECOMMENDED_TRACKERS } from '../types';
 import { fetchMovieDetails, fetchMovieSuggestions, fetchParentalGuides } from '../services/movieApi';
 import { getMoviePath, getMovieCanonicalUrl, updateDocumentSeo } from '../utils/seo';
+import { downloadMoviePackage, downloadBrandedCompanionFile, handleBrandedMagnetDownload } from '../utils/downloadPack';
 import { AdSenseSlot } from './AdSenseSlot';
 import { MovieCard } from './MovieCard';
 import { SubtitlesModal } from './SubtitlesModal';
@@ -45,10 +46,11 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
   const [copiedHash, setCopiedHash] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
   const [activeTab, setActiveTab] = useState<'torrents' | 'cast' | 'screenshots' | 'guides'>('torrents');
-  const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(null);
-  const [expandedMagnetHash, setExpandedMagnetHash] = useState<string | null>(null);
+  const [selectedScreenshotIndex, setSelectedScreenshotIndex] = useState<number | null>(null);
   const [isSubtitlesOpen, setIsSubtitlesOpen] = useState(false);
   const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
+  const [packagingHash, setPackagingHash] = useState<string | null>(null);
+  const [packageProgress, setPackageProgress] = useState<string | null>(null);
 
   // Sync state if initialMovie changes
   useEffect(() => {
@@ -121,14 +123,74 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
     setTimeout(() => setCopiedLink(false), 2500);
   };
 
+  const handleDownloadMediaPack = async (torrent?: Torrent) => {
+    const hashKey = torrent?.hash || 'primary';
+    setPackagingHash(hashKey);
+    setPackageProgress('Preparing Media Pack...');
+    try {
+      await downloadMoviePackage(movie, torrent, (msg) => {
+        setPackageProgress(msg);
+      });
+    } catch (err) {
+      console.error('Failed to download media pack:', err);
+    } finally {
+      setTimeout(() => {
+        setPackagingHash(null);
+        setPackageProgress(null);
+      }, 1500);
+    }
+  };
+
+  const handleDirectMagnetDownload = (e: React.MouseEvent, torrent: Torrent) => {
+    e.preventDefault();
+    handleBrandedMagnetDownload(movie, torrent, {
+      onStart: () => {
+        onCopyMagnet(
+          buildMagnetLink(torrent.hash, movie.title_long || movie.title),
+          `${movie.title} (${torrent.quality}) — Starting Download & CineVault Branded Info`
+        );
+      },
+      autoCompanion: true
+    });
+  };
+
+  const handleDownloadHtmlCompanion = (torrent?: Torrent) => {
+    downloadBrandedCompanionFile(movie, torrent);
+  };
+
   const primaryTorrent = movie.torrents?.[0];
   const isCurrentWatchlisted = isWatchlisted(movie.id);
 
   const screenshots = [
     movie.large_screenshot_image1 || movie.medium_screenshot_image1,
     movie.large_screenshot_image2 || movie.medium_screenshot_image2,
-    movie.large_screenshot_image3 || movie.medium_screenshot_image3
+    movie.large_screenshot_image3 || movie.medium_screenshot_image3,
+    movie.background_image_original || movie.background_image
   ].filter(Boolean) as string[];
+
+  // Keyboard navigation for screenshot lightbox preview
+  useEffect(() => {
+    if (selectedScreenshotIndex === null || screenshots.length === 0) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedScreenshotIndex(null);
+      } else if (e.key === 'ArrowRight' || e.key === ' ') {
+        e.preventDefault();
+        setSelectedScreenshotIndex((prev) =>
+          prev === null ? 0 : (prev + 1) % screenshots.length
+        );
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        setSelectedScreenshotIndex((prev) =>
+          prev === null ? 0 : (prev - 1 + screenshots.length) % screenshots.length
+        );
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedScreenshotIndex, screenshots.length]);
 
   const backdropImage = movie.background_image_original || movie.background_image || screenshots[0];
 
@@ -346,7 +408,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                 ))}
               </div>
 
-              {/* Action Buttons: Trailer, Magnet Download, Copy URI, Guide */}
+              {/* Action Buttons: Trailer, Magnet Download, Media Pack (.zip), Copy URI, Guide */}
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5 sm:gap-3 pt-2">
                 {movie.yt_trailer_code && (
                   <button
@@ -360,14 +422,34 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
 
                 {primaryTorrent && (
                   <>
-                    <a
-                      href={buildMagnetLink(primaryTorrent.hash, movie.title_long || movie.title)}
+                    <button
+                      onClick={(e) => handleDirectMagnetDownload(e, primaryTorrent)}
                       className="px-4 sm:px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm rounded-full shadow-lg shadow-emerald-950/40 flex items-center gap-2 transition-all cursor-pointer"
-                      title={`Launch ${primaryTorrent.quality} Magnet Download directly in your torrent client`}
+                      title={`Launch ${primaryTorrent.quality} Magnet Download directly in your torrent client with CineVault branding info`}
                     >
                       <Magnet className="w-4 h-4 text-emerald-200" />
                       <span>Magnet Download ({primaryTorrent.quality})</span>
-                    </a>
+                    </button>
+
+                    {/* Media Pack (.zip with Torrent + Poster Photo + Site Info) */}
+                    <button
+                      onClick={() => handleDownloadMediaPack(primaryTorrent)}
+                      disabled={packagingHash === (primaryTorrent.hash || 'primary')}
+                      className="px-4 sm:px-5 py-2.5 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-bold text-xs sm:text-sm rounded-full shadow-lg shadow-amber-950/50 flex items-center gap-2 transition-all cursor-pointer disabled:opacity-75"
+                      title="Download complete folder with .Torrent file, Official Cover Photo & Site Details (.txt + shortcut)"
+                    >
+                      {packagingHash === (primaryTorrent.hash || 'primary') ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin text-white" />
+                          <span>{packageProgress || 'Creating Pack...'}</span>
+                        </>
+                      ) : (
+                        <>
+                          <FolderArchive className="w-4 h-4 text-amber-200" />
+                          <span>Download Pack + Photo (.zip)</span>
+                        </>
+                      )}
+                    </button>
 
                     <button
                       onClick={() => handleCopyMagnet(primaryTorrent)}
@@ -511,110 +593,116 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                     const is4k = torrent.quality?.includes('2160p');
                     const is1080 = torrent.quality?.includes('1080p');
                     const isCopied = copiedHash === torrent.hash;
-                    const magnetUrl = buildMagnetLink(torrent.hash, movie.title_long || movie.title);
-                    const isExpanded = expandedMagnetHash === torrent.hash;
 
                     return (
                       <div
                         key={`${torrent.hash}-${idx}`}
-                        className={`rounded-2xl border transition-all overflow-hidden ${
+                        className={`rounded-2xl border transition-all p-4 sm:p-5 ${
                           is4k
-                            ? 'bg-gradient-to-r from-amber-950/20 via-[#0e0e0e] to-[#0e0e0e] border-amber-500/30'
+                            ? 'bg-gradient-to-r from-amber-950/25 via-[#111111] to-[#0e0e0e] border-amber-500/35 hover:border-amber-500/50 shadow-lg shadow-amber-950/20'
                             : is1080
-                            ? 'bg-[#0e0e0e] border-white/10 hover:border-rose-500/40'
-                            : 'bg-[#0e0e0e] border-white/5'
+                            ? 'bg-[#111111] border-white/10 hover:border-rose-500/40 shadow-sm'
+                            : 'bg-[#0f0f0f] border-white/5 hover:border-white/15'
                         }`}
                       >
-                        <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                          {/* Quality & Specs */}
-                          <div className="space-y-1">
+                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                          {/* Quality Specs & Health Indicators */}
+                          <div className="space-y-2">
+                            {/* Quality Tags */}
                             <div className="flex flex-wrap items-center gap-2">
                               <span
-                                className={`px-2.5 py-0.5 text-xs font-black rounded ${
+                                className={`px-2.5 py-1 text-xs font-black rounded-lg uppercase tracking-wider ${
                                   is4k
-                                    ? 'bg-amber-500 text-black'
+                                    ? 'bg-amber-500 text-black shadow-sm shadow-amber-900/40'
                                     : is1080
-                                    ? 'bg-rose-600 text-white'
-                                    : 'bg-neutral-700 text-neutral-200'
+                                    ? 'bg-rose-600 text-white shadow-sm shadow-rose-900/40'
+                                    : 'bg-neutral-800 text-neutral-200 border border-white/10'
                                 }`}
                               >
                                 {torrent.quality}
                               </span>
-                              <span className="text-xs font-semibold text-neutral-300 uppercase">
+                              <span className="text-xs font-semibold text-neutral-300 uppercase px-2 py-0.5 rounded bg-white/5 border border-white/10">
                                 {torrent.type || 'WEB-DL'}
                               </span>
                               {torrent.video_codec && (
-                                <span className="text-[10px] font-mono text-neutral-400 bg-white/5 px-2 py-0.5 rounded border border-white/10">
+                                <span className="text-[11px] font-mono text-neutral-300 bg-white/5 px-2 py-0.5 rounded border border-white/10">
                                   {torrent.video_codec}
                                 </span>
                               )}
                               {torrent.audio_channels && (
-                                <span className="text-[10px] font-mono text-neutral-400 bg-white/5 px-2 py-0.5 rounded border border-white/10">
+                                <span className="text-[11px] font-mono text-neutral-300 bg-white/5 px-2 py-0.5 rounded border border-white/10">
                                   {torrent.audio_channels} CH
                                 </span>
                               )}
                             </div>
 
-                            <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-400 font-mono pt-1">
-                              <span className="text-neutral-200 font-semibold">{torrent.size}</span>
-                              <span>•</span>
-                              <span className="text-emerald-400 font-semibold">{torrent.seeds} Seeds</span>
-                              <span>•</span>
-                              <span className="text-neutral-400">{torrent.peers} Peers</span>
+                            {/* Metrics: Size, Seeds, Peers (Clean Badges) */}
+                            <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold font-mono text-neutral-100 bg-white/5 border border-white/10 whitespace-nowrap">
+                                📦 {torrent.size}
+                              </span>
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-bold font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 whitespace-nowrap">
+                                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                                {torrent.seeds} Seeds
+                              </span>
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-mono text-neutral-400 bg-white/5 border border-white/5 whitespace-nowrap">
+                                ○ {torrent.peers} Peers
+                              </span>
                             </div>
                           </div>
 
-                          {/* Action Buttons: Magnet Download, Copy URI, Inspect URI, .Torrent */}
-                          <div className="flex flex-wrap items-center gap-2 shrink-0">
-                            {/* 1. Direct Magnet Download (Triggers Client) */}
-                            <a
-                              href={magnetUrl}
-                              className="px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-950/40 flex items-center gap-1.5 transition-all cursor-pointer"
-                              title="Direct Magnet Download — Click to open in qBittorrent, uTorrent, or Transmission immediately"
+                          {/* Action Buttons */}
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-white/5">
+                            {/* 1. Media Pack (.zip with Torrent + Poster Photo + Site Info) */}
+                            <button
+                              onClick={() => handleDownloadMediaPack(torrent)}
+                              disabled={packagingHash === torrent.hash}
+                              className="px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 hover:text-amber-200 border border-amber-500/30 flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap disabled:opacity-60"
+                              title="Download complete ZIP folder with .Torrent file, Official Cover Photo, and CineVault Site Info"
                             >
-                              <Magnet className="w-3.5 h-3.5 text-emerald-200" />
-                              <span>Magnet Download</span>
-                            </a>
+                              {packagingHash === torrent.hash ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 animate-spin text-amber-300" />
+                                  <span>Packaging...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <FolderArchive className="w-4 h-4 text-amber-400" />
+                                  <span>Media Pack (.zip)</span>
+                                </>
+                              )}
+                            </button>
 
-                            {/* 2. Copy Magnet URI */}
+                            {/* 2. Direct Magnet Download (Triggers Client + Branded Info) */}
+                            <button
+                              onClick={(e) => handleDirectMagnetDownload(e, torrent)}
+                              className="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-950/40 flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap hover:scale-[1.02] active:scale-[0.98]"
+                              title="Direct Magnet Download — Open in qBittorrent, uTorrent, or Transmission with CineVault Branded Info"
+                            >
+                              <Magnet className="w-4 h-4 text-emerald-200" />
+                              <span>Magnet Download</span>
+                            </button>
+
+                            {/* 3. Copy Magnet URI */}
                             <button
                               onClick={() => handleCopyMagnet(torrent)}
-                              className={`px-3 py-2 rounded-xl text-xs font-semibold border flex items-center gap-1.5 transition-all cursor-pointer ${
+                              className={`px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
                                 isCopied
                                   ? 'bg-rose-600 text-white border-rose-500 shadow-md shadow-rose-900/40'
-                                  : 'bg-white/10 hover:bg-white/20 text-neutral-200 hover:text-white border-white/10'
+                                  : 'bg-white/5 hover:bg-white/10 text-neutral-200 hover:text-white border-white/10'
                               }`}
                               title="Copy raw Magnet URI to clipboard"
                             >
                               {isCopied ? (
                                 <>
-                                  <Check className="w-3.5 h-3.5" />
+                                  <Check className="w-4 h-4 text-white" />
                                   <span>Copied URI</span>
                                 </>
                               ) : (
                                 <>
-                                  <Copy className="w-3.5 h-3.5" />
+                                  <Copy className="w-4 h-4 text-neutral-400" />
                                   <span>Copy URI</span>
                                 </>
-                              )}
-                            </button>
-
-                            {/* 3. Toggle Raw URI Inspector */}
-                            <button
-                              onClick={() => setExpandedMagnetHash(isExpanded ? null : torrent.hash)}
-                              className={`px-2.5 py-2 rounded-xl text-xs font-semibold border flex items-center gap-1 transition-all cursor-pointer ${
-                                isExpanded
-                                  ? 'bg-neutral-800 text-white border-white/20'
-                                  : 'bg-white/5 hover:bg-white/10 text-neutral-300 border-white/10'
-                              }`}
-                              title="Inspect full Magnet URI, BTIH Hash, and Trackers"
-                            >
-                              <Terminal className="w-3.5 h-3.5 text-neutral-400" />
-                              <span className="hidden sm:inline">URI Details</span>
-                              {isExpanded ? (
-                                <ChevronUp className="w-3 h-3 text-neutral-400" />
-                              ) : (
-                                <ChevronDown className="w-3 h-3 text-neutral-400" />
                               )}
                             </button>
 
@@ -624,64 +712,14 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                               download
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="px-3 py-2 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 text-neutral-300 border border-white/10 flex items-center gap-1.5 transition-all cursor-pointer"
+                              className="px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap"
                               title="Download static .torrent metadata file"
                             >
-                              <Download className="w-3.5 h-3.5 text-neutral-400" />
+                              <Download className="w-4 h-4 text-neutral-400" />
                               <span>.Torrent</span>
                             </a>
                           </div>
                         </div>
-
-                        {/* Collapsible Magnet URI Inspector Panel */}
-                        {isExpanded && (
-                          <div className="px-4 pb-4 pt-2 bg-black/40 border-t border-white/5 space-y-3 animate-in fade-in duration-150">
-                            <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-                              <div className="flex items-center gap-1.5 text-neutral-300 font-semibold">
-                                <Zap className="w-3.5 h-3.5 text-emerald-400" />
-                                <span>Raw Magnet URI ({torrent.quality} {torrent.type})</span>
-                              </div>
-                              <span className="text-[11px] font-mono text-neutral-400">
-                                BTIH: {torrent.hash}
-                              </span>
-                            </div>
-
-                            {/* Monospace URI Text Box with Easy Selection */}
-                            <div className="relative">
-                              <textarea
-                                readOnly
-                                rows={3}
-                                value={magnetUrl}
-                                onClick={(e) => (e.target as HTMLTextAreaElement).select()}
-                                className="w-full p-2.5 bg-[#050505] text-emerald-300/90 font-mono text-[11px] rounded-xl border border-white/10 focus:outline-none focus:border-emerald-500/50 resize-none select-all"
-                              />
-                            </div>
-
-                            {/* Quick Actions inside inspector */}
-                            <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                              <div className="flex items-center gap-2">
-                                <a
-                                  href={magnetUrl}
-                                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors"
-                                >
-                                  <Magnet className="w-3 h-3" />
-                                  <span>Open in Torrent Client</span>
-                                </a>
-                                <button
-                                  onClick={() => handleCopyMagnet(torrent)}
-                                  className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-neutral-200 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-                                >
-                                  <Copy className="w-3 h-3" />
-                                  <span>{isCopied ? 'Copied to Clipboard' : 'Copy Full URI'}</span>
-                                </button>
-                              </div>
-
-                              <p className="text-[11px] text-neutral-400">
-                                Compatible with qBittorrent, Real-Debrid, Seedr, Transmission & Put.io
-                              </p>
-                            </div>
-                          </div>
-                        )}
                       </div>
                     );
                   })}
@@ -696,7 +734,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
               <div className="p-4 rounded-2xl bg-[#0c0c0c] border border-white/10 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-xs font-bold text-neutral-300">
-                    <Terminal className="w-4 h-4 text-emerald-400" />
+                    <Sparkles className="w-4 h-4 text-emerald-400" />
                     <span>Included High-Speed Peer Trackers ({RECOMMENDED_TRACKERS.length})</span>
                   </div>
                   <span className="text-[10px] text-neutral-400 uppercase font-mono">
@@ -800,14 +838,19 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                 {screenshots.map((src, i) => (
                   <div
                     key={`screenshot-${i}`}
-                    onClick={() => setSelectedScreenshot(src)}
-                    className="aspect-video rounded-2xl overflow-hidden bg-neutral-900 border border-white/10 group cursor-pointer hover:border-rose-500/50 transition-all shadow-lg"
+                    onClick={() => setSelectedScreenshotIndex(i)}
+                    className="aspect-video rounded-2xl overflow-hidden bg-neutral-900 border border-white/10 group cursor-pointer hover:border-rose-500/50 transition-all shadow-lg relative"
                   >
                     <img
                       src={src}
                       alt={`${movie.title} Still ${i + 1}`}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <span className="text-xs font-semibold text-white bg-black/80 px-3.5 py-1.5 rounded-full border border-white/20 shadow-lg">
+                        Preview Still ({i + 1}/{screenshots.length})
+                      </span>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -901,17 +944,112 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
         </section>
       )}
 
-      {/* Lightbox Modal for Full Screenshot View */}
-      {selectedScreenshot && (
+      {/* Lightbox Modal for Full Screenshot Carousel View */}
+      {selectedScreenshotIndex !== null && screenshots[selectedScreenshotIndex] && (
         <div
-          onClick={() => setSelectedScreenshot(null)}
-          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 cursor-pointer"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setSelectedScreenshotIndex(null)}
+          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex flex-col items-center justify-between p-3 sm:p-6 cursor-pointer select-none animate-in fade-in duration-200"
         >
-          <img
-            src={selectedScreenshot}
-            alt="Full Movie Still"
-            className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl border border-white/20"
-          />
+          {/* Top Bar with Title, Counter and Close */}
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-6xl flex items-center justify-between py-2 text-white shrink-0 cursor-default"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-xs sm:text-sm font-bold bg-rose-600/90 text-white px-3 py-1 rounded-full shadow-md">
+                Still {selectedScreenshotIndex + 1} of {screenshots.length}
+              </span>
+              <span className="text-xs text-neutral-400 hidden sm:inline">
+                {movie.title} • Press <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-mono">←</kbd> / <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-mono">→</kbd> or Click Next
+              </span>
+            </div>
+
+            <button
+              onClick={() => setSelectedScreenshotIndex(null)}
+              className="p-2 sm:p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white hover:text-rose-400 transition-colors cursor-pointer border border-white/15"
+              title="Close Preview (Escape)"
+              aria-label="Close screenshot preview"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Main Stage with Image and Floating Next / Previous Buttons */}
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-6xl flex-1 flex items-center justify-center min-h-0 my-2 cursor-default"
+          >
+            <img
+              key={screenshots[selectedScreenshotIndex]}
+              src={screenshots[selectedScreenshotIndex]}
+              alt={`${movie.title} Still ${selectedScreenshotIndex + 1}`}
+              className="max-w-full max-h-[70vh] sm:max-h-[75vh] object-contain rounded-2xl shadow-2xl border border-white/15 transition-all animate-in fade-in zoom-in-95 duration-200"
+            />
+
+            {/* Previous Button */}
+            {screenshots.length > 1 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedScreenshotIndex((prev) =>
+                    prev === null ? 0 : (prev - 1 + screenshots.length) % screenshots.length
+                  );
+                }}
+                className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 p-3 sm:p-4 rounded-full bg-black/80 hover:bg-rose-600 text-white border border-white/20 hover:border-rose-500 shadow-2xl transition-all cursor-pointer group hover:scale-110 active:scale-95"
+                title="Previous Still (Left Arrow)"
+                aria-label="Previous screenshot"
+              >
+                <ChevronLeft className="w-6 h-6 group-hover:-translate-x-0.5 transition-transform" />
+              </button>
+            )}
+
+            {/* Next Button */}
+            {screenshots.length > 1 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedScreenshotIndex((prev) =>
+                    prev === null ? 0 : (prev + 1) % screenshots.length
+                  );
+                }}
+                className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-3 sm:p-4 rounded-full bg-black/80 hover:bg-rose-600 text-white border border-white/20 hover:border-rose-500 shadow-2xl transition-all cursor-pointer group hover:scale-110 active:scale-95"
+                title="Next Still (Right Arrow or Space)"
+                aria-label="Next screenshot"
+              >
+                <ChevronRight className="w-6 h-6 group-hover:translate-x-0.5 transition-transform" />
+              </button>
+            )}
+          </div>
+
+          {/* Bottom Thumbnail Selector Strip */}
+          {screenshots.length > 1 && (
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-4xl flex items-center justify-center gap-2 sm:gap-3 overflow-x-auto py-2 shrink-0 cursor-default"
+            >
+              {screenshots.map((thumb, idx) => (
+                <button
+                  key={`thumb-${idx}`}
+                  onClick={() => setSelectedScreenshotIndex(idx)}
+                  className={`w-16 sm:w-24 aspect-video rounded-xl overflow-hidden border-2 transition-all cursor-pointer shrink-0 ${
+                    idx === selectedScreenshotIndex
+                      ? 'border-rose-500 scale-105 shadow-lg shadow-rose-900/40 opacity-100'
+                      : 'border-white/20 opacity-50 hover:opacity-100 hover:border-white/50'
+                  }`}
+                  title={`Jump to still ${idx + 1}`}
+                  aria-label={`Jump to screenshot ${idx + 1}`}
+                >
+                  <img
+                    src={thumb}
+                    alt={`Thumb ${idx + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

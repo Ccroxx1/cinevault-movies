@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Play, Star, Clock, Bookmark, ChevronLeft, ChevronRight, Copy, Check, Eye, Pause, Magnet } from 'lucide-react';
 import { Movie, buildMagnetLink } from '../types';
 import { getMoviePath } from '../utils/seo';
+import { handleBrandedMagnetDownload } from '../utils/downloadPack';
 
 interface FeaturedHeroProps {
   movies: Movie[];
@@ -213,14 +214,24 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
 
             {primaryTorrent && (
               <>
-                <a
-                  href={buildMagnetLink(primaryTorrent.hash, currentMovie.title_long || currentMovie.title)}
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleBrandedMagnetDownload(currentMovie, primaryTorrent, {
+                      onStart: () => {
+                        onCopyMagnet(
+                          buildMagnetLink(primaryTorrent.hash, currentMovie.title_long || currentMovie.title),
+                          `${currentMovie.title} (${primaryTorrent.quality}) — Starting Download & CineVault Info`
+                        );
+                      }
+                    });
+                  }}
                   className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm rounded-full backdrop-blur-md shadow-lg shadow-emerald-950/40 transition-all cursor-pointer"
-                  title="Direct Magnet Download"
+                  title={`Direct Magnet Download for ${primaryTorrent.quality} with CineVault Branded Info`}
                 >
                   <Magnet className="w-4 h-4 text-emerald-200" />
                   <span>Magnet ({primaryTorrent.quality})</span>
-                </a>
+                </button>
 
                 <button
                   onClick={handleCopyMagnet}
