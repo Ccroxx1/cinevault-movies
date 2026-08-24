@@ -337,6 +337,239 @@ export function buildMovieHtml(baseHtmlTemplate: string, movie: any, relatedMovi
   return html;
 }
 
+export function buildHomepageHtml(baseHtmlTemplate: string, featuredMovies: any[], totalCount: number): string {
+  const canonicalUrl = `${SITE_BASE_URL}/`;
+  const pageTitle = 'CineVault By Sasuu — HD Movie Library & Downloads';
+  const metaDescription = 'Explore, search, and download thousands of high-quality curated films with rich metadata, trailers, IMDb ratings, torrents, and magnet links.';
+
+  // Build JSON-LD schema with ItemList for top movies
+  const itemListElements = featuredMovies.slice(0, 24).map((m, idx) => ({
+    '@type': 'ListItem',
+    'position': idx + 1,
+    'item': {
+      '@type': 'Movie',
+      'name': m.title,
+      'url': `${SITE_BASE_URL}/movies/${getMovieSlug(m)}`,
+      'image': m.medium_cover_image || m.large_cover_image || `${SITE_BASE_URL}/favicon.svg`,
+      'dateCreated': m.year ? String(m.year) : undefined,
+      'aggregateRating': m.rating ? {
+        '@type': 'AggregateRating',
+        'ratingValue': m.rating,
+        'bestRating': 10
+      } : undefined
+    }
+  }));
+
+  const jsonLdGraph = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebSite',
+        '@id': `${SITE_BASE_URL}/#website`,
+        'url': `${SITE_BASE_URL}/`,
+        'name': 'CineVault By Sasuu',
+        'alternateName': 'CineVault',
+        'description': metaDescription,
+        'potentialAction': {
+          '@type': 'SearchAction',
+          'target': {
+            '@type': 'EntryPoint',
+            'urlTemplate': `${SITE_BASE_URL}/?search={search_term_string}`
+          },
+          'query-input': 'required name=search_term_string'
+        }
+      },
+      {
+        '@type': 'CollectionPage',
+        '@id': `${SITE_BASE_URL}/#collection`,
+        'url': `${SITE_BASE_URL}/`,
+        'name': 'CineVault HD Cinema Collection',
+        'isPartOf': { '@id': `${SITE_BASE_URL}/#website` },
+        'mainEntity': {
+          '@type': 'ItemList',
+          'numberOfItems': featuredMovies.length,
+          'itemListElement': itemListElements
+        }
+      },
+      {
+        '@type': 'Organization',
+        '@id': `${SITE_BASE_URL}/#organization`,
+        'name': 'CineVault By Sasuu',
+        'url': `${SITE_BASE_URL}/`,
+        'logo': `${SITE_BASE_URL}/favicon.svg`
+      },
+      {
+        '@type': 'WebApplication',
+        '@id': `${SITE_BASE_URL}/#webapp`,
+        'name': 'CineVault',
+        'url': `${SITE_BASE_URL}/`,
+        'applicationCategory': 'EntertainmentApplication',
+        'operatingSystem': 'All',
+        'offers': {
+          '@type': 'Offer',
+          'price': '0',
+          'priceCurrency': 'USD'
+        }
+      },
+      {
+        '@type': 'FAQPage',
+        'mainEntity': [
+          {
+            '@type': 'Question',
+            'name': 'What is CineVault By Sasuu?',
+            'acceptedAnswer': {
+              '@type': 'Answer',
+              'text': 'CineVault is a curated cinema library and torrent download index offering verified 720p, 1080p, and 4K magnet links, media packs, trailers, and IMDb ratings.'
+            }
+          },
+          {
+            '@type': 'Question',
+            'name': 'How do I download torrents and magnet links from CineVault?',
+            'acceptedAnswer': {
+              '@type': 'Answer',
+              'text': 'Click any movie card to view available resolutions (720p, 1080p, 4K UHD), then click Direct Magnet or Torrent Download to open with your torrent client.'
+            }
+          },
+          {
+            '@type': 'Question',
+            'name': 'What is a CineVault Media Pack (.zip)?',
+            'acceptedAnswer': {
+              '@type': 'Answer',
+              'text': 'A CineVault Media Pack is an offline archive containing high-resolution poster art, backdrop screenshots, metadata info, and torrent files packaged in a single zip archive.'
+            }
+          }
+        ]
+      }
+    ]
+  };
+
+  const moviesGridHtml = featuredMovies.slice(0, 36).map(m => {
+    const slug = getMovieSlug(m);
+    const cover = m.medium_cover_image || m.large_cover_image || m.small_cover_image || '/favicon.svg';
+    const rating = m.rating ? `★ ${m.rating.toFixed(1)} IMDb` : 'HD Release';
+    const year = m.year || '';
+    const synopsis = (m.description_full || m.summary || m.synopsis || '').slice(0, 140);
+    return `
+      <article class="bg-white/5 border border-white/10 hover:border-rose-500/50 rounded-2xl p-3 flex flex-col justify-between transition-all group">
+        <a href="/movies/${slug}" class="block space-y-2">
+          <div class="aspect-[2/3] rounded-xl overflow-hidden bg-black/40 relative">
+            <img src="${escapeHtml(cover)}" alt="${escapeHtml(m.title)} (${year}) Poster" class="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
+          </div>
+          <h3 class="font-bold text-sm text-neutral-100 group-hover:text-rose-400 truncate">${escapeHtml(m.title)}</h3>
+          <div class="flex items-center justify-between text-xs text-neutral-400">
+            <span>${year}</span>
+            <span class="text-amber-400 font-semibold">${rating}</span>
+          </div>
+          ${synopsis ? `<p class="text-[11px] text-neutral-400 line-clamp-2">${escapeHtml(synopsis)}</p>` : ''}
+        </a>
+      </article>
+    `;
+  }).join('');
+
+  const semanticHomepage = `
+    <main class="min-h-screen bg-[#050505] text-neutral-100 p-4 sm:p-8 max-w-7xl mx-auto font-sans">
+      <header class="py-8 border-b border-white/10 space-y-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-600 to-amber-600 flex items-center justify-center font-bold text-white shadow-lg">CV</div>
+          <div>
+            <h1 class="text-2xl sm:text-4xl font-black text-white tracking-tight">CineVault By Sasuu — HD Movie Catalog &amp; Torrents</h1>
+            <p class="text-sm text-neutral-400 mt-1">Explore over ${totalCount || 'thousands of'} curated cinema releases with magnet links, media packs, and IMDb ratings.</p>
+          </div>
+        </div>
+        <nav aria-label="Genre Filters" class="flex flex-wrap gap-2 text-xs pt-2">
+          <a href="/" class="px-3 py-1.5 rounded-lg bg-rose-600/20 text-rose-300 border border-rose-500/30 font-semibold">All Movies</a>
+          <a href="/?genre=Action" class="px-3 py-1.5 rounded-lg bg-white/5 text-neutral-300 border border-white/10 hover:border-rose-500/40">Action</a>
+          <a href="/?genre=Sci-Fi" class="px-3 py-1.5 rounded-lg bg-white/5 text-neutral-300 border border-white/10 hover:border-rose-500/40">Sci-Fi</a>
+          <a href="/?genre=Drama" class="px-3 py-1.5 rounded-lg bg-white/5 text-neutral-300 border border-white/10 hover:border-rose-500/40">Drama</a>
+          <a href="/?genre=Comedy" class="px-3 py-1.5 rounded-lg bg-white/5 text-neutral-300 border border-white/10 hover:border-rose-500/40">Comedy</a>
+          <a href="/?genre=Thriller" class="px-3 py-1.5 rounded-lg bg-white/5 text-neutral-300 border border-white/10 hover:border-rose-500/40">Thriller</a>
+          <a href="/?genre=Horror" class="px-3 py-1.5 rounded-lg bg-white/5 text-neutral-300 border border-white/10 hover:border-rose-500/40">Horror</a>
+          <a href="/?genre=Adventure" class="px-3 py-1.5 rounded-lg bg-white/5 text-neutral-300 border border-white/10 hover:border-rose-500/40">Adventure</a>
+          <a href="/?genre=Animation" class="px-3 py-1.5 rounded-lg bg-white/5 text-neutral-300 border border-white/10 hover:border-rose-500/40">Animation</a>
+        </nav>
+      </header>
+
+      <section class="py-8 space-y-6">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xl font-bold text-white tracking-wide">Featured &amp; Trending Releases</h2>
+          <span class="text-xs text-neutral-400">Verified 720p • 1080p • 2160p 4K Torrents</span>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          ${moviesGridHtml}
+        </div>
+      </section>
+
+      <section class="py-8 border-t border-white/10 grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-neutral-300">
+        <div class="space-y-2">
+          <h3 class="font-bold text-white text-base">Direct Magnet &amp; Torrent Downloads</h3>
+          <p class="text-xs text-neutral-400 leading-relaxed">Direct one-click magnet links with optimized public trackers for lightning-fast speeds in your preferred torrent client.</p>
+        </div>
+        <div class="space-y-2">
+          <h3 class="font-bold text-white text-base">Media Pack (.zip) Archiving</h3>
+          <p class="text-xs text-neutral-400 leading-relaxed">Download complete bundles with high-resolution cover posters, backdrop screenshots, NFO metadata, and torrent files.</p>
+        </div>
+        <div class="space-y-2">
+          <h3 class="font-bold text-white text-base">Subtitles &amp; Parental Guides</h3>
+          <p class="text-xs text-neutral-400 leading-relaxed">Integrated multi-language subtitle search (SRT/VTT) and comprehensive IMDb parental content guides for safe family viewing.</p>
+        </div>
+      </section>
+
+      <footer class="py-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-500 gap-4">
+        <div>&copy; CineVault By Sasuu — Curated HD Cinema Engine</div>
+        <div class="flex gap-4">
+          <a href="/" class="hover:text-neutral-300">Home</a>
+          <a href="/sitemap.xml" class="hover:text-neutral-300">Sitemap</a>
+          <a href="/robots.txt" class="hover:text-neutral-300">Robots.txt</a>
+        </div>
+      </footer>
+    </main>
+  `;
+
+  let html = baseHtmlTemplate;
+  html = html.replace(/<title>.*?<\/title>/i, `<title>${escapeHtml(pageTitle)}</title>`);
+  html = html.replace(/<meta\s+name=["']description["'].*?>/gi, `<meta name="description" content="${escapeHtml(metaDescription)}" />`);
+  html = html.replace(/<link\s+rel=["']canonical["'].*?>/gi, '');
+  html = html.replace(/<meta\s+property=["']og:.*?["'].*?>/gi, '');
+  html = html.replace(/<meta\s+name=["']twitter:.*?["'].*?>/gi, '');
+  html = html.replace(/<script[^>]*id=["']schema-jsonld["'][^>]*>[\s\S]*?<\/script>/gi, '');
+
+  const headMetaTags = `
+    <link rel="canonical" href="${canonicalUrl}" />
+    <!-- Open Graph Homepage Metadata -->
+    <meta property="og:site_name" content="${SITE_NAME}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="${canonicalUrl}" />
+    <meta property="og:title" content="${escapeHtml(pageTitle)}" />
+    <meta property="og:description" content="${escapeHtml(metaDescription)}" />
+    <meta property="og:image" content="${SITE_BASE_URL}/favicon.svg" />
+    <meta property="og:image:secure_url" content="${SITE_BASE_URL}/favicon.svg" />
+    <meta property="og:image:alt" content="CineVault HD Cinema Library" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter / X Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@CineVault" />
+    <meta name="twitter:creator" content="@Sasuu" />
+    <meta name="twitter:title" content="${escapeHtml(pageTitle)}" />
+    <meta name="twitter:description" content="${escapeHtml(metaDescription)}" />
+    <meta name="twitter:image" content="${SITE_BASE_URL}/favicon.svg" />
+    <meta name="twitter:image:alt" content="CineVault HD Cinema Library" />
+
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json" id="schema-jsonld">
+${JSON.stringify(jsonLdGraph, null, 2)}
+    </script>
+  `;
+
+  html = html.replace('</head>', `${headMetaTags}\n  </head>`);
+  html = html.replace(/<div id=["']root["']>[\s\S]*?<\/div>/i, `<div id="root">${semanticHomepage}</div>`);
+
+  return html;
+}
+
 async function main() {
   console.log('🚀 Starting CineVault Build-Time Prerendering & Sitemap Generation...');
 
@@ -465,6 +698,11 @@ async function main() {
   }
 
   console.log(`✨ Successfully generated ${prerenderCount} static movie pages at dist/movies/{slug}/index.html`);
+
+  // Prerender the main root homepage (dist/index.html) with rich featured catalog content
+  const homeHtml = buildHomepageHtml(baseHtmlTemplate, moviesArray, movieMap.size);
+  fs.writeFileSync(indexHtmlPath, homeHtml, 'utf-8');
+  console.log(`🏠 Successfully generated rich pre-rendered homepage at dist/index.html`);
 
   // Generate verified sitemap.xml
   const xmlLines: string[] = [

@@ -124,6 +124,98 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
       })();
     </script>
 
+    <!-- Comprehensive Structured Data (JSON-LD) for Search Engines -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://cinevault-movies-one.vercel.app/#website",
+          "url": "https://cinevault-movies-one.vercel.app/",
+          "name": "CineVault By Sasuu",
+          "alternateName": "CineVault",
+          "description": "Discover, explore, and download high-quality curated films with rich metadata, trailers, IMDb ratings, torrents, and magnet links.",
+          "inLanguage": "en-US",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://cinevault-movies-one.vercel.app/?search={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://cinevault-movies-one.vercel.app/#organization",
+          "name": "CineVault By Sasuu",
+          "url": "https://cinevault-movies-one.vercel.app/",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://cinevault-movies-one.vercel.app/favicon.svg"
+          }
+        },
+        {
+          "@type": "WebApplication",
+          "@id": "https://cinevault-movies-one.vercel.app/#webapp",
+          "name": "CineVault HD Cinema Hub",
+          "url": "https://cinevault-movies-one.vercel.app/",
+          "applicationCategory": "EntertainmentApplication",
+          "operatingSystem": "All",
+          "browserRequirements": "Requires JavaScript. Requires HTML5.",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          }
+        },
+        {
+          "@type": "CollectionPage",
+          "@id": "https://cinevault-movies-one.vercel.app/#collection",
+          "url": "https://cinevault-movies-one.vercel.app/",
+          "name": "CineVault HD Cinema Catalog & Movie Explorer",
+          "isPartOf": {
+            "@id": "https://cinevault-movies-one.vercel.app/#website"
+          },
+          "about": {
+            "@id": "https://cinevault-movies-one.vercel.app/#webapp"
+          },
+          "description": "Browse thousands of high-definition movies across Action, Sci-Fi, Drama, Comedy, and Horror with instant magnet links and media packs."
+        },
+        {
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "What is CineVault By Sasuu?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "CineVault is an ultra-fast, curated movie discovery and torrent aggregation platform providing HD/4K torrents, instant magnet links, media packs, IMDb ratings, trailers, and subtitles."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What video qualities are available on CineVault?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "CineVault indexes 720p, 1080p, 2160p (4K), and 3D BluRay/WEB-DL releases with verified seed/peer ratios and audio channel details."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Can I download media packs or magnet links directly?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes! CineVault provides one-click Media Pack .zip bundles (including artwork, torrent files, and movie details), direct torrent downloads, and instant magnet link streaming."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+
     <!-- Google AdSense Official Script Integration -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6128111645137702" crossorigin="anonymous"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -131,7 +223,99 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   </head>
   <body class="bg-[#050505] text-neutral-100 antialiased selection:bg-rose-600 selection:text-white">
-    <div id="root"></div>
+    <div id="root">
+      <main class="min-h-screen bg-[#050505] text-neutral-100 p-4 sm:p-8 max-w-7xl mx-auto font-sans">
+        <header class="py-8 border-b border-white/10 space-y-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-600 to-amber-600 flex items-center justify-center font-bold text-white shadow-lg">CV</div>
+            <div>
+              <h1 class="text-2xl sm:text-4xl font-black text-white tracking-tight">CineVault By Sasuu — HD Movie Catalog &amp; Torrents</h1>
+              <p class="text-sm text-neutral-400 mt-1">Discover, stream, and download curated cinema releases with magnet links, media packs, and IMDb ratings.</p>
+            </div>
+          </div>
+          <nav aria-label="Quick Category Filters" class="flex flex-wrap gap-2 text-xs pt-2">
+            <a href="/" class="px-3 py-1.5 rounded-lg bg-rose-600/20 text-rose-300 border border-rose-500/30 font-semibold">Featured Movies</a>
+            <a href="/?genre=Action" class="px-3 py-1.5 rounded-lg bg-white/5 text-neutral-300 border border-white/10 hover:border-rose-500/40">Action</a>
+            <a href="/?genre=Sci-Fi" class="px-3 py-1.5 rounded-lg bg-white/5 text-neutral-300 border border-white/10 hover:border-rose-500/40">Sci-Fi</a>
+            <a href="/?genre=Drama" class="px-3 py-1.5 rounded-lg bg-white/5 text-neutral-300 border border-white/10 hover:border-rose-500/40">Drama</a>
+            <a href="/?genre=Comedy" class="px-3 py-1.5 rounded-lg bg-white/5 text-neutral-300 border border-white/10 hover:border-rose-500/40">Comedy</a>
+            <a href="/?genre=Thriller" class="px-3 py-1.5 rounded-lg bg-white/5 text-neutral-300 border border-white/10 hover:border-rose-500/40">Thriller</a>
+            <a href="/?genre=Horror" class="px-3 py-1.5 rounded-lg bg-white/5 text-neutral-300 border border-white/10 hover:border-rose-500/40">Horror</a>
+            <a href="/?genre=Adventure" class="px-3 py-1.5 rounded-lg bg-white/5 text-neutral-300 border border-white/10 hover:border-rose-500/40">Adventure</a>
+            <a href="/?genre=Animation" class="px-3 py-1.5 rounded-lg bg-white/5 text-neutral-300 border border-white/10 hover:border-rose-500/40">Animation</a>
+          </nav>
+        </header>
+
+        <section class="py-8 space-y-6">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-bold text-white tracking-wide">Featured &amp; Trending Releases</h2>
+            <span class="text-xs text-neutral-400">720p • 1080p • 2160p 4K</span>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <article class="bg-white/5 border border-white/10 rounded-xl p-3 space-y-2">
+              <a href="/movies/dune-part-two-2024" class="block font-bold text-sm text-neutral-100 hover:text-rose-400">Dune: Part Two (2024)</a>
+              <p class="text-xs text-neutral-400 line-clamp-2">Paul Atreides unites with Chani and the Fremen while seeking revenge.</p>
+              <div class="text-[11px] text-amber-400 font-semibold">★ 8.6 IMDb · 4K / 1080p</div>
+            </article>
+
+            <article class="bg-white/5 border border-white/10 rounded-xl p-3 space-y-2">
+              <a href="/movies/oppenheimer-2023" class="block font-bold text-sm text-neutral-100 hover:text-rose-400">Oppenheimer (2023)</a>
+              <p class="text-xs text-neutral-400 line-clamp-2">The story of American scientist J. Robert Oppenheimer and the Manhattan Project.</p>
+              <div class="text-[11px] text-amber-400 font-semibold">★ 8.9 IMDb · 1080p BluRay</div>
+            </article>
+
+            <article class="bg-white/5 border border-white/10 rounded-xl p-3 space-y-2">
+              <a href="/movies/alien-romulus-2024" class="block font-bold text-sm text-neutral-100 hover:text-rose-400">Alien: Romulus (2024)</a>
+              <p class="text-xs text-neutral-400 line-clamp-2">Young colonizers scavenge a derelict space station and face the universe's most terrifying life form.</p>
+              <div class="text-[11px] text-amber-400 font-semibold">★ 7.5 IMDb · 1080p / 720p</div>
+            </article>
+
+            <article class="bg-white/5 border border-white/10 rounded-xl p-3 space-y-2">
+              <a href="/movies/avatar-the-way-of-water-2022" class="block font-bold text-sm text-neutral-100 hover:text-rose-400">Avatar: The Way of Water (2022)</a>
+              <p class="text-xs text-neutral-400 line-clamp-2">Jake Sully lives with his newfound family on the extrasolar moon Pandora.</p>
+              <div class="text-[11px] text-amber-400 font-semibold">★ 7.6 IMDb · 3D / 4K UHD</div>
+            </article>
+
+            <article class="bg-white/5 border border-white/10 rounded-xl p-3 space-y-2">
+              <a href="/movies/spider-man-across-the-spider-verse-2023" class="block font-bold text-sm text-neutral-100 hover:text-rose-400">Spider-Man: Across the Spider-Verse (2023)</a>
+              <p class="text-xs text-neutral-400 line-clamp-2">Miles Morales is catapulted across the Multiverse to encounter the Spider-Society.</p>
+              <div class="text-[11px] text-amber-400 font-semibold">★ 8.7 IMDb · 1080p HDR</div>
+            </article>
+
+            <article class="bg-white/5 border border-white/10 rounded-xl p-3 space-y-2">
+              <a href="/movies/batman-the-long-halloween-2021" class="block font-bold text-sm text-neutral-100 hover:text-rose-400">Batman: The Long Halloween (2021)</a>
+              <p class="text-xs text-neutral-400 line-clamp-2">A serial killer strikes on holidays in Gotham City as Batman forms a pact with Gordon.</p>
+              <div class="text-[11px] text-amber-400 font-semibold">★ 7.5 IMDb · 1080p BluRay</div>
+            </article>
+          </div>
+        </section>
+
+        <section class="py-8 border-t border-white/10 grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-neutral-300">
+          <div class="space-y-2">
+            <h3 class="font-bold text-white text-base">Ultra-Fast Magnet &amp; Torrent Downloads</h3>
+            <p class="text-xs text-neutral-400 leading-relaxed">Direct one-click magnet links with optimized public trackers for lightning-fast speeds in your preferred torrent client.</p>
+          </div>
+          <div class="space-y-2">
+            <h3 class="font-bold text-white text-base">Media Pack (.zip) Archiving</h3>
+            <p class="text-xs text-neutral-400 leading-relaxed">Download complete bundles with high-resolution cover posters, backdrop screenshots, NFO metadata, and torrent files.</p>
+          </div>
+          <div class="space-y-2">
+            <h3 class="font-bold text-white text-base">Subtitles &amp; Parental Guides</h3>
+            <p class="text-xs text-neutral-400 leading-relaxed">Integrated multi-language subtitle search (SRT/VTT) and comprehensive IMDb parental content guides for safe family viewing.</p>
+          </div>
+        </section>
+
+        <footer class="py-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-500 gap-4">
+          <div>&copy; CineVault By Sasuu — Curated HD Cinema Engine</div>
+          <div class="flex gap-4">
+            <a href="/" class="hover:text-neutral-300">Home</a>
+            <a href="/sitemap.xml" class="hover:text-neutral-300">Sitemap</a>
+            <a href="/robots.txt" class="hover:text-neutral-300">Robots.txt</a>
+          </div>
+        </footer>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
     <!-- Google Tag Manager (noscript) -->
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NBFJMMHC"
