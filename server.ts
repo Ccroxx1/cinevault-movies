@@ -17,8 +17,8 @@ app.use(express.json());
 const STATS_FILE = path.join(process.cwd(), 'data', 'visitor_stats.json');
 
 // Upstash Redis Cloud Database Configuration
-const UPSTASH_REDIS_REST_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || '';
-const UPSTASH_REDIS_REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN || '';
+const UPSTASH_REDIS_REST_URL = process.env.UPSTASH_REDIS_REST_URL || 'https://relaxing-flounder-42041.upstash.io';
+const UPSTASH_REDIS_REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || 'AqQ5AAIgcDG6sdewCbB8RVIClvvFRhx-qV5AxGKoy6NUZFNOcbj1qw';
 
 async function runUpstashPipeline(commands: any[][]): Promise<any[] | null> {
   const url = UPSTASH_REDIS_REST_URL;
@@ -122,7 +122,7 @@ function saveVisitorStats() {
   }, 100);
 }
 
-// Initialize on startup & sync with Upstash Redis if read-write is available
+// Initialize on startup & sync with Upstash Redis or Global Cloud Hit Counter
 loadVisitorStats();
 (async () => {
   try {
@@ -135,6 +135,21 @@ loadVisitorStats();
       statsCache.totalVisitors = Math.max(statsCache.totalVisitors, redisResults[0]);
       statsCache.todayVisitors = typeof redisResults[1] === 'number' ? Math.max(statsCache.todayVisitors, redisResults[1]) : statsCache.todayVisitors;
       saveVisitorStats();
+      return;
+    }
+
+    // Fallback sync with global cloud counter if local stats are empty
+    if (statsCache.totalVisitors === 0) {
+      const allRes = await fetch('https://hits.dwyl.com/sasuu/cinevault-all.json');
+      if (allRes.ok) {
+        const allData = await allRes.json();
+        const count = parseInt(allData?.message || '0', 10);
+        if (count > 0) {
+          statsCache.totalVisitors = Math.max(statsCache.totalVisitors, count);
+          statsCache.todayVisitors = Math.max(1, statsCache.todayVisitors);
+          saveVisitorStats();
+        }
+      }
     }
   } catch {
     // Graceful fallback to local cache
@@ -466,6 +481,22 @@ async function startServer() {
       server: { middlewareMode: true },
       appType: 'spa',
     });
+
+    // Explicit SSR route for movie URLs in development
+    app.get('/movies/:slug', async (req, res, next) => {
+      const url = req.originalUrl;
+      try {
+        const indexPath = path.join(process.cwd(), 'index.html');
+        let template = fs.readFileSync(indexPath, 'utf-8');
+        template = await vite.transformIndexHtml(url, template);
+        const html = await injectDynamicMetaTags(template, url);
+        res.status(200).set({ 'Content-Type': 'text/html' }).send(html);
+      } catch (e) {
+        vite.ssrFixStacktrace(e as Error);
+        next(e);
+      }
+    });
+
     app.use(vite.middlewares);
 
     // Fallback for HTML navigation with dynamic SEO tags

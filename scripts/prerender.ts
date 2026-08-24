@@ -79,8 +79,8 @@ async function fetchInBatches(tasks: (() => Promise<any[]>)[], concurrency = 8):
   return results;
 }
 
-export function buildMovieHtml(baseHtmlTemplate: string, movie: any, relatedMovies: any[] = [], canonicalSlugOverride?: string): string {
-  const slug = canonicalSlugOverride || getMovieSlug(movie);
+export function buildMovieHtml(baseHtmlTemplate: string, movie: any, relatedMovies: any[] = []): string {
+  const slug = getMovieSlug(movie);
   const canonicalUrl = `${SITE_BASE_URL}/movies/${slug}`;
   const movieTitle = movie.title || 'Movie';
   const movieYear = movie.year ? ` (${movie.year})` : '';
@@ -374,20 +374,14 @@ async function main() {
   // Queries to guarantee comprehensive coverage
   const tasks: (() => Promise<any[]>)[] = [];
 
-  // These are real CineVault routes that have been verified in the app.
-  // They are queried explicitly so the SEO build does not accidentally omit
-  // important movie pages when a broad catalog query changes.
-  const priorityMovieQueries = [
-    { query: 'supergirl', year: 2026, slug: 'supergirl-2026' },
-    { query: 'project hail mary', year: 2026, slug: 'project-hail-mary-2026' },
-    { query: 'mortal kombat ii', year: 2026, slug: 'mortal-kombat-ii-2026' },
-    { query: 'greenland 2', year: 2026, slug: 'greenland-2-migration-2026' },
-    { query: 'send help', year: 2026, slug: 'send-help-2026' },
-    { query: 'war machine', year: 2026, slug: 'war-machine-2026' }
-  ];
-
+  // Explicit high-profile queries for known upcoming and premiere titles
   const targetTerms = [
-    ...priorityMovieQueries.map(item => item.query),
+    'supergirl',
+    'project hail mary',
+    'mortal kombat ii',
+    'greenland 2',
+    'send help',
+    'war machine',
     'dune',
     'avatar',
     'batman',
@@ -397,7 +391,7 @@ async function main() {
   ];
 
   for (const term of targetTerms) {
-    tasks.push(() => fetchPage({ query_term: term, limit: '50' }));
+    tasks.push(() => fetchPage({ query_term: term, limit: '20' }));
   }
 
   // 2026 Releases
@@ -438,30 +432,6 @@ async function main() {
   for (const res of allResults) {
     if (res && res.length > 0) {
       processMovies(res);
-    }
-  }
-
-  // A second, exact-match pass protects the six important movie routes from
-  // broad-query ranking changes. We only generate a page when real API data
-  // is returned; no movie facts are fabricated during the SEO build.
-  for (const priority of priorityMovieQueries) {
-    const expected = priority.slug;
-    if (movieMap.has(expected)) continue;
-
-    const exactResults = await fetchPage({ query_term: priority.query, limit: '50' });
-    const normalizedQuery = slugify(priority.query);
-    const match = exactResults.find((movie: any) => {
-      const movieSlug = getMovieSlug(movie);
-      const titleSlug = slugify(movie.title || '');
-      return movieSlug === expected
-        || (movie.year === priority.year && (titleSlug === normalizedQuery || titleSlug.includes(normalizedQuery) || normalizedQuery.includes(titleSlug)));
-    });
-
-    if (match) {
-      movieMap.set(expected, { ...match, slug: expected });
-      console.log(`🎯 Guaranteed priority movie: ${expected}`);
-    } else {
-      console.warn(`⚠️ Priority movie data was not returned by the catalog: ${expected}`);
     }
   }
 
