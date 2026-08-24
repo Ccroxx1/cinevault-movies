@@ -304,6 +304,101 @@ app.get('/api/movies/parental_guides', async (req, res) => {
   }
 });
 
+// Media & Torrent Proxy Endpoints for Download Packaging
+function isSafePublicUrl(rawUrl: string): boolean {
+  try {
+    const parsed = new URL(rawUrl);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return false;
+    }
+    const hostname = parsed.hostname.toLowerCase();
+    if (
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname === '::1' ||
+      hostname === '0.0.0.0' ||
+      hostname.startsWith('10.') ||
+      hostname.startsWith('192.168.') ||
+      hostname.startsWith('172.16.') ||
+      hostname.startsWith('172.17.') ||
+      hostname.startsWith('172.18.') ||
+      hostname.startsWith('172.19.') ||
+      hostname.startsWith('172.2') ||
+      hostname.startsWith('172.3') ||
+      hostname.startsWith('169.254.')
+    ) {
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+app.get('/api/download/proxy-image', async (req, res) => {
+  const imageUrl = req.query.url as string;
+  if (!imageUrl) {
+    return res.status(400).send('Image URL required');
+  }
+
+  if (!isSafePublicUrl(imageUrl)) {
+    return res.status(400).send('Invalid or restricted image URL');
+  }
+
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 6000);
+    const response = await fetch(imageUrl, { signal: controller.signal });
+    clearTimeout(timer);
+
+    if (!response.ok) {
+      return res.status(response.status).send('Failed to fetch image');
+    }
+
+    const contentType = response.headers.get('content-type') || 'image/jpeg';
+    const buffer = await response.arrayBuffer();
+
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.send(Buffer.from(buffer));
+  } catch (err: any) {
+    res.status(500).send('Error proxying image: ' + err.message);
+  }
+});
+
+app.get('/api/download/proxy-file', async (req, res) => {
+  const fileUrl = req.query.url as string;
+  if (!fileUrl) {
+    return res.status(400).send('File URL required');
+  }
+
+  if (!isSafePublicUrl(fileUrl)) {
+    return res.status(400).send('Invalid or restricted file URL');
+  }
+
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 6000);
+    const response = await fetch(fileUrl, { signal: controller.signal });
+    clearTimeout(timer);
+
+    if (!response.ok) {
+      return res.status(response.status).send('Failed to fetch file');
+    }
+
+    const contentType = response.headers.get('content-type') || 'application/x-bittorrent';
+    const buffer = await response.arrayBuffer();
+
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.send(Buffer.from(buffer));
+  } catch (err: any) {
+    res.status(500).send('Error proxying file: ' + err.message);
+  }
+});
+
 // Visitor Counter Endpoints with Upstash Redis Cloud Database & Local Fallback
 app.get('/api/visitors/stats', async (_req, res) => {
   try {

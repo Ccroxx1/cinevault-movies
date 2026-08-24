@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { X, Magnet, Copy, Check, HardDrive, Zap, Info, ShieldCheck, Download } from 'lucide-react';
+import { X, Magnet, Copy, Check, HardDrive, Zap, Info, ShieldCheck, Download, FolderArchive, Loader2 } from 'lucide-react';
 import { Movie, Torrent, buildMagnetLink } from '../types';
+import { downloadMoviePackage, handleBrandedMagnetDownload } from '../utils/downloadPack';
 
 interface BatchQualityModalProps {
   movie: Movie | null;
@@ -17,6 +18,7 @@ export const BatchQualityModal: React.FC<BatchQualityModalProps> = ({
 }) => {
   const [copiedHash, setCopiedHash] = useState<string | null>(null);
   const [copiedAll, setCopiedAll] = useState(false);
+  const [packagingHash, setPackagingHash] = useState<string | null>(null);
 
   if (!isOpen || !movie || !movie.torrents || movie.torrents.length === 0) return null;
 
@@ -25,6 +27,28 @@ export const BatchQualityModal: React.FC<BatchQualityModalProps> = ({
     onCopyMagnet(magnetUrl, `${movie.title} (${torrent.quality})`);
     setCopiedHash(torrent.hash);
     setTimeout(() => setCopiedHash(null), 2500);
+  };
+
+  const handleDownloadMagnet = (torrent: Torrent) => {
+    handleBrandedMagnetDownload(movie, torrent, {
+      onStart: () => {
+        onCopyMagnet(
+          buildMagnetLink(torrent.hash, movie.title_long || movie.title),
+          `${movie.title} (${torrent.quality}) — Starting Download & CineVault Info`
+        );
+      }
+    });
+  };
+
+  const handleDownloadPack = async (torrent: Torrent) => {
+    setPackagingHash(torrent.hash);
+    try {
+      await downloadMoviePackage(movie, torrent);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setTimeout(() => setPackagingHash(null), 1500);
+    }
   };
 
   const handleCopyAllMagnets = () => {
@@ -51,7 +75,7 @@ export const BatchQualityModal: React.FC<BatchQualityModalProps> = ({
             </div>
             <div>
               <h3 className="text-lg sm:text-xl font-display font-black text-white">
-                Quality Comparison & Batch Magnets
+                Quality Comparison & Media Packs
               </h3>
               <p className="text-xs text-neutral-400">
                 {movie.title} ({movie.year}) • {movie.torrents.length} Available Resolutions
@@ -73,6 +97,7 @@ export const BatchQualityModal: React.FC<BatchQualityModalProps> = ({
             const magnetUrl = buildMagnetLink(torrent.hash, movie.title_long || movie.title);
             const isCopied = copiedHash === torrent.hash;
             const isHighRes = torrent.quality === '2160p' || torrent.quality === '4k';
+            const isPackaging = packagingHash === torrent.hash;
 
             return (
               <div
@@ -120,15 +145,30 @@ export const BatchQualityModal: React.FC<BatchQualityModalProps> = ({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 w-full sm:w-auto justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-white/5">
-                  <a
-                    href={magnetUrl}
-                    className="flex-1 sm:flex-none px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-md transition-colors"
-                    title="Launch BitTorrent Client"
+                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-white/5">
+                  {/* Download Pack (.zip) */}
+                  <button
+                    onClick={() => handleDownloadPack(torrent)}
+                    disabled={isPackaging}
+                    className="px-3 py-2 bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 hover:text-white text-xs font-bold rounded-xl border border-amber-500/30 flex items-center justify-center gap-1.5 transition-colors cursor-pointer disabled:opacity-60"
+                    title="Download ZIP folder with Cover Photo & Site Info"
+                  >
+                    {isPackaging ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <FolderArchive className="w-3.5 h-3.5 text-amber-400" />
+                    )}
+                    <span>Pack (.zip)</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleDownloadMagnet(torrent)}
+                    className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-md transition-colors cursor-pointer"
+                    title="Launch BitTorrent Client & Download CineVault Branded Info"
                   >
                     <Magnet className="w-3.5 h-3.5" />
-                    <span>Download</span>
-                  </a>
+                    <span>Magnet</span>
+                  </button>
 
                   <button
                     onClick={() => handleCopySingle(torrent)}
@@ -173,7 +213,7 @@ export const BatchQualityModal: React.FC<BatchQualityModalProps> = ({
           </button>
 
           <span className="text-[11px] text-neutral-400 font-mono">
-            Direct P2P Tracker Verified
+            Direct P2P & Media Pack Verified
           </span>
         </div>
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Star, Download, Play, Bookmark, Copy, Check, Eye, HardDrive, Magnet } from 'lucide-react';
 import { Movie, buildMagnetLink } from '../types';
 import { getMoviePath } from '../utils/seo';
+import { handleBrandedMagnetDownload } from '../utils/downloadPack';
 
 interface MovieCardProps {
   movie: Movie;
@@ -148,15 +149,26 @@ export const MovieCard: React.FC<MovieCardProps> = ({
 
           {primaryTorrent && (
             <div className="flex items-center gap-1.5">
-              <a
-                href={buildMagnetLink(primaryTorrent.hash, movie.title_long || movie.title)}
-                onClick={(e) => e.stopPropagation()}
-                className="flex-1 flex items-center justify-center gap-1 py-1.5 px-2 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold rounded-full shadow-md shadow-emerald-950/30 transition-colors"
-                title={`Direct Magnet Download for ${primaryTorrent.quality}`}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleBrandedMagnetDownload(movie, primaryTorrent, {
+                    onStart: () => {
+                      onCopyMagnet(
+                        buildMagnetLink(primaryTorrent.hash, movie.title_long || movie.title),
+                        `${movie.title} (${primaryTorrent.quality}) — Starting Download & CineVault Info`
+                      );
+                    }
+                  });
+                }}
+                className="flex-1 flex items-center justify-center gap-1 py-1.5 px-2 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold rounded-full shadow-md shadow-emerald-950/30 transition-colors cursor-pointer"
+                title={`Direct Magnet Download for ${primaryTorrent.quality} with CineVault Branded Info`}
               >
                 <Magnet className="w-3 h-3 text-emerald-200" />
                 <span>Magnet ({primaryTorrent.quality})</span>
-              </a>
+              </button>
 
               <button
                 type="button"
