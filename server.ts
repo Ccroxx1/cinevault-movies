@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
+import { buildMovieHtml } from './src/utils/htmlBuilder.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,8 +17,8 @@ app.use(express.json());
 const STATS_FILE = path.join(process.cwd(), 'data', 'visitor_stats.json');
 
 // Upstash Redis Cloud Database Configuration
-const UPSTASH_REDIS_REST_URL = process.env.UPSTASH_REDIS_REST_URL || 'https://relaxing-flounder-42041.upstash.io';
-const UPSTASH_REDIS_REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || 'AqQ5AAIgcDG6sdewCbB8RVIClvvFRhx-qV5AxGKoy6NUZFNOcbj1qw';
+const UPSTASH_REDIS_REST_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || '';
+const UPSTASH_REDIS_REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN || '';
 
 async function runUpstashPipeline(commands: any[][]): Promise<any[] | null> {
   const url = UPSTASH_REDIS_REST_URL;
@@ -435,61 +436,21 @@ async function injectDynamicMetaTags(htmlTemplate: string, reqUrl: string): Prom
       const queryTerm = yearMatch ? yearMatch[1].replace(/-/g, ' ') : rawSlug.replace(/-/g, ' ');
       const queryYear = yearMatch ? parseInt(yearMatch[2], 10) : null;
 
-      const listData = await fetchFromApi('list_movies.json', { query_term: queryTerm, limit: '5' });
+      const listData = await fetchFromApi('list_movies.json', { query_term: queryTerm, limit: '10' });
       let movie = null;
+      let relatedMovies: any[] = [];
+
       if (listData?.data?.movies?.length > 0) {
         if (queryYear) {
           movie = listData.data.movies.find((m: any) => m.year === queryYear) || listData.data.movies[0];
         } else {
           movie = listData.data.movies[0];
         }
+        relatedMovies = listData.data.movies.filter((m: any) => m.id !== movie?.id);
       }
 
       if (movie) {
-        const title = `${movie.title} (${movie.year || 'HD'}) — Watch & Download | CineVault By Sasuu`;
-        const synopsis = (movie.description_full || movie.summary || movie.synopsis || `Download & stream ${movie.title} (${movie.year}) in 720p, 1080p, and 4K on CineVault.`).slice(0, 180).replace(/"/g, '&quot;');
-        const canonicalUrl = `${SITE_BASE_URL}/movies/${rawSlug}`;
-        const image = movie.large_cover_image || movie.background_image_original || movie.medium_cover_image || `${SITE_BASE_URL}/favicon.svg`;
-        const rating = movie.rating ? `${movie.rating.toFixed(1)} / 10 ★` : 'HD';
-        const qualities = movie.torrents?.map((t: any) => t.quality).filter((v: any, i: number, a: any[]) => a.indexOf(v) === i).join(', ') || '720p, 1080p, 4K';
-
-        let modifiedHtml = htmlTemplate;
-
-        // Clean out static meta tags that we will override
-        modifiedHtml = modifiedHtml
-          .replace(/<title>.*?<\/title>/i, `<title>${title}</title>`)
-          .replace(/<meta\s+name=["']description["'].*?>/gi, `<meta name="description" content="${synopsis}" />`)
-          .replace(/<link\s+rel=["']canonical["'].*?>/gi, `<link rel="canonical" href="${canonicalUrl}" />`)
-          .replace(/<meta\s+property=["']og:title["'].*?>/gi, `<meta property="og:title" content="${title}" />`)
-          .replace(/<meta\s+property=["']og:description["'].*?>/gi, `<meta property="og:description" content="${synopsis}" />`)
-          .replace(/<meta\s+property=["']og:url["'].*?>/gi, `<meta property="og:url" content="${canonicalUrl}" />`)
-          .replace(/<meta\s+property=["']og:type["'].*?>/gi, `<meta property="og:type" content="video.movie" />`)
-          .replace(/<meta\s+property=["']og:image["'].*?>/gi, `<meta property="og:image" content="${image}" />`)
-          .replace(/<meta\s+name=["']twitter:title["'].*?>/gi, `<meta name="twitter:title" content="${title}" />`)
-          .replace(/<meta\s+name=["']twitter:description["'].*?>/gi, `<meta name="twitter:description" content="${synopsis}" />`)
-          .replace(/<meta\s+name=["']twitter:image["'].*?>/gi, `<meta name="twitter:image" content="${image}" />`);
-
-        const extraTags = `
-    <!-- Dynamic Social Media & Bot Tags -->
-    <meta property="og:site_name" content="CineVault By Sasuu" />
-    <meta property="og:image:secure_url" content="${image}" />
-    <meta property="og:image:alt" content="${movie.title} (${movie.year}) Artwork" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:locale" content="en_US" />
-    ${movie.year ? `<meta property="video:release_date" content="${movie.year}" />` : ''}
-    ${movie.runtime ? `<meta property="video:duration" content="${movie.runtime * 60}" />` : ''}
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@CineVault" />
-    <meta name="twitter:creator" content="@Sasuu" />
-    <meta name="twitter:label1" content="IMDb Rating" />
-    <meta name="twitter:data1" content="${rating}" />
-    <meta name="twitter:label2" content="Available Format" />
-    <meta name="twitter:data2" content="${qualities}" />
-        `;
-
-        modifiedHtml = modifiedHtml.replace('</head>', `${extraTags}\n  </head>`);
-        return modifiedHtml;
+        return buildMovieHtml(htmlTemplate, movie, relatedMovies);
       }
     }
   } catch (err) {
@@ -527,7 +488,20 @@ async function startServer() {
     const distPath = path.join(process.cwd(), 'dist');
     const indexHtmlPath = path.join(distPath, 'index.html');
     app.use(express.static(distPath, { index: false }));
+
     app.get('*', async (req, res) => {
+      const pathname = req.path;
+      const movieMatch = pathname.match(/^\/movies\/([a-zA-Z0-9_-]+)/);
+
+      // If pre-rendered static movie page exists, serve directly
+      if (movieMatch) {
+        const slug = movieMatch[1];
+        const staticMoviePath = path.join(distPath, 'movies', slug, 'index.html');
+        if (fs.existsSync(staticMoviePath)) {
+          return res.sendFile(staticMoviePath);
+        }
+      }
+
       try {
         if (fs.existsSync(indexHtmlPath)) {
           const rawTemplate = fs.readFileSync(indexHtmlPath, 'utf-8');

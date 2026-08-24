@@ -18,3 +18,7 @@ View your app in AI Studio: https://ai.studio/apps/f9d24072-0b1a-45ed-8361-995f1
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
+
+## Production visitor counter
+
+The visitor counter uses Upstash Redis for durable unique-visitor storage on Vercel. Set either `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` or the equivalent `KV_REST_API_URL` + `KV_REST_API_TOKEN` environment variables in the Vercel project. Never commit Redis credentials to the repository.

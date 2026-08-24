@@ -20,6 +20,13 @@
         { "key": "Content-Type", "value": "text/plain; charset=utf-8" },
         { "key": "Cache-Control", "value": "public, max-age=86400" }
       ]
+    },
+    {
+      "source": "/e35378d088b04d1694d7df64ce04a4dc.txt",
+      "headers": [
+        { "key": "Content-Type", "value": "text/plain; charset=utf-8" },
+        { "key": "Cache-Control", "value": "public, max-age=86400" }
+      ]
     }
   ],
   "rewrites": [
@@ -54,6 +61,10 @@
     {
       "source": "/ads.txt",
       "destination": "/ads.txt"
+    },
+    {
+      "source": "/e35378d088b04d1694d7df64ce04a4dc.txt",
+      "destination": "/e35378d088b04d1694d7df64ce04a4dc.txt"
     },
     {
       "source": "/(.*)",
