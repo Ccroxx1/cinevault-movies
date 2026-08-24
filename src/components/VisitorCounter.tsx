@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { trackVisitorHit, getCachedVisitorCount } from '../utils/visitor';
+import { trackVisitorHit, getCachedVisitorCount, getCachedTodayVisitorCount } from '../utils/visitor';
 
 interface VisitorCounterProps {
   className?: string;
@@ -9,7 +9,8 @@ export const VisitorCounter: React.FC<VisitorCounterProps> = ({
   className = ''
 }) => {
   const [totalVisitors, setTotalVisitors] = useState<number>(() => getCachedVisitorCount());
-  const [todayVisitors, setTodayVisitors] = useState<number>(0);
+  const [todayVisitors, setTodayVisitors] = useState<number>(() => getCachedTodayVisitorCount());
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -18,11 +19,14 @@ export const VisitorCounter: React.FC<VisitorCounterProps> = ({
       try {
         const stats = await trackVisitorHit();
         if (isMounted) {
-          setTotalVisitors(stats.totalVisitors ?? 0);
-          setTodayVisitors(stats.todayVisitors ?? 0);
+          setTotalVisitors(stats.totalVisitors || 1);
+          setTodayVisitors(stats.todayVisitors || 1);
+          setIsLoaded(true);
         }
       } catch {
-        // Fallback is handled in trackVisitorHit
+        if (isMounted) {
+          setIsLoaded(true);
+        }
       }
     }
 
@@ -36,14 +40,21 @@ export const VisitorCounter: React.FC<VisitorCounterProps> = ({
   return (
     <div
       id="cinevault-visitor-counter"
-      className={`inline-flex items-center gap-1.5 text-xs text-neutral-500 font-normal select-none ${className}`}
+      className={`inline-flex items-center gap-2 text-xs text-neutral-400 font-normal select-none px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 ${className}`}
       title={`CineVault By Sasuu — Total Visitors: ${totalVisitors.toLocaleString('en-US')} · Today: ${todayVisitors.toLocaleString('en-US')}`}
     >
-      <span>Visitors:</span>
-      <span className="font-mono text-neutral-300 font-medium">{totalVisitors.toLocaleString('en-US')}</span>
+      <span className="relative flex h-2 w-2">
+        <span className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 ${isLoaded ? 'opacity-75' : 'opacity-40'}`}></span>
+        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+      </span>
+
+      <span className="text-neutral-500">Visitors:</span>
+      <span className="font-mono text-neutral-200 font-semibold">{totalVisitors.toLocaleString('en-US')}</span>
+
       <span className="text-neutral-600">·</span>
-      <span>Today:</span>
-      <span className="font-mono text-neutral-300 font-medium">{todayVisitors.toLocaleString('en-US')}</span>
+
+      <span className="text-neutral-500">Today:</span>
+      <span className="font-mono text-rose-300 font-medium">{todayVisitors.toLocaleString('en-US')}</span>
     </div>
   );
 };

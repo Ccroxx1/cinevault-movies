@@ -31,6 +31,14 @@
   ],
   "rewrites": [
     {
+      "source": "/api/visitors/hit",
+      "destination": "/api/visitors/hit"
+    },
+    {
+      "source": "/api/visitors/stats",
+      "destination": "/api/visitors/stats"
+    },
+    {
       "source": "/api/movies/list",
       "destination": "https://movies-api.accel.li/api/v2/list_movies.json"
     },
@@ -67,7 +75,7 @@
       "destination": "/e35378d088b04d1694d7df64ce04a4dc.txt"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ]
