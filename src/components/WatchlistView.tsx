@@ -86,9 +86,9 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
             <Bookmark className="w-6 h-6 fill-current" />
           </div>
           <div>
-            <h2 className="text-xl sm:text-2xl font-black font-display text-white">
+            <h1 className="text-xl sm:text-2xl font-black font-display text-white">
               My Watchlist & Library
-            </h2>
+            </h1>
             <p className="text-xs sm:text-sm text-neutral-400">
               {watchlist.length} {watchlist.length === 1 ? 'film' : 'films'} saved for offline viewing and streaming
             </p>
