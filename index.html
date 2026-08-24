@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <meta name="theme-color" content="#050505" />
+    <title>CineVault By Sasuu — HD Movie Library & Downloads</title>
+    <meta name="description" content="Explore, search, and download high-quality curated films with rich metadata, trailers, IMDb ratings, torrents, and magnet links." />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href="https://cinevault-movies-one.vercel.app/" />
+
+    <!-- Open Graph / Facebook / Discord / WhatsApp -->
+    <meta property="og:site_name" content="CineVault By Sasuu" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://cinevault-movies-one.vercel.app/" />
+    <meta property="og:title" content="CineVault By Sasuu — HD Movie Library & Downloads" />
+    <meta property="og:description" content="Explore, search, and download high-quality curated films with rich metadata, trailers, IMDb ratings, torrents, and magnet links." />
+    <meta property="og:image" content="https://cinevault-movies-one.vercel.app/favicon.svg" />
+    <meta property="og:image:secure_url" content="https://cinevault-movies-one.vercel.app/favicon.svg" />
+    <meta property="og:image:alt" content="CineVault HD Cinema Library" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter / X Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@CineVault" />
+    <meta name="twitter:creator" content="@Sasuu" />
+    <meta name="twitter:title" content="CineVault By Sasuu — HD Movie Library & Downloads" />
+    <meta name="twitter:description" content="Explore, search, and download high-quality curated films with rich metadata, trailers, IMDb ratings, torrents, and magnet links." />
+    <meta name="twitter:image" content="https://cinevault-movies-one.vercel.app/favicon.svg" />
+    <meta name="twitter:image:alt" content="CineVault HD Cinema Library" />
+    <!-- Google Search Console Ownership Verification -->
+    <meta name="google-site-verification" content="dWg6vWL00fIhf_DJwZIu6KOLqYG7O2qiYAldH1jOYgg" />
+    <!-- Google AdSense Account Meta Tag -->
+    <meta name="google-adsense-account" content="ca-pub-6128111645137702" />
+    <meta name="msvalidate.01" content="3E5A2D6A11C998B044CC2F84CACBE750" />
+    <!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-NBFJMMHC');</script>
+<!-- End Google Tag Manager -->
+<!-- Clarity tracking code for https://cinevault-movies-one.vercel.app/ -->
+<script>
+    (function(c,l,a,r,i,t,y){
+            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i+"?ref=bwt";
+                            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+                                })(window, document, "clarity", "script", "y6rnjex7gw");
+                                </script>
+
+    <!-- Early Third-Party Extension Error Interceptor -->
+    <script>
+      (function() {
+        function isIgnoredError(msg, src) {
+          var str = (String(msg || '') + ' ' + String(src || '')).toLowerCase();
+          return (
+            str.indexOf('metamask') !== -1 ||
+            str.indexOf('ethereum') !== -1 ||
+            str.indexOf('solana') !== -1 ||
+            str.indexOf('phantom') !== -1 ||
+            str.indexOf('coinbase') !== -1 ||
+            str.indexOf('web3') !== -1 ||
+            str.indexOf('failed to connect to metamask') !== -1 ||
+            str.indexOf('chrome-extension://') !== -1 ||
+            str.indexOf('moz-extension://') !== -1 ||
+            str.indexOf('safari-web-extension://') !== -1
+          );
+        }
+
+        // Intercept standard window error event (capture phase)
+        window.addEventListener('error', function(e) {
+          var msg = e.message || (e.error && e.error.message) || '';
+          var file = e.filename || '';
+          if (isIgnoredError(msg, file)) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+            return true;
+          }
+        }, true);
+
+        // Intercept unhandled promise rejections
+        window.addEventListener('unhandledrejection', function(e) {
+          var reason = e.reason;
+          var msg = typeof reason === 'string' ? reason : (reason && (reason.message || reason.stack)) || '';
+          if (isIgnoredError(msg, '')) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+            return true;
+          }
+        }, true);
+
+        // Intercept console.error from injected scripts
+        var origConsoleError = console.error;
+        console.error = function() {
+          var args = Array.prototype.slice.call(arguments);
+          var joined = args.map(function(a) {
+            try { return typeof a === 'object' ? JSON.stringify(a) : String(a); } catch(e) { return String(a); }
+          }).join(' ');
+          if (isIgnoredError(joined, '')) {
+            return;
+          }
+          origConsoleError.apply(console, arguments);
+        };
+
+        var origConsoleWarn = console.warn;
+        console.warn = function() {
+          var args = Array.prototype.slice.call(arguments);
+          var joined = args.map(function(a) {
+            try { return typeof a === 'object' ? JSON.stringify(a) : String(a); } catch(e) { return String(a); }
+          }).join(' ');
+          if (isIgnoredError(joined, '')) {
+            return;
+          }
+          origConsoleWarn.apply(console, arguments);
+        };
+      })();
+    </script>
+
+    <!-- Google AdSense Official Script Integration -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6128111645137702" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  </head>
+  <body class="bg-[#050505] text-neutral-100 antialiased selection:bg-rose-600 selection:text-white">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NBFJMMHC"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+  </body>
+</html>
+
