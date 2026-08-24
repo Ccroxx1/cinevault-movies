@@ -591,9 +591,6 @@ export default function App() {
         ) : (
           /* Route 3: Browse Homepage & Catalog View */
           <>
-            {/* Primary Main H1 for SEO */}
-            <h1 className="sr-only">CineVault By Sasuu — HD Movie Library & Downloads</h1>
-
             {/* Featured Hero Premiere Carousel (Only on browse homepage when no search active) */}
             {currentNav === 'browse' && !filters.query_term && filters.page === 1 && filters.genre === 'All' && filters.quality === 'All' && (
               <FeaturedHero
@@ -708,7 +705,7 @@ export default function App() {
             <div id="movie-catalog-section" className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-black font-display text-white flex items-center gap-2.5">
+                  <h1 className="text-xl sm:text-2xl font-black font-display text-white flex items-center gap-2.5">
                     {currentNav === 'trending' && <Flame className="w-6 h-6 text-rose-500" />}
                     {currentNav === '4k' && <Film className="w-6 h-6 text-rose-400" />}
                     {currentNav === 'top' && <Star className="w-6 h-6 text-amber-400" />}
@@ -727,7 +724,7 @@ export default function App() {
                         ? 'Top Rated Masterpieces (IMDb 8+)'
                         : 'Explore Films & Torrents'}
                     </span>
-                  </h2>
+                  </h1>
                   <p className="text-xs sm:text-sm text-neutral-400 mt-0.5">
                     Stream trailers, view metadata, and download high-quality files with magnet links
                   </p>
