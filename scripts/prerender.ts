@@ -699,11 +699,6 @@ async function main() {
 
   console.log(`✨ Successfully generated ${prerenderCount} static movie pages at dist/movies/{slug}/index.html`);
 
-  // Prerender the main root homepage (dist/index.html) with rich featured catalog content
-  const homeHtml = buildHomepageHtml(baseHtmlTemplate, moviesArray, movieMap.size);
-  fs.writeFileSync(indexHtmlPath, homeHtml, 'utf-8');
-  console.log(`🏠 Successfully generated rich pre-rendered homepage at dist/index.html`);
-
   // Generate verified sitemap.xml
   const xmlLines: string[] = [
     '<?xml version="1.0" encoding="UTF-8"?>',

@@ -224,97 +224,114 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   </head>
   <body class="bg-[#050505] text-neutral-100 antialiased selection:bg-rose-600 selection:text-white">
     <div id="root">
-      <main class="min-h-screen bg-[#050505] text-neutral-100 p-4 sm:p-8 max-w-7xl mx-auto font-sans">
-        <header class="py-8 border-b border-white/10 space-y-4">
+      <!-- Sleek CineVault Initial Cinema Loading Screen & Skeleton -->
+      <div class="min-h-screen bg-[#050505] text-neutral-100 flex flex-col font-sans select-none antialiased">
+        <!-- Top Navbar Skeleton -->
+        <header class="border-b border-white/10 bg-[#080808]/90 backdrop-blur-md px-4 sm:px-8 py-3.5 flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-600 to-amber-600 flex items-center justify-center font-bold text-white shadow-lg">CV</div>
-            <div>
-              <h1 class="text-2xl sm:text-4xl font-black text-white tracking-tight">CineVault By Sasuu — HD Movie Catalog &amp; Torrents</h1>
-              <p class="text-sm text-neutral-400 mt-1">Discover, stream, and download curated cinema releases with magnet links, media packs, and IMDb ratings.</p>
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-rose-600 to-amber-600 flex items-center justify-center font-black text-white text-xs tracking-wider shadow-lg shadow-rose-900/30 animate-pulse">
+              CV
+            </div>
+            <div class="space-y-1">
+              <div class="h-4 w-28 bg-white/15 rounded-md animate-pulse"></div>
+              <div class="h-2.5 w-40 bg-white/5 rounded-md animate-pulse"></div>
             </div>
           </div>
-          <nav aria-label="Quick Category Filters" class="flex flex-wrap gap-2 text-xs pt-2">
-            <a href="/" class="px-3 py-1.5 rounded-lg bg-rose-600/20 text-rose-300 border border-rose-500/30 font-semibold">Featured Movies</a>
-            <a href="/?genre=Action" class="px-3 py-1.5 rounded-lg bg-white/5 text-neutral-300 border border-white/10 hover:border-rose-500/40">Action</a>
-            <a href="/?genre=Sci-Fi" class="px-3 py-1.5 rounded-lg bg-white/5 text-neutral-300 border border-white/10 hover:border-rose-500/40">Sci-Fi</a>
-            <a href="/?genre=Drama" class="px-3 py-1.5 rounded-lg bg-white/5 text-neutral-300 border border-white/10 hover:border-rose-500/40">Drama</a>
-            <a href="/?genre=Comedy" class="px-3 py-1.5 rounded-lg bg-white/5 text-neutral-300 border border-white/10 hover:border-rose-500/40">Comedy</a>
-            <a href="/?genre=Thriller" class="px-3 py-1.5 rounded-lg bg-white/5 text-neutral-300 border border-white/10 hover:border-rose-500/40">Thriller</a>
-            <a href="/?genre=Horror" class="px-3 py-1.5 rounded-lg bg-white/5 text-neutral-300 border border-white/10 hover:border-rose-500/40">Horror</a>
-            <a href="/?genre=Adventure" class="px-3 py-1.5 rounded-lg bg-white/5 text-neutral-300 border border-white/10 hover:border-rose-500/40">Adventure</a>
-            <a href="/?genre=Animation" class="px-3 py-1.5 rounded-lg bg-white/5 text-neutral-300 border border-white/10 hover:border-rose-500/40">Animation</a>
-          </nav>
+          <div class="hidden sm:flex items-center gap-2">
+            <div class="h-9 w-64 bg-white/5 border border-white/10 rounded-xl animate-pulse"></div>
+            <div class="h-9 w-9 bg-white/10 rounded-xl animate-pulse"></div>
+          </div>
         </header>
 
-        <section class="py-8 space-y-6">
-          <div class="flex items-center justify-between">
-            <h2 class="text-xl font-bold text-white tracking-wide">Featured &amp; Trending Releases</h2>
-            <span class="text-xs text-neutral-400">720p • 1080p • 2160p 4K</span>
+        <!-- Main Loading Body with Film Reel Spinner and Skeleton Cards -->
+        <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-8 space-y-8">
+          <!-- Hero Banner Skeleton -->
+          <div class="w-full aspect-[21/9] sm:aspect-[2.4/1] rounded-3xl bg-neutral-900/80 border border-white/10 overflow-hidden relative flex flex-col justify-end p-6 sm:p-10 shadow-2xl animate-pulse">
+            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+            <div class="relative z-10 space-y-3 max-w-xl">
+              <div class="h-3 w-24 bg-rose-600/40 rounded-full"></div>
+              <div class="h-8 sm:h-10 w-3/4 bg-white/20 rounded-xl"></div>
+              <div class="h-3.5 w-full bg-white/10 rounded-md"></div>
+              <div class="flex gap-3 pt-2">
+                <div class="h-10 w-32 bg-rose-600/60 rounded-xl"></div>
+                <div class="h-10 w-28 bg-white/10 rounded-xl"></div>
+              </div>
+            </div>
+
+            <!-- Central Sleek Glowing Spinner Badge -->
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-3 pointer-events-none">
+              <div class="relative flex items-center justify-center">
+                <div class="w-14 h-14 rounded-full border-2 border-rose-500/20 border-t-rose-500 animate-spin"></div>
+                <div class="w-8 h-8 rounded-full bg-rose-600/20 backdrop-blur-sm absolute flex items-center justify-center">
+                  <div class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></div>
+                </div>
+              </div>
+              <span class="text-xs font-semibold tracking-wider uppercase text-neutral-400">Loading Cinema Vault...</span>
+            </div>
           </div>
 
+          <!-- Catalog Header Skeleton -->
+          <div class="flex items-center justify-between pt-2">
+            <div class="space-y-1.5">
+              <div class="h-6 w-48 bg-white/20 rounded-lg animate-pulse"></div>
+              <div class="h-3 w-72 bg-white/5 rounded-md animate-pulse"></div>
+            </div>
+            <div class="h-8 w-32 bg-white/5 border border-white/10 rounded-xl animate-pulse"></div>
+          </div>
+
+          <!-- Movie Cards Skeleton Grid -->
           <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            <article class="bg-white/5 border border-white/10 rounded-xl p-3 space-y-2">
-              <a href="/movies/dune-part-two-2024" class="block font-bold text-sm text-neutral-100 hover:text-rose-400">Dune: Part Two (2024)</a>
-              <p class="text-xs text-neutral-400 line-clamp-2">Paul Atreides unites with Chani and the Fremen while seeking revenge.</p>
-              <div class="text-[11px] text-amber-400 font-semibold">★ 8.6 IMDb · 4K / 1080p</div>
-            </article>
-
-            <article class="bg-white/5 border border-white/10 rounded-xl p-3 space-y-2">
-              <a href="/movies/oppenheimer-2023" class="block font-bold text-sm text-neutral-100 hover:text-rose-400">Oppenheimer (2023)</a>
-              <p class="text-xs text-neutral-400 line-clamp-2">The story of American scientist J. Robert Oppenheimer and the Manhattan Project.</p>
-              <div class="text-[11px] text-amber-400 font-semibold">★ 8.9 IMDb · 1080p BluRay</div>
-            </article>
-
-            <article class="bg-white/5 border border-white/10 rounded-xl p-3 space-y-2">
-              <a href="/movies/alien-romulus-2024" class="block font-bold text-sm text-neutral-100 hover:text-rose-400">Alien: Romulus (2024)</a>
-              <p class="text-xs text-neutral-400 line-clamp-2">Young colonizers scavenge a derelict space station and face the universe's most terrifying life form.</p>
-              <div class="text-[11px] text-amber-400 font-semibold">★ 7.5 IMDb · 1080p / 720p</div>
-            </article>
-
-            <article class="bg-white/5 border border-white/10 rounded-xl p-3 space-y-2">
-              <a href="/movies/avatar-the-way-of-water-2022" class="block font-bold text-sm text-neutral-100 hover:text-rose-400">Avatar: The Way of Water (2022)</a>
-              <p class="text-xs text-neutral-400 line-clamp-2">Jake Sully lives with his newfound family on the extrasolar moon Pandora.</p>
-              <div class="text-[11px] text-amber-400 font-semibold">★ 7.6 IMDb · 3D / 4K UHD</div>
-            </article>
-
-            <article class="bg-white/5 border border-white/10 rounded-xl p-3 space-y-2">
-              <a href="/movies/spider-man-across-the-spider-verse-2023" class="block font-bold text-sm text-neutral-100 hover:text-rose-400">Spider-Man: Across the Spider-Verse (2023)</a>
-              <p class="text-xs text-neutral-400 line-clamp-2">Miles Morales is catapulted across the Multiverse to encounter the Spider-Society.</p>
-              <div class="text-[11px] text-amber-400 font-semibold">★ 8.7 IMDb · 1080p HDR</div>
-            </article>
-
-            <article class="bg-white/5 border border-white/10 rounded-xl p-3 space-y-2">
-              <a href="/movies/batman-the-long-halloween-2021" class="block font-bold text-sm text-neutral-100 hover:text-rose-400">Batman: The Long Halloween (2021)</a>
-              <p class="text-xs text-neutral-400 line-clamp-2">A serial killer strikes on holidays in Gotham City as Batman forms a pact with Gordon.</p>
-              <div class="text-[11px] text-amber-400 font-semibold">★ 7.5 IMDb · 1080p BluRay</div>
-            </article>
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-2.5 space-y-2.5 animate-pulse">
+              <div class="aspect-[2/3] rounded-xl bg-white/10"></div>
+              <div class="h-3.5 w-3/4 bg-white/20 rounded"></div>
+              <div class="flex justify-between">
+                <div class="h-2.5 w-10 bg-white/10 rounded"></div>
+                <div class="h-2.5 w-12 bg-amber-500/30 rounded"></div>
+              </div>
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-2.5 space-y-2.5 animate-pulse">
+              <div class="aspect-[2/3] rounded-xl bg-white/10"></div>
+              <div class="h-3.5 w-3/4 bg-white/20 rounded"></div>
+              <div class="flex justify-between">
+                <div class="h-2.5 w-10 bg-white/10 rounded"></div>
+                <div class="h-2.5 w-12 bg-amber-500/30 rounded"></div>
+              </div>
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-2.5 space-y-2.5 animate-pulse">
+              <div class="aspect-[2/3] rounded-xl bg-white/10"></div>
+              <div class="h-3.5 w-3/4 bg-white/20 rounded"></div>
+              <div class="flex justify-between">
+                <div class="h-2.5 w-10 bg-white/10 rounded"></div>
+                <div class="h-2.5 w-12 bg-amber-500/30 rounded"></div>
+              </div>
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-2.5 space-y-2.5 animate-pulse">
+              <div class="aspect-[2/3] rounded-xl bg-white/10"></div>
+              <div class="h-3.5 w-3/4 bg-white/20 rounded"></div>
+              <div class="flex justify-between">
+                <div class="h-2.5 w-10 bg-white/10 rounded"></div>
+                <div class="h-2.5 w-12 bg-amber-500/30 rounded"></div>
+              </div>
+            </div>
+            <div class="hidden md:block bg-white/5 border border-white/10 rounded-2xl p-2.5 space-y-2.5 animate-pulse">
+              <div class="aspect-[2/3] rounded-xl bg-white/10"></div>
+              <div class="h-3.5 w-3/4 bg-white/20 rounded"></div>
+              <div class="flex justify-between">
+                <div class="h-2.5 w-10 bg-white/10 rounded"></div>
+                <div class="h-2.5 w-12 bg-amber-500/30 rounded"></div>
+              </div>
+            </div>
+            <div class="hidden lg:block bg-white/5 border border-white/10 rounded-2xl p-2.5 space-y-2.5 animate-pulse">
+              <div class="aspect-[2/3] rounded-xl bg-white/10"></div>
+              <div class="h-3.5 w-3/4 bg-white/20 rounded"></div>
+              <div class="flex justify-between">
+                <div class="h-2.5 w-10 bg-white/10 rounded"></div>
+                <div class="h-2.5 w-12 bg-amber-500/30 rounded"></div>
+              </div>
+            </div>
           </div>
-        </section>
-
-        <section class="py-8 border-t border-white/10 grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-neutral-300">
-          <div class="space-y-2">
-            <h3 class="font-bold text-white text-base">Ultra-Fast Magnet &amp; Torrent Downloads</h3>
-            <p class="text-xs text-neutral-400 leading-relaxed">Direct one-click magnet links with optimized public trackers for lightning-fast speeds in your preferred torrent client.</p>
-          </div>
-          <div class="space-y-2">
-            <h3 class="font-bold text-white text-base">Media Pack (.zip) Archiving</h3>
-            <p class="text-xs text-neutral-400 leading-relaxed">Download complete bundles with high-resolution cover posters, backdrop screenshots, NFO metadata, and torrent files.</p>
-          </div>
-          <div class="space-y-2">
-            <h3 class="font-bold text-white text-base">Subtitles &amp; Parental Guides</h3>
-            <p class="text-xs text-neutral-400 leading-relaxed">Integrated multi-language subtitle search (SRT/VTT) and comprehensive IMDb parental content guides for safe family viewing.</p>
-          </div>
-        </section>
-
-        <footer class="py-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-500 gap-4">
-          <div>&copy; CineVault By Sasuu — Curated HD Cinema Engine</div>
-          <div class="flex gap-4">
-            <a href="/" class="hover:text-neutral-300">Home</a>
-            <a href="/sitemap.xml" class="hover:text-neutral-300">Sitemap</a>
-            <a href="/robots.txt" class="hover:text-neutral-300">Robots.txt</a>
-          </div>
-        </footer>
-      </main>
+        </main>
+      </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>
     <!-- Google Tag Manager (noscript) -->
