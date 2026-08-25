@@ -277,7 +277,7 @@ export const MovieSectionRow = React.memo<MovieSectionRowProps>(({
                 {/* Poster Image */}
                 <div className="relative aspect-[2/3] w-full overflow-hidden bg-neutral-900">
                   <img
-                    src={movie.medium_cover_image || movie.large_cover_image || movie.small_cover_image}
+                    src={movie.large_cover_image || movie.medium_cover_image || movie.small_cover_image}
                     alt={`${movie.title} (${movie.year})`}
                     referrerPolicy="no-referrer"
                     loading="lazy"

@@ -62,7 +62,7 @@ export const RecentlyViewedStrip = React.memo<RecentlyViewedStripProps>(({
             >
               <div className="relative aspect-[2/3] w-full overflow-hidden bg-neutral-900">
                 <img
-                  src={movie.medium_cover_image || movie.large_cover_image}
+                  src={movie.large_cover_image || movie.medium_cover_image}
                   alt={movie.title}
                   loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"

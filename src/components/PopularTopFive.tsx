@@ -101,7 +101,7 @@ export const PopularTopFive = React.memo<PopularTopFiveProps>(({
                 {/* Poster Image Container */}
                 <div className="relative aspect-[2/3] w-full overflow-hidden bg-[#050505]">
                   <img
-                    src={movie.medium_cover_image || movie.large_cover_image}
+                    src={movie.large_cover_image || movie.medium_cover_image}
                     alt={`${movie.title} (${movie.year})`}
                     loading="lazy"
                     decoding="async"
