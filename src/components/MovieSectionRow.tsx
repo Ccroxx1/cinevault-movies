@@ -139,6 +139,10 @@ export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
   const rowRef = useRef<HTMLDivElement>(null);
   const [copiedHash, setCopiedHash] = React.useState<string | null>(null);
 
+  // Do not render empty curated sections. This prevents large
+  // "No movies available" gaps when an API filter temporarily returns no results.
+  if (!isLoading && movies.length === 0) return null;
+
   const scroll = (direction: 'left' | 'right') => {
     if (rowRef.current) {
       const scrollAmount = direction === 'left' ? -600 : 600;
@@ -347,11 +351,7 @@ export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
               </div>
             );
           })
-        ) : (
-          <div className="w-full py-8 text-center text-xs text-neutral-500">
-            No movies available in this category.
-          </div>
-        )}
+        ) : null}
       </div>
     </section>
   );
