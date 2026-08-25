@@ -330,9 +330,20 @@ export function buildMovieHtml(baseHtmlTemplate: string, movie: any, relatedMovi
   html = html.replace('</head>', `${headMetaTags}\n  </head>`);
 
   // Inject semantic body into <div id="root">
-  html = html.replace('<div id="root"></div>', `<div id="root">${semanticBody}</div>`);
-  // If id="root" has attributes or content
-  html = html.replace(/<div id=["']root["']>[\s\S]*?<\/div>\s*<script/i, `<div id="root">${semanticBody}</div>\n    <script`);
+  const rootOpenTag = '<div id="root">';
+  const rootOpenIdx = html.indexOf(rootOpenTag);
+  if (rootOpenIdx !== -1) {
+    const endBodyTag = '</body>';
+    const endBodyIdx = html.indexOf(endBodyTag, rootOpenIdx);
+    if (endBodyIdx !== -1) {
+      const prefix = html.substring(0, rootOpenIdx);
+      // find trailing noscript or closing root div before </body>
+      const rootClosingTag = '</div>';
+      const lastDivBeforeEndBody = html.lastIndexOf(rootClosingTag, endBodyIdx);
+      const suffix = html.substring(endBodyIdx);
+      html = `${prefix}<div id="root">\n${semanticBody}\n    </div>\n  ${suffix}`;
+    }
+  }
 
   return html;
 }
@@ -565,7 +576,19 @@ ${JSON.stringify(jsonLdGraph, null, 2)}
   `;
 
   html = html.replace('</head>', `${headMetaTags}\n  </head>`);
-  html = html.replace(/<div id=["']root["']>[\s\S]*?<\/div>/i, `<div id="root">${semanticHomepage}</div>`);
+
+  // Inject semantic body into <div id="root">
+  const rootOpenTag = '<div id="root">';
+  const rootOpenIdx = html.indexOf(rootOpenTag);
+  if (rootOpenIdx !== -1) {
+    const endBodyTag = '</body>';
+    const endBodyIdx = html.indexOf(endBodyTag, rootOpenIdx);
+    if (endBodyIdx !== -1) {
+      const prefix = html.substring(0, rootOpenIdx);
+      const suffix = html.substring(endBodyIdx);
+      html = `${prefix}<div id="root">\n${semanticHomepage}\n    </div>\n  ${suffix}`;
+    }
+  }
 
   return html;
 }
@@ -698,6 +721,11 @@ async function main() {
   }
 
   console.log(`✨ Successfully generated ${prerenderCount} static movie pages at dist/movies/{slug}/index.html`);
+
+  // Prerender the main root homepage (dist/index.html) with rich featured catalog content
+  const homeHtml = buildHomepageHtml(baseHtmlTemplate, moviesArray, movieMap.size);
+  fs.writeFileSync(indexHtmlPath, homeHtml, 'utf-8');
+  console.log(`🏠 Successfully generated rich pre-rendered homepage at dist/index.html`);
 
   // Generate verified sitemap.xml
   const xmlLines: string[] = [
