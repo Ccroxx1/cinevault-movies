@@ -11,15 +11,17 @@ interface FeaturedHeroProps {
   onCopyMagnet: (magnetUrl: string, title: string) => void;
   isWatchlisted: (movieId: number) => boolean;
   onToggleWatchlist: (movie: Movie) => void;
+  loadingMode?: 'eager' | 'lazy';
 }
 
-export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
+export const FeaturedHero = React.memo<FeaturedHeroProps>(({
   movies,
   onSelectMovie,
   onPlayTrailer,
   onCopyMagnet,
   isWatchlisted,
   onToggleWatchlist,
+  loadingMode = 'lazy'
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -118,6 +120,7 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
           src={backdropImage}
           alt={currentMovie.title}
           referrerPolicy="no-referrer"
+          loading={currentIndex === 0 ? loadingMode : 'lazy'}
           className="w-full h-full object-cover object-center opacity-40 scale-105 group-hover:scale-100 transition-transform duration-1000 ease-out"
         />
       </div>
@@ -344,4 +347,4 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
       )}
     </section>
   );
-};
+});

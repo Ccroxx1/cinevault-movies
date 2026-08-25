@@ -13,7 +13,7 @@ interface MovieCardProps {
   onToggleWatchlist: (movie: Movie) => void;
 }
 
-export const MovieCard: React.FC<MovieCardProps> = ({
+export const MovieCard = React.memo<MovieCardProps>(({
   movie,
   onSelect,
   onPlayTrailer,
@@ -78,6 +78,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
             src={movie.medium_cover_image || movie.large_cover_image || movie.small_cover_image}
             alt={`${movie.title} (${movie.year || ''})`}
             loading="lazy"
+            decoding="async"
             referrerPolicy="no-referrer"
             onError={() => setImgError(true)}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -242,5 +243,5 @@ export const MovieCard: React.FC<MovieCardProps> = ({
       </div>
     </div>
   );
-};
+});
 

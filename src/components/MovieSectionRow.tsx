@@ -123,9 +123,10 @@ interface MovieSectionRowProps {
   isWatchlisted: (movieId: number) => boolean;
   onToggleWatchlist: (movie: Movie) => void;
   onViewAll?: () => void;
+  onVisible?: () => void;
 }
 
-export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
+export const MovieSectionRow = React.memo<MovieSectionRowProps>(({
   section,
   movies,
   isLoading,
@@ -134,14 +135,37 @@ export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
   onCopyMagnet,
   isWatchlisted,
   onToggleWatchlist,
-  onViewAll
+  onViewAll,
+  onVisible
 }) => {
   const rowRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
   const [copiedHash, setCopiedHash] = React.useState<string | null>(null);
 
-  // Do not render empty curated sections. This prevents large
-  // "No movies available" gaps when an API filter temporarily returns no results.
-  if (!isLoading && movies.length === 0) return null;
+  // Trigger onVisible when the section enters the viewport
+  React.useEffect(() => {
+    if (!onVisible || movies.length > 0 || isLoading) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          onVisible();
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '200px' } // Start loading slightly before it enters the viewport
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [onVisible, movies.length, isLoading]);
+
+  // Do not render empty curated sections if not loading and not visible yet.
+  // However, we need to render the container to be observed.
+  if (!isLoading && movies.length === 0 && !onVisible) return null;
 
   const scroll = (direction: 'left' | 'right') => {
     if (rowRef.current) {
@@ -178,7 +202,7 @@ export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
   };
 
   return (
-    <section className="space-y-3.5 my-8">
+    <section ref={sectionRef} className="space-y-3.5 my-8">
       {/* Header with Title, Badge, and Carousel Arrows */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -253,10 +277,11 @@ export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
                 {/* Poster Image */}
                 <div className="relative aspect-[2/3] w-full overflow-hidden bg-neutral-900">
                   <img
-                    src={movie.medium_cover_image || movie.large_cover_image || movie.small_cover_image}
+                    src={movie.small_cover_image || movie.medium_cover_image || movie.large_cover_image}
                     alt={`${movie.title} (${movie.year})`}
                     referrerPolicy="no-referrer"
                     loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
 
@@ -355,4 +380,4 @@ export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
       </div>
     </section>
   );
-};
+});

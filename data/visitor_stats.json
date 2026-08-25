@@ -1,15 +1,17 @@
 {
-  "totalVisitors": 4,
+  "totalVisitors": 6,
   "knownVisitorIds": [
     "cv_mt5iasyi_2yjsaupxt",
     "cv_mt5744ez_tjl8tay01",
     "test_1",
-    "user_real_test"
+    "user_real_test",
+    "cv_mt8nrb6f_qszhfgphm",
+    "cv_mt8o2lo6_yduw314n8"
   ],
   "todayVisitors": 2,
   "todayVisitorIds": [
-    "cv_mt5iasyi_2yjsaupxt",
-    "user_real_test"
+    "cv_mt8nrb6f_qszhfgphm",
+    "cv_mt8o2lo6_yduw314n8"
   ],
-  "lastDate": "2026-08-23"
+  "lastDate": "2026-08-25"
 }

@@ -13,7 +13,7 @@ interface PopularTopFiveProps {
   onToggleWatchlist: (movie: Movie) => void;
 }
 
-export const PopularTopFive: React.FC<PopularTopFiveProps> = ({
+export const PopularTopFive = React.memo<PopularTopFiveProps>(({
   movies,
   isLoading,
   onSelectMovie,
@@ -104,6 +104,7 @@ export const PopularTopFive: React.FC<PopularTopFiveProps> = ({
                     src={movie.medium_cover_image || movie.large_cover_image}
                     alt={`${movie.title} (${movie.year})`}
                     loading="lazy"
+                    decoding="async"
                     referrerPolicy="no-referrer"
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-108"
                   />
@@ -245,4 +246,4 @@ export const PopularTopFive: React.FC<PopularTopFiveProps> = ({
       ) : null}
     </section>
   );
-};
+});
