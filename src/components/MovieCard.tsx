@@ -24,6 +24,9 @@ export const MovieCard = React.memo<MovieCardProps>(({
   const [imgError, setImgError] = useState(false);
   const [copiedHash, setCopiedHash] = useState<string | null>(null);
 
+  // Use the highest resolution image available, prioritizing large then medium
+  const posterImage = movie.large_cover_image || movie.medium_cover_image || movie.small_cover_image;
+
   // Available qualities
   const qualities: string[] = Array.from(new Set(movie.torrents?.map(t => t.quality) || []));
   const has4k = qualities.some(q => typeof q === 'string' && q.includes('2160p'));
@@ -75,7 +78,7 @@ export const MovieCard = React.memo<MovieCardProps>(({
       <div className="relative aspect-[2/3] w-full overflow-hidden bg-[#050505]">
         {!imgError ? (
           <img
-            src={movie.large_cover_image || movie.medium_cover_image || movie.small_cover_image}
+            src={posterImage}
             alt={`${movie.title} (${movie.year || ''})`}
             loading="lazy"
             decoding="async"
