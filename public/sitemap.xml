@@ -72,12 +72,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://cinevault-movies-one.vercel.app/movies/3-deewarein-2003</loc>
-    <lastmod>2026-08-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://cinevault-movies-one.vercel.app/movies/300-rise-of-an-empire-2014</loc>
     <lastmod>2015-10-31</lastmod>
     <changefreq>weekly</changefreq>
@@ -92,12 +86,6 @@
   <url>
     <loc>https://cinevault-movies-one.vercel.app/movies/4-first-dates-2026</loc>
     <lastmod>2026-07-30</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://cinevault-movies-one.vercel.app/movies/4n1k-2-2018</loc>
-    <lastmod>2026-07-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -122,12 +110,6 @@
   <url>
     <loc>https://cinevault-movies-one.vercel.app/movies/8-ball-bunny-1950</loc>
     <lastmod>2026-08-10</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://cinevault-movies-one.vercel.app/movies/911-fifteen-years-later-2016</loc>
-    <lastmod>2022-01-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -164,12 +146,6 @@
   <url>
     <loc>https://cinevault-movies-one.vercel.app/movies/a-haunting-in-venice-2023</loc>
     <lastmod>2023-10-30</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://cinevault-movies-one.vercel.app/movies/a-haunting-on-hamilton-street-2010</loc>
-    <lastmod>2026-07-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -290,6 +266,12 @@
   <url>
     <loc>https://cinevault-movies-one.vercel.app/movies/about-time-2013</loc>
     <lastmod>2015-10-31</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cinevault-movies-one.vercel.app/movies/above-and-below-2026</loc>
+    <lastmod>2026-08-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -584,12 +566,6 @@
   <url>
     <loc>https://cinevault-movies-one.vercel.app/movies/angela-1977</loc>
     <lastmod>2026-08-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://cinevault-movies-one.vercel.app/movies/animal-farm-2025</loc>
-    <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2784,6 +2760,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://cinevault-movies-one.vercel.app/movies/exile-by-choice-2015</loc>
+    <lastmod>2021-01-24</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://cinevault-movies-one.vercel.app/movies/exodus-gods-and-kings-2014</loc>
     <lastmod>2015-10-31</lastmod>
     <changefreq>weekly</changefreq>
@@ -4614,6 +4596,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://cinevault-movies-one.vercel.app/movies/koshish-1972</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://cinevault-movies-one.vercel.app/movies/kota-2025</loc>
     <lastmod>2026-07-21</lastmod>
     <changefreq>weekly</changefreq>
@@ -4628,6 +4616,12 @@
   <url>
     <loc>https://cinevault-movies-one.vercel.app/movies/kubo-and-the-two-strings-2016</loc>
     <lastmod>2016-11-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cinevault-movies-one.vercel.app/movies/kultaa-ja-kunniaa-1953</loc>
+    <lastmod>2026-08-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -5754,6 +5748,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://cinevault-movies-one.vercel.app/movies/motor-city-2025</loc>
+    <lastmod>2026-08-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://cinevault-movies-one.vercel.app/movies/mount-lawrence-2015</loc>
     <lastmod>2022-07-08</lastmod>
     <changefreq>weekly</changefreq>
@@ -6102,6 +6102,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://cinevault-movies-one.vercel.app/movies/not-made-for-politics-2025</loc>
+    <lastmod>2026-08-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://cinevault-movies-one.vercel.app/movies/novak-djokovic-the-wolf-in-winter-2026</loc>
     <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
@@ -6230,6 +6236,12 @@
   <url>
     <loc>https://cinevault-movies-one.vercel.app/movies/olsenbanden-operasjon-egon-1969</loc>
     <lastmod>2026-08-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cinevault-movies-one.vercel.app/movies/olympic-glory-1999</loc>
+    <lastmod>2026-08-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -6470,6 +6482,12 @@
   <url>
     <loc>https://cinevault-movies-one.vercel.app/movies/peter-pan-goes-wrong-2016</loc>
     <lastmod>2021-07-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cinevault-movies-one.vercel.app/movies/philips-and-the-monkey-pen-2013</loc>
+    <lastmod>2026-08-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -6956,12 +6974,6 @@
   <url>
     <loc>https://cinevault-movies-one.vercel.app/movies/rogue-one-2016</loc>
     <lastmod>2017-03-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://cinevault-movies-one.vercel.app/movies/romantikku-kira-2025</loc>
-    <lastmod>2026-05-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -7506,6 +7518,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://cinevault-movies-one.vercel.app/movies/soorarai-pottru-2020</loc>
+    <lastmod>2020-12-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://cinevault-movies-one.vercel.app/movies/sorda-2025</loc>
     <lastmod>2026-07-04</lastmod>
     <changefreq>weekly</changefreq>
@@ -7752,12 +7770,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://cinevault-movies-one.vercel.app/movies/stop-that-train-2026</loc>
-    <lastmod>2026-07-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://cinevault-movies-one.vercel.app/movies/storks-2016</loc>
     <lastmod>2016-12-03</lastmod>
     <changefreq>weekly</changefreq>
@@ -7950,12 +7962,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://cinevault-movies-one.vercel.app/movies/tees-maar-khan-2010</loc>
-    <lastmod>2026-08-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://cinevault-movies-one.vercel.app/movies/telusu-kada-2025</loc>
     <lastmod>2026-07-17</lastmod>
     <changefreq>weekly</changefreq>
@@ -8060,12 +8066,6 @@
   <url>
     <loc>https://cinevault-movies-one.vercel.app/movies/the-art-of-killing-2025</loc>
     <lastmod>2026-07-11</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://cinevault-movies-one.vercel.app/movies/the-art-of-protest-2020</loc>
-    <lastmod>2026-07-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -8330,12 +8330,6 @@
   <url>
     <loc>https://cinevault-movies-one.vercel.app/movies/the-edge-of-seventeen-2016</loc>
     <lastmod>2017-02-04</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://cinevault-movies-one.vercel.app/movies/the-empty-beach-1985</loc>
-    <lastmod>2026-07-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -8978,12 +8972,6 @@
   <url>
     <loc>https://cinevault-movies-one.vercel.app/movies/the-odyssey-the-making-of-an-epic-2026</loc>
     <lastmod>2026-07-16</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://cinevault-movies-one.vercel.app/movies/the-one-next-door-2026</loc>
-    <lastmod>2026-07-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -9686,6 +9674,12 @@
   <url>
     <loc>https://cinevault-movies-one.vercel.app/movies/tuner-2025</loc>
     <lastmod>2026-06-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cinevault-movies-one.vercel.app/movies/turning-point-2022</loc>
+    <lastmod>2026-08-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>

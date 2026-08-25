@@ -180,6 +180,144 @@ async function fetchFromMirrors(
   throw new Error(lastErrorMessage);
 }
 
+/**
+ * Helper to check if a raw movie object has minimal required fields and valid poster/image sources
+ * Supports medium_cover_image, large_cover_image, small_cover_image, or background_image
+ */
+export function isUsableMovie(m: any): boolean {
+  if (!m || typeof m !== 'object') return false;
+  const id = Number(m.id);
+  if (!id || isNaN(id) || id <= 0) return false;
+
+  const title = (m.title || m.title_english || '').trim();
+  if (!title) return false;
+
+  // Validate image sources: accept medium, large, small, or background image
+  const hasImage = Boolean(
+    m.medium_cover_image ||
+    m.large_cover_image ||
+    m.small_cover_image ||
+    m.background_image ||
+    m.background_image_original
+  );
+
+  return hasImage;
+}
+
+// Helper to validate, clean, and deduplicate movie lists
+export function validateAndCleanMovies(movies: any[]): Movie[] {
+  if (!Array.isArray(movies)) return [];
+  const seenIds = new Set<number>();
+  const cleanList: Movie[] = [];
+
+  for (const m of movies) {
+    if (!isUsableMovie(m)) continue;
+    const id = Number(m.id);
+    if (seenIds.has(id)) continue;
+
+    const title = (m.title || m.title_english || '').trim();
+    seenIds.add(id);
+
+    cleanList.push({
+      ...m,
+      id,
+      title,
+      year: typeof m.year === 'number' && m.year >= 1880 ? m.year : undefined,
+      rating: typeof m.rating === 'number' && !isNaN(m.rating) && m.rating >= 0 ? Math.min(m.rating, 10) : 0,
+      genres: Array.isArray(m.genres) ? m.genres.filter(Boolean) : [],
+      torrents: Array.isArray(m.torrents) ? m.torrents.filter(Boolean) : []
+    });
+  }
+
+  return cleanList;
+}
+
+/**
+ * Robust in-memory filtering and sorting matching all API filter parameters.
+ * Used for curated sections, fallbacks, and local refinements.
+ */
+export function filterMoviesByParams(movies: Movie[], params: Partial<FilterParams> = {}): Movie[] {
+  let list = validateAndCleanMovies(movies);
+
+  // 1. Search Query
+  if (params.query_term && params.query_term.trim() && params.query_term !== 'All') {
+    const q = params.query_term.toLowerCase().trim();
+    list = list.filter(m => 
+      (m.title && m.title.toLowerCase().includes(q)) || 
+      (m.title_english && m.title_english.toLowerCase().includes(q)) ||
+      (m.summary && m.summary.toLowerCase().includes(q)) ||
+      (m.description_full && m.description_full.toLowerCase().includes(q))
+    );
+  }
+
+  // 2. Genre
+  if (params.genre && params.genre !== 'All') {
+    const gTarget = params.genre.toLowerCase();
+    list = list.filter(m => m.genres?.some(g => g.toLowerCase() === gTarget));
+  }
+
+  // 3. Quality
+  if (params.quality && params.quality !== 'All') {
+    const qTarget = params.quality.toLowerCase();
+    list = list.filter(m => m.torrents?.some(t => t.quality?.toLowerCase().includes(qTarget)));
+  }
+
+  // 4. Rating (minimum)
+  if (typeof params.minimum_rating === 'number' && params.minimum_rating > 0) {
+    list = list.filter(m => (m.rating || 0) >= params.minimum_rating!);
+  }
+
+  // 5. Year (exact or range like 1990-2005)
+  if (params.year && params.year !== 'All') {
+    if (params.year.includes('-')) {
+      const [start, end] = params.year.split('-').map(Number);
+      list = list.filter(m => m.year && m.year >= start && m.year <= end);
+    } else {
+      const targetYear = Number(params.year);
+      if (!isNaN(targetYear)) {
+        list = list.filter(m => m.year === targetYear);
+      }
+    }
+  }
+
+  // 6. Language
+  if (params.language && params.language !== 'All') {
+    const langTarget = params.language.toLowerCase();
+    list = list.filter(m => m.language?.toLowerCase() === langTarget);
+  }
+
+  // 7. Sorting
+  const sortField = params.sort_by || 'date_added';
+  const isAsc = params.order_by === 'asc';
+  list.sort((a, b) => {
+    let valA: any = 0;
+    let valB: any = 0;
+    if (sortField === 'title') {
+      valA = (a.title || '').toLowerCase();
+      valB = (b.title || '').toLowerCase();
+      return isAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+    } else if (sortField === 'rating') {
+      valA = a.rating || 0;
+      valB = b.rating || 0;
+    } else if (sortField === 'year') {
+      valA = a.year || 0;
+      valB = b.year || 0;
+    } else if (sortField === 'download_count') {
+      valA = a.download_count || 0;
+      valB = b.download_count || 0;
+    } else if (sortField === 'like_count') {
+      valA = a.like_count || 0;
+      valB = b.like_count || 0;
+    } else {
+      valA = a.date_uploaded_unix || a.id || 0;
+      valB = b.date_uploaded_unix || b.id || 0;
+    }
+    return isAsc ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
+  });
+
+  return list;
+}
+
 export async function fetchMovies(params: Partial<FilterParams> = {}): Promise<{
   movies: Movie[];
   totalCount: number;
@@ -218,13 +356,14 @@ export async function fetchMovies(params: Partial<FilterParams> = {}): Promise<{
   try {
     const json = await fetchFromMirrors('list', queryParams);
     const data = json?.data || {};
-    let movies: Movie[] = data.movies || [];
+    let rawMovies = data.movies || [];
+    let movies: Movie[] = validateAndCleanMovies(rawMovies);
 
     // Optional client-side refinements if year range or language were selected
     if (params.year && params.year !== 'All') {
       if (params.year.includes('-')) {
         const [start, end] = params.year.split('-').map(Number);
-        movies = movies.filter(m => m.year >= start && m.year <= end);
+        movies = movies.filter(m => m.year && m.year >= start && m.year <= end);
       } else {
         const targetYear = Number(params.year);
         if (!isNaN(targetYear)) {
@@ -246,19 +385,20 @@ export async function fetchMovies(params: Partial<FilterParams> = {}): Promise<{
   } catch (err) {
     console.warn('Live API list fetch failed, utilizing resilient fallback dataset:', err);
     // If live API is down, filter fallback movies so user can still browse and test
-    let fallback = [...FALLBACK_FEATURED_MOVIES];
-    if (params.query_term) {
-      const q = params.query_term.toLowerCase();
-      fallback = fallback.filter(m => m.title.toLowerCase().includes(q) || m.summary?.toLowerCase().includes(q));
-    }
-    if (params.genre && params.genre !== 'All') {
-      fallback = fallback.filter(m => m.genres?.some(g => g.toLowerCase() === params.genre?.toLowerCase()));
-    }
+    const filteredFallback = filterMoviesByParams(FALLBACK_FEATURED_MOVIES, params);
+
+    // Pagination
+    const totalCount = filteredFallback.length;
+    const limit = params.limit || 20;
+    const page = params.page || 1;
+    const startIndex = (page - 1) * limit;
+    const paginatedMovies = filteredFallback.slice(startIndex, startIndex + limit);
+
     return {
-      movies: fallback,
-      totalCount: fallback.length,
-      limit: params.limit || 20,
-      page: params.page || 1
+      movies: paginatedMovies,
+      totalCount,
+      limit,
+      page
     };
   }
 }
@@ -270,7 +410,10 @@ export async function fetchMovieDetails(movieId: number | string): Promise<Movie
       with_images: 'true',
       with_cast: 'true'
     });
-    return json?.data?.movie || null;
+    const movie = json?.data?.movie;
+    if (!movie || typeof movie !== 'object') return null;
+    const validated = validateAndCleanMovies([movie]);
+    return validated[0] || null;
   } catch (err) {
     console.warn(`Movie details could not be retrieved for ID ${movieId}:`, err);
     return null;
@@ -282,7 +425,8 @@ export async function fetchMovieSuggestions(movieId: number | string): Promise<M
     const json = await fetchFromMirrors('suggestions', {
       movie_id: movieId.toString()
     });
-    return json?.data?.movies || [];
+    const rawList = json?.data?.movies || [];
+    return validateAndCleanMovies(rawList);
   } catch {
     return [];
   }
@@ -368,9 +512,9 @@ export async function fetchMovieBySlug(slug: string): Promise<Movie | null> {
       matchedMovie = movies.find(m => slugify(m.title) === slugify(titleQuery));
     }
 
-    // Fallback: first movie in list
+    // If no verified match found by slug or title, do not display an unrelated movie
     if (!matchedMovie) {
-      matchedMovie = movies[0];
+      return null;
     }
 
     // Fetch full details with cast, screenshots, etc.
