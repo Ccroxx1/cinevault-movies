@@ -240,6 +240,7 @@ export function buildMovieHtml(baseHtmlTemplate: string, movie: any, relatedMovi
                 alt="${escapeHtml(movieTitle)}${movieYear} Official Poster"
                 class="w-full rounded-2xl border border-white/10 shadow-2xl"
                 loading="eager"
+                onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=800&q=80';"
               />
             </div>
             
@@ -464,7 +465,7 @@ export function buildHomepageHtml(baseHtmlTemplate: string, featuredMovies: any[
       <article class="bg-white/5 border border-white/10 hover:border-rose-500/50 rounded-2xl p-3 flex flex-col justify-between transition-all group">
         <a href="/movies/${slug}" class="block space-y-2">
           <div class="aspect-[2/3] rounded-xl overflow-hidden bg-black/40 relative">
-            <img src="${escapeHtml(cover)}" alt="${escapeHtml(m.title)} (${year}) Poster" class="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
+            <img src="${escapeHtml(cover)}" alt="${escapeHtml(m.title)} (${year}) Poster" class="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=800&q=80';" />
           </div>
           <h3 class="font-bold text-sm text-neutral-100 group-hover:text-rose-400 truncate">${escapeHtml(m.title)}</h3>
           <div class="flex items-center justify-between text-xs text-neutral-400">
@@ -717,6 +718,7 @@ async function main() {
 
     const fullHtml = buildMovieHtml(baseHtmlTemplate, movie, related);
     fs.writeFileSync(path.join(moviePageDir, 'index.html'), fullHtml, 'utf-8');
+    fs.writeFileSync(path.join(moviesDir, `${slug}.html`), fullHtml, 'utf-8');
     prerenderCount++;
   }
 
