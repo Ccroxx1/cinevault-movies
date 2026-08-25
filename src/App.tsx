@@ -60,7 +60,7 @@ export default function App() {
 
   // Curated sections state map: sectionId -> Movie[]
   const [sectionMovies, setSectionMovies] = useState<Record<string, Movie[]>>({});
-  const [isSectionsLoading, setIsSectionsLoading] = useState<boolean>(true);
+  const [sectionsLoading, setSectionsLoading] = useState<Record<string, boolean>>({});
   
   // Navigation & Modals
   const [currentNav, setCurrentNav] = useState<string>('browse');
@@ -265,6 +265,31 @@ export default function App() {
     }
   };
 
+  // Fetch specific curated homepage section on demand
+  const loadSection = useCallback(async (sectionId: string) => {
+    // Already loaded or currently loading
+    if (sectionMovies[sectionId] || sectionsLoading[sectionId]) return;
+
+    const section = CURATED_SECTIONS.find(s => s.id === sectionId);
+    if (!section) return;
+
+    setSectionsLoading(prev => ({ ...prev, [sectionId]: true }));
+    try {
+      const data = await fetchMovies({
+        ...DEFAULT_FILTERS,
+        ...section.filterParams,
+        limit: 10
+      });
+      const validMovies = (data.movies || []).filter(m => m && (m.medium_cover_image || m.large_cover_image));
+
+      setSectionMovies(prev => ({ ...prev, [sectionId]: validMovies }));
+    } catch (err) {
+      console.error(`Error loading curated section ${sectionId}:`, err);
+    } finally {
+      setSectionsLoading(prev => ({ ...prev, [sectionId]: false }));
+    }
+  }, [sectionMovies, sectionsLoading]);
+
   // Fetch Featured & Top Popular Movies for the current year once on mount
   useEffect(() => {
     const loadFeatured = async () => {
@@ -304,43 +329,6 @@ export default function App() {
       }
     };
     loadFeatured();
-  }, []);
-
-  // Fetch all Curated Homepage Sections in parallel on mount
-  useEffect(() => {
-    const loadCuratedSections = async () => {
-      setIsSectionsLoading(true);
-      try {
-        const results = await Promise.allSettled(
-          CURATED_SECTIONS.map(async (sec) => {
-            const data = await fetchMovies({
-              ...DEFAULT_FILTERS,
-              ...sec.filterParams,
-              limit: 10
-            });
-            return {
-              id: sec.id,
-              movies: (data.movies || []).filter(m => m && (m.medium_cover_image || m.large_cover_image))
-            };
-          })
-        );
-
-        const newMap: Record<string, Movie[]> = {};
-        results.forEach((res, index) => {
-          const sectionId = CURATED_SECTIONS[index].id;
-          if (res.status === 'fulfilled' && res.value.movies.length > 0) {
-            newMap[sectionId] = res.value.movies;
-          }
-        });
-        setSectionMovies(newMap);
-      } catch (err) {
-        console.error('Error loading curated movie sections:', err);
-      } finally {
-        setIsSectionsLoading(false);
-      }
-    };
-
-    loadCuratedSections();
   }, []);
 
   // Fetch Main Movies Catalog based on active filters
@@ -600,10 +588,11 @@ export default function App() {
                 onCopyMagnet={handleCopyMagnet}
                 isWatchlisted={isMovieWatchlisted}
                 onToggleWatchlist={handleToggleWatchlist}
+                loadingMode="eager"
               />
             )}
 
-            {/* Recently Viewed Strip (If history exists) */}
+            {/* 1. Recently Viewed Strip (If history exists) */}
             {recentlyViewed.length > 0 && !filters.query_term && (
               <div className="mb-6">
                 <RecentlyViewedStrip
@@ -619,7 +608,7 @@ export default function App() {
               </div>
             )}
 
-            {/* 5 Latest Popular Movies - Always on Top */}
+            {/* 2. 5 Latest Popular Movies */}
             <PopularTopFive
               movies={featuredMovies}
               isLoading={isFeaturedLoading}
@@ -630,79 +619,8 @@ export default function App() {
               onToggleWatchlist={handleToggleWatchlist}
             />
 
-            {/* Personalized Recommendations based on Watchlist & History */}
-            {currentNav === 'browse' && !filters.query_term && (watchlist.length > 0 || recentlyViewed.length > 0) && (
-              <div className="my-8">
-                <PersonalizedRecommendations
-                  watchlist={watchlist}
-                  recentlyViewed={recentlyViewed}
-                  onSelectMovie={handleSelectMovie}
-                  onPlayTrailer={handlePlayTrailer}
-                  onCopyMagnet={handleCopyMagnet}
-                  isWatchlisted={isMovieWatchlisted}
-                  onToggleWatchlist={handleToggleWatchlist}
-                />
-              </div>
-            )}
-
-            {/* Top Responsive AdSense Leaderboard Placement */}
-            <AdSenseSlot format="auto" responsive={true} className="my-6" />
-
-            {/* Thematic & Mood-based Collections Bar */}
-            {currentNav === 'browse' && !filters.query_term && filters.page === 1 && (
-              <div className="my-6">
-                <CuratedCollections
-                  activeCollectionId={activeCollectionId}
-                  onSelectCollection={(filterParams) => {
-                    setActiveCollectionId(filterParams.genre || 'all');
-                    setFilters((prev) => ({
-                      ...DEFAULT_FILTERS,
-                      ...filterParams,
-                      page: 1
-                    }));
-                    document.getElementById('movie-search-filters')?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                />
-              </div>
-            )}
-
-            {/* Curated Cinema Categories (Rendered on Home Browse View) */}
-            {currentNav === 'browse' && !filters.query_term && filters.page === 1 && filters.genre === 'All' && filters.quality === 'All' && (
-              <div className="space-y-6 my-10 border-t border-b border-white/5 py-6">
-                <div className="flex items-center gap-2">
-                  <Layers className="w-5 h-5 text-rose-500" />
-                  <div>
-                    <h2 className="text-xl font-bold text-white tracking-tight">Curated Film Collections</h2>
-                    <p className="text-xs text-neutral-400">Explore cinematic worlds categorized by prestigious themes, box office records, and genres</p>
-                  </div>
-                </div>
-
-                {CURATED_SECTIONS.map((section) => (
-                  <MovieSectionRow
-                    key={section.id}
-                    section={section}
-                    movies={sectionMovies[section.id] || []}
-                    isLoading={isSectionsLoading}
-                    onSelectMovie={handleSelectMovie}
-                    onPlayTrailer={handlePlayTrailer}
-                    onCopyMagnet={handleCopyMagnet}
-                    isWatchlisted={isMovieWatchlisted}
-                    onToggleWatchlist={handleToggleWatchlist}
-                    onViewAll={() => {
-                      setFilters({
-                        ...DEFAULT_FILTERS,
-                        ...section.filterParams,
-                        page: 1
-                      });
-                      document.getElementById('movie-search-filters')?.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-
-            {/* Section Heading & Filter Bar */}
-            <div id="movie-catalog-section" className="space-y-4">
+            {/* 3. Section Heading & Filter Bar (Explore Films & Torrents) */}
+            <div id="movie-catalog-section" className="space-y-4 my-8">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h1 className="text-xl sm:text-2xl font-black font-display text-white flex items-center gap-2.5">
@@ -807,18 +725,92 @@ export default function App() {
               )
             )}
 
-            {/* AdSense In-Feed / Banner Placement compliant with ad-to-content ratio */}
-            <AdSenseSlot format="auto" responsive={true} className="my-8" />
-
             {/* Pagination */}
             {!isLoading && totalCount > filters.limit && (
-              <Pagination
-                currentPage={filters.page}
-                totalCount={totalCount}
-                limit={filters.limit}
-                onPageChange={(p) => handleFilterChange({ page: p })}
-              />
+              <div className="mb-12">
+                <Pagination
+                  currentPage={filters.page}
+                  totalCount={totalCount}
+                  limit={filters.limit}
+                  onPageChange={(p) => handleFilterChange({ page: p })}
+                />
+              </div>
             )}
+
+            {/* 4. Personalized Recommendations based on Watchlist & History */}
+            {currentNav === 'browse' && !filters.query_term && (watchlist.length > 0 || recentlyViewed.length > 0) && (
+              <div className="my-10">
+                <PersonalizedRecommendations
+                  watchlist={watchlist}
+                  recentlyViewed={recentlyViewed}
+                  onSelectMovie={handleSelectMovie}
+                  onPlayTrailer={handlePlayTrailer}
+                  onCopyMagnet={handleCopyMagnet}
+                  isWatchlisted={isMovieWatchlisted}
+                  onToggleWatchlist={handleToggleWatchlist}
+                />
+              </div>
+            )}
+
+            {/* AdSense Slot between content */}
+            <AdSenseSlot format="auto" responsive={true} className="my-8" />
+
+            {/* 5. Curated Cinema Categories (Trending, Top Rated etc.) */}
+            {currentNav === 'browse' && !filters.query_term && filters.page === 1 && filters.genre === 'All' && filters.quality === 'All' && (
+              <div className="space-y-6 my-12 border-t border-white/5 py-8">
+                <div className="flex items-center gap-2">
+                  <Layers className="w-5 h-5 text-rose-500" />
+                  <div>
+                    <h2 className="text-xl font-bold text-white tracking-tight">Curated Film Collections</h2>
+                    <p className="text-xs text-neutral-400">Explore cinematic worlds categorized by prestigious themes, box office records, and genres</p>
+                  </div>
+                </div>
+
+                {CURATED_SECTIONS.map((section) => (
+                  <MovieSectionRow
+                    key={section.id}
+                    section={section}
+                    movies={sectionMovies[section.id] || []}
+                    isLoading={sectionsLoading[section.id] || false}
+                    onSelectMovie={handleSelectMovie}
+                    onPlayTrailer={handlePlayTrailer}
+                    onCopyMagnet={handleCopyMagnet}
+                    isWatchlisted={isMovieWatchlisted}
+                    onToggleWatchlist={handleToggleWatchlist}
+                    onVisible={() => loadSection(section.id)}
+                    onViewAll={() => {
+                      setFilters({
+                        ...DEFAULT_FILTERS,
+                        ...section.filterParams,
+                        page: 1
+                      });
+                      document.getElementById('movie-search-filters')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* 6. Thematic & Mood-based Collections Bar */}
+            {currentNav === 'browse' && !filters.query_term && filters.page === 1 && (
+              <div className="my-12 pt-8 border-t border-white/5">
+                <CuratedCollections
+                  activeCollectionId={activeCollectionId}
+                  onSelectCollection={(filterParams) => {
+                    setActiveCollectionId(filterParams.genre || 'all');
+                    setFilters((prev) => ({
+                      ...DEFAULT_FILTERS,
+                      ...filterParams,
+                      page: 1
+                    }));
+                    document.getElementById('movie-search-filters')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Bottom AdSense Banner */}
+            <AdSenseSlot format="auto" responsive={true} className="my-12" />
           </>
         )}
 

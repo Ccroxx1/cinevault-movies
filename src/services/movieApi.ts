@@ -141,7 +141,7 @@ async function fetchFromMirrors(
       }
 
       const controller = new AbortController();
-      const timeoutMs = mirror.startsWith('/api') ? 12000 : 4000;
+      const timeoutMs = mirror.startsWith('/api') ? 12000 : 2000;
       const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
       const response = await fetch(targetUrl, {

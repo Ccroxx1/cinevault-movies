@@ -11,7 +11,7 @@ interface RecentlyViewedStripProps {
   onClearRecent: () => void;
 }
 
-export const RecentlyViewedStrip: React.FC<RecentlyViewedStripProps> = ({
+export const RecentlyViewedStrip = React.memo<RecentlyViewedStripProps>(({
   recentMovies,
   onSelectMovie,
   onPlayTrailer,
@@ -119,4 +119,4 @@ export const RecentlyViewedStrip: React.FC<RecentlyViewedStripProps> = ({
       </div>
     </section>
   );
-};
+});

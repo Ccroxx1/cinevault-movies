@@ -6,7 +6,7 @@ const API_BASE_URLS = [
 ];
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
-const REQUEST_TIMEOUT_MS = 5000;
+const REQUEST_TIMEOUT_MS = 2000;
 
 type CacheEntry = {
   timestamp: number;

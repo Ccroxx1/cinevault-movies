@@ -1,0 +1,6 @@
+- [ ] Reduce API mirror timeouts and optimize failover logic in `movieApi.ts`
+- [ ] Implement lazy loading detection in `MovieSectionRow.tsx`
+- [ ] Refactor `App.tsx` to fetch curated sections on demand
+- [ ] Add server-side meta-tag caching in `server.ts`
+- [ ] Optimize image loading and decoding in `MovieCard.tsx`
+- [ ] Verify performance improvements

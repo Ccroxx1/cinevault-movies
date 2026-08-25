@@ -1,4 +1,5 @@
 import express from 'express';
+import 'dotenv/config';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -17,8 +18,12 @@ app.use(express.json());
 const STATS_FILE = path.join(process.cwd(), 'data', 'visitor_stats.json');
 
 // Upstash Redis Cloud Database Configuration
-const UPSTASH_REDIS_REST_URL = process.env.UPSTASH_REDIS_REST_URL || 'https://relaxing-flounder-42041.upstash.io';
-const UPSTASH_REDIS_REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || 'AqQ5AAIgcDG6sdewCbB8RVIClvvFRhx-qV5AxGKoy6NUZFNOcbj1qw';
+const UPSTASH_REDIS_REST_URL = process.env.UPSTASH_REDIS_REST_URL;
+const UPSTASH_REDIS_REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+if (!UPSTASH_REDIS_REST_URL || !UPSTASH_REDIS_REST_TOKEN) {
+  console.warn('⚠️ UPSTASH_REDIS_REST_URL or TOKEN missing. Falling back to local storage only.');
+}
 
 async function runUpstashPipeline(commands: any[][]): Promise<any[] | null> {
   const url = UPSTASH_REDIS_REST_URL;
@@ -171,6 +176,10 @@ const API_BASE_URLS = [
 // Simple in-memory cache to make browsing super fast and resilient
 const cache = new Map<string, { timestamp: number; data: any }>();
 const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes cache
+
+// SEO Meta Tag Cache
+const metaTagCache = new Map<string, { timestamp: number; html: string }>();
+const META_TAG_CACHE_TTL = 30 * 60 * 1000; // 30 minutes
 
 async function fetchFromApi(endpoint: string, queryParams: Record<string, string>): Promise<any> {
   const queryString = new URLSearchParams(queryParams).toString();
@@ -534,6 +543,12 @@ app.post('/api/visitors/hit', async (req, res) => {
 async function injectDynamicMetaTags(htmlTemplate: string, reqUrl: string): Promise<string> {
   const SITE_BASE_URL = 'https://cinevault-movies-one.vercel.app';
   
+  // Return cached HTML if available and not expired
+  const cached = metaTagCache.get(reqUrl);
+  if (cached && Date.now() - cached.timestamp < META_TAG_CACHE_TTL) {
+    return cached.html;
+  }
+
   try {
     const urlObj = new URL(reqUrl, SITE_BASE_URL);
     const pathname = urlObj.pathname;
@@ -560,7 +575,9 @@ async function injectDynamicMetaTags(htmlTemplate: string, reqUrl: string): Prom
       }
 
       if (movie) {
-        return buildMovieHtml(htmlTemplate, movie, relatedMovies);
+        const finalHtml = buildMovieHtml(htmlTemplate, movie, relatedMovies);
+        metaTagCache.set(reqUrl, { timestamp: Date.now(), html: finalHtml });
+        return finalHtml;
       }
     }
   } catch (err) {

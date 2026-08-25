@@ -14,7 +14,7 @@ interface PersonalizedRecommendationsProps {
   onToggleWatchlist: (movie: Movie) => void;
 }
 
-export const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsProps> = ({
+export const PersonalizedRecommendations = React.memo<PersonalizedRecommendationsProps>(({
   watchlist,
   recentlyViewed,
   onSelectMovie,
@@ -124,4 +124,4 @@ export const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsPr
       )}
     </section>
   );
-};
+});

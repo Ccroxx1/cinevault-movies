@@ -118,7 +118,7 @@ interface CuratedCollectionsProps {
   activeCollectionId?: string | null;
 }
 
-export const CuratedCollections: React.FC<CuratedCollectionsProps> = ({
+export const CuratedCollections = React.memo<CuratedCollectionsProps>(({
   onSelectCollection,
   activeCollectionId
 }) => {
@@ -179,4 +179,4 @@ export const CuratedCollections: React.FC<CuratedCollectionsProps> = ({
       </div>
     </section>
   );
-};
+});
