@@ -5,7 +5,7 @@ import { trackVisitorHit, getCachedVisitorCount, getCachedTodayVisitorCount } fr
 
 interface FooterProps {
   onNavigateHome?: () => void;
-  onOpenPolicy?: (tab: 'privacy' | 'terms' | 'about' | 'contact' | 'dmca') => void;
+  onOpenPolicy?: (tab: 'privacy' | 'terms' | 'about' | 'contact' | 'dmca' | 'agreement') => void;
   onOpenGuide?: () => void;
 }
 
@@ -158,14 +158,31 @@ export const Footer: React.FC<FooterProps> = ({
 
         </div>
 
-        {/* Bottom Tier: Disclaimer & Copyright */}
-        <div className="pt-4 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-center sm:text-left">
-          <p className="text-neutral-500 max-w-2xl">
-            CineVault operates strictly as a metadata directory and film indexer. Content is aggregated from public REST APIs for informational and discovery purposes.
-          </p>
-          <p className="text-neutral-600 whitespace-nowrap">
-            CineVault By Sasuu © 2026. All rights reserved.
-          </p>
+        {/* Bottom Tier: Disclaimer, Copyright & User Agreement Notice */}
+        <div className="pt-4 border-t border-white/5 space-y-3 text-[11px] text-center sm:text-left">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p className="text-neutral-500 max-w-2xl">
+              CineVault operates strictly as a metadata directory and film indexer. Content is aggregated from public REST APIs for informational and discovery purposes.
+            </p>
+            <p className="text-neutral-600 whitespace-nowrap">
+              CineVault By Sasuu © 2026. All rights reserved.
+            </p>
+          </div>
+
+          <div className="pt-2 border-t border-white/[0.03] text-neutral-500 leading-relaxed text-center">
+            <p id="footer-user-agreement-notice">
+              By using this site you agree to and accept our User Agreement, which can be read{' '}
+              <button
+                type="button"
+                id="footer-link-user-agreement"
+                onClick={() => onOpenPolicy && onOpenPolicy('agreement')}
+                className="text-rose-400 hover:text-rose-300 underline font-medium cursor-pointer transition-colors"
+              >
+                here
+              </button>
+              .
+            </p>
+          </div>
         </div>
       </div>
     </footer>

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, ShieldCheck, FileText, Info, Mail, Lock } from 'lucide-react';
 
 interface AdSensePolicyModalProps {
-  initialTab?: 'privacy' | 'terms' | 'about' | 'contact' | 'dmca';
+  initialTab?: 'privacy' | 'terms' | 'about' | 'contact' | 'dmca' | 'agreement';
   onClose: () => void;
 }
 
@@ -10,7 +10,7 @@ export const AdSensePolicyModal: React.FC<AdSensePolicyModalProps> = ({
   initialTab = 'privacy',
   onClose
 }) => {
-  const [activeTab, setActiveTab] = useState<'privacy' | 'terms' | 'about' | 'contact' | 'dmca'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'privacy' | 'terms' | 'about' | 'contact' | 'dmca' | 'agreement'>(initialTab);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
@@ -64,6 +64,18 @@ export const AdSensePolicyModal: React.FC<AdSensePolicyModalProps> = ({
           >
             <FileText className="w-3.5 h-3.5" />
             <span>Terms of Service</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('agreement')}
+            className={`flex items-center gap-1.5 px-3.5 py-3 text-xs font-bold border-b-2 transition-all whitespace-nowrap ${
+              activeTab === 'agreement'
+                ? 'border-rose-500 text-rose-400'
+                : 'border-transparent text-neutral-400 hover:text-neutral-200'
+            }`}
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span>User Agreement</span>
           </button>
 
           <button
@@ -139,6 +151,36 @@ export const AdSensePolicyModal: React.FC<AdSensePolicyModalProps> = ({
               <h5 className="text-sm font-bold text-white pt-2">Permitted Use</h5>
               <p>
                 You may browse movie summaries, watch trailers, review age ratings, and organize personal bookmarks for personal non-commercial viewing.
+              </p>
+            </div>
+          )}
+
+          {activeTab === 'agreement' && (
+            <div className="space-y-3">
+              <h4 className="text-base font-bold text-white">CineVault User Agreement</h4>
+              <p className="text-rose-400 font-medium">
+                By using this site, you agree to and accept our User Agreement.
+              </p>
+              <p>
+                CineVault provides movie information, descriptions, trailers, images, ratings, and links to third-party services for informational and entertainment purposes.
+              </p>
+              <p>
+                You agree to use CineVault only for lawful purposes and in accordance with applicable laws. You must not use the site to infringe copyright, distribute unauthorized content, interfere with the operation of the site, or attempt to gain unauthorized access to our systems.
+              </p>
+              <p>
+                CineVault does not claim ownership of third-party content, trademarks, movie titles, images, or other materials that belong to their respective copyright and trademark owners. Where applicable, such materials are used for identification, informational, or promotional purposes.
+              </p>
+              <p>
+                Links to third-party websites or services are provided for convenience. CineVault does not control or guarantee the availability, accuracy, security, or content of external websites, and your use of those services is subject to their own terms and policies.
+              </p>
+              <p>
+                CineVault may update, modify, suspend, or remove features or content at any time without prior notice.
+              </p>
+              <p className="text-neutral-400 font-medium">
+                If you do not agree with this User Agreement, please discontinue using CineVault.
+              </p>
+              <p className="p-3 rounded-xl bg-white/5 border border-white/10 text-neutral-300 text-xs sm:text-sm">
+                By continuing to use CineVault, you acknowledge that you have read, understood, and accepted these terms.
               </p>
             </div>
           )}

@@ -66,7 +66,7 @@ export default function App() {
   const [currentNav, setCurrentNav] = useState<string>('browse');
   const [trailerData, setTrailerData] = useState<{ ytCode: string; title: string } | null>(null);
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
-  const [policyModalTab, setPolicyModalTab] = useState<'privacy' | 'terms' | 'about' | 'contact' | 'dmca' | null>(null);
+  const [policyModalTab, setPolicyModalTab] = useState<'privacy' | 'terms' | 'about' | 'contact' | 'dmca' | 'agreement' | null>(null);
   
   // Watchlist Persistence
   const [watchlist, setWatchlist] = useState<Movie[]>(() => {
