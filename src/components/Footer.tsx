@@ -25,12 +25,12 @@ export const Footer: React.FC<FooterProps> = ({
       try {
         const stats = await trackVisitorHit();
         if (isMounted) {
-          if (typeof stats.totalVisitors === 'number') {
-            setTotalVisitors(stats.totalVisitors);
-          }
-          if (typeof stats.todayVisitors === 'number') {
-            setTodayVisitors(stats.todayVisitors);
-          }
+          const rawTotal = typeof stats.totalVisitors === 'number' ? stats.totalVisitors : 0;
+          const today = typeof stats.todayVisitors === 'number' ? stats.todayVisitors : 0;
+          const total = Math.max(rawTotal, today);
+
+          setTotalVisitors(total);
+          setTodayVisitors(today);
           setIsLiveLoaded(true);
         }
       } catch (err) {

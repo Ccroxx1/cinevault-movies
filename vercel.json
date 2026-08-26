@@ -60,12 +60,8 @@
       "destination": "https://movies-api.accel.li/api/v2/$1"
     },
     {
-      "source": "/movies/:slug",
-      "destination": "/movies/:slug/index.html"
-    },
-    {
-      "source": "/movies/:slug/",
-      "destination": "/movies/:slug/index.html"
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
     }
   ]
 }

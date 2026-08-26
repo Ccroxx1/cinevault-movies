@@ -20,8 +20,8 @@ loadBaselineStats();
 
 // API Base URLs to try in priority order with official & high-uptime mirrors
 const API_BASE_URLS = [
-  'https://yts.gg/api/v2',
   'https://movies-api.accel.li/api/v2',
+  'https://yts.gg/api/v2',
   'https://yts.am/api/v2',
   'https://yts.lt/api/v2',
   'https://yts.bz/api/v2',
@@ -71,7 +71,7 @@ async function fetchFromApi(endpoint: string, queryParams: Record<string, string
     try {
       const targetUrl = `${baseUrl}/${endpoint}?${queryString}`;
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3500);
+      const timeoutId = setTimeout(() => controller.abort(), 1800);
 
       const response = await fetch(targetUrl, {
         headers: {
@@ -330,7 +330,10 @@ async function injectDynamicMetaTags(htmlTemplate: string, reqUrl: string): Prom
       const queryTerm = yearMatch ? yearMatch[1].replace(/-/g, ' ') : rawSlug.replace(/-/g, ' ');
       const queryYear = yearMatch ? parseInt(yearMatch[2], 10) : null;
 
-      const listData = await fetchFromApi('list_movies.json', { query_term: queryTerm, limit: '10' });
+      const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500));
+      const fetchPromise = fetchFromApi('list_movies.json', { query_term: queryTerm, limit: '10' }).catch(() => null);
+
+      const listData = await Promise.race([fetchPromise, timeoutPromise]);
       let movie = null;
       let relatedMovies: any[] = [];
 

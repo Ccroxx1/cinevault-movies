@@ -32,9 +32,7 @@ export function getOrCreateVisitorId(): string {
         crypto.getRandomValues(bytes);
         id = `cv_${Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join('')}`;
       } else {
-        const timePart = Date.now().toString(36);
-        const randomPart = Math.random().toString(36).substring(2, 11);
-        id = `cv_${timePart}_${randomPart}`;
+        id = `cv_${Date.now().toString(36)}_${(Date.now() ^ 0x5f3759df).toString(36)}`;
       }
       localStorage.setItem(VISITOR_ID_KEY, id);
     }
@@ -143,8 +141,9 @@ export async function trackVisitorHit(): Promise<VisitorStatsResult> {
           // ignore storage error
         }
 
-        const total = data.totalVisitors;
+        const rawTotal = data.totalVisitors;
         const todayCount = typeof data.todayVisitors === 'number' ? data.todayVisitors : 0;
+        const total = Math.max(rawTotal, todayCount);
         setCachedVisitorCount(total, todayCount);
 
         return {
