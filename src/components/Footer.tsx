@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { Users, Flame, Shield, FileText, Info, Mail, BookOpen } from 'lucide-react';
+import React from 'react';
+import { Shield, FileText, Info, Mail, BookOpen } from 'lucide-react';
 import { CineVaultLogo } from './CineVaultLogo';
-import { trackVisitorHit, getCachedVisitorCount, getCachedTodayVisitorCount } from '../utils/visitor';
 
 interface FooterProps {
   onNavigateHome?: () => void;
@@ -14,44 +13,11 @@ export const Footer: React.FC<FooterProps> = ({
   onOpenPolicy,
   onOpenGuide
 }) => {
-  const [totalVisitors, setTotalVisitors] = useState<number>(() => getCachedVisitorCount());
-  const [todayVisitors, setTodayVisitors] = useState<number>(() => getCachedTodayVisitorCount());
-  const [isLiveLoaded, setIsLiveLoaded] = useState<boolean>(false);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function syncVisitorStats() {
-      try {
-        const stats = await trackVisitorHit();
-        if (isMounted) {
-          const rawTotal = typeof stats.totalVisitors === 'number' ? stats.totalVisitors : 0;
-          const today = typeof stats.todayVisitors === 'number' ? stats.todayVisitors : 0;
-          const total = Math.max(rawTotal, today);
-
-          setTotalVisitors(total);
-          setTodayVisitors(today);
-          setIsLiveLoaded(true);
-        }
-      } catch (err) {
-        if (isMounted) {
-          setIsLiveLoaded(true);
-        }
-      }
-    }
-
-    syncVisitorStats();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
   return (
     <footer id="cinevault-footer" className="w-full border-t border-white/10 bg-[#050505] mt-16 py-10 text-xs text-neutral-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         
-        {/* Top Tier: Logo, Visitor Metrics Badges, Legal Nav */}
+        {/* Top Tier: Logo & Legal Nav */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           
           <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full md:w-auto justify-between sm:justify-start">
@@ -66,38 +32,6 @@ export const Footer: React.FC<FooterProps> = ({
             >
               <CineVaultLogo variant="header" size="sm" showTagline={true} />
             </a>
-
-            {/* Clean, Minimal Dual-Layer Visitor Counter */}
-            <div
-              id="footer-visitor-counter"
-              className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 select-none text-xs"
-              title={`CineVault By Sasuu — Total Visitors: ${totalVisitors.toLocaleString('en-US')} · Today's Hits: ${todayVisitors.toLocaleString('en-US')}`}
-            >
-              <span className="relative flex h-2 w-2" aria-hidden="true">
-                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 ${isLiveLoaded ? 'opacity-75' : 'opacity-30'}`} />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-              </span>
-
-              {/* Total Visitors */}
-              <div className="flex items-center gap-1">
-                <Users className="w-3 h-3 text-neutral-400" />
-                <span className="text-neutral-500 text-[11px]">Total:</span>
-                <span id="footer-total-visitors-count" className="font-mono text-neutral-200 font-semibold tracking-tight">
-                  {totalVisitors.toLocaleString('en-US')}
-                </span>
-              </div>
-
-              <span className="text-neutral-600">·</span>
-
-              {/* Today's Hits */}
-              <div className="flex items-center gap-1">
-                <Flame className="w-3 h-3 text-rose-400" />
-                <span className="text-neutral-500 text-[11px]">Today:</span>
-                <span id="footer-today-visitors-count" className="font-mono text-rose-300 font-medium tracking-tight">
-                  {todayVisitors.toLocaleString('en-US')}
-                </span>
-              </div>
-            </div>
           </div>
 
           {/* Compliance & Policy Links */}

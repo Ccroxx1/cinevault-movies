@@ -849,7 +849,7 @@ export default function App() {
 
       </main>
 
-      {/* Clean Minimal Footer with Dual-Layer Visitor Tracking */}
+      {/* Clean Minimal Footer */}
       <Footer
         onNavigateHome={handleNavigateHome}
         onOpenPolicy={(tab) => setPolicyModalTab(tab)}

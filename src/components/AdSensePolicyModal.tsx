@@ -123,9 +123,9 @@ export const AdSensePolicyModal: React.FC<AdSensePolicyModalProps> = ({
               <p>
                 Last updated: January 2026. At <strong>CineVault By Sasuu</strong>, accessible from our official website and mirrors, one of our main priorities is the privacy of our visitors. This Privacy Policy document outlines the types of information that is collected and recorded by CineVault and how we use it.
               </p>
-              <h5 className="text-sm font-bold text-white pt-2">1. Log Files & Analytics</h5>
+              <h5 className="text-sm font-bold text-white pt-2">1. Local Storage</h5>
               <p>
-                CineVault follows a standard procedure of using log files and client-side web storage (LocalStorage). These files log visitors when they visit websites for analytics, performance, and preserving your custom Watchlist.
+                CineVault follows a standard procedure of using client-side web storage (LocalStorage). This is used for performance and preserving your custom Watchlist.
               </p>
               <h5 className="text-sm font-bold text-white pt-2">2. Google DoubleClick DART Cookie & Advertising Partners</h5>
               <p>

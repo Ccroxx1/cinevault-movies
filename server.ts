@@ -4,7 +4,6 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
 import { buildMovieHtml } from './src/utils/htmlBuilder.js';
-import { recordVisitorHit, getVisitorStats, loadBaselineStats, getCorsOrigin } from './src/server/visitorTracker.js';
 
 const currentFilename = typeof import.meta !== 'undefined' && import.meta.url ? fileURLToPath(import.meta.url) : (typeof __filename !== 'undefined' ? __filename : '');
 const currentDirname = currentFilename ? path.dirname(currentFilename) : process.cwd();
@@ -283,35 +282,6 @@ app.get('/api/download/proxy-file', async (req, res) => {
   }
 });
 
-// Dual-Layer Visitor Counter Endpoints with Upstash Redis & Local JSON Baseline Fallback
-app.get('/api/visitors/stats', async (req, res) => {
-  const allowedOrigin = getCorsOrigin(req);
-  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  try {
-    const result = await getVisitorStats();
-    res.json(result);
-  } catch (error: any) {
-    console.error('Error fetching visitor stats:', error);
-    const baseline = loadBaselineStats();
-    res.status(200).json({ status: 'ok', totalVisitors: baseline.totalVisitors, todayVisitors: baseline.todayVisitors, source: 'local_fallback' });
-  }
-});
-
-app.post('/api/visitors/hit', async (req, res) => {
-  const allowedOrigin = getCorsOrigin(req);
-  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  try {
-    const result = await recordVisitorHit(req);
-    res.json(result);
-  } catch (error: any) {
-    console.error('Error processing visitor hit:', error);
-    const baseline = loadBaselineStats();
-    res.status(200).json({ status: 'ok', totalVisitors: baseline.totalVisitors, todayVisitors: baseline.todayVisitors, isNew: false, source: 'local_fallback' });
-  }
-});
-
 // Favicon fallback to stop 404s
 app.get('/favicon.ico', (req, res) => {
   res.redirect('/favicon.svg');
@@ -388,13 +358,6 @@ async function setupApp() {
   }
 
   detectedIndexHtmlPath = path.resolve(detectedDistPath, 'index.html');
-
-  // Initialize visitor tracking baseline ONLY after we ensure we won't crash
-  try {
-    loadBaselineStats();
-  } catch (e) {
-    // Silent fail
-  }
 
   if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
     const vite = await createViteServer({

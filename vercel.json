@@ -48,10 +48,6 @@
       "destination": "/api/index"
     },
     {
-      "source": "/api/visitors/:path*",
-      "destination": "/api/index"
-    },
-    {
       "source": "/movies/:slug",
       "destination": "/api/index"
     },
