@@ -9,8 +9,8 @@ import { recordVisitorHit, getVisitorStats, loadBaselineStats, getCorsOrigin } f
 const currentFilename = typeof import.meta !== 'undefined' && import.meta.url ? fileURLToPath(import.meta.url) : (typeof __filename !== 'undefined' ? __filename : '');
 const currentDirname = currentFilename ? path.dirname(currentFilename) : process.cwd();
 
-const app = express();
-const PORT = 3000;
+export const app = express();
+const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
@@ -357,7 +357,7 @@ async function injectDynamicMetaTags(htmlTemplate: string, reqUrl: string): Prom
   return htmlTemplate;
 }
 
-async function startServer() {
+async function setupApp() {
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -427,10 +427,15 @@ async function startServer() {
       }
     });
   }
+}
 
+// Ensure routes are set up
+await setupApp();
+
+if (process.env.NODE_ENV !== 'production' || process.env.VITE_DEV_SERVER) {
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`🎬 CineVault server running on http://0.0.0.0:${PORT}`);
   });
 }
 
-startServer();
+export default app;
