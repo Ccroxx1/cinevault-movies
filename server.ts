@@ -14,6 +14,9 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
+// Diagnostic route
+app.get('/api/health', (req, res) => res.send('CineVault Server OK'));
+
 // Initialize visitor tracking baseline on startup
 loadBaselineStats();
 
@@ -362,7 +365,26 @@ async function injectDynamicMetaTags(htmlTemplate: string, reqUrl: string): Prom
   return htmlTemplate;
 }
 
+let detectedDistPath = '';
+let detectedIndexHtmlPath = '';
+
 async function setupApp() {
+  const possibleDistPaths = [
+    path.resolve(currentDirname, 'dist'),
+    path.resolve(process.cwd(), 'dist'),
+    path.resolve(currentDirname, '..', 'dist')
+  ];
+
+  detectedDistPath = possibleDistPaths[0];
+  for (const p of possibleDistPaths) {
+    if (fs.existsSync(p)) {
+      detectedDistPath = p;
+      break;
+    }
+  }
+
+  detectedIndexHtmlPath = path.resolve(detectedDistPath, 'index.html');
+
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -403,9 +425,7 @@ async function setupApp() {
       }
     });
   } else {
-    const distPath = path.join(process.cwd(), 'dist');
-    const indexHtmlPath = path.join(distPath, 'index.html');
-    app.use(express.static(distPath, { index: false }));
+    app.use(express.static(detectedDistPath, { index: false }));
 
     app.all('*', async (req, res) => {
       const pathname = req.path;
@@ -414,28 +434,32 @@ async function setupApp() {
       // If pre-rendered static movie page exists, serve directly
       if (movieMatch) {
         const slug = movieMatch[1];
-        const staticMoviePath = path.join(distPath, 'movies', slug, 'index.html');
+        const staticMoviePath = path.resolve(detectedDistPath, 'movies', slug, 'index.html');
         if (fs.existsSync(staticMoviePath)) {
           return res.sendFile(staticMoviePath);
         }
       }
 
       try {
-        if (fs.existsSync(indexHtmlPath)) {
-          const rawTemplate = fs.readFileSync(indexHtmlPath, 'utf-8');
+        if (detectedIndexHtmlPath && fs.existsSync(detectedIndexHtmlPath)) {
+          const rawTemplate = fs.readFileSync(detectedIndexHtmlPath, 'utf-8');
           const html = await injectDynamicMetaTags(rawTemplate, req.originalUrl);
           return res.status(200).set({ 'Content-Type': 'text/html' }).send(html);
         }
-        res.sendFile(indexHtmlPath);
+        res.status(404).send('Cinema Vault: Resource Not Found');
       } catch {
-        res.sendFile(indexHtmlPath);
+        if (detectedIndexHtmlPath && fs.existsSync(detectedIndexHtmlPath)) {
+          res.sendFile(detectedIndexHtmlPath);
+        } else {
+          res.status(404).send('Cinema Vault: Resource Not Found');
+        }
       }
     });
   }
 }
 
 // Ensure routes are set up
-await setupApp();
+setupApp().catch(err => console.error('Failed to setup app:', err));
 
 if (process.env.NODE_ENV !== 'production' || process.env.VITE_DEV_SERVER) {
   app.listen(PORT, '0.0.0.0', () => {
