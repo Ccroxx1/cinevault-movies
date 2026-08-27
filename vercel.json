@@ -44,7 +44,11 @@
       "destination": "https://movies-api.accel.li/api/v2/$1"
     },
     {
-      "source": "/api/(.*)",
+      "source": "/api/download/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/movies/(.*)",
       "destination": "/api/index"
     },
     {

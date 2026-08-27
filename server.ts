@@ -313,6 +313,11 @@ app.post('/api/visitors/hit', async (req, res) => {
   }
 });
 
+// Favicon fallback to stop 404s
+app.get('/favicon.ico', (req, res) => {
+  res.redirect('/favicon.svg');
+});
+
 
 
 async function injectDynamicMetaTags(htmlTemplate: string, reqUrl: string): Promise<string> {
@@ -402,7 +407,7 @@ async function setupApp() {
     const indexHtmlPath = path.join(distPath, 'index.html');
     app.use(express.static(distPath, { index: false }));
 
-    app.get('*', async (req, res) => {
+    app.all('*', async (req, res) => {
       const pathname = req.path;
       const movieMatch = pathname.match(/^\/movies\/([a-zA-Z0-9_-]+)/);
 
