@@ -69,58 +69,30 @@ const cache = new Map<string, { timestamp: number; data: any }>();
 const CACHE_TTL_MS = 10 * 60 * 1000;
 
 async function fetchFromApi(endpoint: string, queryParams: Record<string, string>): Promise<any> {
-  const normalizedParams = Object.entries(queryParams).reduce<Record<string, string>>((acc, [key, value]) => {
-    if (value !== undefined && value !== null) acc[key] = String(value);
-    return acc;
-  }, {});
-
-  const queryString = new URLSearchParams(normalizedParams).toString();
+  const queryString = new URLSearchParams(queryParams).toString();
   const cacheKey = `${endpoint}?${queryString}`;
   const cached = cache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) return cached.data;
 
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-    return cached.data;
-  }
-
-  // Keep serverless requests bounded. A slow upstream API must never prevent
-  // Vercel from returning the CineVault application.
-  const timeoutMs = 1400;
-  const mirrors = API_BASE_URLS.slice(0, 3);
-
-  const fetchOne = async (baseUrl: string) => {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), timeoutMs);
-
+  let lastError = 'Failed to fetch from mirrors';
+  for (const baseUrl of API_BASE_URLS) {
     try {
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), 2000);
       const res = await fetch(`${baseUrl}/${endpoint}?${queryString}`, {
-        headers: {
-          'User-Agent': 'CineVault/1.0',
-          'Accept': 'application/json'
-        },
+        headers: { 'User-Agent': 'CineVault/1.0', 'Accept': 'application/json' },
         signal: controller.signal
       });
-
-      if (!res.ok) {
-        throw new Error(`Upstream API returned ${res.status}`);
+      clearTimeout(id);
+      if (res.ok) {
+        const json = sanitizeMovieImages(await res.json());
+        cache.set(cacheKey, { timestamp: Date.now(), data: json });
+        return json;
       }
-
-      return sanitizeMovieImages(await res.json());
-    } finally {
-      clearTimeout(timeout);
-    }
-  };
-
-  try {
-    // Race a small number of mirrors instead of waiting for every mirror
-    // sequentially. This keeps Vercel execution short and predictable.
-    const data = await Promise.any(mirrors.map(fetchOne));
-    cache.set(cacheKey, { timestamp: Date.now(), data });
-    return data;
-  } catch (error: any) {
-    // A stale cached response is preferable to taking down the page.
-    if (cached) return cached.data;
-    throw new Error(error?.message || 'Movie API temporarily unavailable');
+    } catch (err: any) { lastError = err.message; }
   }
+  if (cached) return cached.data;
+  throw new Error(lastError);
 }
 
 // Common API Routes
@@ -154,44 +126,20 @@ app.get('/favicon.ico', (req, res) => {
 async function injectDynamicMetaTags(htmlTemplate: string, reqUrl: string): Promise<string> {
   try {
     const pathname = new URL(reqUrl, 'http://localhost').pathname;
-    const movieMatch = pathname.match(/^\/movies\/([a-zA-Z0-9_-]+)$/);
+    const movieMatch = pathname.match(/^\/movies\/([a-zA-Z0-9_-]+)/);
+    if (movieMatch) {
+      const slug = movieMatch[1];
+      const yearMatch = slug.match(/^(.*?)-(\d{4})$/);
+      const queryTerm = yearMatch ? yearMatch[1].replace(/-/g, ' ') : slug.replace(/-/g, ' ');
 
-    if (!movieMatch) return htmlTemplate;
-
-    const slug = movieMatch[1];
-    const yearMatch = slug.match(/^(.*?)-(\d{4})$/);
-    const queryTerm = yearMatch
-      ? yearMatch[1].replace(/-/g, ' ')
-      : slug.replace(/-/g, ' ');
-
-    // SEO is an enhancement, never a hard dependency for a movie page.
-    const seoTimeoutMs = 1800;
-    const seoPromise = fetchFromApi('list_movies.json', {
-      query_term: queryTerm,
-      limit: '5'
-    });
-
-    const timeoutPromise = new Promise<null>((resolve) => {
-      setTimeout(() => resolve(null), seoTimeoutMs);
-    });
-
-    const listData = await Promise.race([seoPromise, timeoutPromise]);
-
-    if (listData?.data?.movies?.length > 0) {
-      const movie = listData.data.movies[0];
-      const related = listData.data.movies.slice(1);
-
-      try {
+      const listData = await fetchFromApi('list_movies.json', { query_term: queryTerm, limit: '5' }).catch(() => null);
+      if (listData?.data?.movies?.length > 0) {
+        const movie = listData.data.movies[0];
+        const related = listData.data.movies.slice(1);
         return buildMovieHtml(htmlTemplate, movie, related);
-      } catch (error) {
-        console.warn('Movie SEO HTML generation failed:', error);
       }
     }
-  } catch (error) {
-    console.warn('Dynamic SEO lookup skipped:', error);
-  }
-
-  // Always return the normal React application when SEO/API enhancement fails.
+  } catch (e) { console.warn('SEO Injection Failed:', e); }
   return htmlTemplate;
 }
 
@@ -212,34 +160,15 @@ async function start() {
     app.use(express.static(detectedDistPath, { index: false }));
     app.all('*', async (req, res) => {
       try {
-        if (!fs.existsSync(detectedIndexHtmlPath)) {
-          return res.status(404).send('Cinema Vault: Not Found');
+        if (fs.existsSync(detectedIndexHtmlPath)) {
+          const template = fs.readFileSync(detectedIndexHtmlPath, 'utf-8');
+          const html = await injectDynamicMetaTags(template, req.originalUrl);
+          return res.status(200).set({ 'Content-Type': 'text/html' }).send(html);
         }
-
-        const template = fs.readFileSync(detectedIndexHtmlPath, 'utf-8');
-        const html = await injectDynamicMetaTags(template, req.originalUrl);
-
-        return res
-          .status(200)
-          .set({ 'Content-Type': 'text/html; charset=utf-8' })
-          .send(html);
-      } catch (error) {
-        console.error('Production page render failed:', error);
-
-        // Last-resort static fallback. Dynamic SEO must never turn a valid
-        // frontend route into a server error.
-        try {
-          if (fs.existsSync(detectedIndexHtmlPath)) {
-            return res
-              .status(200)
-              .set({ 'Content-Type': 'text/html; charset=utf-8' })
-              .send(fs.readFileSync(detectedIndexHtmlPath, 'utf-8'));
-          }
-        } catch (fallbackError) {
-          console.error('Static HTML fallback failed:', fallbackError);
-        }
-
-        return res.status(500).send('Internal Server Error');
+        res.status(404).send('Cinema Vault: Not Found');
+      } catch (e) {
+        if (fs.existsSync(detectedIndexHtmlPath)) return res.sendFile(detectedIndexHtmlPath);
+        res.status(500).send('Internal Server Error');
       }
     });
   }
