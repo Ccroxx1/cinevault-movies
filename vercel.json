@@ -3,7 +3,7 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "functions": {
-    "api/server.ts": {
+    "api/index.ts": {
       "includeFiles": "dist/**"
     }
   },
@@ -45,15 +45,19 @@
     },
     {
       "source": "/api/download/:path*",
-      "destination": "/api/server"
+      "destination": "/api/index"
+    },
+    {
+      "source": "/api/visitors/:path*",
+      "destination": "/api/index"
     },
     {
       "source": "/movies/:slug",
-      "destination": "/api/server"
+      "destination": "/api/index"
     },
     {
       "source": "/((?!api/).*)",
-      "destination": "/api/server"
+      "destination": "/api/index"
     }
   ]
 }

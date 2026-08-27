@@ -18,7 +18,10 @@ export interface VisitorTrackResult {
   source: 'cloud_redis' | 'local_fallback';
 }
 
-const STATS_FILE = path.join(process.cwd(), 'data', 'visitor_stats.json');
+const IS_VERCEL = !!process.env.VERCEL || !!process.env.NOW_REGION || process.cwd() === '/var/task';
+const STATS_FILE = IS_VERCEL
+  ? path.join('/tmp', 'visitor_stats.json')
+  : path.join(process.cwd(), 'data', 'visitor_stats.json');
 
 // Memory state cache initialized with baseline from local JSON
 let statsCache: VisitorStatsData = {
@@ -70,7 +73,6 @@ export function getCorsOrigin(req: any): string {
 
 /**
  * Anonymize visitor IP using SHA-256 hashing.
- * Raw IP addresses are NEVER persisted or returned.
  */
 export function anonymizeIp(rawIp: string): string {
   if (!rawIp || rawIp === 'unknown' || rawIp === '127.0.0.1' || rawIp === '::1') {
@@ -82,20 +84,17 @@ export function anonymizeIp(rawIp: string): string {
 }
 
 /**
- * Extract and anonymize visitor identifier from an Express / Serverless HTTP Request.
- * Does not store names, emails, credentials, or raw IP addresses.
+ * Extract visitor identifier.
  */
 export function extractVisitorId(req: any): string {
   if (!req) return 'anon_' + crypto.randomBytes(8).toString('hex');
 
-  // If a browser-generated UUID is sent in JSON body, hash with SHA-256 for consistent anonymity
   if (req.body?.visitorId && typeof req.body.visitorId === 'string' && req.body.visitorId.length >= 3) {
     const rawId = req.body.visitorId.trim().slice(0, 100);
     const hash = crypto.createHash('sha256').update(rawId).digest('hex').substring(0, 24);
     return `cv_${hash}`;
   }
 
-  // Fallback: Anonymize IP address
   const forwarded = req.headers?.['x-forwarded-for'];
   const rawIp = (typeof forwarded === 'string' ? forwarded.split(',')[0] : '') ||
     req.headers?.['x-real-ip'] ||
@@ -108,16 +107,12 @@ export function extractVisitorId(req: any): string {
 }
 
 /**
- * Read baseline visitor count from local JSON file upon startup.
- * Ensures statistics are preserved and never reset during cold boots or migrations.
+ * Read baseline visitor count.
  */
 export function loadBaselineStats(): VisitorStatsData {
-  try {
-    const dataDir = path.join(process.cwd(), 'data');
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
+  if (isInitialized) return statsCache;
 
+  try {
     const todayUtc = new Date().toISOString().split('T')[0];
 
     if (fs.existsSync(STATS_FILE)) {
@@ -133,8 +128,7 @@ export function loadBaselineStats(): VisitorStatsData {
 
         statsCache.knownVisitorIds = known;
         const resolvedToday = parsedDate === todayUtc ? Math.max(parsedToday, todayKnown.length) : 0;
-        
-        // Total visitors can never be less than today's visitors or known list size
+
         statsCache.totalVisitors = Math.max(parsedTotal, known.length, resolvedToday);
         baselineTotal = statsCache.totalVisitors;
 
@@ -150,11 +144,11 @@ export function loadBaselineStats(): VisitorStatsData {
           baselineToday = 0;
         }
       }
-    } else {
+    } else if (!IS_VERCEL) {
       saveStatsToDisk();
     }
   } catch (err) {
-    console.warn('[VisitorTracker] Note reading baseline stats:', err);
+    // Fail silently in production
   }
 
   isInitialized = true;
@@ -162,7 +156,7 @@ export function loadBaselineStats(): VisitorStatsData {
 }
 
 /**
- * Persist current stats snapshot to local JSON file safely.
+ * Persist current stats snapshot safely.
  */
 export function saveStatsToDisk(): void {
   if (saveDebounceTimer) {
@@ -171,12 +165,15 @@ export function saveStatsToDisk(): void {
 
   saveDebounceTimer = setTimeout(() => {
     try {
-      const dataDir = path.join(process.cwd(), 'data');
-      if (!fs.existsSync(dataDir)) {
-        fs.mkdirSync(dataDir, { recursive: true });
+      const statsDir = path.dirname(STATS_FILE);
+      if (!fs.existsSync(statsDir)) {
+        try {
+          fs.mkdirSync(statsDir, { recursive: true });
+        } catch (e) {
+          return;
+        }
       }
 
-      // Compact memory sets if large to preserve memory & disk performance
       if (statsCache.knownVisitorIds.length > 20000) {
         statsCache.knownVisitorIds = statsCache.knownVisitorIds.slice(-15000);
       }
@@ -184,26 +181,27 @@ export function saveStatsToDisk(): void {
         statsCache.todayVisitorIds = statsCache.todayVisitorIds.slice(-8000);
       }
 
-      // Ensure total is always at least today's count
       statsCache.totalVisitors = Math.max(statsCache.totalVisitors, statsCache.todayVisitors);
 
-      fs.writeFileSync(STATS_FILE, JSON.stringify(statsCache, null, 2), 'utf-8');
+      try {
+        fs.writeFileSync(STATS_FILE, JSON.stringify(statsCache, null, 2), 'utf-8');
+      } catch (e) {
+        // Fail silently
+      }
     } catch (err) {
-      console.warn('[VisitorTracker] Error writing local visitor stats:', err);
+      // Catch-all
     }
-  }, 80);
+  }, 100);
 }
 
 /**
- * Execute pipeline commands against Upstash Redis REST API with 3.5s AbortController timeout.
+ * Execute pipeline commands against Upstash Redis REST API.
  */
 export async function executeUpstashPipeline(commands: any[][]): Promise<any[] | null> {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
 
-  if (!url || !token) {
-    return null;
-  }
+  if (!url || !token) return null;
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 3500);
@@ -222,20 +220,12 @@ export async function executeUpstashPipeline(commands: any[][]): Promise<any[] |
 
     clearTimeout(timeoutId);
 
-    if (!res.ok) {
-      console.warn(`[VisitorTracker] Upstash Redis HTTP status: ${res.status}`);
-      return null;
-    }
-
+    if (!res.ok) return null;
     const data = await res.json();
     if (!Array.isArray(data)) return null;
 
-    // Check for individual Redis command errors
     const hasError = data.some(item => item && item.error);
-    if (hasError) {
-      console.warn('[VisitorTracker] Upstash Redis command error, falling back to local storage');
-      return null;
-    }
+    if (hasError) return null;
 
     return data.map(item => item?.result);
   } catch (err: any) {
@@ -244,9 +234,6 @@ export async function executeUpstashPipeline(commands: any[][]): Promise<any[] |
   }
 }
 
-/**
- * Parse an integer from Redis response safely
- */
 function parseRedisInt(val: any, fallback = 0): number {
   if (typeof val === 'number') return isNaN(val) ? fallback : val;
   if (typeof val === 'string') {
@@ -256,12 +243,7 @@ function parseRedisInt(val: any, fallback = 0): number {
   return fallback;
 }
 
-/**
- * Ensures previous existing data from Upstash Redis console or legacy keys is synchronized
- * into the authoritative 'cinevault:visitors:total' key exactly once.
- */
 async function syncAuthoritativeTotal(todayCount = 0): Promise<number | null> {
-  // Probe all potential Upstash keys to discover existing counts
   const probe = await executeUpstashPipeline([
     ['GET', 'cinevault:visitors:total'],
     ['GET', 'cinevault:visitors:baseline_total'],
@@ -271,32 +253,21 @@ async function syncAuthoritativeTotal(todayCount = 0): Promise<number | null> {
     ['SCARD', 'cinevault:visitors:cloud']
   ]);
 
-  if (!probe || !Array.isArray(probe)) {
-    return null;
-  }
+  if (!probe || !Array.isArray(probe)) return null;
 
-  const kTotal = parseRedisInt(probe[0], 0);
-  const kBaseline = parseRedisInt(probe[1], 0);
-  const kLegacy1 = parseRedisInt(probe[2], 0);
-  const kLegacy2 = parseRedisInt(probe[3], 0);
-  const kLegacy3 = parseRedisInt(probe[4], 0);
-  const kCloudSet = parseRedisInt(probe[5], 0);
-
-  // Take the highest count available across all storage keys, sets, today's count, and local baseline
   const authoritativeMax = Math.max(
-    kTotal,
-    kBaseline + kCloudSet,
-    kLegacy1,
-    kLegacy2,
-    kLegacy3,
-    kCloudSet,
+    parseRedisInt(probe[0], 0),
+    parseRedisInt(probe[1], 0) + parseRedisInt(probe[5], 0),
+    parseRedisInt(probe[2], 0),
+    parseRedisInt(probe[3], 0),
+    parseRedisInt(probe[4], 0),
+    parseRedisInt(probe[5], 0),
     todayCount,
     baselineTotal,
     statsCache.totalVisitors
   );
 
-  // If authoritative key is missing or lower than the max discovered, update it
-  if (kTotal < authoritativeMax && authoritativeMax > 0) {
+  if (parseRedisInt(probe[0], 0) < authoritativeMax && authoritativeMax > 0) {
     await executeUpstashPipeline([
       ['SET', 'cinevault:visitors:total', authoritativeMax.toString()]
     ]);
@@ -305,22 +276,12 @@ async function syncAuthoritativeTotal(todayCount = 0): Promise<number | null> {
   return authoritativeMax;
 }
 
-/**
- * Record a visitor hit (POST /api/visitors/hit)
- * - Synchronizes with Upstash Redis console.
- * - Deduplicates unique visitors using Redis Sets.
- * - Atomically increments total when a new unique visitor is detected.
- * - Ensures Total is ALWAYS >= Today.
- */
 export async function recordVisitorHit(req: any): Promise<VisitorTrackResult> {
-  if (!isInitialized) {
-    loadBaselineStats();
-  }
+  if (!isInitialized) loadBaselineStats();
 
   const visitorId = extractVisitorId(req);
   const todayUtc = new Date().toISOString().split('T')[0];
 
-  // 1. Add visitor to cloud set and today's daily set
   const pipeline = await executeUpstashPipeline([
     ['SADD', 'cinevault:visitors:cloud', visitorId],
     ['SADD', `cinevault:visitors:daily:${todayUtc}`, visitorId],
@@ -335,16 +296,12 @@ export async function recordVisitorHit(req: any): Promise<VisitorTrackResult> {
     let redisTotal = parseRedisInt(pipeline[4], 0);
 
     if (redisTotal === 0 || redisTotal < todayCount) {
-      // Synchronize and backfill if total key is unset or lower than today's count
       const synced = await syncAuthoritativeTotal(todayCount);
       redisTotal = synced ?? Math.max(todayCount, baselineTotal);
     }
 
     if (isNewLifetime) {
-      // Atomically increment the authoritative lifetime total counter
-      const incrRes = await executeUpstashPipeline([
-        ['INCR', 'cinevault:visitors:total']
-      ]);
+      const incrRes = await executeUpstashPipeline([['INCR', 'cinevault:visitors:total']]);
       if (incrRes && Array.isArray(incrRes)) {
         redisTotal = parseRedisInt(incrRes[0], redisTotal + 1);
       } else {
@@ -352,32 +309,19 @@ export async function recordVisitorHit(req: any): Promise<VisitorTrackResult> {
       }
     }
 
-    // Mathematical guarantee: Total is always at least today's hits
     const finalTotal = Math.max(redisTotal, todayCount, 1);
-
     statsCache.totalVisitors = finalTotal;
     statsCache.todayVisitors = todayCount;
     statsCache.lastDate = todayUtc;
 
-    if (!statsCache.knownVisitorIds.includes(visitorId)) {
-      statsCache.knownVisitorIds.push(visitorId);
-    }
-    if (!statsCache.todayVisitorIds.includes(visitorId)) {
-      statsCache.todayVisitorIds.push(visitorId);
-    }
+    if (!statsCache.knownVisitorIds.includes(visitorId)) statsCache.knownVisitorIds.push(visitorId);
+    if (!statsCache.todayVisitorIds.includes(visitorId)) statsCache.todayVisitorIds.push(visitorId);
 
     saveStatsToDisk();
 
-    return {
-      totalVisitors: finalTotal,
-      todayVisitors: todayCount,
-      isNew: isNewLifetime,
-      status: 'ok',
-      source: 'cloud_redis'
-    };
+    return { totalVisitors: finalTotal, todayVisitors: todayCount, isNew: isNewLifetime, status: 'ok', source: 'cloud_redis' };
   }
 
-  // Fallback Layer: Local JSON and in-memory set tracking
   if (statsCache.lastDate !== todayUtc) {
     statsCache.lastDate = todayUtc;
     statsCache.todayVisitors = 0;
@@ -385,52 +329,27 @@ export async function recordVisitorHit(req: any): Promise<VisitorTrackResult> {
   }
 
   let isNewLifetime = false;
-  let modified = false;
-
   if (!statsCache.knownVisitorIds.includes(visitorId)) {
     statsCache.knownVisitorIds.push(visitorId);
     isNewLifetime = true;
-    modified = true;
   }
 
   if (!statsCache.todayVisitorIds.includes(visitorId)) {
     statsCache.todayVisitors += 1;
     statsCache.todayVisitorIds.push(visitorId);
-    modified = true;
   }
 
-  // Guarantee total >= today
-  statsCache.totalVisitors = Math.max(
-    statsCache.totalVisitors + (isNewLifetime ? 1 : 0),
-    statsCache.todayVisitors,
-    statsCache.knownVisitorIds.length,
-    1
-  );
+  statsCache.totalVisitors = Math.max(statsCache.totalVisitors + (isNewLifetime ? 1 : 0), statsCache.todayVisitors, 1);
+  saveStatsToDisk();
 
-  if (modified) {
-    saveStatsToDisk();
-  }
-
-  return {
-    totalVisitors: statsCache.totalVisitors,
-    todayVisitors: statsCache.todayVisitors,
-    isNew: isNewLifetime,
-    status: 'ok',
-    source: 'local_fallback'
-  };
+  return { totalVisitors: statsCache.totalVisitors, todayVisitors: statsCache.todayVisitors, isNew: isNewLifetime, status: 'ok', source: 'local_fallback' };
 }
 
-/**
- * Get current visitor statistics without incrementing (GET /api/visitors/stats)
- */
 export async function getVisitorStats(): Promise<{ totalVisitors: number; todayVisitors: number; status: 'ok'; source: 'cloud_redis' | 'local_fallback' }> {
-  if (!isInitialized) {
-    loadBaselineStats();
-  }
+  if (!isInitialized) loadBaselineStats();
 
   const todayUtc = new Date().toISOString().split('T')[0];
 
-  // Try Primary Layer: Upstash Redis
   const redisResults = await executeUpstashPipeline([
     ['GET', 'cinevault:visitors:total'],
     ['SCARD', `cinevault:visitors:daily:${todayUtc}`],
@@ -448,21 +367,14 @@ export async function getVisitorStats(): Promise<{ totalVisitors: number; todayV
     }
 
     const total = Math.max(rawTotal, todayCount, cloudSetCount, 1);
-
     statsCache.totalVisitors = total;
     statsCache.todayVisitors = todayCount;
     statsCache.lastDate = todayUtc;
     saveStatsToDisk();
 
-    return {
-      totalVisitors: total,
-      todayVisitors: todayCount,
-      status: 'ok',
-      source: 'cloud_redis'
-    };
+    return { totalVisitors: total, todayVisitors: todayCount, status: 'ok', source: 'cloud_redis' };
   }
 
-  // Fallback Layer: Local cached numbers
   if (statsCache.lastDate !== todayUtc) {
     statsCache.lastDate = todayUtc;
     statsCache.todayVisitors = 0;
@@ -470,12 +382,5 @@ export async function getVisitorStats(): Promise<{ totalVisitors: number; todayV
     saveStatsToDisk();
   }
 
-  const fallbackTotal = Math.max(statsCache.totalVisitors, statsCache.todayVisitors, 1);
-
-  return {
-    totalVisitors: fallbackTotal,
-    todayVisitors: statsCache.todayVisitors,
-    status: 'ok',
-    source: 'local_fallback'
-  };
+  return { totalVisitors: Math.max(statsCache.totalVisitors, 1), todayVisitors: statsCache.todayVisitors, status: 'ok', source: 'local_fallback' };
 }

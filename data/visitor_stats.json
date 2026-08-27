@@ -1,12 +1,10 @@
 {
-  "totalVisitors": 6,
+  "totalVisitors": 1,
   "knownVisitorIds": [
-    "cv_b62b0694f29d45d4448e6ff1",
     "cv_df38dc8fbd321675cf512896"
   ],
-  "todayVisitors": 2,
+  "todayVisitors": 1,
   "todayVisitorIds": [
-    "cv_b62b0694f29d45d4448e6ff1",
     "cv_df38dc8fbd321675cf512896"
   ],
   "lastDate": "2026-08-27"

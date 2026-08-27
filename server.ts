@@ -17,10 +17,6 @@ app.use(express.json());
 // Diagnostic route
 app.get('/api/health', (req, res) => res.send('CineVault Server OK'));
 
-// Initialize visitor tracking baseline on startup
-loadBaselineStats();
-
-
 // API Base URLs to try in priority order with official & high-uptime mirrors
 const API_BASE_URLS = [
   'https://movies-api.accel.li/api/v2',
@@ -372,20 +368,35 @@ async function setupApp() {
   const possibleDistPaths = [
     path.resolve(currentDirname, 'dist'),
     path.resolve(process.cwd(), 'dist'),
-    path.resolve(currentDirname, '..', 'dist')
+    path.resolve(currentDirname, '..', 'dist'),
+    path.join(process.cwd(), 'dist')
   ];
 
-  detectedDistPath = possibleDistPaths[0];
   for (const p of possibleDistPaths) {
-    if (fs.existsSync(p)) {
-      detectedDistPath = p;
-      break;
+    try {
+      if (fs.existsSync(p) && fs.statSync(p).isDirectory()) {
+        detectedDistPath = p;
+        break;
+      }
+    } catch (e) {
+      // Ignore stat errors
     }
+  }
+
+  if (!detectedDistPath) {
+    detectedDistPath = path.resolve(currentDirname, 'dist');
   }
 
   detectedIndexHtmlPath = path.resolve(detectedDistPath, 'index.html');
 
-  if (process.env.NODE_ENV !== 'production') {
+  // Initialize visitor tracking baseline ONLY after we ensure we won't crash
+  try {
+    loadBaselineStats();
+  } catch (e) {
+    // Silent fail
+  }
+
+  if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
