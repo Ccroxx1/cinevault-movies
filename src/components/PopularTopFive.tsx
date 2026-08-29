@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Movie, buildMagnetLink } from '../types';
 import { getMoviePath } from '../utils/seo';
 import { getPosterCandidates, CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
+import { BookmarkPlusIcon, BookmarkIcon, PlayIcon, CopyIcon } from './ActionIcons';
 
 interface PopularTopFiveProps {
   movies: Movie[];
@@ -114,7 +115,7 @@ const PopularCard: React.FC<PopularCardProps> = ({
             title={isWatch ? 'Remove from Watchlist' : 'Add to Watchlist'}
             aria-label="Toggle Watchlist"
           >
-            <span aria-hidden="true" className="hidden" />
+            {isWatch ? <BookmarkIcon size={15} /> : <BookmarkPlusIcon size={15} />}
           </button>
         </div>
 
@@ -148,7 +149,7 @@ const PopularCard: React.FC<PopularCardProps> = ({
                 className="h-7 sm:h-7.5 px-1.5 sm:px-2 bg-white/15 hover:bg-white/25 text-white rounded-lg text-[10px] sm:text-[11px] font-bold flex items-center justify-center gap-1 backdrop-blur-md transition-colors"
                 title="Watch Trailer"
               >
-                <span aria-hidden="true" className="hidden" />
+                <PlayIcon size={13} />
                 <span>Trailer</span>
               </button>
             ) : (
@@ -169,14 +170,13 @@ const PopularCard: React.FC<PopularCardProps> = ({
                 className="h-7 sm:h-7.5 px-1.5 sm:px-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] sm:text-[11px] font-bold flex items-center justify-center gap-1 transition-colors"
                 title={`Copy Magnet URI (${primaryTorrent.quality})`}
               >
+                <CopyIcon size={13} />
                 {copiedId === movie.id ? (
                   <>
-                    <span aria-hidden="true" className="hidden" />
                     <span className="text-[9px] sm:text-[10px]">Copied</span>
                   </>
                 ) : (
                   <>
-                    <span aria-hidden="true" className="hidden" />
                     <span className="text-[9px] sm:text-[10px]">Magnet</span>
                   </>
                 )}

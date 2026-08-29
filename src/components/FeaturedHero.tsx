@@ -3,6 +3,7 @@ import { Movie, buildMagnetLink } from '../types';
 import { getMoviePath } from '../utils/seo';
 import { handleBrandedMagnetDownload } from '../utils/downloadPack';
 import { getBackdropCandidates, getPosterCandidates, CINEVAULT_BACKDROP_FALLBACK, CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
+import { BookmarkPlusIcon, BookmarkIcon, PlayIcon, CopyIcon } from './ActionIcons';
 
 interface FeaturedHeroProps {
   movies: Movie[];
@@ -222,7 +223,7 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
                 onClick={() => onPlayTrailer(currentMovie.yt_trailer_code, currentMovie.title)}
                 className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2.5 bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold text-xs sm:text-sm rounded-full hover:bg-white/20 transition-all cursor-pointer"
               >
-                <span aria-hidden="true" className="hidden" />
+                <PlayIcon size={16} />
                 <span>Trailer</span>
               </button>
             )}
@@ -254,11 +255,7 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
                   title="Copy raw Magnet URI"
                   aria-label="Copy raw Magnet URI"
                 >
-                  {copiedHash === primaryTorrent.hash ? (
-                    <span aria-hidden="true" className="hidden" />
-                  ) : (
-                    <span aria-hidden="true" className="hidden" />
-                  )}
+                  <CopyIcon size={16} />
                 </button>
               </>
             )}
@@ -273,7 +270,7 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
               title={isWatchlisted(currentMovie.id) ? 'Remove from Watchlist' : 'Add to Watchlist'}
               aria-label="Toggle Watchlist"
             >
-              <span aria-hidden="true" className="hidden" />
+              {isWatchlisted(currentMovie.id) ? <BookmarkIcon size={17} /> : <BookmarkPlusIcon size={17} />}
             </button>
           </div>
 

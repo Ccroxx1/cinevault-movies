@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Movie, buildMagnetLink } from '../types';
 import { getMoviePath } from '../utils/seo';
 import { getPosterCandidates, CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
+import { BookmarkPlusIcon, BookmarkIcon, PlayIcon, CopyIcon } from './ActionIcons';
 
 export interface CuratedSectionConfig {
   id: string;
@@ -219,7 +220,7 @@ const MovieSectionCard: React.FC<MovieSectionCardProps> = ({
                 }}
                 className="flex-1 py-1.5 px-2 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer shadow-lg"
               >
-                <span aria-hidden="true" className="hidden" />
+                <PlayIcon size={14} />
                 <span>Trailer</span>
               </button>
             )}
@@ -231,7 +232,7 @@ const MovieSectionCard: React.FC<MovieSectionCardProps> = ({
                 className="p-1.5 bg-[#6ac045]/20 hover:bg-[#6ac045]/30 border border-[#6ac045]/40 text-[#6ac045] rounded-lg transition-colors cursor-pointer"
                 title="Copy Magnet Link"
               >
-                {copiedHash === torrent.hash ? <span aria-hidden="true" className="hidden" /> : <span aria-hidden="true" className="hidden" />}
+                <CopyIcon size={15} />
               </button>
             )}
 
@@ -249,7 +250,7 @@ const MovieSectionCard: React.FC<MovieSectionCardProps> = ({
               }`}
               title={isSaved ? 'Remove from Watchlist' : 'Add to Watchlist'}
             >
-              <span aria-hidden="true" className="hidden" />
+              {isSaved ? <BookmarkIcon size={15} /> : <BookmarkPlusIcon size={15} />}
             </button>
           </div>
         </div>

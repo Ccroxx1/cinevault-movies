@@ -1,3 +1,4 @@
+import { CopyIcon } from './ActionIcons';
 import React, { useState } from 'react';
 import { Movie, Torrent, buildMagnetLink } from '../types';
 import { downloadMoviePackage, handleBrandedMagnetDownload } from '../utils/downloadPack';
@@ -171,6 +172,7 @@ export const BatchQualityModal: React.FC<BatchQualityModalProps> = ({
                     className="px-3 py-2 bg-[#222222] hover:bg-[#2c2c2c] text-neutral-200 hover:text-white text-xs font-semibold rounded-xl border border-white/10 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                     title="Copy Magnet URI"
                   >
+                    <CopyIcon size={15} />
                     {isCopied ? (
                       <>
                         <span aria-hidden="true" className="hidden" />

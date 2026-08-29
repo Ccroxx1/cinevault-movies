@@ -1,6 +1,7 @@
 import React from 'react';
 import { Movie, Torrent, buildMagnetLink } from '../types';
 import { getMoviePath } from '../utils/seo';
+import { PlayIcon, CopyIcon } from './ActionIcons';
 
 interface RecentlyViewedStripProps {
   recentMovies: Movie[];
@@ -83,7 +84,7 @@ export const RecentlyViewedStrip: React.FC<RecentlyViewedStripProps> = ({
                       className="p-2 rounded-full bg-rose-600 hover:bg-rose-500 text-white shadow-lg cursor-pointer transition-transform hover:scale-110"
                       title="Play Trailer"
                     >
-                      <span aria-hidden="true" className="hidden" />
+                      <PlayIcon size={15} />
                     </button>
                   )}
 
@@ -97,7 +98,7 @@ export const RecentlyViewedStrip: React.FC<RecentlyViewedStripProps> = ({
                       className="p-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg cursor-pointer transition-transform hover:scale-110"
                       title="Copy Magnet Link"
                     >
-                      <span aria-hidden="true" className="hidden" />
+                      <CopyIcon size={15} />
                     </button>
                   )}
                 </div>

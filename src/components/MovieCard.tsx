@@ -3,6 +3,7 @@ import { Movie, buildMagnetLink } from '../types';
 import { getMoviePath } from '../utils/seo';
 import { handleBrandedMagnetDownload } from '../utils/downloadPack';
 import { getPosterCandidates, CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
+import { BookmarkPlusIcon, BookmarkIcon, PlayIcon, CopyIcon } from './ActionIcons';
 
 interface MovieCardProps {
   movie: Movie;
@@ -138,8 +139,8 @@ export const MovieCard: React.FC<MovieCardProps> = ({
             title={isWatchlisted ? 'Remove from Watchlist' : 'Add to Watchlist'}
             aria-label="Toggle Watchlist"
           >
-                Watchlist
-              </button>
+            {isWatchlisted ? <BookmarkIcon size={16} /> : <BookmarkPlusIcon size={16} />}
+          </button>
         </div>
 
         {/* Hover Quick Action Buttons Overlay */}
@@ -160,7 +161,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
                 className="p-2 bg-white/10 hover:bg-white/20 text-rose-500 hover:text-rose-400 rounded-full border border-white/20 backdrop-blur-md shadow-lg transition-colors"
                 title="Watch Trailer"
               >
-                Trailer
+                <PlayIcon size={15} />
               </button>
             )}
           </div>
@@ -195,11 +196,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
                 title="Copy raw Magnet URI"
                 aria-label="Copy Magnet URI"
               >
-                {copiedHash === primaryTorrent.hash ? (
-                  <span aria-hidden="true" className="hidden" />
-                ) : (
-                  <span aria-hidden="true" className="hidden" />
-                )}
+                <CopyIcon size={16} />
               </button>
             </div>
           )}

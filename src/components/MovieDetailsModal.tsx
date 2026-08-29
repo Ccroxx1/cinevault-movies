@@ -5,6 +5,7 @@ import { downloadMoviePackage, handleBrandedMagnetDownload } from '../utils/down
 import { AdSenseSlot } from './AdSenseSlot';
 import { SubtitlesModal } from './SubtitlesModal';
 import { BatchQualityModal } from './BatchQualityModal';
+import { BookmarkPlusIcon, BookmarkIcon, PlayIcon, CopyIcon } from './ActionIcons';
 
 interface MovieDetailsModalProps {
   movie: Movie;
@@ -161,7 +162,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
               }`}
               title={isWatchlisted ? 'Remove from Watchlist' : 'Add to Watchlist'}
             >
-              <span aria-hidden="true" className="hidden" />
+              {isWatchlisted ? <BookmarkIcon size={17} /> : <BookmarkPlusIcon size={17} />}
             </button>
 
             <button
@@ -250,7 +251,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
                     onClick={() => onPlayTrailer(movie.yt_trailer_code, movie.title)}
                     className="flex items-center gap-1.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full shadow-lg shadow-rose-900/30 transition-colors cursor-pointer"
                   >
-                    <span aria-hidden="true" className="hidden" />
+                    <PlayIcon size={16} />
                     <span>Watch Trailer</span>
                   </button>
                 )}
@@ -470,14 +471,13 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
                             }`}
                             title="Copy raw magnet URI to clipboard"
                           >
+                            <CopyIcon size={15} />
                             {isCopied ? (
                               <>
-                                <span aria-hidden="true" className="hidden" />
                                 <span>Copied</span>
                               </>
                             ) : (
                               <>
-                                <span aria-hidden="true" className="hidden" />
                                 <span>Copy URI</span>
                               </>
                             )}

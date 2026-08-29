@@ -7,6 +7,7 @@ import { AdSenseSlot } from './AdSenseSlot';
 import { MovieCard } from './MovieCard';
 import { SubtitlesModal } from './SubtitlesModal';
 import { BatchQualityModal } from './BatchQualityModal';
+import { BookmarkPlusIcon, BookmarkIcon, PlayIcon, CopyIcon } from './ActionIcons';
 
 interface MovieDetailPageProps {
   movie: Movie;
@@ -292,7 +293,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                     : 'bg-black/60 hover:bg-black/80 text-neutral-200 hover:text-white border-white/10 backdrop-blur-md'
                 }`}
               >
-                <span aria-hidden="true" className="hidden" />
+                {isCurrentWatchlisted ? <BookmarkIcon size={16} /> : <BookmarkPlusIcon size={16} />}
                 <span>{isCurrentWatchlisted ? 'Watchlisted' : 'Add to Watchlist'}</span>
               </button>
             </div>
@@ -406,7 +407,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                     onClick={() => onPlayTrailer(movie.yt_trailer_code, movie.title)}
                     className="px-4 sm:px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs sm:text-sm rounded-full shadow-lg shadow-rose-900/40 flex items-center gap-2 transition-all cursor-pointer"
                   >
-                    <span aria-hidden="true" className="hidden" />
+                    <PlayIcon size={16} />
                     <span>Watch Trailer</span>
                   </button>
                 )}
@@ -447,14 +448,13 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                       className="px-4 py-2.5 bg-white text-black hover:bg-neutral-200 font-bold text-xs sm:text-sm rounded-full shadow-lg flex items-center gap-2 transition-all cursor-pointer"
                       title="Copy complete raw Magnet URI to clipboard"
                     >
+                      <CopyIcon size={16} />
                       {copiedHash === primaryTorrent.hash ? (
                         <>
-                          <span aria-hidden="true" className="hidden" />
                           <span className="text-emerald-700">Magnet URI Copied!</span>
                         </>
                       ) : (
                         <>
-                          <span aria-hidden="true" className="hidden" />
                           <span>Copy Magnet URI</span>
                         </>
                       )}
@@ -684,6 +684,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                               }`}
                               title="Copy raw Magnet URI to clipboard"
                             >
+                              <CopyIcon size={15} />
                               {isCopied ? (
                                 <>
                                   <span aria-hidden="true" className="hidden" />

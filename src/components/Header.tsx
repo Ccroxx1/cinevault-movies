@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Movie, FilterParams } from '../types';
 import { GENRES } from '../services/movieApi';
 import { CineVaultLogo } from './CineVaultLogo';
+import { BookmarkIcon } from './ActionIcons';
 
 interface HeaderProps {
   searchQuery: string;
@@ -364,7 +365,7 @@ export const Header: React.FC<HeaderProps> = ({
                 }`}
                 title="My Saved Movies"
               >
-                <span aria-hidden="true" className="hidden" />
+                <BookmarkIcon size={15} />
                 <span>Watchlist</span>
                 {watchlistCount > 0 && (
                   <span className="ml-0.5 px-1.5 py-0.2 text-[10px] font-mono font-bold bg-rose-600 text-white rounded-full">
@@ -391,7 +392,7 @@ export const Header: React.FC<HeaderProps> = ({
                 className="p-2 text-neutral-300 hover:text-white rounded-xl relative cursor-pointer"
                 aria-label="Watchlist"
               >
-                <span aria-hidden="true" className="hidden" />
+                <BookmarkIcon size={17} />
                 {watchlistCount > 0 && (
                   <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-600"></span>
                 )}
@@ -525,7 +526,7 @@ export const Header: React.FC<HeaderProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <span aria-hidden="true" className="hidden" />
+                    <BookmarkIcon size={15} />
                     <span>My Saved Watchlist</span>
                   </div>
                   {watchlistCount > 0 && (
