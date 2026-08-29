@@ -1,6 +1,4 @@
 import React from 'react';
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
-
 interface PaginationProps {
   currentPage: number;
   totalCount: number;
@@ -64,7 +62,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         className="p-2 sm:px-3.5 sm:py-2 bg-[#0a0a0a] hover:bg-[#151515] disabled:opacity-30 disabled:hover:bg-[#0a0a0a] text-neutral-300 rounded-full border border-white/10 transition-colors text-xs font-semibold flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed"
         aria-label="First page"
       >
-        <ChevronsLeft className="w-4 h-4" />
+        <span aria-hidden="true" className="hidden" />
         <span className="hidden sm:inline">First</span>
       </button>
 
@@ -75,7 +73,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         className="p-2 sm:px-3.5 sm:py-2 bg-[#0a0a0a] hover:bg-[#151515] disabled:opacity-30 disabled:hover:bg-[#0a0a0a] text-neutral-300 rounded-full border border-white/10 transition-colors text-xs font-semibold flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed"
         aria-label="Previous page"
       >
-        <ChevronLeft className="w-4 h-4" />
+        <span aria-hidden="true" className="hidden" />
         <span className="hidden sm:inline">Prev</span>
       </button>
 
@@ -115,7 +113,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         aria-label="Next page"
       >
         <span className="hidden sm:inline">Next</span>
-        <ChevronRight className="w-4 h-4" />
+        <span aria-hidden="true" className="hidden" />
       </button>
 
       {/* Last Page */}
@@ -126,7 +124,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         aria-label="Last page"
       >
         <span className="hidden sm:inline">Last ({totalPages})</span>
-        <ChevronsRight className="w-4 h-4" />
+        <span aria-hidden="true" className="hidden" />
       </button>
 
     </div>

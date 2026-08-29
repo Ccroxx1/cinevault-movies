@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Play, Star, Clock, Bookmark, ChevronLeft, ChevronRight, Copy, Check, Eye, Pause, Magnet } from 'lucide-react';
 import { Movie, buildMagnetLink } from '../types';
 import { getMoviePath } from '../utils/seo';
 import { handleBrandedMagnetDownload } from '../utils/downloadPack';
@@ -153,7 +152,7 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
           {/* Metadata badges */}
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-1.5 sm:gap-2">
             <div className="flex items-center gap-1 text-amber-400 bg-black/60 border border-white/15 px-2.5 py-1 rounded-lg text-xs font-bold backdrop-blur-md">
-              <Star className="w-3.5 h-3.5 fill-amber-400" />
+              <span aria-hidden="true" className="hidden" />
               <span>IMDb {currentMovie.rating?.toFixed(1) || '8.0'}</span>
             </div>
 
@@ -163,7 +162,7 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
 
             {currentMovie.runtime > 0 && (
               <span className="flex items-center gap-1 text-xs font-medium text-neutral-300 bg-black/60 border border-white/15 px-2.5 py-1 rounded-lg backdrop-blur-md">
-                <Clock className="w-3.5 h-3.5" />
+                <span aria-hidden="true" className="hidden" />
                 <span>{Math.floor(currentMovie.runtime / 60)}h {currentMovie.runtime % 60}m</span>
               </span>
             )}
@@ -214,7 +213,7 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
               }}
               className="flex items-center gap-1.5 sm:gap-2 px-5 sm:px-7 py-2.5 bg-white text-black font-bold text-xs sm:text-sm rounded-full hover:bg-neutral-200 transition-all shadow-xl cursor-pointer"
             >
-              <Eye className="w-4 h-4" />
+              <span aria-hidden="true" className="hidden" />
               <span>Details</span>
             </a>
 
@@ -223,7 +222,7 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
                 onClick={() => onPlayTrailer(currentMovie.yt_trailer_code, currentMovie.title)}
                 className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2.5 bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold text-xs sm:text-sm rounded-full hover:bg-white/20 transition-all cursor-pointer"
               >
-                <Play className="w-4 h-4 fill-current text-rose-500" />
+                <span aria-hidden="true" className="hidden" />
                 <span>Trailer</span>
               </button>
             )}
@@ -245,7 +244,7 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
                   className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm rounded-full backdrop-blur-md shadow-lg shadow-emerald-950/40 transition-all cursor-pointer"
                   title={`Direct Magnet Download for ${primaryTorrent.quality} with CineVault Branded Info`}
                 >
-                  <Magnet className="w-4 h-4 text-emerald-200" />
+                  <span aria-hidden="true" className="hidden" />
                   <span>Magnet ({primaryTorrent.quality})</span>
                 </button>
 
@@ -256,9 +255,9 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
                   aria-label="Copy raw Magnet URI"
                 >
                   {copiedHash === primaryTorrent.hash ? (
-                    <Check className="w-4 h-4 text-emerald-400" />
+                    <span aria-hidden="true" className="hidden" />
                   ) : (
-                    <Copy className="w-4 h-4 text-neutral-300" />
+                    <span aria-hidden="true" className="hidden" />
                   )}
                 </button>
               </>
@@ -274,7 +273,7 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
               title={isWatchlisted(currentMovie.id) ? 'Remove from Watchlist' : 'Add to Watchlist'}
               aria-label="Toggle Watchlist"
             >
-              <Bookmark className={`w-4 h-4 ${isWatchlisted(currentMovie.id) ? 'fill-current' : ''}`} />
+              <span aria-hidden="true" className="hidden" />
             </button>
           </div>
 
@@ -312,7 +311,7 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
             title={isPaused ? 'Resume Autoplay' : 'Pause Autoplay'}
             aria-label={isPaused ? 'Resume Autoplay' : 'Pause Autoplay'}
           >
-            {isPaused ? <Play className="w-3 h-3 fill-current text-rose-500" /> : <Pause className="w-3 h-3 text-neutral-300" />}
+            {isPaused ? <span aria-hidden="true" className="hidden" /> : <span aria-hidden="true" className="hidden" />}
           </button>
 
           <div className="w-[1px] h-3.5 bg-white/15" />
@@ -323,7 +322,7 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
             aria-label="Previous Featured Movie"
             title="Previous Movie"
           >
-            <ChevronLeft className="w-3.5 h-3.5" />
+            <span aria-hidden="true" className="hidden" />
           </button>
 
           {/* 10-Item Dot / Progress Indicator Bars */}
@@ -356,7 +355,7 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
             aria-label="Next Featured Movie"
             title="Next Movie"
           >
-            <ChevronRight className="w-3.5 h-3.5" />
+            <span aria-hidden="true" className="hidden" />
           </button>
         </div>
       )}

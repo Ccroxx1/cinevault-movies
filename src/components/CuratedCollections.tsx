@@ -1,12 +1,10 @@
 import React from 'react';
-import { Award, Rocket, Flame, Skull, Trophy, ChevronRight } from 'lucide-react';
 import { FilterParams } from '../types';
 
 export interface MoodCollection {
   id: string;
   title: string;
   subtitle: string;
-  icon: any;
   accentColor: string;
   badge: string;
   filters: Partial<FilterParams>;
@@ -18,9 +16,8 @@ export const MOOD_COLLECTIONS: MoodCollection[] = [
     id: 'imdb-top-vault',
     title: 'IMDb Top Rated Classics',
     subtitle: 'Critically acclaimed masterworks with IMDb ratings 8.5+',
-    icon: Trophy,
     accentColor: 'from-amber-600/30 to-amber-950/40 border-amber-500/40 text-amber-400',
-    badge: '★ 8.5+ Rated',
+    badge: ' 8.5+ Rated',
     filters: {
       minimum_rating: 8.5,
       sort_by: 'rating',
@@ -38,7 +35,6 @@ export const MOOD_COLLECTIONS: MoodCollection[] = [
     id: 'sci-fi-odyssey',
     title: 'Mind-Bending Sci-Fi',
     subtitle: 'Cosmic journeys, multiverse twists, and dystopian futures',
-    icon: Rocket,
     accentColor: 'from-cyan-600/30 to-blue-950/40 border-cyan-500/40 text-cyan-400',
     badge: 'Sci-Fi Universe',
     filters: {
@@ -57,7 +53,6 @@ export const MOOD_COLLECTIONS: MoodCollection[] = [
     id: 'cult-action-era',
     title: 'Golden Age Cult Action',
     subtitle: 'High-octane blockbusters & legendary explosions from the 90s & 2000s',
-    icon: Flame,
     accentColor: 'from-rose-600/30 to-rose-950/40 border-rose-500/40 text-rose-400',
     badge: '1990 - 2005 Era',
     filters: {
@@ -77,7 +72,6 @@ export const MOOD_COLLECTIONS: MoodCollection[] = [
     id: 'late-night-thrillers',
     title: 'Late Night Thriller & Horror',
     subtitle: 'Psychological tension, edge-of-your-seat suspense & supernatural dread',
-    icon: Skull,
     accentColor: 'from-purple-600/30 to-purple-950/40 border-purple-500/40 text-purple-400',
     badge: 'Midnight Cinema',
     filters: {
@@ -96,7 +90,6 @@ export const MOOD_COLLECTIONS: MoodCollection[] = [
     id: 'oscar-award-winners',
     title: 'Award Season & Oscar Winners',
     subtitle: 'Captivating storytelling, best cinematography & profound performances',
-    icon: Award,
     accentColor: 'from-emerald-600/30 to-emerald-950/40 border-emerald-500/40 text-emerald-400',
     badge: 'Award Winners',
     filters: {
@@ -137,7 +130,6 @@ export const CuratedCollections: React.FC<CuratedCollectionsProps> = ({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5">
         {MOOD_COLLECTIONS.map((col) => {
-          const Icon = col.icon;
           const isActive = activeCollectionId === col.id;
 
           return (
@@ -153,9 +145,6 @@ export const CuratedCollections: React.FC<CuratedCollectionsProps> = ({
                   <span className="text-[10px] uppercase font-mono font-bold tracking-wider px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-white">
                     {col.badge}
                   </span>
-                  <div className="p-1.5 rounded-lg bg-black/40 text-white group-hover:bg-rose-600 group-hover:text-white transition-colors">
-                    <Icon className="w-4 h-4" />
-                  </div>
                 </div>
 
                 <h3 className="font-display font-bold text-sm sm:text-base text-white line-clamp-1 group-hover:text-rose-300 transition-colors">
@@ -170,7 +159,7 @@ export const CuratedCollections: React.FC<CuratedCollectionsProps> = ({
               <div className="pt-4 flex items-center justify-between text-xs font-semibold text-white/90 group-hover:text-white">
                 <span className="flex items-center gap-1 text-[11px]">
                   <span>Explore Vault</span>
-                  <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  <span aria-hidden="true" className="hidden" />
                 </span>
               </div>
             </button>

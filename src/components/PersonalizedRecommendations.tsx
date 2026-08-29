@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw } from 'lucide-react';
 import { Movie } from '../types';
 import { fetchMovies } from '../services/movieApi';
 import { MovieCard } from './MovieCard';
@@ -96,7 +95,7 @@ export const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsPr
           className="flex items-center gap-1.5 text-xs font-semibold text-neutral-300 hover:text-white bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 transition-colors cursor-pointer"
           title="Refresh recommendations"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-rose-400' : ''}`} />
+          <span aria-hidden="true" className="hidden" />
           <span>Shuffle Picks</span>
         </button>
       </div>

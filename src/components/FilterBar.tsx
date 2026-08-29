@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Search, X, RotateCcw, ArrowUpDown, Filter, Sparkles } from 'lucide-react';
 import { FilterParams } from '../types';
 import {
   GENRES,
@@ -95,7 +94,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               onClick={onReset}
               className="flex items-center gap-1.5 text-xs font-semibold text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 px-3 py-1.5 rounded-lg border border-rose-500/20 transition-colors cursor-pointer"
             >
-              <RotateCcw className="w-3.5 h-3.5" />
+              <span aria-hidden="true" className="hidden" />
               <span>Reset All ({activeFilterCount})</span>
             </button>
           )}
@@ -119,7 +118,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                 className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-neutral-400 hover:text-white rounded-full transition-colors cursor-pointer"
                 title="Clear search"
               >
-                <X className="w-4 h-4" />
+                Clear
               </button>
             )}
           </div>
@@ -129,7 +128,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             id="main-search-submit-btn"
             className="h-12 px-8 bg-[#6ac045] hover:bg-[#5ca63c] active:bg-[#4f9232] text-white font-bold text-sm sm:text-base rounded-lg shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer"
           >
-            <Search className="w-4 h-4 stroke-[2.5]" />
+            <span aria-hidden="true" className="hidden" />
             <span>Search</span>
           </button>
         </form>

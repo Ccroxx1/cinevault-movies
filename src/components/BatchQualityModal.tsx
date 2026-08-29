@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { X, Magnet, Copy, Check, HardDrive, Zap, Info, ShieldCheck, Download, FolderArchive, Loader2 } from 'lucide-react';
 import { Movie, Torrent, buildMagnetLink } from '../types';
 import { downloadMoviePackage, handleBrandedMagnetDownload } from '../utils/downloadPack';
 
@@ -70,9 +69,6 @@ export const BatchQualityModal: React.FC<BatchQualityModalProps> = ({
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-emerald-600/10 border border-emerald-500/20 text-emerald-400 rounded-2xl">
-              <HardDrive className="w-6 h-6" />
-            </div>
             <div>
               <h3 className="text-lg sm:text-xl font-display font-black text-white">
                 Quality Comparison & Media Packs
@@ -87,8 +83,8 @@ export const BatchQualityModal: React.FC<BatchQualityModalProps> = ({
             onClick={onClose}
             className="p-2 text-neutral-400 hover:text-white rounded-full bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
           >
-            <X className="w-5 h-5" />
-          </button>
+                Close
+              </button>
         </div>
 
         {/* Comparison Matrix */}
@@ -127,10 +123,10 @@ export const BatchQualityModal: React.FC<BatchQualityModalProps> = ({
 
                   <div className="flex items-center gap-3 text-xs text-neutral-400 font-mono">
                     <span className="text-emerald-400 font-bold">
-                      ● {torrent.seeds ?? 0} Seeds
+                       {torrent.seeds ?? 0} Seeds
                     </span>
                     <span>
-                      ○ {torrent.peers ?? 0} Peers
+                       {torrent.peers ?? 0} Peers
                     </span>
                     {torrent.video_codec && (
                       <span className="text-neutral-500">
@@ -154,9 +150,9 @@ export const BatchQualityModal: React.FC<BatchQualityModalProps> = ({
                     title="Download ZIP folder with Cover Photo & Site Info"
                   >
                     {isPackaging ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span aria-hidden="true" className="hidden" />
                     ) : (
-                      <FolderArchive className="w-3.5 h-3.5 text-amber-400" />
+                      <span aria-hidden="true" className="hidden" />
                     )}
                     <span>Pack (.zip)</span>
                   </button>
@@ -166,7 +162,7 @@ export const BatchQualityModal: React.FC<BatchQualityModalProps> = ({
                     className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-md transition-colors cursor-pointer"
                     title="Launch BitTorrent Client & Download CineVault Branded Info"
                   >
-                    <Magnet className="w-3.5 h-3.5" />
+                    <span aria-hidden="true" className="hidden" />
                     <span>Magnet</span>
                   </button>
 
@@ -177,12 +173,12 @@ export const BatchQualityModal: React.FC<BatchQualityModalProps> = ({
                   >
                     {isCopied ? (
                       <>
-                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        <span aria-hidden="true" className="hidden" />
                         <span className="text-emerald-400">Copied</span>
                       </>
                     ) : (
                       <>
-                        <Copy className="w-3.5 h-3.5" />
+                        <span aria-hidden="true" className="hidden" />
                         <span>Copy</span>
                       </>
                     )}
@@ -201,12 +197,12 @@ export const BatchQualityModal: React.FC<BatchQualityModalProps> = ({
           >
             {copiedAll ? (
               <>
-                <Check className="w-4 h-4" />
+                <span aria-hidden="true" className="hidden" />
                 <span>All Magnets Copied to Clipboard!</span>
               </>
             ) : (
               <>
-                <Copy className="w-4 h-4" />
+                <span aria-hidden="true" className="hidden" />
                 <span>Copy All {movie.torrents.length} Magnet Links</span>
               </>
             )}

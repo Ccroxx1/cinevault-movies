@@ -1,10 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Star, Clock, Download, Play, Copy, Check, ExternalLink, HardDrive,
-  Users, Film, ShieldAlert, Sparkles, Bookmark, Share2, ArrowLeft,
-  ChevronRight, ChevronLeft, X, Home, Flame, Image as ImageIcon, CheckCircle, AlertCircle,
-  Magnet, FileText, SlidersHorizontal, FolderArchive, Loader2
-} from 'lucide-react';
 import { Movie, Torrent, ParentalGuide, buildMagnetLink, RECOMMENDED_TRACKERS } from '../types';
 import { fetchMovieDetails, fetchMovieSuggestions, fetchParentalGuides } from '../services/movieApi';
 import { getMoviePath, getMovieCanonicalUrl, updateDocumentSeo } from '../utils/seo';
@@ -207,10 +201,10 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
           }}
           className="flex items-center gap-1 hover:text-white transition-colors"
         >
-          <Home className="w-3.5 h-3.5" />
+          <span aria-hidden="true" className="hidden" />
           <span>Home</span>
         </a>
-        <ChevronRight className="w-3 h-3 text-neutral-600 shrink-0" />
+        <span aria-hidden="true" className="hidden" />
         <a
           href="/"
           onClick={(e) => {
@@ -227,7 +221,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
         </a>
         {movie.genres?.[0] && (
           <>
-            <ChevronRight className="w-3 h-3 text-neutral-600 shrink-0" />
+            <span aria-hidden="true" className="hidden" />
             <button
               onClick={() => onSelectGenre(movie.genres[0])}
               className="hover:text-rose-400 transition-colors cursor-pointer"
@@ -236,7 +230,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
             </button>
           </>
         )}
-        <ChevronRight className="w-3 h-3 text-neutral-600 shrink-0" />
+        <span aria-hidden="true" className="hidden" />
         <span className="text-neutral-200 font-semibold truncate max-w-xs sm:max-w-md">
           {movie.title} ({movie.year})
         </span>
@@ -267,7 +261,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
               onClick={onBack || onNavigateHome}
               className="flex items-center gap-2 px-3.5 py-2 bg-black/60 hover:bg-black/80 text-neutral-200 hover:text-white rounded-full border border-white/10 backdrop-blur-md text-xs font-semibold shadow-lg transition-all cursor-pointer"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <span aria-hidden="true" className="hidden" />
               <span>Back</span>
             </button>
 
@@ -279,12 +273,12 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
               >
                 {copiedLink ? (
                   <>
-                    <Check className="w-3.5 h-3.5 text-rose-400" />
+                    <span aria-hidden="true" className="hidden" />
                     <span className="text-rose-400">URL Copied!</span>
                   </>
                 ) : (
                   <>
-                    <Share2 className="w-3.5 h-3.5" />
+                    <span aria-hidden="true" className="hidden" />
                     <span className="hidden sm:inline">Share</span>
                   </>
                 )}
@@ -298,7 +292,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                     : 'bg-black/60 hover:bg-black/80 text-neutral-200 hover:text-white border-white/10 backdrop-blur-md'
                 }`}
               >
-                <Bookmark className={`w-3.5 h-3.5 ${isCurrentWatchlisted ? 'fill-current' : ''}`} />
+                <span aria-hidden="true" className="hidden" />
                 <span>{isCurrentWatchlisted ? 'Watchlisted' : 'Add to Watchlist'}</span>
               </button>
             </div>
@@ -322,9 +316,6 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                   onClick={() => onPlayTrailer(movie.yt_trailer_code, movie.title)}
                   className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 text-white cursor-pointer"
                 >
-                  <div className="w-12 h-12 rounded-full bg-rose-600 flex items-center justify-center shadow-lg shadow-rose-900/50">
-                    <Play className="w-5 h-5 fill-current ml-0.5" />
-                  </div>
                   <span className="text-xs font-bold uppercase tracking-wider">Play Trailer</span>
                 </button>
               )}
@@ -375,7 +366,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                 
                 {/* IMDb Rating */}
                 <div className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-xl text-amber-400 font-bold">
-                  <Star className="w-4 h-4 fill-amber-400" />
+                  <span aria-hidden="true" className="hidden" />
                   <span className="text-base">{movie.rating ? movie.rating.toFixed(1) : 'NR'}</span>
                   <span className="text-[10px] text-amber-400/70 font-normal">/10 IMDb</span>
                 </div>
@@ -383,14 +374,14 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                 {/* Runtime */}
                 {movie.runtime > 0 && (
                   <div className="flex items-center gap-1.5 text-neutral-300 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl">
-                    <Clock className="w-4 h-4 text-neutral-400" />
+                    <span aria-hidden="true" className="hidden" />
                     <span>{movie.runtime} min ({Math.floor(movie.runtime / 60)}h {movie.runtime % 60}m)</span>
                   </div>
                 )}
 
                 {/* Available Files */}
                 <div className="flex items-center gap-1.5 text-neutral-300 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl">
-                  <HardDrive className="w-4 h-4 text-rose-400" />
+                  <span aria-hidden="true" className="hidden" />
                   <span>{movie.torrents?.length || 0} Download Formats</span>
                 </div>
               </div>
@@ -415,7 +406,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                     onClick={() => onPlayTrailer(movie.yt_trailer_code, movie.title)}
                     className="px-4 sm:px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs sm:text-sm rounded-full shadow-lg shadow-rose-900/40 flex items-center gap-2 transition-all cursor-pointer"
                   >
-                    <Play className="w-4 h-4 fill-current" />
+                    <span aria-hidden="true" className="hidden" />
                     <span>Watch Trailer</span>
                   </button>
                 )}
@@ -427,7 +418,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                       className="px-4 sm:px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm rounded-full shadow-lg shadow-emerald-950/40 flex items-center gap-2 transition-all cursor-pointer"
                       title={`Launch ${primaryTorrent.quality} Magnet Download directly in your torrent client with CineVault branding info`}
                     >
-                      <Magnet className="w-4 h-4 text-emerald-200" />
+                      <span aria-hidden="true" className="hidden" />
                       <span>Magnet Download ({primaryTorrent.quality})</span>
                     </button>
 
@@ -440,12 +431,12 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                     >
                       {packagingHash === (primaryTorrent.hash || 'primary') ? (
                         <>
-                          <Loader2 className="w-4 h-4 animate-spin text-white" />
+                          <span aria-hidden="true" className="hidden" />
                           <span>{packageProgress || 'Creating Pack...'}</span>
                         </>
                       ) : (
                         <>
-                          <FolderArchive className="w-4 h-4 text-amber-200" />
+                          <span aria-hidden="true" className="hidden" />
                           <span>Download Pack + Photo (.zip)</span>
                         </>
                       )}
@@ -458,12 +449,12 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                     >
                       {copiedHash === primaryTorrent.hash ? (
                         <>
-                          <Check className="w-4 h-4 text-emerald-600" />
+                          <span aria-hidden="true" className="hidden" />
                           <span className="text-emerald-700">Magnet URI Copied!</span>
                         </>
                       ) : (
                         <>
-                          <Copy className="w-4 h-4" />
+                          <span aria-hidden="true" className="hidden" />
                           <span>Copy Magnet URI</span>
                         </>
                       )}
@@ -476,7 +467,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                   className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-neutral-200 hover:text-white font-semibold text-xs sm:text-sm rounded-full border border-white/10 transition-colors flex items-center gap-1.5 cursor-pointer"
                   title="Search & Download Synced Subtitles (YIFY, OpenSubtitles, Subscene)"
                 >
-                  <FileText className="w-4 h-4 text-rose-400" />
+                  <span aria-hidden="true" className="hidden" />
                   <span>Subtitles</span>
                 </button>
 
@@ -486,7 +477,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                     className="px-4 py-2.5 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 hover:text-white font-semibold text-xs sm:text-sm rounded-full border border-emerald-500/30 transition-colors flex items-center gap-1.5 cursor-pointer"
                     title="Compare all resolutions & batch copy magnets"
                   >
-                    <SlidersHorizontal className="w-4 h-4 text-emerald-400" />
+                    <span aria-hidden="true" className="hidden" />
                     <span>Compare Qualities ({movie.torrents.length})</span>
                   </button>
                 )}
@@ -495,7 +486,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                   onClick={onOpenGuide}
                   className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-neutral-200 hover:text-white font-semibold text-xs sm:text-sm rounded-full border border-white/10 transition-colors flex items-center gap-1.5 cursor-pointer"
                 >
-                  <Download className="w-4 h-4" />
+                  <span aria-hidden="true" className="hidden" />
                   <span>How to Download</span>
                 </button>
               </div>
@@ -522,7 +513,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                 : 'text-neutral-400 hover:text-white hover:bg-white/5'
             }`}
           >
-            <Download className="w-4 h-4" />
+            <span aria-hidden="true" className="hidden" />
             <span>Download Torrents & Magnet URIs ({movie.torrents?.length || 0})</span>
           </button>
 
@@ -535,7 +526,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                 : 'text-neutral-400 hover:text-white hover:bg-white/5'
               }`}
             >
-              <Users className="w-4 h-4" />
+              <span aria-hidden="true" className="hidden" />
               <span>Cast & Characters ({movie.cast.length})</span>
             </button>
           )}
@@ -549,7 +540,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                 : 'text-neutral-400 hover:text-white hover:bg-white/5'
               }`}
             >
-              <ImageIcon className="w-4 h-4" />
+              <span aria-hidden="true" className="hidden" />
               <span>Screenshots ({screenshots.length})</span>
             </button>
           )}
@@ -563,7 +554,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                 : 'text-neutral-400 hover:text-white hover:bg-white/5'
               }`}
             >
-              <ShieldAlert className="w-4 h-4" />
+              <span aria-hidden="true" className="hidden" />
               <span>Parental Advisory ({parentalGuides.length})</span>
             </button>
           )}
@@ -578,7 +569,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                    <Download className="w-4 h-4 text-rose-500" />
+                    <span aria-hidden="true" className="hidden" />
                     <span>Available Download Qualities & Magnet URIs</span>
                   </h3>
                   <p className="text-xs text-neutral-400">
@@ -639,14 +630,14 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                             {/* Metrics: Size, Seeds, Peers (Clean Badges) */}
                             <div className="flex flex-wrap items-center gap-2 pt-0.5">
                               <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold font-mono text-neutral-100 bg-white/5 border border-white/10 whitespace-nowrap">
-                                📦 {torrent.size}
+                                 {torrent.size}
                               </span>
                               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-bold font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 whitespace-nowrap">
                                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                                 {torrent.seeds} Seeds
                               </span>
                               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-mono text-neutral-400 bg-white/5 border border-white/5 whitespace-nowrap">
-                                ○ {torrent.peers} Peers
+                                 {torrent.peers} Peers
                               </span>
                             </div>
                           </div>
@@ -662,12 +653,12 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                             >
                               {packagingHash === torrent.hash ? (
                                 <>
-                                  <Loader2 className="w-4 h-4 animate-spin text-amber-300" />
+                                  <span aria-hidden="true" className="hidden" />
                                   <span>Packaging...</span>
                                 </>
                               ) : (
                                 <>
-                                  <FolderArchive className="w-4 h-4 text-amber-400" />
+                                  <span aria-hidden="true" className="hidden" />
                                   <span>Media Pack (.zip)</span>
                                 </>
                               )}
@@ -679,7 +670,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                               className="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-950/40 flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap hover:scale-[1.02] active:scale-[0.98]"
                               title="Direct Magnet Download — Open in qBittorrent, uTorrent, or Transmission with CineVault Branded Info"
                             >
-                              <Magnet className="w-4 h-4 text-emerald-200" />
+                              <span aria-hidden="true" className="hidden" />
                               <span>Magnet Download</span>
                             </button>
 
@@ -695,12 +686,12 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                             >
                               {isCopied ? (
                                 <>
-                                  <Check className="w-4 h-4 text-white" />
+                                  <span aria-hidden="true" className="hidden" />
                                   <span>Copied URI</span>
                                 </>
                               ) : (
                                 <>
-                                  <Copy className="w-4 h-4 text-neutral-400" />
+                                  <span aria-hidden="true" className="hidden" />
                                   <span>Copy URI</span>
                                 </>
                               )}
@@ -715,7 +706,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                               className="px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap"
                               title="Download static .torrent metadata file"
                             >
-                              <Download className="w-4 h-4 text-neutral-400" />
+                              <span aria-hidden="true" className="hidden" />
                               <span>.Torrent</span>
                             </a>
                           </div>
@@ -734,7 +725,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
               <div className="p-4 rounded-2xl bg-[#0c0c0c] border border-white/10 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-xs font-bold text-neutral-300">
-                    <Sparkles className="w-4 h-4 text-emerald-400" />
+                    <span aria-hidden="true" className="hidden" />
                     <span>Included High-Speed Peer Trackers ({RECOMMENDED_TRACKERS.length})</span>
                   </div>
                   <span className="text-[10px] text-neutral-400 uppercase font-mono">
@@ -754,7 +745,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
             <div className="space-y-4">
               <div className="p-5 rounded-2xl bg-[#0e0e0e] border border-white/10 space-y-3">
                 <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                  <Film className="w-4 h-4 text-rose-500" />
+                  <span aria-hidden="true" className="hidden" />
                   <span>Storyline & Synopsis</span>
                 </h3>
                 <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed">
@@ -770,7 +761,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                       className="inline-flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 transition-colors font-semibold"
                     >
                       <span>View on IMDb ({movie.imdb_code})</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span aria-hidden="true" className="hidden" />
                     </a>
                   </div>
                 )}
@@ -784,7 +775,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
         {activeTab === 'cast' && (
           <div className="space-y-4">
             <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <Users className="w-4 h-4 text-rose-500" />
+              <span aria-hidden="true" className="hidden" />
               <span>Full Cast & Star Billing</span>
             </h3>
 
@@ -829,7 +820,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
         {activeTab === 'screenshots' && (
           <div className="space-y-4">
             <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <ImageIcon className="w-4 h-4 text-rose-500" />
+              <span aria-hidden="true" className="hidden" />
               <span>Film Gallery & High-Res Screen Stills</span>
             </h3>
 
@@ -864,7 +855,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
         {activeTab === 'guides' && (
           <div className="space-y-4">
             <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <ShieldAlert className="w-4 h-4 text-rose-500" />
+              <span aria-hidden="true" className="hidden" />
               <span>Parental Advisory & Content Severity</span>
             </h3>
 
@@ -914,9 +905,6 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
         <section className="pt-8 border-t border-white/10 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="p-1.5 rounded-lg bg-rose-600/20 text-rose-400 border border-rose-500/30">
-                <Sparkles className="w-4 h-4" />
-              </div>
               <div>
                 <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">
                   More Films Like {movie.title}
@@ -962,7 +950,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                 Still {selectedScreenshotIndex + 1} of {screenshots.length}
               </span>
               <span className="text-xs text-neutral-400 hidden sm:inline">
-                {movie.title} • Press <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-mono">←</kbd> / <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-mono">→</kbd> or Click Next
+                {movie.title} • Press <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-mono"></kbd> / <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-mono"></kbd> or Click Next
               </span>
             </div>
 
@@ -972,7 +960,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
               title="Close Preview (Escape)"
               aria-label="Close screenshot preview"
             >
-              <X className="w-5 h-5" />
+              <span aria-hidden="true" className="hidden" />
             </button>
           </div>
 
@@ -1001,7 +989,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                 title="Previous Still (Left Arrow)"
                 aria-label="Previous screenshot"
               >
-                <ChevronLeft className="w-6 h-6 group-hover:-translate-x-0.5 transition-transform" />
+                <span aria-hidden="true" className="hidden" />
               </button>
             )}
 
@@ -1018,7 +1006,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                 title="Next Still (Right Arrow or Space)"
                 aria-label="Next screenshot"
               >
-                <ChevronRight className="w-6 h-6 group-hover:translate-x-0.5 transition-transform" />
+                <span aria-hidden="true" className="hidden" />
               </button>
             )}
           </div>

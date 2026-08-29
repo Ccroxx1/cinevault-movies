@@ -1,5 +1,4 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Sparkles, Flame, Trophy, Award, Clapperboard, Heart, Laugh, Shield, Skull, Atom, Calendar, Eye, Play, Copy, Check, Bookmark, Star } from 'lucide-react';
 import { Movie, buildMagnetLink } from '../types';
 import { getMoviePath } from '../utils/seo';
 import { getPosterCandidates, CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
@@ -9,7 +8,6 @@ export interface CuratedSectionConfig {
   title: string;
   subtitle: string;
   badge: string;
-  iconName: string;
   accentColor: string;
   filterParams: {
     genre?: string;
@@ -27,7 +25,6 @@ export const CURATED_SECTIONS: CuratedSectionConfig[] = [
     title: 'Trending Movies',
     subtitle: 'Currently buzzing worldwide & most active seeders',
     badge: 'Popular Now',
-    iconName: 'Flame',
     accentColor: 'from-orange-500/20 text-orange-400 border-orange-500/30',
     filterParams: { sort_by: 'download_count', order_by: 'desc' }
   },
@@ -36,7 +33,6 @@ export const CURATED_SECTIONS: CuratedSectionConfig[] = [
     title: 'Top IMDb',
     subtitle: 'Highest critically acclaimed cinema of all time (Rating 8.2+)',
     badge: 'Critically Acclaimed',
-    iconName: 'Trophy',
     accentColor: 'from-amber-500/20 text-amber-400 border-amber-500/30',
     filterParams: { minimum_rating: 8, sort_by: 'rating', order_by: 'desc' }
   },
@@ -45,7 +41,6 @@ export const CURATED_SECTIONS: CuratedSectionConfig[] = [
     title: 'Most Popular Movies',
     subtitle: 'All-time fan favorites & most liked cinema worldwide',
     badge: 'Fan Favorites',
-    iconName: 'Sparkles',
     accentColor: 'from-emerald-500/20 text-emerald-400 border-emerald-500/30',
     filterParams: { sort_by: 'like_count', order_by: 'desc' }
   },
@@ -54,7 +49,6 @@ export const CURATED_SECTIONS: CuratedSectionConfig[] = [
     title: 'Superhero Universe',
     subtitle: 'Marvel, DC, and epic comic book multiverse sagas',
     badge: 'Epic Heroes',
-    iconName: 'Shield',
     accentColor: 'from-blue-500/20 text-blue-400 border-blue-500/30',
     filterParams: { genre: 'Action', sort_by: 'download_count', order_by: 'desc' }
   },
@@ -63,7 +57,6 @@ export const CURATED_SECTIONS: CuratedSectionConfig[] = [
     title: 'Science Fiction',
     subtitle: 'Interstellar voyages, cyberpunk futures & mind-bending paradoxes',
     badge: 'Futuristic',
-    iconName: 'Atom',
     accentColor: 'from-cyan-500/20 text-cyan-400 border-cyan-500/30',
     filterParams: { genre: 'Sci-Fi', sort_by: 'download_count', order_by: 'desc', minimum_rating: 6.5 }
   },
@@ -72,7 +65,6 @@ export const CURATED_SECTIONS: CuratedSectionConfig[] = [
     title: 'Best Drama Movies',
     subtitle: 'Emotionally gripping stories, character studies & human resilience',
     badge: 'Deep & Moving',
-    iconName: 'Heart',
     accentColor: 'from-rose-500/20 text-rose-400 border-rose-500/30',
     filterParams: { genre: 'Drama', minimum_rating: 7.5, sort_by: 'rating', order_by: 'desc' }
   },
@@ -81,7 +73,6 @@ export const CURATED_SECTIONS: CuratedSectionConfig[] = [
     title: 'Best Comedy Movies',
     subtitle: 'Laugh-out-loud favorites, sharp satires & feel-good adventures',
     badge: 'Non-stop Laughs',
-    iconName: 'Laugh',
     accentColor: 'from-lime-500/20 text-lime-400 border-lime-500/30',
     filterParams: { genre: 'Comedy', sort_by: 'download_count', order_by: 'desc', minimum_rating: 6 }
   },
@@ -90,7 +81,6 @@ export const CURATED_SECTIONS: CuratedSectionConfig[] = [
     title: 'Horror Collection',
     subtitle: 'Chilling psychological thrillers, supernatural suspense & jump scares',
     badge: 'Night Terrors',
-    iconName: 'Skull',
     accentColor: 'from-purple-500/20 text-purple-400 border-purple-500/30',
     filterParams: { genre: 'Horror', sort_by: 'download_count', order_by: 'desc' }
   },
@@ -99,7 +89,6 @@ export const CURATED_SECTIONS: CuratedSectionConfig[] = [
     title: 'Family Favorites',
     subtitle: 'Wholesome entertainment, animated worlds & joy for all generations',
     badge: 'All Ages',
-    iconName: 'Clapperboard',
     accentColor: 'from-teal-500/20 text-teal-400 border-teal-500/30',
     filterParams: { genre: 'Family', sort_by: 'download_count', order_by: 'desc', minimum_rating: 6.5 }
   },
@@ -108,7 +97,6 @@ export const CURATED_SECTIONS: CuratedSectionConfig[] = [
     title: 'Latest Releases',
     subtitle: 'Brand new additions, freshest encodes & latest catalog uploads',
     badge: 'Latest Added',
-    iconName: 'Calendar',
     accentColor: 'from-indigo-500/20 text-indigo-400 border-indigo-500/30',
     filterParams: { sort_by: 'date_added', order_by: 'desc' }
   }
@@ -200,14 +188,14 @@ const MovieSectionCard: React.FC<MovieSectionCardProps> = ({
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center bg-neutral-900 text-neutral-500">
-            <span className="text-2xl mb-1">🎬</span>
+            <span className="text-2xl mb-1"></span>
             <span className="text-xs font-semibold text-neutral-300 line-clamp-2">{movie.title}</span>
           </div>
         )}
 
         {/* Rating Tag */}
         <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/75 border border-white/15 backdrop-blur-md text-[11px] font-bold text-amber-400">
-          <Star className="w-3 h-3 fill-amber-400" />
+          <span aria-hidden="true" className="hidden" />
           <span>{movie.rating ? movie.rating.toFixed(1) : '7.5'}</span>
         </div>
 
@@ -231,7 +219,7 @@ const MovieSectionCard: React.FC<MovieSectionCardProps> = ({
                 }}
                 className="flex-1 py-1.5 px-2 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer shadow-lg"
               >
-                <Play className="w-3 h-3 fill-current" />
+                <span aria-hidden="true" className="hidden" />
                 <span>Trailer</span>
               </button>
             )}
@@ -243,7 +231,7 @@ const MovieSectionCard: React.FC<MovieSectionCardProps> = ({
                 className="p-1.5 bg-[#6ac045]/20 hover:bg-[#6ac045]/30 border border-[#6ac045]/40 text-[#6ac045] rounded-lg transition-colors cursor-pointer"
                 title="Copy Magnet Link"
               >
-                {copiedHash === torrent.hash ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                {copiedHash === torrent.hash ? <span aria-hidden="true" className="hidden" /> : <span aria-hidden="true" className="hidden" />}
               </button>
             )}
 
@@ -261,7 +249,7 @@ const MovieSectionCard: React.FC<MovieSectionCardProps> = ({
               }`}
               title={isSaved ? 'Remove from Watchlist' : 'Add to Watchlist'}
             >
-              <Bookmark className={`w-3.5 h-3.5 ${isSaved ? 'fill-current' : ''}`} />
+              <span aria-hidden="true" className="hidden" />
             </button>
           </div>
         </div>
@@ -321,30 +309,11 @@ export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
     }
   };
 
-  const renderIcon = (name: string) => {
-    switch (name) {
-      case 'Flame': return <Flame className="w-4 h-4" />;
-      case 'Trophy': return <Trophy className="w-4 h-4" />;
-      case 'Sparkles': return <Sparkles className="w-4 h-4" />;
-      case 'Award': return <Award className="w-4 h-4" />;
-      case 'Shield': return <Shield className="w-4 h-4" />;
-      case 'Atom': return <Atom className="w-4 h-4" />;
-      case 'Heart': return <Heart className="w-4 h-4" />;
-      case 'Laugh': return <Laugh className="w-4 h-4" />;
-      case 'Skull': return <Skull className="w-4 h-4" />;
-      case 'Calendar': return <Calendar className="w-4 h-4" />;
-      default: return <Clapperboard className="w-4 h-4" />;
-    }
-  };
-
   return (
     <section className="space-y-3.5 my-8">
       {/* Header with Title, Badge, and Carousel Arrows */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-xl bg-gradient-to-br border ${section.accentColor}`}>
-            {renderIcon(section.iconName)}
-          </div>
           <div>
             <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">
               {section.title}
@@ -366,17 +335,17 @@ export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
           )}
           <button
             onClick={() => scroll('left')}
-            className="p-1.5 sm:p-2 bg-neutral-900/80 hover:bg-neutral-800 text-neutral-300 hover:text-white rounded-full border border-white/10 transition-colors cursor-pointer"
+            className="px-2.5 py-1 text-xs font-semibold text-neutral-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
             aria-label={`Scroll ${section.title} left`}
           >
-            <ChevronLeft className="w-4 h-4" />
+            Previous
           </button>
           <button
             onClick={() => scroll('right')}
-            className="p-1.5 sm:p-2 bg-neutral-900/80 hover:bg-neutral-800 text-neutral-300 hover:text-white rounded-full border border-white/10 transition-colors cursor-pointer"
+            className="px-2.5 py-1 text-xs font-semibold text-neutral-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
             aria-label={`Scroll ${section.title} right`}
           >
-            <ChevronRight className="w-4 h-4" />
+            Next
           </button>
         </div>
       </div>

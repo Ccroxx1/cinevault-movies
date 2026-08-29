@@ -1,6 +1,4 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { AlertCircle, RefreshCw, Home } from 'lucide-react';
-
 interface Props {
   children: ReactNode;
 }
@@ -36,9 +34,6 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="min-h-screen bg-[#050505] text-neutral-100 flex items-center justify-center p-4">
           <div className="max-w-md w-full bg-[#0e0e0e] border border-white/10 rounded-3xl p-8 text-center space-y-6 shadow-2xl">
-            <div className="w-16 h-16 rounded-2xl bg-rose-950/40 border border-rose-500/30 flex items-center justify-center text-rose-500 mx-auto">
-              <AlertCircle className="w-8 h-8" />
-            </div>
 
             <div className="space-y-2">
               <h2 className="text-xl font-bold text-white">Something went wrong</h2>
@@ -53,7 +48,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 onClick={this.handleReload}
                 className="px-6 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-semibold text-sm rounded-full shadow-lg shadow-rose-900/30 transition-colors flex items-center gap-2 cursor-pointer"
               >
-                <Home className="w-4 h-4" />
+                <span aria-hidden="true" className="hidden" />
                 <span>Return to Home</span>
               </button>
               <button
@@ -61,7 +56,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 onClick={() => window.location.reload()}
                 className="px-5 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-neutral-300 font-semibold text-sm rounded-full transition-colors flex items-center gap-2 cursor-pointer"
               >
-                <RefreshCw className="w-4 h-4" />
+                <span aria-hidden="true" className="hidden" />
                 <span>Reload</span>
               </button>
             </div>

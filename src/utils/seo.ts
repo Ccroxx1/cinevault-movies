@@ -167,7 +167,7 @@ export function updateDocumentSeo(options: SeoMetaOptions): void {
     const m = options.movie;
     const qualities = m.torrents?.map((t) => t.quality).filter((v, i, a) => a.indexOf(v) === i).join(', ');
     setMetaTag('meta[name="twitter:label1"]', 'name', 'twitter:label1', 'IMDb Rating');
-    setMetaTag('meta[name="twitter:data1"]', 'name', 'twitter:data1', m.rating ? `${m.rating.toFixed(1)} / 10 ★` : 'Not Rated');
+    setMetaTag('meta[name="twitter:data1"]', 'name', 'twitter:data1', m.rating ? `${m.rating.toFixed(1)} / 10 ` : 'Not Rated');
     setMetaTag('meta[name="twitter:label2"]', 'name', 'twitter:label2', 'Quality & Format');
     setMetaTag('meta[name="twitter:data2"]', 'name', 'twitter:data2', qualities || '720p, 1080p, 4K');
   }

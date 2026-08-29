@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Film, Flame, Star, Search, RefreshCw, AlertCircle, Bookmark, Clapperboard, Heart, Layers, ArrowLeft } from 'lucide-react';
 import { Movie, FilterParams } from './types';
 import { fetchMovies, fetchMovieBySlug, validateAndCleanMovies, filterMoviesByParams } from './services/movieApi';
 import { FALLBACK_FEATURED_MOVIES } from './data/fallbackMovies';
@@ -547,9 +546,6 @@ export default function App() {
               </div>
             ) : movieSlugError ? (
               <div className="py-20 text-center flex flex-col items-center justify-center bg-[#0a0a0a] border border-white/10 rounded-3xl p-8 space-y-4 my-8">
-                <div className="w-16 h-16 rounded-2xl bg-rose-950/40 border border-rose-500/30 flex items-center justify-center text-rose-500">
-                  <AlertCircle className="w-8 h-8" />
-                </div>
                 <div className="space-y-1 max-w-md">
                   <h3 className="text-xl font-bold text-white">Movie Not Found</h3>
                   <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
@@ -560,7 +556,7 @@ export default function App() {
                   onClick={handleBack}
                   className="px-6 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs sm:text-sm rounded-full shadow-lg shadow-rose-900/30 transition-colors flex items-center gap-2 cursor-pointer"
                 >
-                  <ArrowLeft className="w-4 h-4" />
+                  <span aria-hidden="true" className="hidden" />
                   <span>Back</span>
                 </button>
               </div>
@@ -663,10 +659,10 @@ export default function App() {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h1 className="text-xl sm:text-2xl font-black font-display text-white flex items-center gap-2.5">
-                    {currentNav === 'trending' && <Flame className="w-6 h-6 text-rose-500" />}
-                    {currentNav === '4k' && <Film className="w-6 h-6 text-rose-400" />}
-                    {currentNav === 'top' && <Star className="w-6 h-6 text-amber-400" />}
-                    {currentNav === 'browse' && <Clapperboard className="w-6 h-6 text-rose-500" />}
+                    {currentNav === 'trending' && <span aria-hidden="true" className="hidden" />}
+                    {currentNav === '4k' && <span aria-hidden="true" className="hidden" />}
+                    {currentNav === 'top' && <span aria-hidden="true" className="hidden" />}
+                    {currentNav === 'browse' && <span aria-hidden="true" className="hidden" />}
                     
                     <span>
                       {filters.query_term
@@ -702,14 +698,14 @@ export default function App() {
             {error && (
               <div className="my-6 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-300 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
-                  <AlertCircle className="w-5 h-5 shrink-0 text-rose-500" />
+                  <span aria-hidden="true" className="hidden" />
                   <span className="text-sm font-medium">{error}</span>
                 </div>
                 <button
                   onClick={loadMovies}
                   className="px-3.5 py-1.5 bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 text-xs font-semibold rounded-full border border-rose-500/30 transition-colors flex items-center gap-1.5 cursor-pointer"
                 >
-                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span aria-hidden="true" className="hidden" />
                   <span>Retry</span>
                 </button>
               </div>
@@ -745,9 +741,6 @@ export default function App() {
             ) : (
               !error && (
                 <div className="py-20 text-center flex flex-col items-center justify-center bg-[#0a0a0a]/40 border border-dashed border-white/10 rounded-3xl p-8 space-y-4 my-8">
-                  <div className="w-16 h-16 rounded-2xl bg-[#0a0a0a] border border-white/10 flex items-center justify-center text-neutral-600">
-                    <Search className="w-8 h-8" />
-                  </div>
                   <div className="space-y-1 max-w-sm">
                     <h3 className="text-lg font-bold text-neutral-200">No movies found</h3>
                     <p className="text-xs text-neutral-400 leading-relaxed">
@@ -796,7 +789,7 @@ export default function App() {
             {currentNav === 'browse' && !filters.query_term && filters.page === 1 && filters.genre === 'All' && filters.quality === 'All' && (
               <div className="space-y-6 my-10 border-t border-white/5 pt-8">
                 <div className="flex items-center gap-2">
-                  <Layers className="w-5 h-5 text-rose-500" />
+                  <span aria-hidden="true" className="hidden" />
                   <div>
                     <h2 className="text-xl font-bold text-white tracking-tight">Curated Film Collections</h2>
                     <p className="text-xs text-neutral-400">Explore cinematic worlds categorized by prestigious themes, box office records, and genres</p>

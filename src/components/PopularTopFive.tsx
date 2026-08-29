@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Flame, Star, Play, Check, Eye, Bookmark, Magnet } from 'lucide-react';
 import { Movie, buildMagnetLink } from '../types';
 import { getMoviePath } from '../utils/seo';
 import { getPosterCandidates, CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
@@ -80,7 +79,7 @@ const PopularCard: React.FC<PopularCardProps> = ({
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center bg-neutral-900 text-neutral-500">
-            <span className="text-2xl mb-1">🎬</span>
+            <span className="text-2xl mb-1"></span>
             <span className="text-xs font-semibold text-neutral-300 line-clamp-2">{movie.title}</span>
           </div>
         )}
@@ -115,7 +114,7 @@ const PopularCard: React.FC<PopularCardProps> = ({
             title={isWatch ? 'Remove from Watchlist' : 'Add to Watchlist'}
             aria-label="Toggle Watchlist"
           >
-            <Bookmark className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${isWatch ? 'fill-current' : ''}`} />
+            <span aria-hidden="true" className="hidden" />
           </button>
         </div>
 
@@ -124,7 +123,7 @@ const PopularCard: React.FC<PopularCardProps> = ({
           {/* Rating & Year */}
           <div className="flex items-center justify-between text-xs font-bold">
             <span className="flex items-center gap-1 text-amber-400">
-              <Star className="w-3.5 h-3.5 fill-amber-400" />
+              <span aria-hidden="true" className="hidden" />
               {movie.rating ? movie.rating.toFixed(1) : '7.5'}
             </span>
             <span className="text-neutral-300">{movie.year}</span>
@@ -149,7 +148,7 @@ const PopularCard: React.FC<PopularCardProps> = ({
                 className="h-7 sm:h-7.5 px-1.5 sm:px-2 bg-white/15 hover:bg-white/25 text-white rounded-lg text-[10px] sm:text-[11px] font-bold flex items-center justify-center gap-1 backdrop-blur-md transition-colors"
                 title="Watch Trailer"
               >
-                <Play className="w-3 h-3 fill-rose-500 text-rose-500" />
+                <span aria-hidden="true" className="hidden" />
                 <span>Trailer</span>
               </button>
             ) : (
@@ -158,7 +157,7 @@ const PopularCard: React.FC<PopularCardProps> = ({
                 onClick={() => onSelectMovie(movie)}
                 className="h-7 sm:h-7.5 px-1.5 sm:px-2 bg-white/15 hover:bg-white/25 text-white rounded-lg text-[10px] sm:text-[11px] font-bold flex items-center justify-center gap-1 backdrop-blur-md transition-colors"
               >
-                <Eye className="w-3 h-3" />
+                <span aria-hidden="true" className="hidden" />
                 <span>Details</span>
               </button>
             )}
@@ -172,12 +171,12 @@ const PopularCard: React.FC<PopularCardProps> = ({
               >
                 {copiedId === movie.id ? (
                   <>
-                    <Check className="w-3 h-3 text-emerald-200" />
+                    <span aria-hidden="true" className="hidden" />
                     <span className="text-[9px] sm:text-[10px]">Copied</span>
                   </>
                 ) : (
                   <>
-                    <Magnet className="w-3 h-3 text-emerald-200" />
+                    <span aria-hidden="true" className="hidden" />
                     <span className="text-[9px] sm:text-[10px]">Magnet</span>
                   </>
                 )}
@@ -210,7 +209,7 @@ const PopularCard: React.FC<PopularCardProps> = ({
         <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-neutral-400">
           <span>{movie.year}</span>
           <span className="flex items-center gap-1 text-amber-400 font-semibold">
-            <Star className="w-3 h-3 fill-amber-400" />
+            <span aria-hidden="true" className="hidden" />
             {movie.rating ? movie.rating.toFixed(1) : '7.5'}
           </span>
         </div>
@@ -262,9 +261,6 @@ export const PopularTopFive: React.FC<PopularTopFiveProps> = ({
       {/* Section Header */}
       <div className="flex items-center justify-between gap-3 mb-3.5">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-gradient-to-tr from-rose-600 to-amber-500 text-white shadow-lg shadow-rose-900/30">
-            <Flame className="w-5 h-5 fill-current" />
-          </div>
           <div>
             <h2 className="text-lg sm:text-xl font-extrabold text-white tracking-tight">
               5 Latest Popular Movies ({currentYear})

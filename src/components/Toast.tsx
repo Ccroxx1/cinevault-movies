@@ -1,7 +1,5 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
-
 export interface ToastMessage {
   id: string;
   type: 'success' | 'error' | 'info';
@@ -27,13 +25,13 @@ export const ToastContainer: React.FC<ToastProps> = ({ toasts, onDismiss }) => {
             className="pointer-events-auto flex items-start gap-3 p-4 rounded-2xl shadow-2xl bg-[#0a0a0a]/95 backdrop-blur-xl border border-white/10 text-neutral-100"
           >
             {toast.type === 'success' && (
-              <CheckCircle2 className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
+              <span aria-hidden="true" className="hidden" />
             )}
             {toast.type === 'error' && (
-              <AlertCircle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
+              <span aria-hidden="true" className="hidden" />
             )}
             {toast.type === 'info' && (
-              <Info className="w-5 h-5 text-neutral-400 shrink-0 mt-0.5" />
+              <span aria-hidden="true" className="hidden" />
             )}
 
             <div className="flex-1 min-w-0">
@@ -52,7 +50,7 @@ export const ToastContainer: React.FC<ToastProps> = ({ toasts, onDismiss }) => {
               className="text-neutral-500 hover:text-neutral-300 transition-colors p-1 cursor-pointer"
               aria-label="Close notification"
             >
-              <X className="w-4 h-4" />
+              <span aria-hidden="true" className="hidden" />
             </button>
           </motion.div>
         ))}

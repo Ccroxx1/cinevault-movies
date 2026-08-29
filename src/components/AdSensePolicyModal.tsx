@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { X, ShieldCheck, FileText, Info, Mail, Lock } from 'lucide-react';
-
 interface AdSensePolicyModalProps {
   initialTab?: 'privacy' | 'terms' | 'about' | 'contact' | 'dmca' | 'agreement';
   onClose: () => void;
@@ -19,9 +17,6 @@ export const AdSensePolicyModal: React.FC<AdSensePolicyModalProps> = ({
         {/* Modal Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#141414]">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-rose-600/20 border border-rose-500/30 text-rose-400">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
             <div>
               <h3 className="text-base font-bold text-white">
                 Legal & Compliance Center
@@ -36,8 +31,8 @@ export const AdSensePolicyModal: React.FC<AdSensePolicyModalProps> = ({
             onClick={onClose}
             className="p-1.5 text-neutral-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors"
           >
-            <X className="w-5 h-5" />
-          </button>
+                Close
+              </button>
         </div>
 
         {/* Tab Navigation */}
@@ -50,7 +45,7 @@ export const AdSensePolicyModal: React.FC<AdSensePolicyModalProps> = ({
                 : 'border-transparent text-neutral-400 hover:text-neutral-200'
             }`}
           >
-            <Lock className="w-3.5 h-3.5" />
+            <span aria-hidden="true" className="hidden" />
             <span>Privacy Policy</span>
           </button>
 
@@ -62,7 +57,7 @@ export const AdSensePolicyModal: React.FC<AdSensePolicyModalProps> = ({
                 : 'border-transparent text-neutral-400 hover:text-neutral-200'
             }`}
           >
-            <FileText className="w-3.5 h-3.5" />
+            <span aria-hidden="true" className="hidden" />
             <span>Terms of Service</span>
           </button>
 
@@ -74,7 +69,7 @@ export const AdSensePolicyModal: React.FC<AdSensePolicyModalProps> = ({
                 : 'border-transparent text-neutral-400 hover:text-neutral-200'
             }`}
           >
-            <FileText className="w-3.5 h-3.5" />
+            <span aria-hidden="true" className="hidden" />
             <span>User Agreement</span>
           </button>
 
@@ -86,7 +81,7 @@ export const AdSensePolicyModal: React.FC<AdSensePolicyModalProps> = ({
                 : 'border-transparent text-neutral-400 hover:text-neutral-200'
             }`}
           >
-            <ShieldCheck className="w-3.5 h-3.5" />
+            <span aria-hidden="true" className="hidden" />
             <span>DMCA & Copyright</span>
           </button>
 
@@ -98,7 +93,7 @@ export const AdSensePolicyModal: React.FC<AdSensePolicyModalProps> = ({
                 : 'border-transparent text-neutral-400 hover:text-neutral-200'
             }`}
           >
-            <Info className="w-3.5 h-3.5" />
+            <span aria-hidden="true" className="hidden" />
             <span>About Us</span>
           </button>
 
@@ -110,7 +105,7 @@ export const AdSensePolicyModal: React.FC<AdSensePolicyModalProps> = ({
                 : 'border-transparent text-neutral-400 hover:text-neutral-200'
             }`}
           >
-            <Mail className="w-3.5 h-3.5" />
+            <span aria-hidden="true" className="hidden" />
             <span>Contact</span>
           </button>
         </div>
@@ -228,7 +223,7 @@ export const AdSensePolicyModal: React.FC<AdSensePolicyModalProps> = ({
               </p>
               <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-2">
                 <div className="flex items-center gap-2 text-white font-semibold">
-                  <Mail className="w-4 h-4 text-rose-500" />
+                  <span aria-hidden="true" className="hidden" />
                   <span>Email Support:</span>
                 </div>
                 <p className="font-mono text-rose-400 text-xs sm:text-sm">

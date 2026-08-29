@@ -1,6 +1,4 @@
 import React, { useEffect } from 'react';
-import { X, ExternalLink, Play } from 'lucide-react';
-
 interface TrailerModalProps {
   ytTrailerCode: string;
   movieTitle: string;
@@ -29,9 +27,6 @@ export const TrailerModal: React.FC<TrailerModalProps> = ({
         {/* Modal Top Bar */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#050505]">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-rose-600/20 text-rose-500 rounded-lg">
-              <Play className="w-4 h-4 fill-current" />
-            </div>
             <h3 className="text-sm sm:text-base font-bold text-white truncate max-w-md">
               {movieTitle} — Official Trailer
             </h3>
@@ -45,7 +40,7 @@ export const TrailerModal: React.FC<TrailerModalProps> = ({
               className="hidden sm:flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white transition-colors"
             >
               <span>Open on YouTube</span>
-              <ExternalLink className="w-3.5 h-3.5" />
+              <span aria-hidden="true" className="hidden" />
             </a>
 
             <button
@@ -53,8 +48,8 @@ export const TrailerModal: React.FC<TrailerModalProps> = ({
               className="p-1.5 text-neutral-400 hover:text-white hover:bg-white/10 rounded-full transition-colors cursor-pointer"
               aria-label="Close trailer"
             >
-              <X className="w-5 h-5" />
-            </button>
+                Close
+              </button>
           </div>
         </div>
 

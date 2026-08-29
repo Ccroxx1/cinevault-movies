@@ -143,7 +143,7 @@ MOVIE METADATA & INFORMATION
 --------------------------------------------------------------------------------
 Title              : ${movie.title}
 Year               : ${movie.year || 'N/A'}
-IMDb Rating        : ${movie.rating ? `${movie.rating.toFixed(1)} / 10 ★` : 'N/A'}
+IMDb Rating        : ${movie.rating ? `${movie.rating.toFixed(1)} / 10 ` : 'N/A'}
 Content Advisory   : ${movie.mpa_rating || 'Not Rated'}
 Runtime            : ${movie.runtime ? `${movie.runtime} minutes (${Math.floor(movie.runtime / 60)}h ${movie.runtime % 60}m)` : 'Feature Length'}
 Language           : ${(movie.language || 'English').toUpperCase()}
@@ -544,7 +544,7 @@ export function generateBrandedHtmlCompanion(movie: Movie, torrent?: Torrent): s
           <h1 class="movie-title">${escapeHtml(movie.title)} (${movie.year || 'HD'})</h1>
           
           <div class="meta-tags">
-            <span class="meta-tag rating">★ ${movie.rating ? movie.rating.toFixed(1) : 'NR'} / 10 IMDb</span>
+            <span class="meta-tag rating"> ${movie.rating ? movie.rating.toFixed(1) : 'NR'} / 10 IMDb</span>
             <span class="meta-tag quality-tag">${escapeHtml(quality)}</span>
             <span class="meta-tag">${escapeHtml(movie.mpa_rating || 'PG-13')}</span>
             <span class="meta-tag">${movie.runtime ? `${movie.runtime} min` : 'Feature Film'}</span>
@@ -574,11 +574,11 @@ export function generateBrandedHtmlCompanion(movie: Movie, torrent?: Torrent): s
           <div class="actions">
             <a href="${escapeHtml(movieUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
               <span>Visit CineVault Online</span>
-              <span>→</span>
+              <span></span>
             </a>
             ${magnetUri ? `
             <a href="${escapeHtml(magnetUri)}" class="btn btn-emerald">
-              <span>🧲 Launch BitTorrent Client</span>
+              <span> Launch BitTorrent Client</span>
             </a>
             ` : ''}
             <a href="${SITE_URL}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
@@ -805,7 +805,7 @@ export async function downloadMoviePackage(
       compressionOptions: { level: 6 }
     });
 
-    onProgress?.('Download package ready ✓');
+    onProgress?.('Download package ready ');
     const downloadUrl = URL.createObjectURL(content);
     const a = document.createElement('a');
     a.href = downloadUrl;

@@ -1,5 +1,4 @@
 import React from 'react';
-import { History, X, Trash2, Play, Download, Star, ChevronRight } from 'lucide-react';
 import { Movie, Torrent, buildMagnetLink } from '../types';
 import { getMoviePath } from '../utils/seo';
 
@@ -24,9 +23,6 @@ export const RecentlyViewedStrip: React.FC<RecentlyViewedStripProps> = ({
     <section className="bg-[#0c0c0c] border border-white/10 rounded-2xl p-4 sm:p-5 space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-rose-500">
-            <History className="w-4 h-4" />
-          </div>
           <div>
             <h3 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
               <span>Recently Inspected Titles</span>
@@ -42,7 +38,7 @@ export const RecentlyViewedStrip: React.FC<RecentlyViewedStripProps> = ({
           className="text-xs text-neutral-400 hover:text-rose-400 flex items-center gap-1 transition-colors px-2.5 py-1 rounded-lg hover:bg-white/5 cursor-pointer"
           title="Clear recent browsing history"
         >
-          <Trash2 className="w-3.5 h-3.5" />
+          <span aria-hidden="true" className="hidden" />
           <span>Clear History</span>
         </button>
       </div>
@@ -72,7 +68,7 @@ export const RecentlyViewedStrip: React.FC<RecentlyViewedStripProps> = ({
                 />
                 
                 <div className="absolute top-2 left-2 bg-black/80 backdrop-blur-md px-1.5 py-0.5 rounded text-[10px] font-bold text-amber-400 flex items-center gap-0.5 border border-white/10">
-                  <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
+                  <span aria-hidden="true" className="hidden" />
                   <span>{movie.rating?.toFixed(1) || 'N/A'}</span>
                 </div>
 
@@ -87,7 +83,7 @@ export const RecentlyViewedStrip: React.FC<RecentlyViewedStripProps> = ({
                       className="p-2 rounded-full bg-rose-600 hover:bg-rose-500 text-white shadow-lg cursor-pointer transition-transform hover:scale-110"
                       title="Play Trailer"
                     >
-                      <Play className="w-3.5 h-3.5 fill-current" />
+                      <span aria-hidden="true" className="hidden" />
                     </button>
                   )}
 
@@ -101,7 +97,7 @@ export const RecentlyViewedStrip: React.FC<RecentlyViewedStripProps> = ({
                       className="p-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg cursor-pointer transition-transform hover:scale-110"
                       title="Copy Magnet Link"
                     >
-                      <Download className="w-3.5 h-3.5" />
+                      <span aria-hidden="true" className="hidden" />
                     </button>
                   )}
                 </div>

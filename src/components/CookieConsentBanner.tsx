@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Cookie, X } from 'lucide-react';
-
 interface CookieConsentBannerProps {
   onOpenPrivacy: () => void;
 }
@@ -31,9 +29,6 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ onOpen
   return (
     <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-md z-50 bg-[#121212]/95 border border-white/15 backdrop-blur-xl p-4 sm:p-5 rounded-2xl shadow-2xl animate-slideUp">
       <div className="flex items-start gap-3">
-        <div className="p-2 rounded-xl bg-rose-600/20 border border-rose-500/30 text-rose-400 shrink-0">
-          <Cookie className="w-5 h-5" />
-        </div>
         <div className="space-y-2 flex-1">
           <h4 className="text-xs sm:text-sm font-bold text-white flex items-center justify-between">
             <span>Cookie & Privacy Consent</span>
@@ -42,8 +37,8 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ onOpen
               className="text-neutral-400 hover:text-white p-1"
               aria-label="Dismiss"
             >
-              <X className="w-4 h-4" />
-            </button>
+                Dismiss
+              </button>
           </h4>
           <p className="text-[11px] text-neutral-300 leading-relaxed">
             We use cookies and web storage to enhance movie discovery, maintain your watchlist, and deliver relevant advertisements via Google AdSense.

@@ -47,7 +47,7 @@ export function buildMovieHtml(baseHtmlTemplate: string, movie: any, relatedMovi
 
   const coverImage = movie.large_cover_image || movie.medium_cover_image || movie.small_cover_image || `${SITE_BASE_URL}/favicon.svg`;
   const backdropImage = movie.background_image_original || movie.background_image || coverImage;
-  const ratingStr = movie.rating ? `${movie.rating.toFixed(1)} / 10 ★` : 'Not Rated';
+  const ratingStr = movie.rating ? `${movie.rating.toFixed(1)} / 10 ` : 'Not Rated';
   const genresArray = Array.isArray(movie.genres) ? movie.genres : [];
   const genresStr = genresArray.length > 0 ? genresArray.join(', ') : 'Cinema, Feature Film';
 
@@ -156,7 +156,7 @@ export function buildMovieHtml(baseHtmlTemplate: string, movie: any, relatedMovi
             return `
             <a href="/movies/${rmSlug}" class="group block p-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-rose-500/50 rounded-xl transition-all">
               <span class="block text-xs font-bold text-neutral-200 group-hover:text-rose-400 truncate">${escapeHtml(rm.title)}</span>
-              <span class="block text-[10px] text-neutral-400 mt-0.5">${rm.year || ''} · ★ ${rm.rating ? rm.rating.toFixed(1) : 'HD'}</span>
+              <span class="block text-[10px] text-neutral-400 mt-0.5">${rm.year || ''} ·  ${rm.rating ? rm.rating.toFixed(1) : 'HD'}</span>
             </a>`;
           }).join('')}
         </div>
@@ -182,7 +182,7 @@ export function buildMovieHtml(baseHtmlTemplate: string, movie: any, relatedMovi
               ${movie.year ? `<span class="px-2.5 py-1 bg-rose-600 text-white rounded-lg font-bold">${movie.year}</span>` : ''}
               ${movie.mpa_rating ? `<span class="px-2 py-1 bg-neutral-800 text-neutral-200 border border-white/10 rounded-lg">${escapeHtml(movie.mpa_rating)}</span>` : ''}
               ${movie.language ? `<span class="px-2 py-1 bg-white/5 text-neutral-300 border border-white/10 rounded-lg uppercase">${escapeHtml(movie.language)}</span>` : ''}
-              ${movie.rating ? `<span class="px-3 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold rounded-lg">★ ${movie.rating.toFixed(1)} / 10 IMDb</span>` : ''}
+              ${movie.rating ? `<span class="px-3 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold rounded-lg"> ${movie.rating.toFixed(1)} / 10 IMDb</span>` : ''}
               ${movie.runtime ? `<span class="px-2 py-1 bg-white/5 text-neutral-300 border border-white/10 rounded-lg">${Math.floor(movie.runtime / 60)}h ${movie.runtime % 60}m</span>` : ''}
             </div>
           </header>

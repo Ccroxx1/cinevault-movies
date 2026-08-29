@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { X, Globe, Download, ExternalLink, Search, FileText, Check } from 'lucide-react';
 import { Movie } from '../types';
 
 interface SubtitlesModalProps {
@@ -76,9 +75,6 @@ export const SubtitlesModal: React.FC<SubtitlesModalProps> = ({
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-rose-600/10 border border-rose-500/20 text-rose-500 rounded-2xl">
-              <FileText className="w-6 h-6" />
-            </div>
             <div>
               <h3 className="text-lg sm:text-xl font-display font-black text-white">
                 Download Subtitles
@@ -93,14 +89,14 @@ export const SubtitlesModal: React.FC<SubtitlesModalProps> = ({
             onClick={onClose}
             className="p-2 text-neutral-400 hover:text-white rounded-full bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
           >
-            <X className="w-5 h-5" />
-          </button>
+                Close
+              </button>
         </div>
 
         {/* Language Filter */}
         <div className="space-y-2">
           <label className="text-xs font-semibold text-neutral-300 flex items-center gap-1.5">
-            <Globe className="w-3.5 h-3.5 text-rose-400" />
+            <span aria-hidden="true" className="hidden" />
             <span>Target Language:</span>
           </label>
           <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto scrollbar-thin">
@@ -143,17 +139,13 @@ export const SubtitlesModal: React.FC<SubtitlesModalProps> = ({
                   {provider.description}
                 </p>
               </div>
-
-              <div className="p-2.5 rounded-xl bg-white/5 group-hover:bg-rose-600 text-neutral-300 group-hover:text-white transition-colors shrink-0">
-                <ExternalLink className="w-4 h-4" />
-              </div>
             </a>
           ))}
         </div>
 
         {/* Footer tip */}
         <div className="p-3 bg-neutral-900/60 rounded-xl border border-white/5 text-[11px] text-neutral-400 leading-relaxed">
-          💡 <strong className="text-neutral-200">Tip:</strong> Once downloaded, simply drag & drop the <code className="text-emerald-400">.srt</code> file directly into VLC Player, IINA, or MPC-HC during playback.
+           <strong className="text-neutral-200">Tip:</strong> Once downloaded, simply drag & drop the <code className="text-emerald-400">.srt</code> file directly into VLC Player, IINA, or MPC-HC during playback.
         </div>
 
       </div>

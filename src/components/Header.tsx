@@ -1,11 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Search, Bookmark, HelpCircle, Flame, Star, X, 
-  Menu, Grid, FileText, ChevronRight, SlidersHorizontal
-} from 'lucide-react';
 import { Movie, FilterParams } from '../types';
 import { GENRES } from '../services/movieApi';
-import { CineVaultLogo, CineVaultBrowseIcon } from './CineVaultLogo';
+import { CineVaultLogo } from './CineVaultLogo';
 
 interface HeaderProps {
   searchQuery: string;
@@ -149,7 +145,7 @@ export const Header: React.FC<HeaderProps> = ({
                 className="p-2 -ml-1 text-neutral-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors cursor-pointer lg:hidden"
                 aria-label="Open Navigation Menu"
               >
-                <Menu className="w-5 h-5" />
+                <span aria-hidden="true" className="hidden" />
               </button>
 
               <div
@@ -167,7 +163,7 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="relative flex-1 max-w-xs sm:max-w-md lg:max-w-lg mx-1 sm:mx-2">
               <form onSubmit={handleFormSubmit} className="relative">
                 <div className="relative flex items-center">
-                  <Search className="absolute left-3 sm:left-3.5 w-3.5 h-3.5 sm:w-4 sm:h-4 text-neutral-400 pointer-events-none" />
+                  <span aria-hidden="true" className="hidden" />
                   <input
                     ref={searchInputRef}
                     type="text"
@@ -189,7 +185,7 @@ export const Header: React.FC<HeaderProps> = ({
                         className="p-1 text-neutral-400 hover:text-neutral-200 rounded cursor-pointer"
                         title="Clear search"
                       >
-                        <X className="w-3.5 h-3.5" />
+                        <span aria-hidden="true" className="hidden" />
                       </button>
                     </div>
                   )}
@@ -235,7 +231,7 @@ export const Header: React.FC<HeaderProps> = ({
                               <span>{movie.year}</span>
                               <span>•</span>
                               <div className="flex items-center gap-0.5 text-amber-400">
-                                <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                                <span aria-hidden="true" className="hidden" />
                                 <span className="font-semibold">{movie.rating || '7.5'}</span>
                               </div>
                               {movie.genres?.[0] && (
@@ -260,7 +256,7 @@ export const Header: React.FC<HeaderProps> = ({
                         }}
                         className="p-3 text-center text-xs text-rose-400 font-bold hover:bg-rose-500/10 cursor-pointer transition-colors"
                       >
-                        View all full catalog results for "{searchQuery}" →
+                        View all full catalog results for "{searchQuery}" 
                       </div>
                     </div>
                   ) : (
@@ -284,7 +280,6 @@ export const Header: React.FC<HeaderProps> = ({
                     : 'text-neutral-300 hover:text-white hover:bg-white/5'
                 }`}
               >
-                <CineVaultBrowseIcon size={16} />
                 <span>Browse</span>
               </button>
 
@@ -296,7 +291,7 @@ export const Header: React.FC<HeaderProps> = ({
                     : 'text-neutral-300 hover:text-white hover:bg-white/5'
                 }`}
               >
-                <Flame className="w-3.5 h-3.5 text-orange-400" />
+                <span aria-hidden="true" className="hidden" />
                 <span>Trending</span>
               </button>
 
@@ -319,7 +314,7 @@ export const Header: React.FC<HeaderProps> = ({
                     : 'text-neutral-300 hover:text-white hover:bg-white/5'
                 }`}
               >
-                <Star className="w-3.5 h-3.5 text-amber-400" />
+                <span aria-hidden="true" className="hidden" />
                 <span>Top Rated</span>
               </button>
 
@@ -333,7 +328,7 @@ export const Header: React.FC<HeaderProps> = ({
                       : 'text-neutral-300 hover:text-white hover:bg-white/5'
                   }`}
                 >
-                  <Grid className="w-3.5 h-3.5" />
+                  <span aria-hidden="true" className="hidden" />
                   <span>Genres</span>
                 </button>
 
@@ -369,7 +364,7 @@ export const Header: React.FC<HeaderProps> = ({
                 }`}
                 title="My Saved Movies"
               >
-                <Bookmark className="w-3.5 h-3.5" />
+                <span aria-hidden="true" className="hidden" />
                 <span>Watchlist</span>
                 {watchlistCount > 0 && (
                   <span className="ml-0.5 px-1.5 py-0.2 text-[10px] font-mono font-bold bg-rose-600 text-white rounded-full">
@@ -385,7 +380,7 @@ export const Header: React.FC<HeaderProps> = ({
                 title="Torrent & Download Guide"
                 aria-label="Download Guide"
               >
-                <HelpCircle className="w-4 h-4" />
+                Download Guide
               </button>
             </nav>
 
@@ -396,7 +391,7 @@ export const Header: React.FC<HeaderProps> = ({
                 className="p-2 text-neutral-300 hover:text-white rounded-xl relative cursor-pointer"
                 aria-label="Watchlist"
               >
-                <Bookmark className="w-4 h-4" />
+                <span aria-hidden="true" className="hidden" />
                 {watchlistCount > 0 && (
                   <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-600"></span>
                 )}
@@ -407,7 +402,7 @@ export const Header: React.FC<HeaderProps> = ({
                 className="p-2 text-neutral-400 hover:text-white rounded-xl cursor-pointer"
                 aria-label="Download Guide"
               >
-                <HelpCircle className="w-4 h-4" />
+                Download Guide
               </button>
             </div>
 
@@ -437,7 +432,7 @@ export const Header: React.FC<HeaderProps> = ({
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="p-1.5 text-neutral-400 hover:text-white hover:bg-white/10 rounded-lg cursor-pointer"
                 >
-                  <X className="w-4 h-4" />
+                  <span aria-hidden="true" className="hidden" />
                 </button>
               </div>
 
@@ -459,10 +454,9 @@ export const Header: React.FC<HeaderProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <CineVaultBrowseIcon size={16} />
                     <span>Browse All Cinema</span>
                   </div>
-                  <ChevronRight className="w-3.5 h-3.5 opacity-60" />
+                  <span aria-hidden="true" className="hidden" />
                 </button>
 
                 <button
@@ -477,10 +471,10 @@ export const Header: React.FC<HeaderProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <Flame className="w-4 h-4 text-orange-400" />
+                    <span aria-hidden="true" className="hidden" />
                     <span>Trending Now</span>
                   </div>
-                  <ChevronRight className="w-3.5 h-3.5 opacity-60" />
+                  <span aria-hidden="true" className="hidden" />
                 </button>
 
                 <button
@@ -498,7 +492,7 @@ export const Header: React.FC<HeaderProps> = ({
                     <span className="w-2 h-2 rounded-full bg-rose-500" />
                     <span>4K Ultra HD</span>
                   </div>
-                  <ChevronRight className="w-3.5 h-3.5 opacity-60" />
+                  <span aria-hidden="true" className="hidden" />
                 </button>
 
                 <button
@@ -513,10 +507,10 @@ export const Header: React.FC<HeaderProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <Star className="w-4 h-4 text-amber-400" />
+                    <span aria-hidden="true" className="hidden" />
                     <span>Top Rated (IMDb 8.0+)</span>
                   </div>
-                  <ChevronRight className="w-3.5 h-3.5 opacity-60" />
+                  <span aria-hidden="true" className="hidden" />
                 </button>
 
                 <button
@@ -531,7 +525,7 @@ export const Header: React.FC<HeaderProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <Bookmark className="w-4 h-4" />
+                    <span aria-hidden="true" className="hidden" />
                     <span>My Saved Watchlist</span>
                   </div>
                   {watchlistCount > 0 && (
@@ -569,7 +563,7 @@ export const Header: React.FC<HeaderProps> = ({
                   }}
                   className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-neutral-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
                 >
-                  <HelpCircle className="w-4 h-4 text-neutral-400" />
+                  <span aria-hidden="true" className="hidden" />
                   <span>Download Guide & Trackers</span>
                 </button>
 
@@ -582,7 +576,7 @@ export const Header: React.FC<HeaderProps> = ({
                       }}
                       className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-neutral-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
                     >
-                      <FileText className="w-4 h-4 text-neutral-400" />
+                      <span aria-hidden="true" className="hidden" />
                       <span>Privacy & Cookies</span>
                     </button>
 
@@ -593,7 +587,7 @@ export const Header: React.FC<HeaderProps> = ({
                       }}
                       className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-neutral-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
                     >
-                      <FileText className="w-4 h-4 text-neutral-400" />
+                      <span aria-hidden="true" className="hidden" />
                       <span>DMCA & Legal Disclaimer</span>
                     </button>
                   </>

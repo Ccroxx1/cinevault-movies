@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { X, HelpCircle, Download, Copy, Check, ShieldCheck, Terminal, HardDrive, Sparkles, Magnet, Cloud } from 'lucide-react';
 import { RECOMMENDED_TRACKERS } from '../types';
 
 interface DownloadGuideModalProps {
@@ -28,9 +27,6 @@ export const DownloadGuideModal: React.FC<DownloadGuideModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-emerald-600/10 border border-emerald-500/20 text-emerald-400 rounded-xl">
-              <Magnet className="w-5 h-5" />
-            </div>
             <div>
               <h3 className="text-lg font-display font-black text-white">
                 Magnet URIs & Download Methods
@@ -45,8 +41,8 @@ export const DownloadGuideModal: React.FC<DownloadGuideModalProps> = ({
             onClick={onClose}
             className="p-2 text-neutral-400 hover:text-white hover:bg-white/10 rounded-full transition-colors cursor-pointer"
           >
-            <X className="w-5 h-5" />
-          </button>
+                Close
+              </button>
         </div>
 
         {/* Steps */}
@@ -98,7 +94,7 @@ export const DownloadGuideModal: React.FC<DownloadGuideModalProps> = ({
         <div className="p-4 bg-[#050505] border border-white/10 rounded-2xl space-y-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-xs font-bold text-neutral-300">
-              <Terminal className="w-3.5 h-3.5 text-emerald-400" />
+              <span aria-hidden="true" className="hidden" />
               <span>Recommended Open BitTorrent Trackers ({RECOMMENDED_TRACKERS.length})</span>
             </div>
 
@@ -108,12 +104,12 @@ export const DownloadGuideModal: React.FC<DownloadGuideModalProps> = ({
             >
               {copiedTrackers ? (
                 <>
-                  <Check className="w-3 h-3 text-emerald-400" />
+                  <span aria-hidden="true" className="hidden" />
                   <span>Copied All Trackers</span>
                 </>
               ) : (
                 <>
-                  <Copy className="w-3 h-3 text-emerald-400" />
+                  <span aria-hidden="true" className="hidden" />
                   <span>Copy All Trackers</span>
                 </>
               )}

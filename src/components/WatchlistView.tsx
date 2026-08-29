@@ -1,5 +1,4 @@
 import React, { useState, useRef } from 'react';
-import { Bookmark, Trash2, Download, Upload, ArrowUpDown, Film, Star, Share2, Check, FileJson } from 'lucide-react';
 import { Movie } from '../types';
 import { MovieCard } from './MovieCard';
 
@@ -82,9 +81,6 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
       {/* Header Controls */}
       <div className="flex flex-wrap items-center justify-between gap-4 bg-[#0a0a0a] border border-white/10 p-4 sm:p-6 rounded-2xl">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-rose-600/10 border border-rose-500/20 text-rose-500 rounded-2xl">
-            <Bookmark className="w-6 h-6 fill-current" />
-          </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-black font-display text-white">
               My Watchlist & Library
@@ -111,7 +107,7 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
             className="flex items-center gap-1.5 px-3.5 py-2 bg-[#141414] hover:bg-[#1f1f1f] text-neutral-300 hover:text-white border border-white/10 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
             title="Import Watchlist from JSON file"
           >
-            <Upload className="w-3.5 h-3.5" />
+            <span aria-hidden="true" className="hidden" />
             <span>Import JSON</span>
           </button>
 
@@ -122,7 +118,7 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
                 className="flex items-center gap-1.5 px-3.5 py-2 bg-[#141414] hover:bg-[#1f1f1f] text-neutral-300 hover:text-white border border-white/10 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
                 title="Export Watchlist to JSON file"
               >
-                {copiedExport ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Download className="w-3.5 h-3.5" />}
+                {copiedExport ? <span aria-hidden="true" className="hidden" /> : <span aria-hidden="true" className="hidden" />}
                 <span>{copiedExport ? 'Downloaded' : 'Export JSON'}</span>
               </button>
 
@@ -130,7 +126,7 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
                 onClick={onClearWatchlist}
                 className="flex items-center gap-1.5 px-3.5 py-2 bg-[#141414] hover:bg-rose-950/40 text-neutral-400 hover:text-rose-300 border border-white/10 hover:border-rose-900/50 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
               >
-                <Trash2 className="w-3.5 h-3.5" />
+                <span aria-hidden="true" className="hidden" />
                 <span>Clear All</span>
               </button>
             </>
@@ -142,7 +138,7 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
       {watchlist.length > 1 && (
         <div className="flex items-center justify-between gap-3 text-xs text-neutral-400 px-1">
           <div className="flex items-center gap-2">
-            <ArrowUpDown className="w-3.5 h-3.5 text-rose-500" />
+            <span aria-hidden="true" className="hidden" />
             <span>Sort Watchlist:</span>
             <div className="flex items-center gap-1">
               {[
@@ -185,9 +181,6 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
         </div>
       ) : (
         <div className="py-20 text-center flex flex-col items-center justify-center bg-[#0a0a0a]/50 border border-dashed border-white/10 rounded-3xl p-8 space-y-4">
-          <div className="w-16 h-16 rounded-2xl bg-[#050505] border border-white/10 flex items-center justify-center text-neutral-600">
-            <Bookmark className="w-8 h-8" />
-          </div>
           <div className="space-y-1 max-w-sm">
             <h3 className="text-lg font-bold text-neutral-200">Your watchlist is empty</h3>
             <p className="text-xs text-neutral-400 leading-relaxed">
@@ -200,7 +193,7 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
                 onClick={onExploreCatalog}
                 className="flex items-center gap-1.5 px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
               >
-                <Film className="w-4 h-4" />
+                <span aria-hidden="true" className="hidden" />
                 <span>Explore Catalog</span>
               </button>
             )}
@@ -208,7 +201,7 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
               onClick={() => fileInputRef.current?.click()}
               className="flex items-center gap-1.5 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 hover:text-white rounded-xl text-xs font-bold border border-white/10 transition-colors cursor-pointer"
             >
-              <Upload className="w-4 h-4" />
+              <span aria-hidden="true" className="hidden" />
               <span>Import Backup JSON</span>
             </button>
           </div>

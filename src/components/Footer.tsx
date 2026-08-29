@@ -1,5 +1,4 @@
 import React from 'react';
-import { Shield, FileText, Info, Mail, BookOpen } from 'lucide-react';
 import { CineVaultLogo } from './CineVaultLogo';
 
 interface FooterProps {
@@ -41,7 +40,7 @@ export const Footer: React.FC<FooterProps> = ({
               onClick={() => onOpenPolicy && onOpenPolicy('privacy')}
               className="hover:text-rose-400 transition-colors cursor-pointer flex items-center gap-1"
             >
-              <Shield className="w-3 h-3" />
+              <span aria-hidden="true" className="hidden" />
               <span>Privacy Policy</span>
             </button>
             <span className="text-neutral-700">•</span>
@@ -50,7 +49,7 @@ export const Footer: React.FC<FooterProps> = ({
               onClick={() => onOpenPolicy && onOpenPolicy('terms')}
               className="hover:text-rose-400 transition-colors cursor-pointer flex items-center gap-1"
             >
-              <FileText className="w-3 h-3" />
+              <span aria-hidden="true" className="hidden" />
               <span>Terms of Service</span>
             </button>
             <span className="text-neutral-700">•</span>
@@ -67,7 +66,7 @@ export const Footer: React.FC<FooterProps> = ({
               onClick={() => onOpenPolicy && onOpenPolicy('about')}
               className="hover:text-rose-400 transition-colors cursor-pointer flex items-center gap-1"
             >
-              <Info className="w-3 h-3" />
+              <span aria-hidden="true" className="hidden" />
               <span>About Us</span>
             </button>
             <span className="text-neutral-700">•</span>
@@ -76,7 +75,7 @@ export const Footer: React.FC<FooterProps> = ({
               onClick={() => onOpenPolicy && onOpenPolicy('contact')}
               className="hover:text-rose-400 transition-colors cursor-pointer flex items-center gap-1"
             >
-              <Mail className="w-3 h-3" />
+              <span aria-hidden="true" className="hidden" />
               <span>Contact</span>
             </button>
             <span className="text-neutral-700">•</span>
@@ -85,7 +84,7 @@ export const Footer: React.FC<FooterProps> = ({
               onClick={() => onOpenGuide && onOpenGuide()}
               className="hover:text-rose-400 transition-colors cursor-pointer flex items-center gap-1 text-rose-400/90 hover:text-rose-300"
             >
-              <BookOpen className="w-3 h-3" />
+              <span aria-hidden="true" className="hidden" />
               <span>Guides</span>
             </button>
           </nav>
