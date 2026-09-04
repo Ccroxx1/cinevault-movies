@@ -1,0 +1,8 @@
+{
+  "name": "cinevault-movies",
+  "description": "Explore, search, and download high-quality curated films with rich metadata, trailers, IMDb ratings, torrents, and magnet links.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

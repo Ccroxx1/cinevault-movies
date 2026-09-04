@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="CineVault" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/pwa-192x192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/pwa-512x512.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="theme-color" content="#050505" />
+    <script>
+      (function() {
+        // Suppress expected benign dev websocket connection notices in AI Studio container environment
+        try {
+          var origError = console.error;
+          console.error = function() {
+            var firstArg = arguments[0];
+            var str = typeof firstArg === 'string' ? firstArg : (firstArg && firstArg.message ? firstArg.message : '');
+            if (
+              str.indexOf('[vite]') !== -1 ||
+              str.indexOf('failed to connect to websocket') !== -1 ||
+              str.indexOf('vite-plugin-pwa') !== -1
+            ) {
+              return;
+            }
+            origError.apply(console, arguments);
+          };
+        } catch (e) {}
+
+        try {
+          var mode = localStorage.getItem('cinevault_color_mode') || 'black';
+          document.documentElement.setAttribute('data-theme', mode);
+          document.documentElement.classList.remove('dark', 'light', 'theme-black', 'theme-white', 'theme-blue-black');
+          if (mode === 'white') {
+            document.documentElement.classList.add('light', 'theme-white');
+          } else if (mode === 'blue-black') {
+            document.documentElement.classList.add('dark', 'theme-blue-black');
+          } else {
+            document.documentElement.classList.add('dark', 'theme-black');
+          }
+        } catch(e) {}
+      })();
+    </script>
+    <title>CineVault By Sasuu — HD Movie Library & Downloads</title>
+    <meta name="description" content="Explore, search, and download high-quality curated films with rich metadata, trailers, IMDb ratings, torrents, and magnet links." />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href="https://cinevault-movies-one.vercel.app/" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:site_name" content="CineVault By Sasuu" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://cinevault-movies-one.vercel.app/" />
+    <meta property="og:title" content="CineVault By Sasuu — HD Movie Library & Downloads" />
+    <meta property="og:description" content="Explore, search, and download high-quality curated films with rich metadata, trailers, IMDb ratings, torrents, and magnet links." />
+    <meta property="og:image" content="https://cinevault-movies-one.vercel.app/favicon-192.png" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@CineVault" />
+    <meta name="twitter:creator" content="@Sasuu" />
+    <meta name="twitter:title" content="CineVault By Sasuu — HD Movie Library & Downloads" />
+    <meta name="twitter:description" content="Explore, search, and download high-quality curated films with rich metadata, trailers, IMDb ratings, torrents, and magnet links." />
+    <meta name="twitter:image" content="https://cinevault-movies-one.vercel.app/favicon-192.png" />
+
+    <meta name="google-site-verification" content="dWg6vWL00fIhf_DJwZIu6KOLqYG7O2qiYAldH1jOYgg" />
+    <meta name="google-adsense-account" content="ca-pub-6128111645137702" />
+    <meta name="msvalidate.01" content="3E5A2D6A11C998B044CC2F84CACBE750" />
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-WMGNYXDRGZ"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-WMGNYXDRGZ');
+    </script>
+
+    <script>
+      (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i+"?ref=bwt";
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+      })(window, document, "clarity", "script", "y6rnjex7gw");
+    </script>
+
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6128111645137702" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  </head>
+  <body class="bg-[#050505] text-neutral-100 antialiased selection:bg-rose-600 selection:text-white">
+    <div id="root">
+      <div class="min-h-screen bg-[#050505] text-neutral-100 flex flex-col font-sans select-none antialiased">
+        <header class="border-b border-white/10 bg-[#080808]/90 backdrop-blur-md px-4 sm:px-8 py-3.5 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-rose-600 to-amber-600 flex items-center justify-center font-black text-white text-xs tracking-wider shadow-lg shadow-rose-900/30 animate-pulse">CV</div>
+            <div class="space-y-1">
+              <div class="h-4 w-28 bg-white/15 rounded-md animate-pulse"></div>
+              <div class="h-2.5 w-40 bg-white/5 rounded-md animate-pulse"></div>
+            </div>
+          </div>
+        </header>
+
+        <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-8 space-y-8">
+          <div class="w-full aspect-[21/9] sm:aspect-[2.4/1] rounded-3xl bg-neutral-900/80 border border-white/10 overflow-hidden relative flex flex-col justify-end p-6 sm:p-10 shadow-2xl animate-pulse">
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-3 pointer-events-none">
+              <div class="relative flex items-center justify-center">
+                <div class="w-14 h-14 rounded-full border-2 border-rose-500/20 border-t-rose-500 animate-spin"></div>
+                <div class="w-8 h-8 rounded-full bg-rose-600/20 backdrop-blur-sm absolute flex items-center justify-center">
+                  <div class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></div>
+                </div>
+              </div>
+              <span class="text-xs font-semibold tracking-wider uppercase text-neutral-400">Loading Cinema Vault...</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-2.5 space-y-2.5 animate-pulse">
+              <div class="aspect-[2/3] rounded-xl bg-white/10"></div>
+              <div class="h-3.5 w-3/4 bg-white/20 rounded"></div>
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-2.5 space-y-2.5 animate-pulse">
+              <div class="aspect-[2/3] rounded-xl bg-white/10"></div>
+              <div class="h-3.5 w-3/4 bg-white/20 rounded"></div>
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-2.5 space-y-2.5 animate-pulse">
+              <div class="aspect-[2/3] rounded-xl bg-white/10"></div>
+              <div class="h-3.5 w-3/4 bg-white/20 rounded"></div>
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-2.5 space-y-2.5 animate-pulse">
+              <div class="aspect-[2/3] rounded-xl bg-white/10"></div>
+              <div class="h-3.5 w-3/4 bg-white/20 rounded"></div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NBFJMMHC" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  </body>
+</html>

@@ -1,0 +1,69 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "functions": {
+    "api/index.ts": {
+      "includeFiles": "dist/**"
+    }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    },
+    {
+      "source": "/(robots.txt|sitemap.xml|ads.txt|google.*.html|BingSiteAuth.xml|.*.txt)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/movies/list",
+      "destination": "https://movies-api.accel.li/api/v2/list_movies.json"
+    },
+    {
+      "source": "/api/movies/details",
+      "destination": "https://movies-api.accel.li/api/v2/movie_details.json"
+    },
+    {
+      "source": "/api/movies/suggestions",
+      "destination": "https://movies-api.accel.li/api/v2/movie_suggestions.json"
+    },
+    {
+      "source": "/api/movies/parental_guides",
+      "destination": "https://movies-api.accel.li/api/v2/movie_parental_guides.json"
+    },
+    {
+      "source": "/api/v2/:path*",
+      "destination": "https://movies-api.accel.li/api/v2/:path*"
+    },
+    {
+      "source": "/api/download/:path*",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/movies/:slug",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/api/index"
+    }
+  ],
+  "buildCommand": "npm run build"
+}

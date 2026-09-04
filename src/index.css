@@ -1,0 +1,610 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6, .font-display {
+    font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
+  }
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Custom sleek scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #050505;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #222222;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #333333;
+}
+
+/* Animations for hero slideshow */
+@keyframes progressFill {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+.animate-progressFill {
+  animation: progressFill 6s linear infinite;
+}
+
+@keyframes heroFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(1.02);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-heroFadeIn {
+  animation: heroFadeIn 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Hero Cinema Stage & Gradients */
+.hero-cinema-container {
+  background-color: #060608;
+}
+
+.hero-gradient-overlay-x {
+  background: linear-gradient(
+    90deg,
+    rgba(5, 5, 5, 0.97) 0%,
+    rgba(5, 5, 5, 0.90) 34%,
+    rgba(5, 5, 5, 0.62) 58%,
+    rgba(5, 5, 5, 0.20) 78%,
+    rgba(5, 5, 5, 0) 100%
+  );
+}
+
+.hero-gradient-overlay-y {
+  background: linear-gradient(
+    0deg,
+    rgba(5, 5, 5, 0.95) 0%,
+    rgba(5, 5, 5, 0.68) 28%,
+    rgba(5, 5, 5, 0.18) 55%,
+    rgba(5, 5, 5, 0) 100%
+  );
+}
+
+[data-theme="blue-black"] .hero-cinema-container {
+  background-color: #050914;
+}
+
+[data-theme="blue-black"] .hero-gradient-overlay-x {
+  background: linear-gradient(
+    90deg,
+    rgba(6, 11, 23, 0.97) 0%,
+    rgba(6, 11, 23, 0.92) 34%,
+    rgba(6, 11, 23, 0.64) 58%,
+    rgba(6, 11, 23, 0.22) 78%,
+    rgba(6, 11, 23, 0) 100%
+  );
+}
+
+[data-theme="blue-black"] .hero-gradient-overlay-y {
+  background: linear-gradient(
+    0deg,
+    rgba(6, 11, 23, 0.96) 0%,
+    rgba(6, 11, 23, 0.72) 28%,
+    rgba(6, 11, 23, 0.22) 55%,
+    rgba(6, 11, 23, 0) 100%
+  );
+}
+
+[data-theme="white"] .hero-cinema-container {
+  background-color: #0c0d12 !important;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.35) !important;
+}
+
+[data-theme="white"] .hero-cinema-container .text-white,
+[data-theme="white"] .hero-cinema-container .text-neutral-100,
+[data-theme="white"] .hero-cinema-container .text-neutral-200,
+[data-theme="white"] .hero-cinema-container .text-neutral-300 {
+  color: #ffffff !important;
+}
+
+[data-theme="white"] .hero-cinema-container .text-neutral-400 {
+  color: #94a3b8 !important;
+}
+
+[data-theme="white"] .hero-cinema-container .border-white\/10,
+[data-theme="white"] .hero-cinema-container .border-white\/15,
+[data-theme="white"] .hero-cinema-container .border-white\/20,
+[data-theme="white"] .hero-cinema-container .border-white\/25 {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* ==========================================================================
+   COLOR MODES: Black (OLED Cinema), White (High-Contrast Light), Blue-Black (Midnight)
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   GLOBAL ACCESSIBILITY & DEFAULT CONTRAST (Black / OLED Cinema Theme)
+   -------------------------------------------------------------------------- */
+:root {
+  color-scheme: dark;
+}
+
+/* Ensure secondary and tertiary text is easily readable on dark backgrounds (WCAG AA) */
+:root:not([data-theme="white"]) .text-neutral-500 {
+  color: #a3a3a3 !important;
+}
+
+:root:not([data-theme="white"]) .text-neutral-600 {
+  color: #737373 !important;
+}
+
+:root:not([data-theme="white"]) .text-neutral-700 {
+  color: #525252 !important;
+}
+
+/* Fix OS-level dropdown menu readability on dark themes */
+:root:not([data-theme="white"]) select option {
+  background-color: #121212 !important;
+  color: #ffffff !important;
+}
+
+/* --------------------------------------------------------------------------
+   BLUE-BLACK THEME (Midnight Navy & Sapphire Cinema)
+   -------------------------------------------------------------------------- */
+[data-theme="blue-black"] {
+  color-scheme: dark;
+}
+
+[data-theme="blue-black"] body,
+[data-theme="blue-black"] .min-h-screen,
+[data-theme="blue-black"] .bg-\[\#050505\],
+[data-theme="blue-black"] main {
+  background-color: #060b17 !important;
+  color: #f8fafc !important;
+}
+
+/* Header and Navigation */
+[data-theme="blue-black"] header,
+[data-theme="blue-black"] .bg-\[\#080808\]\/90,
+[data-theme="blue-black"] .bg-\[\#080808\] {
+  background-color: rgba(9, 16, 36, 0.94) !important;
+  border-bottom-color: rgba(56, 189, 248, 0.14) !important;
+}
+
+/* Primary Dark Cards & Modals */
+[data-theme="blue-black"] article,
+[data-theme="blue-black"] .bg-\[\#060608\],
+[data-theme="blue-black"] .bg-\[\#0a0a0a\],
+[data-theme="blue-black"] .bg-\[\#0c0c0c\],
+[data-theme="blue-black"] .bg-\[\#0d0d0d\],
+[data-theme="blue-black"] .bg-\[\#0e0e0e\],
+[data-theme="blue-black"] .bg-\[\#101010\] {
+  background-color: #0b1328 !important;
+  border-color: rgba(56, 189, 248, 0.16) !important;
+}
+
+/* Secondary & Nested Containers */
+[data-theme="blue-black"] .bg-\[\#0f0f0f\],
+[data-theme="blue-black"] .bg-\[\#111111\],
+[data-theme="blue-black"] .bg-\[\#121212\],
+[data-theme="blue-black"] .bg-\[\#141414\],
+[data-theme="blue-black"] .bg-\[\#151515\],
+[data-theme="blue-black"] .bg-\[\#181818\],
+[data-theme="blue-black"] .bg-\[\#1a1a1a\],
+[data-theme="blue-black"] .bg-\[\#1c1c1c\],
+[data-theme="blue-black"] .bg-\[\#1e1e1e\],
+[data-theme="blue-black"] .bg-\[\#1f1f1f\],
+[data-theme="blue-black"] .bg-\[\#222222\],
+[data-theme="blue-black"] .bg-neutral-900,
+[data-theme="blue-black"] .bg-neutral-900\/80,
+[data-theme="blue-black"] .bg-neutral-900\/60 {
+  background-color: #0e1834 !important;
+  border-color: rgba(56, 189, 248, 0.18) !important;
+}
+
+/* Badges & Chips in Blue-Black */
+[data-theme="blue-black"] .bg-neutral-800,
+[data-theme="blue-black"] .bg-neutral-800\/80 {
+  background-color: #142248 !important;
+  color: #cbd5e1 !important;
+  border-color: rgba(56, 189, 248, 0.22) !important;
+}
+
+/* Interactive Hover States */
+[data-theme="blue-black"] .hover\:bg-\[\#111111\]:hover,
+[data-theme="blue-black"] .hover\:bg-\[\#141414\]:hover,
+[data-theme="blue-black"] .hover\:bg-\[\#151515\]:hover,
+[data-theme="blue-black"] .hover\:bg-\[\#1a1a1a\]:hover,
+[data-theme="blue-black"] .hover\:bg-\[\#1f1f1f\]:hover,
+[data-theme="blue-black"] .hover\:bg-\[\#222222\]:hover,
+[data-theme="blue-black"] .hover\:bg-white\/5:hover,
+[data-theme="blue-black"] .hover\:bg-white\/10:hover,
+[data-theme="blue-black"] .hover\:bg-white\/15:hover {
+  background-color: rgba(56, 189, 248, 0.1) !important;
+}
+
+/* Form Controls & Select Options */
+[data-theme="blue-black"] input,
+[data-theme="blue-black"] select {
+  background-color: #0b1328 !important;
+  color: #f8fafc !important;
+  border-color: rgba(56, 189, 248, 0.22) !important;
+}
+
+[data-theme="blue-black"] select option {
+  background-color: #0b1328 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="blue-black"] input::placeholder {
+  color: #64748b !important;
+}
+
+/* Enhanced High-Contrast Text in Blue-Black (Slate Palette) */
+[data-theme="blue-black"] .text-neutral-400 {
+  color: #94a3b8 !important; /* Slate 400: High contrast against #060b17 */
+}
+
+[data-theme="blue-black"] .text-neutral-500 {
+  color: #64748b !important; /* Slate 500 */
+}
+
+[data-theme="blue-black"] .text-neutral-600 {
+  color: #475569 !important; /* Slate 600 */
+}
+
+[data-theme="blue-black"] .text-neutral-700 {
+  color: #334155 !important;
+}
+
+/* Borders */
+[data-theme="blue-black"] .border-white\/10,
+[data-theme="blue-black"] .border-white\/15,
+[data-theme="blue-black"] .border-white\/20,
+[data-theme="blue-black"] .border-neutral-700\/60 {
+  border-color: rgba(56, 189, 248, 0.18) !important;
+}
+
+[data-theme="blue-black"] .border-white\/5 {
+  border-color: rgba(56, 189, 248, 0.08) !important;
+}
+
+/* Footer in Blue-Black */
+[data-theme="blue-black"] footer,
+[data-theme="blue-black"] footer#cinevault-footer {
+  background-color: #040810 !important;
+  border-top-color: rgba(56, 189, 248, 0.14) !important;
+}
+
+/* Scrollbars in Blue-Black */
+[data-theme="blue-black"] ::-webkit-scrollbar-track {
+  background: #060b17;
+}
+
+[data-theme="blue-black"] ::-webkit-scrollbar-thumb {
+  background: #1e293b;
+}
+
+[data-theme="blue-black"] ::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* --------------------------------------------------------------------------
+   WHITE THEME (Clean High-Contrast Light Mode)
+   -------------------------------------------------------------------------- */
+[data-theme="white"] {
+  color-scheme: light;
+}
+
+[data-theme="white"] body,
+[data-theme="white"] .min-h-screen,
+[data-theme="white"] .bg-\[\#050505\],
+[data-theme="white"] main {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+/* Header styling in Light Mode */
+[data-theme="white"] header,
+[data-theme="white"] .bg-\[\#080808\]\/90,
+[data-theme="white"] .bg-\[\#080808\] {
+  background-color: rgba(255, 255, 255, 0.96) !important;
+  border-bottom-color: rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Primary Cards & Elevated Surfaces */
+[data-theme="white"] article,
+[data-theme="white"] .bg-\[\#060608\],
+[data-theme="white"] .bg-\[\#0a0a0a\],
+[data-theme="white"] .bg-\[\#0a0a0a\]\/95,
+[data-theme="white"] .bg-\[\#0a0a0a\]\/50,
+[data-theme="white"] .bg-\[\#0a0a0a\]\/40,
+[data-theme="white"] .bg-\[\#0c0c0c\],
+[data-theme="white"] .bg-\[\#0d0d0d\],
+[data-theme="white"] .bg-\[\#0e0e0e\],
+[data-theme="white"] .bg-\[\#101010\] {
+  background-color: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.09) !important;
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.04);
+}
+
+/* Secondary Containers, Rows & Inputs */
+[data-theme="white"] .bg-\[\#0f0f0f\],
+[data-theme="white"] .bg-\[\#111111\],
+[data-theme="white"] .bg-\[\#121212\],
+[data-theme="white"] .bg-\[\#121212\]\/95,
+[data-theme="white"] .bg-\[\#141414\],
+[data-theme="white"] .bg-\[\#151515\],
+[data-theme="white"] .bg-\[\#181818\],
+[data-theme="white"] .bg-\[\#1a1a1a\],
+[data-theme="white"] .bg-\[\#1c1c1c\],
+[data-theme="white"] .bg-\[\#1e1e1e\],
+[data-theme="white"] .bg-\[\#1f1f1f\],
+[data-theme="white"] .bg-\[\#222222\],
+[data-theme="white"] .bg-neutral-900,
+[data-theme="white"] .bg-neutral-900\/80,
+[data-theme="white"] .bg-neutral-900\/60 {
+  background-color: #f1f5f9 !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Neutral Badges & Pills */
+[data-theme="white"] .bg-neutral-800,
+[data-theme="white"] .bg-neutral-800\/80 {
+  background-color: #e2e8f0 !important;
+  color: #1e293b !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Universal Text Visibility Overrides for Light Mode */
+[data-theme="white"] .text-white {
+  color: #0f172a !important; /* Deep Slate 900 for pristine reading */
+}
+
+[data-theme="white"] .hover\:text-white:hover {
+  color: #0f172a !important;
+}
+
+[data-theme="white"] .text-neutral-100,
+[data-theme="white"] .text-neutral-200,
+[data-theme="white"] .text-neutral-300 {
+  color: #0f172a !important;
+}
+
+[data-theme="white"] .hover\:text-neutral-100:hover,
+[data-theme="white"] .hover\:text-neutral-200:hover,
+[data-theme="white"] .hover\:text-neutral-300:hover {
+  color: #0f172a !important;
+}
+
+[data-theme="white"] .text-neutral-400 {
+  color: #334155 !important; /* Slate 700 - 8.5:1 contrast against #ffffff */
+}
+
+[data-theme="white"] .text-neutral-500 {
+  color: #475569 !important; /* Slate 600 - 5.5:1 contrast */
+}
+
+[data-theme="white"] .text-neutral-600 {
+  color: #64748b !important; /* Slate 500 - 4.6:1 contrast */
+}
+
+[data-theme="white"] .text-neutral-700 {
+  color: #94a3b8 !important; /* Slate 400 */
+}
+
+/* Light Mode Input Elements & Select Options */
+[data-theme="white"] input,
+[data-theme="white"] select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: rgba(0, 0, 0, 0.18) !important;
+}
+
+[data-theme="white"] select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+[data-theme="white"] input::placeholder {
+  color: #64748b !important;
+}
+
+/* Hover & Background Transparency in Light Mode */
+[data-theme="white"] .hover\:bg-\[\#111111\]:hover,
+[data-theme="white"] .hover\:bg-\[\#141414\]:hover,
+[data-theme="white"] .hover\:bg-\[\#151515\]:hover,
+[data-theme="white"] .hover\:bg-\[\#1a1a1a\]:hover,
+[data-theme="white"] .hover\:bg-\[\#1f1f1f\]:hover,
+[data-theme="white"] .hover\:bg-\[\#222222\]:hover,
+[data-theme="white"] .hover\:bg-white\/5:hover,
+[data-theme="white"] .hover\:bg-white\/10:hover,
+[data-theme="white"] .hover\:bg-white\/15:hover,
+[data-theme="white"] .hover\:bg-white\/20:hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="white"] .bg-white\/5,
+[data-theme="white"] .bg-white\/10,
+[data-theme="white"] .bg-white\/15 {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Borders in Light Mode */
+[data-theme="white"] .border-white\/10,
+[data-theme="white"] .border-white\/5,
+[data-theme="white"] .border-white\/15,
+[data-theme="white"] .border-white\/20,
+[data-theme="white"] .border-neutral-700\/60 {
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+/* --------------------------------------------------------------------------
+   EXCEPTIONS FOR WHITE THEME (Containers that must preserve white text)
+   -------------------------------------------------------------------------- */
+
+/* 1. Hero Cinema Slideshow (Stays a dark immersive cinema backdrop) */
+[data-theme="white"] .hero-cinema-container,
+[data-theme="white"] .hero-cinema-container * {
+  /* Keep container backdrop and dark overlay readable */
+}
+
+[data-theme="white"] .hero-cinema-container .text-white,
+[data-theme="white"] .hero-cinema-container .text-neutral-100,
+[data-theme="white"] .hero-cinema-container .text-neutral-200,
+[data-theme="white"] .hero-cinema-container .text-neutral-300,
+[data-theme="white"] .hero-cinema-container .hover\:text-white:hover {
+  color: #ffffff !important;
+}
+
+[data-theme="white"] .hero-cinema-container .text-neutral-400 {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="white"] .hero-cinema-container .text-neutral-500 {
+  color: #94a3b8 !important;
+}
+
+[data-theme="white"] .hero-cinema-container .bg-white\/5,
+[data-theme="white"] .hero-cinema-container .bg-white\/10 {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 2. Solid Colored Action Buttons & Badges (Must maintain high-contrast white text) */
+[data-theme="white"] .bg-rose-600,
+[data-theme="white"] .bg-rose-600 *,
+[data-theme="white"] .bg-rose-700,
+[data-theme="white"] .bg-rose-700 *,
+[data-theme="white"] .hover\:bg-rose-500:hover,
+[data-theme="white"] .hover\:bg-rose-500:hover *,
+[data-theme="white"] .bg-emerald-600,
+[data-theme="white"] .bg-emerald-600 *,
+[data-theme="white"] .hover\:bg-emerald-500:hover,
+[data-theme="white"] .hover\:bg-emerald-500:hover *,
+[data-theme="white"] .bg-amber-600,
+[data-theme="white"] .bg-amber-600 *,
+[data-theme="white"] .bg-amber-700,
+[data-theme="white"] .bg-amber-700 *,
+[data-theme="white"] .bg-blue-600,
+[data-theme="white"] .bg-blue-600 *,
+[data-theme="white"] .bg-purple-600,
+[data-theme="white"] .bg-purple-600 *,
+[data-theme="white"] .bg-\[\#6ac045\],
+[data-theme="white"] .bg-\[\#6ac045\] *,
+[data-theme="white"] .hover\:bg-\[\#5ca63c\]:hover,
+[data-theme="white"] .hover\:bg-\[\#5ca63c\]:hover * {
+  color: #ffffff !important;
+}
+
+/* 3. Floating Badges and Overlays on Movie Posters */
+[data-theme="white"] [class*="bg-black/"],
+[data-theme="white"] [class*="bg-black/"] .text-white,
+[data-theme="white"] [class*="bg-black/"] .text-neutral-200,
+[data-theme="white"] [class*="bg-black/"] .text-neutral-300 {
+  color: #ffffff !important;
+}
+
+[data-theme="white"] [class*="bg-black/"] .text-amber-400 {
+  color: #fbbf24 !important;
+}
+
+[data-theme="white"] .group:hover .bg-gradient-to-t,
+[data-theme="white"] .group:hover .bg-gradient-to-t .text-white,
+[data-theme="white"] .group:hover .bg-gradient-to-t .hover\:text-white:hover,
+[data-theme="white"] .group:hover .bg-gradient-to-t .text-neutral-100,
+[data-theme="white"] .group:hover .bg-gradient-to-t .text-neutral-200,
+[data-theme="white"] .group:hover .bg-gradient-to-t .text-neutral-300 {
+  color: #ffffff !important;
+}
+
+/* Poster hover overlay buttons with bg-white text-black */
+[data-theme="white"] .group:hover .bg-white,
+[data-theme="white"] .group:hover .bg-white * {
+  color: #000000 !important;
+}
+
+/* 4. Curated Mood Collections Cards (Light tinted pastel containers with dark text) */
+[data-theme="white"] .from-amber-600\/30 {
+  background-image: linear-gradient(to bottom, #fffbeb, #fef3c7) !important;
+  border-color: #fcd34d !important;
+}
+
+[data-theme="white"] .from-cyan-600\/30 {
+  background-image: linear-gradient(to bottom, #ecfeff, #cffafe) !important;
+  border-color: #67e8f9 !important;
+}
+
+[data-theme="white"] .from-rose-600\/30 {
+  background-image: linear-gradient(to bottom, #fff1f2, #ffe4e6) !important;
+  border-color: #fda4af !important;
+}
+
+[data-theme="white"] .from-purple-600\/30 {
+  background-image: linear-gradient(to bottom, #faf5ff, #f3e8ff) !important;
+  border-color: #d8b4fe !important;
+}
+
+[data-theme="white"] .from-emerald-600\/30 {
+  background-image: linear-gradient(to bottom, #ecfdf5, #d1fae5) !important;
+  border-color: #6ee7b7 !important;
+}
+
+[data-theme="white"] .from-amber-600\/30 .bg-black\/60,
+[data-theme="white"] .from-cyan-600\/30 .bg-black\/60,
+[data-theme="white"] .from-rose-600\/30 .bg-black\/60,
+[data-theme="white"] .from-purple-600\/30 .bg-black\/60,
+[data-theme="white"] .from-emerald-600\/30 .bg-black\/60 {
+  background-color: rgba(0, 0, 0, 0.08) !important;
+  color: #0f172a !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Brand Logo Adjustment in Light Mode */
+[data-theme="white"] .cine-vault-title-cine {
+  background: none !important;
+  -webkit-text-fill-color: #0f172a !important;
+  color: #0f172a !important;
+}
+
+[data-theme="white"] .cine-vault-by-sasuu {
+  color: #475569 !important;
+}
+
+/* Footer in Light Mode */
+[data-theme="white"] footer,
+[data-theme="white"] footer#cinevault-footer {
+  background-color: #ffffff !important;
+  border-top-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Scrollbars in Light Mode */
+[data-theme="white"] ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+[data-theme="white"] ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+
+[data-theme="white"] ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
