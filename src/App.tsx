@@ -690,7 +690,7 @@ export default function App() {
                         ? '4K Ultra HD Cinema (2160p)'
                         : currentNav === 'top'
                         ? 'Top Rated Masterpieces (IMDb 8+)'
-                        : 'Explore Films & Torrents'}
+                        : 'Explore Films'}
                     </span>
                   </h1>
                   <p className="text-xs sm:text-sm text-neutral-400 mt-0.5">
