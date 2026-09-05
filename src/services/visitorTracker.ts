@@ -1,65 +1,76 @@
 export interface VisitorCountData {
-  count: number;
-  totalVisits: number;
+  count: number | null;
+  totalVisits: number | null;
   isNewVisitor?: boolean;
-  visitorId?: string;
+  isNewSession?: boolean;
+  source?: string;
+  lastUpdated?: number;
+  isUnavailable?: boolean;
 }
 
-const VISITOR_STORAGE_KEY = 'cinevault_visitor_id';
-const SESSION_STORAGE_KEY = 'cv_session_counted';
-
-/**
- * Returns or generates a persistent, unique client visitor identifier.
- * Format: cv_<timestamp>_<random>
- */
-export function getOrCreateVisitorId(): string {
-  if (typeof window === 'undefined') return '';
-
-  try {
-    let id = localStorage.getItem(VISITOR_STORAGE_KEY);
-    if (!id || !/^cv_[a-zA-Z0-9_-]{8,64}$/.test(id)) {
-      const entropy = Math.random().toString(36).substring(2, 10);
-      const timeTag = Date.now().toString(36);
-      id = `cv_${timeTag}_${entropy}`;
-      localStorage.setItem(VISITOR_STORAGE_KEY, id);
-    }
-    return id;
-  } catch {
-    // If localStorage is blocked by browser privacy modes
-    return `cv_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 10)}`;
-  }
-}
+const SESSION_RECORDED_KEY = 'cv_session_verified_at';
 
 /**
  * Records an actual visitor visit with the backend.
- * Uses sessionStorage to accurately record unique sessions vs unique visitors.
- * Strictly actual verified visits - zero simulated counts.
+ * Zero client-supplied IDs or fake numbers - the server authenticates
+ * and mints a cryptographically signed HttpOnly cookie.
+ * Marks the browser session as verified ONLY after a 200 OK response.
  */
 export async function recordVisitorVisit(): Promise<VisitorCountData> {
-  const visitorId = getOrCreateVisitorId();
-  let isNewSession = true;
-
-  try {
-    if (typeof window !== 'undefined' && window.sessionStorage) {
-      isNewSession = !sessionStorage.getItem(SESSION_STORAGE_KEY);
-      if (isNewSession) {
-        sessionStorage.setItem(SESSION_STORAGE_KEY, '1');
-      }
-    }
-  } catch {
-    isNewSession = false;
-  }
-
   try {
     const res = await fetch('/api/visitors/record', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
-      body: JSON.stringify({
-        visitorId,
-        isNewSession,
-      }),
+      // Note: credentials 'same-origin' or 'include' is default for modern fetch on same origin
+      credentials: 'same-origin',
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (typeof data.count === 'number') {
+        // Mark session as recorded only on success
+        try {
+          if (typeof window !== 'undefined' && window.sessionStorage) {
+            sessionStorage.setItem(SESSION_RECORDED_KEY, String(Date.now()));
+          }
+        } catch {
+          // Ignore private browsing restrictions
+        }
+
+        return {
+          count: data.count,
+          totalVisits: data.totalVisits ?? data.count,
+          isNewVisitor: Boolean(data.isNewVisitor),
+          isNewSession: Boolean(data.isNewSession),
+          source: data.source || 'redis-atomic',
+          lastUpdated: data.timestamp || Date.now(),
+          isUnavailable: false,
+        };
+      }
+    } else if (res.status === 429 || res.status === 403) {
+      // Rate limited or crawler response - read-only query fallback
+      return fetchVisitorCount();
+    }
+  } catch (err) {
+    console.warn('Visitor record request failed:', err);
+  }
+
+  // Gracefully fallback to read-only count query if record fails
+  return fetchVisitorCount();
+}
+
+/**
+ * Fetches the current actual visitor count without modifying session state.
+ */
+export async function fetchVisitorCount(): Promise<VisitorCountData> {
+  try {
+    const res = await fetch('/api/visitors/count', {
+      headers: {
+        'Accept': 'application/json',
+      },
+      cache: 'no-store',
     });
 
     if (res.ok) {
@@ -68,40 +79,19 @@ export async function recordVisitorVisit(): Promise<VisitorCountData> {
         return {
           count: data.count,
           totalVisits: data.totalVisits ?? data.count,
-          isNewVisitor: Boolean(data.isNewVisitor),
-          visitorId: data.visitorId || visitorId,
+          source: data.source || 'redis-atomic',
+          lastUpdated: data.timestamp || Date.now(),
+          isUnavailable: false,
         };
       }
     }
   } catch (err) {
-    console.warn('Failed to record actual visitor:', err);
-  }
-
-  // Graceful fallback to read-only count query if record fails
-  return fetchVisitorCount();
-}
-
-/**
- * Fetches the current actual visitor count without recording a new visit.
- */
-export async function fetchVisitorCount(): Promise<VisitorCountData> {
-  try {
-    const res = await fetch('/api/visitors/count');
-    if (res.ok) {
-      const data = await res.json();
-      if (typeof data.count === 'number') {
-        return {
-          count: data.count,
-          totalVisits: data.totalVisits ?? data.count,
-        };
-      }
-    }
-  } catch (err) {
-    console.warn('Failed to fetch actual visitor count:', err);
+    console.warn('Visitor count query failed:', err);
   }
 
   return {
-    count: 0,
-    totalVisits: 0,
+    count: null,
+    totalVisits: null,
+    isUnavailable: true,
   };
 }

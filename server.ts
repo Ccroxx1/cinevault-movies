@@ -1,6 +1,7 @@
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { buildMovieHtml } from './src/utils/htmlBuilder.js';
 
@@ -297,44 +298,167 @@ app.get('/api/movies/filmography', async (req, res) => {
 });
 
 // ==========================================
-// Genuine Visitor Tracker (Upstash Redis + Durable File Fallback)
-// Strictly actual verified visitors - zero simulated counts
+// Tamper-Proof Atomic Visitor Tracker (Upstash Redis)
+// Server-signed HttpOnly cookies • Redis Lua atomic transaction • Zero client trust
 // ==========================================
-const DATA_DIR = path.resolve(process.cwd(), 'data');
-const LOCAL_VISITOR_FILE = path.join(DATA_DIR, 'visitors.json');
+const VISITOR_COOKIE_NAME = 'cv_vtoken';
+const SIGNING_SECRET = process.env.VISITOR_SIGNING_SECRET || process.env.UPSTASH_REDIS_REST_TOKEN || 'cinevault_secure_signing_salt_2026';
+const SESSION_TTL_SECONDS = 1800; // 30-minute rolling session window
 
-function getLocalVisitors(): { unique: Set<string>; totalVisits: number } {
-  try {
-    if (fs.existsSync(LOCAL_VISITOR_FILE)) {
-      const raw = fs.readFileSync(LOCAL_VISITOR_FILE, 'utf-8');
-      const parsed = JSON.parse(raw);
-      return {
-        unique: new Set(Array.isArray(parsed.unique) ? parsed.unique : []),
-        totalVisits: typeof parsed.totalVisits === 'number' ? parsed.totalVisits : 0,
-      };
-    }
-  } catch (err) {
-    console.warn('Could not read local visitor file:', err);
-  }
-  return { unique: new Set(), totalVisits: 0 };
+// In-memory rate limiting and bot filtering
+const ipRateLimitMap = new Map<string, { count: number; resetTime: number }>();
+
+function isBotUserAgent(ua: string): boolean {
+  if (!ua) return true;
+  const botRegex = /bot|crawl|spider|slurp|curl|wget|python|postman|lighthouse|headless|facebookexternalhit|whatsapp|telegram|discordbot|bingbot|googlebot/i;
+  return botRegex.test(ua);
 }
 
-function saveLocalVisitors(unique: Set<string>, totalVisits: number) {
-  try {
-    if (!fs.existsSync(DATA_DIR)) {
-      fs.mkdirSync(DATA_DIR, { recursive: true });
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = ipRateLimitMap.get(ip);
+  if (!entry || now > entry.resetTime) {
+    ipRateLimitMap.set(ip, { count: 1, resetTime: now + 60000 });
+    return true;
+  }
+  if (entry.count >= 20) {
+    return false; // Max 20 record requests per minute per IP
+  }
+  entry.count += 1;
+  return true;
+}
+
+// Clean up stale rate limits every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, entry] of ipRateLimitMap.entries()) {
+    if (now > entry.resetTime) ipRateLimitMap.delete(ip);
+  }
+}, 300000);
+
+function signVisitorId(id: string): string {
+  const hmac = crypto.createHmac('sha256', SIGNING_SECRET).update(id).digest('hex').substring(0, 24);
+  return `${id}.${hmac}`;
+}
+
+function verifyVisitorToken(token: string): string | null {
+  if (!token || typeof token !== 'string') return null;
+  const parts = token.split('.');
+  if (parts.length !== 2) return null;
+  const [id, signature] = parts;
+  if (!id || !signature || !/^cv_[a-zA-Z0-9_-]{12,64}$/.test(id)) return null;
+
+  const expectedHmac = crypto.createHmac('sha256', SIGNING_SECRET).update(id).digest('hex').substring(0, 24);
+  const sigBuf = Buffer.from(signature, 'utf-8');
+  const expBuf = Buffer.from(expectedHmac, 'utf-8');
+  if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
+    return null;
+  }
+  return id;
+}
+
+function parseCookies(req: express.Request): Record<string, string> {
+  const header = req.headers.cookie;
+  if (!header) return {};
+  const cookies: Record<string, string> = {};
+  header.split(';').forEach((pair) => {
+    const idx = pair.indexOf('=');
+    if (idx > 0) {
+      const key = pair.substring(0, idx).trim();
+      const val = pair.substring(idx + 1).trim();
+      try {
+        cookies[key] = decodeURIComponent(val);
+      } catch {
+        cookies[key] = val;
+      }
     }
-    fs.writeFileSync(
-      LOCAL_VISITOR_FILE,
-      JSON.stringify({ unique: Array.from(unique), totalVisits }, null, 2),
-      'utf-8'
-    );
+  });
+  return cookies;
+}
+
+function setVisitorCookie(req: express.Request, res: express.Response, signedToken: string) {
+  // Max-age: 2 years (63072000s)
+  const isHttps = req.secure || req.headers['x-forwarded-proto'] === 'https' || process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
+  const cookieParts = [
+    `${VISITOR_COOKIE_NAME}=${encodeURIComponent(signedToken)}`,
+    'Path=/',
+    'Max-Age=63072000',
+    'HttpOnly',
+    'SameSite=Lax'
+  ];
+  if (isHttps) {
+    cookieParts.push('Secure');
+  }
+  res.setHeader('Set-Cookie', cookieParts.join('; '));
+}
+
+// Atomic Redis Lua script
+const ATOMIC_RECORD_LUA = `
+local vid = ARGV[1]
+local session_ttl = tonumber(ARGV[2])
+local session_key = "cinevault:session:" .. vid
+
+local is_new_visitor = redis.call("SADD", "cinevault:visitors:unique", vid)
+local is_new_session = redis.call("SET", session_key, "1", "EX", session_ttl, "NX")
+
+if is_new_session then
+  redis.call("INCR", "cinevault:visitors:total")
+end
+
+local count = redis.call("SCARD", "cinevault:visitors:unique")
+local total = redis.call("GET", "cinevault:visitors:total")
+
+return { tostring(count), tostring(total or count), tostring(is_new_visitor), is_new_session and "1" or "0" }
+`;
+
+async function executeRedisAtomicRecord(
+  visitorId: string
+): Promise<{ count: number; totalVisits: number; isNewVisitor: boolean; isNewSession: boolean } | null> {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) return null;
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify([
+        'EVAL',
+        ATOMIC_RECORD_LUA,
+        0,
+        visitorId,
+        String(SESSION_TTL_SECONDS),
+      ]),
+      signal: AbortSignal.timeout(4000),
+    });
+
+    if (!res.ok) {
+      console.warn('Redis EVAL non-200 status:', res.status);
+      return null;
+    }
+
+    const data: any = await res.json();
+    if (data.error || !Array.isArray(data.result) || data.result.length < 4) {
+      console.warn('Redis Lua script error:', data.error);
+      return null;
+    }
+
+    const count = parseInt(data.result[0], 10) || 0;
+    const totalVisits = parseInt(data.result[1], 10) || count;
+    const isNewVisitor = data.result[2] === '1';
+    const isNewSession = data.result[3] === '1';
+
+    return { count, totalVisits, isNewVisitor, isNewSession };
   } catch (err) {
-    console.warn('Could not save local visitor file:', err);
+    console.warn('Redis atomic visitor transaction error:', err);
+    return null;
   }
 }
 
-async function queryRedisVisitors(): Promise<{ count: number; totalVisits: number } | null> {
+async function queryRedisReadOnly(): Promise<{ count: number; totalVisits: number } | null> {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
   if (!url || !token) return null;
@@ -360,103 +484,113 @@ async function queryRedisVisitors(): Promise<{ count: number; totalVisits: numbe
     const totalVisits = Number.isFinite(rawTotal) ? Math.max(rawTotal, count) : count;
     return { count, totalVisits };
   } catch (err) {
-    console.warn('Redis visitor query error:', err);
+    console.warn('Redis read-only visitor query error:', err);
     return null;
   }
 }
 
-async function recordRedisVisitor(
-  visitorId: string,
-  isNewSession: boolean
-): Promise<{ count: number; totalVisits: number; isNewVisitor: boolean } | null> {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) return null;
-
-  try {
-    const commands: any[] = [
-      ['SADD', 'cinevault:visitors:unique', visitorId],
-    ];
-    if (isNewSession) {
-      commands.push(['INCR', 'cinevault:visitors:total']);
-    } else {
-      commands.push(['GET', 'cinevault:visitors:total']);
-    }
-    commands.push(['SCARD', 'cinevault:visitors:unique']);
-
-    const res = await fetch(`${url}/pipeline`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(commands),
-      signal: AbortSignal.timeout(3500),
-    });
-
-    if (!res.ok) return null;
-    const data: any = await res.json();
-    const isNewVisitor = data[0]?.result === 1;
-    const rawTotal = parseInt(data[1]?.result || '0', 10);
-    const count = typeof data[2]?.result === 'number' ? data[2].result : 0;
-    const totalVisits = Number.isFinite(rawTotal) ? Math.max(rawTotal, count) : count;
-
-    return { count, totalVisits, isNewVisitor };
-  } catch (err) {
-    console.warn('Redis visitor recording error:', err);
-    return null;
-  }
-}
+// Local in-memory fallback ONLY for local development without Redis credentials
+let localDevUnique = new Set<string>();
+let localDevTotal = 0;
 
 app.get('/api/visitors/count', async (req, res) => {
-  const redisData = await queryRedisVisitors();
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  const redisData = await queryRedisReadOnly();
   if (redisData) {
-    return res.json({ status: 'ok', count: redisData.count, totalVisits: redisData.totalVisits });
+    return res.json({
+      status: 'ok',
+      count: redisData.count,
+      totalVisits: redisData.totalVisits,
+      source: 'redis-atomic',
+      timestamp: Date.now(),
+    });
   }
 
-  const local = getLocalVisitors();
-  const count = local.unique.size;
-  const totalVisits = Math.max(local.totalVisits, count);
-  return res.json({ status: 'ok', count, totalVisits });
+  // If running in production / Vercel and Redis is unavailable, reject with 503 rather than corrupted local counts
+  if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
+    return res.status(503).json({
+      status: 'error',
+      message: 'Visitor count service temporarily unavailable',
+    });
+  }
+
+  // Local development only fallback
+  return res.json({
+    status: 'ok',
+    count: localDevUnique.size,
+    totalVisits: Math.max(localDevTotal, localDevUnique.size),
+    source: 'local-dev-memory',
+    timestamp: Date.now(),
+  });
 });
 
 app.post('/api/visitors/record', async (req, res) => {
-  let visitorId = typeof req.body?.visitorId === 'string' ? req.body.visitorId.trim() : '';
-  const isNewSession = Boolean(req.body?.isNewSession);
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  const userAgent = req.headers['user-agent'] || '';
+  const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress || 'unknown';
 
-  // Validate or assign unique visitor identifier
-  if (!visitorId || !/^cv_[a-zA-Z0-9_-]{8,64}$/.test(visitorId)) {
-    visitorId = `cv_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 10)}`;
+  // 1. Bot & crawler filtering
+  if (isBotUserAgent(userAgent)) {
+    return res.status(403).json({ status: 'ignored', message: 'Automated crawler requests are not counted' });
   }
 
-  const redisResult = await recordRedisVisitor(visitorId, isNewSession);
+  // 2. IP-based rate limiting
+  if (!checkRateLimit(clientIp)) {
+    return res.status(429).json({ status: 'rate_limited', message: 'Too many requests. Please slow down.' });
+  }
+
+  // 3. Authenticate or mint signed HttpOnly visitor token
+  const cookies = parseCookies(req);
+  const existingToken = cookies[VISITOR_COOKIE_NAME];
+  let visitorId = verifyVisitorToken(existingToken);
+  let isFreshCookie = false;
+
+  if (!visitorId) {
+    // Mint new server-generated cryptographically random identifier
+    const entropy = crypto.randomBytes(16).toString('hex');
+    const timeTag = Date.now().toString(36);
+    visitorId = `cv_${timeTag}_${entropy}`;
+    const signed = signVisitorId(visitorId);
+    setVisitorCookie(req, res, signed);
+    isFreshCookie = true;
+  }
+
+  // 4. Atomic Redis Execution
+  const redisResult = await executeRedisAtomicRecord(visitorId);
   if (redisResult) {
     return res.json({
       status: 'ok',
-      visitorId,
       count: redisResult.count,
       totalVisits: redisResult.totalVisits,
       isNewVisitor: redisResult.isNewVisitor,
+      isNewSession: redisResult.isNewSession,
+      cookieIssued: isFreshCookie,
+      source: 'redis-atomic',
+      timestamp: Date.now(),
     });
   }
 
-  // Local durable fallback if cloud database is unreachable
-  const local = getLocalVisitors();
-  const isNewVisitor = !local.unique.has(visitorId);
-  local.unique.add(visitorId);
-  if (isNewSession) {
-    local.totalVisits += 1;
+  // 5. Fail gracefully if Redis is unreachable in production
+  if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
+    return res.status(503).json({
+      status: 'error',
+      message: 'Visitor database temporarily unavailable',
+    });
   }
-  const count = local.unique.size;
-  const totalVisits = Math.max(local.totalVisits, count);
-  saveLocalVisitors(local.unique, totalVisits);
+
+  // Local development memory fallback
+  const isNewVisitor = !localDevUnique.has(visitorId);
+  localDevUnique.add(visitorId);
+  localDevTotal += 1;
 
   return res.json({
     status: 'ok',
-    visitorId,
-    count,
-    totalVisits,
+    count: localDevUnique.size,
+    totalVisits: localDevTotal,
     isNewVisitor,
+    isNewSession: true,
+    source: 'local-dev-memory',
+    timestamp: Date.now(),
   });
 });
 

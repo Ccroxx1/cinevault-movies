@@ -88,7 +88,7 @@ export const Footer: React.FC<FooterProps> = ({
 
         </div>
 
-        {/* Middle Tier: Actual Verified Visitor Metrics */}
+        {/* Middle Tier: Visitor Metrics */}
         <div id="footer-visitor-tier" className="pt-4 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
           <VisitorCountBadge variant="full" />
           <div className="flex items-center gap-2 text-[11px] text-neutral-500">

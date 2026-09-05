@@ -11,7 +11,8 @@
     "indexnow": "tsx scripts/submitIndexNow.ts",
     "start": "node dist/server.cjs",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "test:visitors": "tsx scripts/testVisitorTracker.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
