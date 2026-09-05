@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { X, User, Film, Star, Calendar, Clock, Loader2, Sparkles } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { X, User, Film, Star, Calendar, Clock, Loader2 } from 'lucide-react';
 import { Movie } from '../types';
-import { fetchMovies } from '../services/movieApi';
+import { fetchFilmography } from '../services/movieApi';
 import { CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
 
 interface FilmographyModalProps {
@@ -31,15 +31,10 @@ export const FilmographyModal: React.FC<FilmographyModalProps> = ({
 
     async function loadFilmography() {
       try {
-        const res = await fetchMovies({
-          query_term: personName || '',
-          limit: 20,
-          sort_by: sortBy === 'rating' ? 'rating' : 'year',
-          order_by: 'desc',
-        });
+        const results = await fetchFilmography(personName || '', role);
 
         if (isMounted) {
-          setMovies(res.movies || []);
+          setMovies(results || []);
           setIsLoading(false);
         }
       } catch (err: any) {
@@ -55,7 +50,16 @@ export const FilmographyModal: React.FC<FilmographyModalProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [personName, sortBy]);
+  }, [personName, role]);
+
+  const sortedMovies = useMemo(() => {
+    return [...movies].sort((a, b) => {
+      if (sortBy === 'rating') {
+        return (b.rating || 0) - (a.rating || 0);
+      }
+      return (b.year || 0) - (a.year || 0);
+    });
+  }, [movies, sortBy]);
 
   if (!personName) return null;
 
@@ -79,7 +83,7 @@ export const FilmographyModal: React.FC<FilmographyModalProps> = ({
                   {role === 'director' ? 'Director Filmography' : 'Cast Member'}
                 </span>
                 <span className="text-xs text-neutral-400">
-                  {movies.length > 0 && `${movies.length} films found`}
+                  {sortedMovies.length > 0 && `${sortedMovies.length} films found`}
                 </span>
               </div>
               <h2 id="filmography-title" className="text-lg sm:text-xl font-display font-black text-white mt-0.5">
@@ -89,18 +93,20 @@ export const FilmographyModal: React.FC<FilmographyModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="hidden sm:flex items-center bg-white/5 rounded-xl p-1 border border-white/10 text-xs">
+            <div className="flex items-center bg-white/5 rounded-xl p-1 border border-white/10 text-[11px] sm:text-xs">
               <button
+                type="button"
                 onClick={() => setSortBy('rating')}
-                className={`px-3 py-1 rounded-lg font-semibold transition cursor-pointer ${
+                className={`px-2.5 sm:px-3 py-1 rounded-lg font-semibold transition cursor-pointer ${
                   sortBy === 'rating' ? 'bg-rose-600 text-white' : 'text-neutral-400 hover:text-white'
                 }`}
               >
                 Top Rated
               </button>
               <button
+                type="button"
                 onClick={() => setSortBy('year')}
-                className={`px-3 py-1 rounded-lg font-semibold transition cursor-pointer ${
+                className={`px-2.5 sm:px-3 py-1 rounded-lg font-semibold transition cursor-pointer ${
                   sortBy === 'year' ? 'bg-rose-600 text-white' : 'text-neutral-400 hover:text-white'
                 }`}
               >
@@ -109,6 +115,7 @@ export const FilmographyModal: React.FC<FilmographyModalProps> = ({
             </div>
 
             <button
+              type="button"
               onClick={onClose}
               className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white transition cursor-pointer"
               aria-label="Close Filmography"
@@ -123,11 +130,11 @@ export const FilmographyModal: React.FC<FilmographyModalProps> = ({
           {isLoading ? (
             <div className="py-20 flex flex-col items-center justify-center gap-3 text-neutral-400">
               <Loader2 className="w-8 h-8 text-rose-500 animate-spin" />
-              <p className="text-xs">Searching catalog for films with {personName}...</p>
+              <p className="text-xs">Searching catalog for films featuring {personName}...</p>
             </div>
           ) : error ? (
             <div className="py-16 text-center text-rose-400 text-sm">{error}</div>
-          ) : movies.length === 0 ? (
+          ) : sortedMovies.length === 0 ? (
             <div className="py-16 text-center space-y-3">
               <Film className="w-12 h-12 mx-auto text-neutral-600" />
               <p className="text-sm font-bold text-white">No Additional Titles Found</p>
@@ -137,7 +144,7 @@ export const FilmographyModal: React.FC<FilmographyModalProps> = ({
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
-              {movies.map((m) => (
+              {sortedMovies.map((m) => (
                 <div
                   key={m.id}
                   onClick={() => {
@@ -153,10 +160,13 @@ export const FilmographyModal: React.FC<FilmographyModalProps> = ({
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       referrerPolicy="no-referrer"
                       loading="lazy"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = CINEVAULT_POSTER_FALLBACK;
+                      }}
                     />
                     <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-black/80 backdrop-blur-sm border border-white/10 flex items-center gap-1 text-[11px] font-bold text-amber-400">
                       <Star className="w-3 h-3 fill-amber-400" />
-                      <span>{m.rating.toFixed(1)}</span>
+                      <span>{(m.rating || 0).toFixed(1)}</span>
                     </div>
                   </div>
 

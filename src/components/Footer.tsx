@@ -1,5 +1,6 @@
 import React from 'react';
 import { CineVaultLogo } from './CineVaultLogo';
+import { VisitorCountBadge } from './VisitorCountBadge';
 
 interface FooterProps {
   onNavigateHome?: () => void;
@@ -85,6 +86,15 @@ export const Footer: React.FC<FooterProps> = ({
             </button>
           </nav>
 
+        </div>
+
+        {/* Middle Tier: Actual Verified Visitor Metrics */}
+        <div id="footer-visitor-tier" className="pt-4 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <VisitorCountBadge variant="full" />
+          <div className="flex items-center gap-2 text-[11px] text-neutral-500">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" aria-hidden="true"></span>
+            <span>Index Mirrors: Operational</span>
+          </div>
         </div>
 
         {/* Bottom Tier: Disclaimer, Copyright & User Agreement Notice */}

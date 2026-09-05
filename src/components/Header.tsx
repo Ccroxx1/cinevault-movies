@@ -6,6 +6,7 @@ import { CineVaultLogo } from './CineVaultLogo';
 import { BookmarkIcon, PlayIcon } from './ActionIcons';
 import { ColorModeSelector } from './ColorModeSelector';
 import { PWAInstallButton } from './PWAInstallButton';
+import { VisitorCountBadge } from './VisitorCountBadge';
 import { CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
 
 interface HeaderProps {
@@ -544,9 +545,12 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
 
-            <div className="pt-4 border-t border-white/10 text-[10px] text-neutral-500">
-              <p className="font-semibold text-neutral-400">CineVault Cinema Portal</p>
-              <p>© 2026 Sasuu. All media from public APIs.</p>
+            <div className="pt-4 border-t border-white/10 space-y-3">
+              <VisitorCountBadge variant="compact" />
+              <div className="text-[10px] text-neutral-500">
+                <p className="font-semibold text-neutral-400">CineVault Cinema Portal</p>
+                <p>© 2026 Sasuu. All media from public APIs.</p>
+              </div>
             </div>
           </nav>
         </div>

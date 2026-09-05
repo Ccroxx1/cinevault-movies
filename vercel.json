@@ -33,6 +33,14 @@
   ],
   "rewrites": [
     {
+      "source": "/api/visitors/:path*",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/api/movies/filmography",
+      "destination": "/api/index"
+    },
+    {
       "source": "/api/movies/list",
       "destination": "https://movies-api.accel.li/api/v2/list_movies.json"
     },

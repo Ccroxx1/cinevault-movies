@@ -691,3 +691,89 @@ export async function fetchMovieBySlug(slug: string): Promise<Movie | null> {
   }
 }
 
+/**
+ * Fetches filmography for an actor or director.
+ * Uses the CineVault backend proxy (Wikidata graph + mirror index resolution)
+ * with a resilient client-side Wikidata SPARQL + mirror fallback.
+ */
+export async function fetchFilmography(
+  personName: string,
+  role: 'director' | 'actor' | 'cast' = 'cast'
+): Promise<Movie[]> {
+  const trimmed = personName?.trim();
+  if (!trimmed) return [];
+
+  // 1. Primary: CineVault server API endpoint
+  try {
+    const res = await fetch(
+      `/api/movies/filmography?name=${encodeURIComponent(trimmed)}&role=${encodeURIComponent(role)}`
+    );
+    if (res.ok) {
+      const json = await res.json();
+      const list = json?.data?.movies;
+      if (Array.isArray(list) && list.length > 0) {
+        return validateAndCleanMovies(list);
+      }
+    }
+  } catch (err) {
+    console.warn('Backend filmography fetch failed, attempting client fallback:', err);
+  }
+
+  // 2. Client-side fallback via Wikidata SPARQL
+  try {
+    const searchUrl = `https://www.wikidata.org/w/api.php?origin=*&action=wbsearchentities&search=${encodeURIComponent(
+      trimmed
+    )}&type=item&language=en&limit=1&format=json`;
+    const searchRes = await fetch(searchUrl);
+    if (searchRes.ok) {
+      const searchData = await searchRes.json();
+      const qid = searchData?.search?.[0]?.id;
+      if (qid) {
+        const sparql = `SELECT DISTINCT ?movieLabel ?imdb ?year WHERE { VALUES ?prop { wdt:P161 wdt:P57 wdt:P725 } ?movie ?prop wd:${qid} ; wdt:P345 ?imdb . OPTIONAL { ?movie wdt:P577 ?pubDate . BIND(YEAR(?pubDate) AS ?year) } SERVICE wikibase:label { bd:serviceParam wikibase:language "en". } } ORDER BY DESC(?year) LIMIT 20`;
+        const sparqlUrl = `https://query.wikidata.org/sparql?query=${encodeURIComponent(sparql)}&format=json`;
+        const sparqlRes = await fetch(sparqlUrl);
+        if (sparqlRes.ok) {
+          const sparqlData = await sparqlRes.json();
+          const bindings = sparqlData?.results?.bindings || [];
+          const imdbs: string[] = [];
+          const seen = new Set<string>();
+          for (const b of bindings) {
+            const id = b.imdb?.value;
+            if (id && /^tt\d+$/.test(id) && !seen.has(id)) {
+              seen.add(id);
+              imdbs.push(id);
+            }
+          }
+
+          if (imdbs.length > 0) {
+            const movieLookups = await Promise.all(
+              imdbs.slice(0, 15).map(async (imdbId) => {
+                try {
+                  const res = await fetchMovies({ query_term: imdbId, limit: 1 });
+                  return res.movies?.[0] || null;
+                } catch {
+                  return null;
+                }
+              })
+            );
+            const found = movieLookups.filter((m): m is Movie => Boolean(m));
+            if (found.length > 0) {
+              return validateAndCleanMovies(found);
+            }
+          }
+        }
+      }
+    }
+  } catch (clientErr) {
+    console.warn('Client-side Wikidata search failed:', clientErr);
+  }
+
+  // 3. Fallback: Search direct title matches in CineVault catalog
+  try {
+    const directRes = await fetchMovies({ query_term: trimmed, limit: 20 });
+    return directRes.movies || [];
+  } catch {
+    return [];
+  }
+}
+
