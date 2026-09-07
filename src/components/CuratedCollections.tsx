@@ -1,4 +1,5 @@
 import React from 'react';
+import { ArrowRight } from 'lucide-react';
 import { FilterParams } from '../types';
 
 export interface MoodCollection {
@@ -88,21 +89,24 @@ export const CuratedCollections: React.FC<CuratedCollectionsProps> = ({
             <button
               key={col.id}
               onClick={() => onSelectCollection(col.filters, col.title)}
-              className={`group text-left p-4 rounded-2xl bg-gradient-to-b ${col.accentColor} border transition-all duration-300 hover:scale-[1.02] hover:shadow-xl flex flex-col justify-between cursor-pointer overflow-hidden ${isActive ? 'ring-2 ring-rose-500' : 'hover:border-white/30'}`}
+              className={`curated-mood-card group text-left p-4 rounded-2xl bg-gradient-to-b ${col.accentColor} border transition-all duration-300 hover:scale-[1.02] hover:shadow-xl flex flex-col justify-between cursor-pointer overflow-hidden ${isActive ? 'ring-2 ring-rose-500' : 'hover:border-white/30'}`}
             >
               <div className="space-y-2">
-                <span className="text-[10px] uppercase font-mono font-bold tracking-wider px-2 py-0.5 rounded-full bg-black/60 border border-white/10 text-white">
+                <span className="curated-mood-badge inline-block text-[10px] uppercase font-mono font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-black/60 border border-white/10 text-neutral-100">
                   {col.badge}
                 </span>
-                <h3 className="font-display font-bold text-sm sm:text-base text-white group-hover:text-rose-300 transition-colors">
+                <h3 className="curated-mood-title font-display font-bold text-sm sm:text-base text-white group-hover:text-rose-300 transition-colors">
                   {col.title}
                 </h3>
-                <p className="text-[11px] text-neutral-300/80 line-clamp-2 leading-relaxed">
+                <p className="curated-mood-desc text-[11px] text-neutral-300 line-clamp-2 leading-relaxed">
                   {col.subtitle}
                 </p>
               </div>
-              <div className="pt-4 flex items-center justify-between text-xs font-semibold text-white/90">
-                <span className="text-[11px]">Explore Vault</span>
+              <div className="curated-mood-action pt-4 flex items-center justify-between text-xs font-semibold text-white">
+                <span className="text-[11px] flex items-center gap-1.5 font-bold">
+                  Explore Vault
+                  <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-1" />
+                </span>
               </div>
             </button>
           );

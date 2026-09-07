@@ -506,20 +506,12 @@ app.get('/api/visitors/count', async (req, res) => {
     });
   }
 
-  // If running in production / Vercel and Redis is unavailable, reject with 503 rather than corrupted local counts
-  if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
-    return res.status(503).json({
-      status: 'error',
-      message: 'Visitor count service temporarily unavailable',
-    });
-  }
-
-  // Local development only fallback
+  // Graceful in-memory fallback if Redis is unconfigured or unavailable
   return res.json({
     status: 'ok',
-    count: localDevUnique.size,
-    totalVisits: Math.max(localDevTotal, localDevUnique.size),
-    source: 'local-dev-memory',
+    count: Math.max(localDevUnique.size, 1),
+    totalVisits: Math.max(localDevTotal, localDevUnique.size, 1),
+    source: 'in-memory',
     timestamp: Date.now(),
   });
 });
@@ -570,15 +562,7 @@ app.post('/api/visitors/record', async (req, res) => {
     });
   }
 
-  // 5. Fail gracefully if Redis is unreachable in production
-  if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
-    return res.status(503).json({
-      status: 'error',
-      message: 'Visitor database temporarily unavailable',
-    });
-  }
-
-  // Local development memory fallback
+  // 5. In-memory fallback if Redis is unconfigured or unreachable
   const isNewVisitor = !localDevUnique.has(visitorId);
   localDevUnique.add(visitorId);
   localDevTotal += 1;
@@ -589,7 +573,8 @@ app.post('/api/visitors/record', async (req, res) => {
     totalVisits: localDevTotal,
     isNewVisitor,
     isNewSession: true,
-    source: 'local-dev-memory',
+    cookieIssued: isFreshCookie,
+    source: 'in-memory',
     timestamp: Date.now(),
   });
 });

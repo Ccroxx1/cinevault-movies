@@ -299,46 +299,50 @@ export default function App() {
     }
   };
 
-  // Fetch Featured & Top Popular Movies
-  useEffect(() => {
-    const loadFeatured = async () => {
-      setIsFeaturedLoading(true);
-      const currentYear = new Date().getFullYear().toString();
-      try {
-        let data = await fetchMovies({ 
-          query_term: currentYear, 
-          sort_by: 'download_count', 
-          limit: 15 
-        });
+  // Fetch a rich, diverse pool of Featured Movies from multiple streams
+  const loadFeatured = useCallback(async () => {
+    setIsFeaturedLoading(true);
+    try {
+      // Parallel fetch across different high-quality dimensions
+      const [trendingRes, recentRes, topRatedRes, actionRes] = await Promise.allSettled([
+        fetchMovies({ sort_by: 'download_count', limit: 25 }),
+        fetchMovies({ query_term: '2024', sort_by: 'download_count', limit: 20 }),
+        fetchMovies({ minimum_rating: 8, sort_by: 'like_count', limit: 20 }),
+        fetchMovies({ genre: 'Action', sort_by: 'like_count', limit: 20 }),
+      ]);
 
-        let validMovies = validateAndCleanMovies(data.movies || []);
+      const poolMap = new Map<number, Movie>();
 
-        if (validMovies.length < 10) {
-          try {
-            const fallbackData = await fetchMovies({ sort_by: 'download_count', limit: 20 });
-            const additional = validateAndCleanMovies(fallbackData.movies || []).filter(
-              m => !validMovies.some(existing => existing.id === m.id)
-            );
-            validMovies = [...validMovies, ...additional];
-          } catch {
-            // keep validMovies
-          }
+      // Fallback base
+      FALLBACK_FEATURED_MOVIES.forEach((m) => poolMap.set(m.id, m));
+
+      [trendingRes, recentRes, topRatedRes, actionRes].forEach((res) => {
+        if (res.status === 'fulfilled' && res.value?.movies) {
+          const cleaned = validateAndCleanMovies(res.value.movies);
+          cleaned.forEach((m) => {
+            if (m.id && m.title && m.torrents && m.torrents.length > 0) {
+              poolMap.set(m.id, m);
+            }
+          });
         }
+      });
 
-        if (validMovies.length === 0) {
-          validMovies = validateAndCleanMovies(FALLBACK_FEATURED_MOVIES);
-        }
-
-        setFeaturedMovies(validMovies.slice(0, 10));
-      } catch (err) {
-        console.warn('Using offline catalog for featured hero:', err);
-        setFeaturedMovies(validateAndCleanMovies(FALLBACK_FEATURED_MOVIES));
-      } finally {
-        setIsFeaturedLoading(false);
-      }
-    };
-    loadFeatured();
+      const fullPool = Array.from(poolMap.values());
+      // Randomize / shuffle the pool so every session starts fresh and unique
+      const shuffled = [...fullPool].sort(() => Math.random() - 0.5);
+      setFeaturedMovies(shuffled);
+    } catch (err) {
+      console.warn('Using offline catalog for featured hero:', err);
+      const fallbackShuffled = [...FALLBACK_FEATURED_MOVIES].sort(() => Math.random() - 0.5);
+      setFeaturedMovies(validateAndCleanMovies(fallbackShuffled));
+    } finally {
+      setIsFeaturedLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    loadFeatured();
+  }, [loadFeatured]);
 
   // Fetch all Curated Homepage Sections
   useEffect(() => {
@@ -655,6 +659,7 @@ export default function App() {
                 onCopyMagnet={handleCopyMagnet}
                 isWatchlisted={isMovieWatchlisted}
                 onToggleWatchlist={handleToggleWatchlist}
+                onRefreshHero={loadFeatured}
               />
             )}
 

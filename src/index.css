@@ -42,7 +42,7 @@
 }
 
 .animate-progressFill {
-  animation: progressFill 6s linear infinite;
+  animation: progressFill 12s linear infinite;
 }
 
 @keyframes heroFadeIn {
@@ -541,40 +541,106 @@
   color: #000000 !important;
 }
 
-/* 4. Curated Mood Collections Cards (Light tinted pastel containers with dark text) */
+/* 4. Curated Mood Collections Cards (Light tinted pastel containers with dark high-contrast typography) */
+[data-theme="white"] .curated-mood-card {
+  box-shadow: 0 4px 14px -3px rgba(0, 0, 0, 0.07) !important;
+}
+
 [data-theme="white"] .from-amber-600\/30 {
-  background-image: linear-gradient(to bottom, #fffbeb, #fef3c7) !important;
+  background-image: linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%) !important;
   border-color: #fcd34d !important;
 }
 
 [data-theme="white"] .from-cyan-600\/30 {
-  background-image: linear-gradient(to bottom, #ecfeff, #cffafe) !important;
+  background-image: linear-gradient(180deg, #ecfeff 0%, #cffafe 100%) !important;
   border-color: #67e8f9 !important;
 }
 
 [data-theme="white"] .from-rose-600\/30 {
-  background-image: linear-gradient(to bottom, #fff1f2, #ffe4e6) !important;
+  background-image: linear-gradient(180deg, #fff1f2 0%, #ffe4e6 100%) !important;
   border-color: #fda4af !important;
 }
 
 [data-theme="white"] .from-purple-600\/30 {
-  background-image: linear-gradient(to bottom, #faf5ff, #f3e8ff) !important;
+  background-image: linear-gradient(180deg, #faf5ff 0%, #f3e8ff 100%) !important;
   border-color: #d8b4fe !important;
 }
 
 [data-theme="white"] .from-emerald-600\/30 {
-  background-image: linear-gradient(to bottom, #ecfdf5, #d1fae5) !important;
+  background-image: linear-gradient(180deg, #ecfdf5 0%, #d1fae5 100%) !important;
   border-color: #6ee7b7 !important;
 }
 
-[data-theme="white"] .from-amber-600\/30 .bg-black\/60,
-[data-theme="white"] .from-cyan-600\/30 .bg-black\/60,
-[data-theme="white"] .from-rose-600\/30 .bg-black\/60,
-[data-theme="white"] .from-purple-600\/30 .bg-black\/60,
+/* Titles inside Curated Mood Cards in White Mode */
+[data-theme="white"] .curated-mood-card .curated-mood-title,
+[data-theme="white"] .curated-mood-card h3 {
+  color: #0f172a !important; /* Deep Slate 900 for high-contrast heading */
+}
+
+[data-theme="white"] .curated-mood-card:hover .curated-mood-title,
+[data-theme="white"] .curated-mood-card:hover h3 {
+  color: #e11d48 !important; /* Rose 600 hover accent */
+}
+
+/* Descriptions inside Curated Mood Cards in White Mode */
+[data-theme="white"] .curated-mood-card .curated-mood-desc,
+[data-theme="white"] .curated-mood-card p {
+  color: #334155 !important; /* Slate 700 with 8+:1 WCAG AAA contrast ratio */
+  font-weight: 500 !important;
+}
+
+/* Explore Vault action inside Curated Mood Cards in White Mode */
+[data-theme="white"] .curated-mood-card .curated-mood-action,
+[data-theme="white"] .curated-mood-card .curated-mood-action span,
+[data-theme="white"] .curated-mood-card .curated-mood-action svg {
+  color: #0f172a !important; /* Deep Slate 900 */
+}
+
+[data-theme="white"] .curated-mood-card:hover .curated-mood-action,
+[data-theme="white"] .curated-mood-card:hover .curated-mood-action span,
+[data-theme="white"] .curated-mood-card:hover .curated-mood-action svg {
+  color: #e11d48 !important;
+}
+
+/* Badges inside Curated Mood Cards in White Mode */
+[data-theme="white"] .curated-mood-card .curated-mood-badge {
+  font-weight: 700 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="white"] .from-amber-600\/30 .curated-mood-badge,
+[data-theme="white"] .from-amber-600\/30 .bg-black\/60 {
+  background-color: #fef3c7 !important;
+  color: #92400e !important;
+  border-color: #fcd34d !important;
+}
+
+[data-theme="white"] .from-cyan-600\/30 .curated-mood-badge,
+[data-theme="white"] .from-cyan-600\/30 .bg-black\/60 {
+  background-color: #cffafe !important;
+  color: #155e75 !important;
+  border-color: #67e8f9 !important;
+}
+
+[data-theme="white"] .from-rose-600\/30 .curated-mood-badge,
+[data-theme="white"] .from-rose-600\/30 .bg-black\/60 {
+  background-color: #ffe4e6 !important;
+  color: #9f1239 !important;
+  border-color: #fda4af !important;
+}
+
+[data-theme="white"] .from-purple-600\/30 .curated-mood-badge,
+[data-theme="white"] .from-purple-600\/30 .bg-black\/60 {
+  background-color: #f3e8ff !important;
+  color: #6b21a8 !important;
+  border-color: #d8b4fe !important;
+}
+
+[data-theme="white"] .from-emerald-600\/30 .curated-mood-badge,
 [data-theme="white"] .from-emerald-600\/30 .bg-black\/60 {
-  background-color: rgba(0, 0, 0, 0.08) !important;
-  color: #0f172a !important;
-  border-color: rgba(0, 0, 0, 0.12) !important;
+  background-color: #d1fae5 !important;
+  color: #065f46 !important;
+  border-color: #6ee7b7 !important;
 }
 
 /* Brand Logo Adjustment in Light Mode */
@@ -606,5 +672,10 @@
 
 [data-theme="white"] ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+[data-theme="white"] .hero-cinema-container {
+  border-color: rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.12) !important;
 }
 
