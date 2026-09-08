@@ -12,8 +12,8 @@ export const AdSensePolicyModal: React.FC<AdSensePolicyModalProps> = ({
   const [activeTab, setActiveTab] = useState<'privacy' | 'terms' | 'about' | 'contact' | 'dmca' | 'agreement'>(initialTab);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-fadeIn" role="dialog" aria-labelledby="modal-heading">
-      <div className="relative w-full max-w-3xl max-h-[90vh] bg-[#101010] border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-fadeIn" role="dialog" aria-modal="true" aria-labelledby="modal-heading">
+      <div className="modal-dialog-surface relative w-full max-w-3xl max-h-[90vh] bg-[#101010] border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
         
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#141414]">
           <div>

@@ -147,10 +147,10 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
     .find((url) => typeof url === 'string' && url.trim().length > 0) || CINEVAULT_POSTER_FALLBACK;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto bg-black/90 backdrop-blur-xl animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto bg-black/90 backdrop-blur-xl animate-in fade-in duration-200" role="dialog" aria-modal="true" aria-label={movie.title}>
       
       {/* Modal Card */}
-      <div className="relative w-full max-w-5xl bg-[#0a0a0a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl my-auto flex flex-col max-h-[92vh]">
+      <div className="modal-dialog-surface relative w-full max-w-5xl bg-[#0a0a0a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl my-auto flex flex-col max-h-[92vh]">
         
         {/* Header Backdrop Banner */}
         <div className="relative h-64 sm:h-80 w-full overflow-hidden shrink-0 bg-[#050505]">

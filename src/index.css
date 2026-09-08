@@ -514,24 +514,39 @@
   color: #ffffff !important;
 }
 
-/* 3. Floating Badges and Overlays on Movie Posters */
-[data-theme="white"] [class*="bg-black/"],
-[data-theme="white"] [class*="bg-black/"] .text-white,
-[data-theme="white"] [class*="bg-black/"] .text-neutral-200,
-[data-theme="white"] [class*="bg-black/"] .text-neutral-300 {
+/* 3. Floating Badges and Overlays on Movie Posters & Media Cards ONLY */
+[data-theme="white"] .aspect-\[2\/3\] [class*="bg-black/"],
+[data-theme="white"] .aspect-\[2\/3\] [class*="bg-black/"] *,
+[data-theme="white"] article [class*="bg-black/"],
+[data-theme="white"] article [class*="bg-black/"] *,
+[data-theme="white"] .poster-badge,
+[data-theme="white"] .poster-badge * {
   color: #ffffff !important;
 }
 
-[data-theme="white"] [class*="bg-black/"] .text-amber-400 {
+[data-theme="white"] .aspect-\[2\/3\] [class*="bg-black/"] .text-amber-400,
+[data-theme="white"] article [class*="bg-black/"] .text-amber-400,
+[data-theme="white"] .poster-badge .text-amber-400 {
   color: #fbbf24 !important;
 }
 
+/* Floating overlay buttons on banner headers (e.g. Back, Share, Trailer) */
+[data-theme="white"] button[class*="bg-black/"],
+[data-theme="white"] button[class*="bg-black/"] *,
+[data-theme="white"] a[class*="bg-black/"],
+[data-theme="white"] a[class*="bg-black/"] * {
+  color: #ffffff !important;
+}
+
+/* Poster hover overlay */
 [data-theme="white"] .group:hover .bg-gradient-to-t,
-[data-theme="white"] .group:hover .bg-gradient-to-t .text-white,
-[data-theme="white"] .group:hover .bg-gradient-to-t .hover\:text-white:hover,
-[data-theme="white"] .group:hover .bg-gradient-to-t .text-neutral-100,
-[data-theme="white"] .group:hover .bg-gradient-to-t .text-neutral-200,
-[data-theme="white"] .group:hover .bg-gradient-to-t .text-neutral-300 {
+[data-theme="white"] .group:hover .bg-gradient-to-t *,
+[data-theme="white"] .group:hover .bg-black\/40,
+[data-theme="white"] .group:hover .bg-black\/40 *,
+[data-theme="white"] .group:hover .bg-black\/50,
+[data-theme="white"] .group:hover .bg-black\/50 *,
+[data-theme="white"] .group:hover .bg-black\/60,
+[data-theme="white"] .group:hover .bg-black\/60 * {
   color: #ffffff !important;
 }
 
@@ -678,4 +693,166 @@
   border-color: rgba(0, 0, 0, 0.1) !important;
   box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.12) !important;
 }
+
+/* ==========================================================================
+   MODALS, DIALOGS & OVERLAY SCREENS IN LIGHT / WHITE THEME
+   Guarantees 100% visible, high-contrast, crystal-clear typography everywhere
+   ========================================================================== */
+
+/* Dialog & Modal Card Surfaces */
+[data-theme="white"] [role="dialog"] > div,
+[data-theme="white"] .fixed.inset-0 > div,
+[data-theme="white"] [class*="fixed inset-0"] > div,
+[data-theme="white"] .modal-dialog-surface {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* Modal Headers, Sub-bars, and Footers */
+[data-theme="white"] [role="dialog"] [class*="bg-\[\#141414\]"],
+[data-theme="white"] [role="dialog"] [class*="bg-\[\#0d0d0d\]"],
+[data-theme="white"] [role="dialog"] [class*="bg-\[\#0a0a0a\]"],
+[data-theme="white"] [role="dialog"] [class*="bg-\[\#050505\]"],
+[data-theme="white"] [class*="fixed inset-0"] > div [class*="bg-\[\#141414\]"],
+[data-theme="white"] [class*="fixed inset-0"] > div [class*="bg-\[\#0d0d0d\]"],
+[data-theme="white"] [class*="fixed inset-0"] > div [class*="bg-\[\#050505\]"] {
+  background-color: #f8fafc !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Inner containers and callouts inside modals */
+[data-theme="white"] [role="dialog"] .bg-white\/5,
+[data-theme="white"] [class*="fixed inset-0"] > div .bg-white\/5,
+[data-theme="white"] [role="dialog"] .bg-white\/10,
+[data-theme="white"] [class*="fixed inset-0"] > div .bg-white\/10 {
+  background-color: #f1f5f9 !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* All headings inside modals: deep slate 900 */
+[data-theme="white"] [role="dialog"] h1,
+[data-theme="white"] [role="dialog"] h2,
+[data-theme="white"] [role="dialog"] h3,
+[data-theme="white"] [role="dialog"] h4,
+[data-theme="white"] [role="dialog"] h5,
+[data-theme="white"] [role="dialog"] h6,
+[data-theme="white"] [class*="fixed inset-0"] > div h1,
+[data-theme="white"] [class*="fixed inset-0"] > div h2,
+[data-theme="white"] [class*="fixed inset-0"] > div h3,
+[data-theme="white"] [class*="fixed inset-0"] > div h4,
+[data-theme="white"] [class*="fixed inset-0"] > div h5,
+[data-theme="white"] [class*="fixed inset-0"] > div h6 {
+  color: #0f172a !important;
+}
+
+/* All paragraphs, lists, table cells, text blocks inside modals: deep slate 800 */
+[data-theme="white"] [role="dialog"] p,
+[data-theme="white"] [role="dialog"] li,
+[data-theme="white"] [role="dialog"] ul,
+[data-theme="white"] [role="dialog"] ol,
+[data-theme="white"] [role="dialog"] td,
+[data-theme="white"] [role="dialog"] th,
+[data-theme="white"] [role="dialog"] dt,
+[data-theme="white"] [role="dialog"] dd,
+[data-theme="white"] [class*="fixed inset-0"] > div p,
+[data-theme="white"] [class*="fixed inset-0"] > div li,
+[data-theme="white"] [class*="fixed inset-0"] > div td,
+[data-theme="white"] [class*="fixed inset-0"] > div th {
+  color: #1e293b !important;
+}
+
+/* Explicit text utility overrides inside modals */
+[data-theme="white"] [role="dialog"] .text-white,
+[data-theme="white"] [class*="fixed inset-0"] > div .text-white,
+[data-theme="white"] [role="dialog"] .text-neutral-100,
+[data-theme="white"] [class*="fixed inset-0"] > div .text-neutral-100,
+[data-theme="white"] [role="dialog"] .text-neutral-200,
+[data-theme="white"] [class*="fixed inset-0"] > div .text-neutral-200,
+[data-theme="white"] [role="dialog"] .text-neutral-300,
+[data-theme="white"] [class*="fixed inset-0"] > div .text-neutral-300 {
+  color: #0f172a !important;
+}
+
+[data-theme="white"] [role="dialog"] .text-neutral-400,
+[data-theme="white"] [class*="fixed inset-0"] > div .text-neutral-400 {
+  color: #475569 !important;
+}
+
+[data-theme="white"] [role="dialog"] .text-neutral-500,
+[data-theme="white"] [class*="fixed inset-0"] > div .text-neutral-500 {
+  color: #64748b !important;
+}
+
+/* Close & secondary action buttons inside modals */
+[data-theme="white"] [role="dialog"] button.text-neutral-400,
+[data-theme="white"] [class*="fixed inset-0"] > div button.text-neutral-400 {
+  color: #334155 !important;
+}
+
+[data-theme="white"] [role="dialog"] button.text-neutral-400:hover,
+[data-theme="white"] [class*="fixed inset-0"] > div button.text-neutral-400:hover {
+  color: #0f172a !important;
+  background-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Solid colored action buttons inside modals MUST PRESERVE WHITE TEXT */
+[data-theme="white"] [role="dialog"] .bg-rose-600,
+[data-theme="white"] [role="dialog"] .bg-rose-600 *,
+[data-theme="white"] [role="dialog"] .bg-rose-500,
+[data-theme="white"] [role="dialog"] .bg-rose-500 *,
+[data-theme="white"] [role="dialog"] .bg-emerald-600,
+[data-theme="white"] [role="dialog"] .bg-emerald-600 *,
+[data-theme="white"] [role="dialog"] .bg-emerald-500,
+[data-theme="white"] [role="dialog"] .bg-emerald-500 *,
+[data-theme="white"] [class*="fixed inset-0"] > div .bg-rose-600,
+[data-theme="white"] [class*="fixed inset-0"] > div .bg-rose-600 *,
+[data-theme="white"] [class*="fixed inset-0"] > div .bg-rose-500,
+[data-theme="white"] [class*="fixed inset-0"] > div .bg-rose-500 *,
+[data-theme="white"] [class*="fixed inset-0"] > div .bg-emerald-600,
+[data-theme="white"] [class*="fixed inset-0"] > div .bg-emerald-600 *,
+[data-theme="white"] [class*="fixed inset-0"] > div .bg-emerald-500,
+[data-theme="white"] [class*="fixed inset-0"] > div .bg-emerald-500 * {
+  color: #ffffff !important;
+}
+
+/* Nav tabs inside modals */
+[data-theme="white"] [role="dialog"] nav button,
+[data-theme="white"] [class*="fixed inset-0"] > div nav button {
+  color: #475569 !important;
+}
+
+[data-theme="white"] [role="dialog"] nav button:hover,
+[data-theme="white"] [class*="fixed inset-0"] > div nav button:hover {
+  color: #0f172a !important;
+}
+
+[data-theme="white"] [role="dialog"] nav button.text-rose-400,
+[data-theme="white"] [role="dialog"] nav button.text-rose-500,
+[data-theme="white"] [role="dialog"] nav button.border-rose-500,
+[data-theme="white"] [class*="fixed inset-0"] > div nav button.text-rose-400 {
+  color: #e11d48 !important;
+  border-color: #e11d48 !important;
+}
+
+/* Email and highlight accents inside modals */
+[data-theme="white"] [role="dialog"] .text-rose-400,
+[data-theme="white"] [class*="fixed inset-0"] > div .text-rose-400 {
+  color: #e11d48 !important;
+}
+
+/* Modal and Detail Page Backdrop Gradients in White Mode */
+[data-theme="white"] .from-\[\#0a0a0a\] {
+  --tw-gradient-from: #f8fafc var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgba(248, 250, 252, 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+[data-theme="white"] [role="dialog"] .from-\[\#0a0a0a\] {
+  --tw-gradient-from: #ffffff var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgba(255, 255, 255, 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
 

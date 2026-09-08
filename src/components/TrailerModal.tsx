@@ -21,8 +21,8 @@ export const TrailerModal: React.FC<TrailerModalProps> = ({
   if (!ytTrailerCode) return null;
 
   return (
-    <div className="fixed inset-0 z-60 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-150">
-      <div className="relative w-full max-w-4xl bg-[#0a0a0a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl flex flex-col">
+    <div className="fixed inset-0 z-60 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-150" role="dialog" aria-modal="true" aria-label={`${movieTitle} Trailer`}>
+      <div className="modal-dialog-surface relative w-full max-w-4xl bg-[#0a0a0a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl flex flex-col">
         
         {/* Modal Top Bar */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#050505]">

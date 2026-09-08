@@ -64,8 +64,8 @@ export const BatchQualityModal: React.FC<BatchQualityModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-2xl bg-[#0e0e0e] border border-white/15 rounded-3xl p-6 shadow-2xl space-y-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200" role="dialog" aria-modal="true" aria-label="Quality Comparison">
+      <div className="modal-dialog-surface relative w-full max-w-2xl bg-[#0e0e0e] border border-white/15 rounded-3xl p-6 shadow-2xl space-y-6">
         
         {/* Header */}
         <div className="flex items-start justify-between gap-3">

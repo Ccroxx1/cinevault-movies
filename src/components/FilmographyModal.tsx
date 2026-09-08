@@ -70,7 +70,7 @@ export const FilmographyModal: React.FC<FilmographyModalProps> = ({
       aria-labelledby="filmography-title"
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200"
     >
-      <div className="relative w-full max-w-4xl rounded-2xl sm:rounded-3xl bg-[#0c0c0c] border border-white/15 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="modal-dialog-surface relative w-full max-w-4xl rounded-2xl sm:rounded-3xl bg-[#0c0c0c] border border-white/15 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="p-4 sm:p-6 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
           <div className="flex items-center gap-3">

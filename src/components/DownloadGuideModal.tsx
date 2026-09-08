@@ -21,8 +21,8 @@ export const DownloadGuideModal: React.FC<DownloadGuideModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-60 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-150">
-      <div className="relative w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl p-6 sm:p-8 space-y-6">
+    <div className="fixed inset-0 z-60 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-150" role="dialog" aria-modal="true" aria-label="Download Guide">
+      <div className="modal-dialog-surface relative w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl p-6 sm:p-8 space-y-6">
         
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
