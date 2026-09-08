@@ -33,8 +33,8 @@ export function escapeHtml(str: string): string {
     .replace(/'/g, '&#039;');
 }
 
-export function buildMovieHtml(baseHtmlTemplate: string, movie: any, relatedMovies: any[] = []): string {
-  const slug = getMovieSlug(movie);
+export function buildMovieHtml(baseHtmlTemplate: string, movie: any, relatedMovies: any[] = [], overrideSlug?: string): string {
+  const slug = overrideSlug || getMovieSlug(movie);
   const canonicalUrl = `${SITE_BASE_URL}/movies/${slug}`;
   const movieTitle = movie.title || 'Movie';
   const movieYear = movie.year ? ` (${movie.year})` : '';

@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
-import { buildMovieHtml } from './src/utils/htmlBuilder.js';
+import { buildMovieHtml, getMovieSlug, slugify, SITE_BASE_URL } from './src/utils/htmlBuilder.js';
 
 const currentFilename = typeof __filename !== 'undefined' ? __filename : '';
 const currentDirname = typeof __dirname !== 'undefined' ? __dirname : (currentFilename ? path.dirname(currentFilename) : process.cwd());
@@ -593,17 +593,18 @@ async function injectDynamicMetaTags(htmlTemplate: string, reqUrl: string): Prom
 
     if (!movieMatch) return htmlTemplate;
 
-    const slug = movieMatch[1];
+    const slug = movieMatch[1].toLowerCase();
     const yearMatch = slug.match(/^(.*?)-(\d{4})$/);
+    const targetYear = yearMatch ? parseInt(yearMatch[2], 10) : null;
     const queryTerm = yearMatch
       ? yearMatch[1].replace(/-/g, ' ')
       : slug.replace(/-/g, ' ');
 
-    // SEO is an enhancement, never a hard dependency for a movie page.
-    const seoTimeoutMs = 1800;
+    // SEO enhancement: query up to 20 candidates to accurately match the film
+    const seoTimeoutMs = 2800;
     const seoPromise = fetchFromApi('list_movies.json', {
       query_term: queryTerm,
-      limit: '5'
+      limit: '20'
     });
 
     const timeoutPromise = new Promise<null>((resolve) => {
@@ -613,15 +614,47 @@ async function injectDynamicMetaTags(htmlTemplate: string, reqUrl: string): Prom
     const listData = await Promise.race([seoPromise, timeoutPromise]);
 
     if (listData?.data?.movies?.length > 0) {
-      const movie = listData.data.movies[0];
-      const related = listData.data.movies.slice(1);
+      const movies = listData.data.movies;
+
+      // 1. Exact slug match
+      let movie = movies.find((m: any) => 
+        (m.slug && m.slug.toLowerCase() === slug) || 
+        getMovieSlug(m).toLowerCase() === slug
+      );
+
+      // 2. Year and title match
+      if (!movie && targetYear) {
+        movie = movies.find((m: any) => m.year === targetYear && slugify(m.title) === slugify(yearMatch[1]));
+        if (!movie) {
+          movie = movies.find((m: any) => m.year === targetYear);
+        }
+      }
+
+      // 3. Exact title match
+      if (!movie) {
+        movie = movies.find((m: any) => slugify(m.title) === slugify(queryTerm));
+      }
+
+      // 4. Fallback to first result
+      if (!movie) {
+        movie = movies[0];
+      }
+
+      const related = movies.filter((m: any) => m.id !== movie.id).slice(0, 4);
 
       try {
-        return buildMovieHtml(htmlTemplate, movie, related);
+        return buildMovieHtml(htmlTemplate, movie, related, slug);
       } catch (error) {
         console.warn('Movie SEO HTML generation failed:', error);
       }
     }
+
+    // Guarantee self-canonical for movie route even if upstream catalog API timed out
+    const movieCanonical = `${SITE_BASE_URL}/movies/${slug}`;
+    return htmlTemplate.replace(
+      /<link\s+rel=["']canonical["'].*?>/gi,
+      `<link rel="canonical" href="${movieCanonical}" />`
+    );
   } catch (error) {
     console.warn('Dynamic SEO lookup skipped:', error);
   }
