@@ -31,6 +31,13 @@
       ]
     }
   ],
+  "redirects": [
+    {
+      "source": "/ads.txt",
+      "destination": "https://srv.adstxtmanager.com/19390/cinevaultmovies.online",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/visitors/:path*",
