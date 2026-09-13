@@ -667,19 +667,27 @@ async function injectDynamicMetaTags(htmlTemplate: string, reqUrl: string): Prom
   return htmlTemplate;
 }
 
-// Ensure Ezoic scripts are delivered in the static HTML for verified production domains or debug requests
+// Ensure Ezoic scripts are delivered in the static HTML in the required order
 function ensureEzoicProductionTags(html: string, reqHost: string = '', reqUrl: string = ''): string {
+  // If html already contains sa.min.js, it is already wired directly in the template
+  if (html.includes('sa.min.js')) {
+    return html;
+  }
+
   const isProdHost = reqHost.includes('cinevaultmovies.online');
   const isDebug = reqUrl.includes('ez_js_debugger=1') || reqUrl.includes('force_ezoic=1');
 
-  if ((isProdHost || isDebug) && !html.includes('sa.min.js')) {
+  if (isProdHost || isDebug) {
     const ezoicTags = `
-    <!-- Ezoic Static Tags for Crawler Verification -->
     <script data-cfasync="false" src="https://cmp.gatekeeperconsent.com/min.js"></script>
     <script data-cfasync="false" src="https://the.gatekeeperconsent.com/cmp.min.js"></script>
     <script async src="//www.ezojs.com/ezoic/sa.min.js"></script>
+    <script>
+      window.ezstandalone = window.ezstandalone || {};
+      ezstandalone.cmd = ezstandalone.cmd || [];
+    </script>
     <script src="//ezoicanalytics.com/analytics.js"></script>`;
-    return html.replace('</head>', `${ezoicTags}\n  </head>`);
+    return html.replace('<head>', `<head>\n${ezoicTags}`);
   }
   return html;
 }

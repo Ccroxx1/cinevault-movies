@@ -31,25 +31,18 @@ export function isEzoicEligible(): boolean {
 }
 
 /**
- * Trigger Ezoic standalone ad rendering on authorized domains
+ * Trigger Ezoic standalone ad rendering
  */
 export function showEzoicAds(options?: any) {
   if (typeof window === 'undefined') return;
-  if (!isEzoicEligible()) {
-    return;
-  }
 
   try {
     window.ezstandalone = window.ezstandalone || { cmd: [] };
     window.ezstandalone.cmd = window.ezstandalone.cmd || [];
-    window.ezstandalone.cmd.push(() => {
+    window.ezstandalone.cmd.push(function () {
       try {
         if (typeof window.ezstandalone?.showAds === 'function') {
-          if (options && Object.keys(options).length > 0) {
-            window.ezstandalone.showAds(options);
-          } else {
-            window.ezstandalone.showAds({});
-          }
+          window.ezstandalone.showAds(options || {});
         }
       } catch (innerErr) {
         console.debug('Ezoic showAds execution notice:', innerErr);

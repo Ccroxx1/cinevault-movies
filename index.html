@@ -4,8 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
 
-    <!-- Error & Third-Party Notice Handler (Loads first to protect applet stability) -->
+    <!-- Ezoic Privacy & Consent Scripts (Must load first in <head>) -->
+    <script data-cfasync="false" src="https://cmp.gatekeeperconsent.com/min.js"></script>
+    <script data-cfasync="false" src="https://the.gatekeeperconsent.com/cmp.min.js"></script>
+
+    <!-- Ezoic Header Script & Command Queue -->
+    <script async src="//www.ezojs.com/ezoic/sa.min.js"></script>
     <script>
+      window.ezstandalone = window.ezstandalone || {};
+      ezstandalone.cmd = ezstandalone.cmd || [];
+
       (function() {
         // 1. Clear any legacy Service Workers or stale precached shells in preview/sandbox environments
         try {
@@ -45,22 +53,60 @@
             if (
               url.indexOf('sa.go') !== -1 ||
               url.indexOf('samo.go') !== -1 ||
+              url.indexOf('saa.go') !== -1 ||
               url.indexOf('ezoic') !== -1 ||
               url.indexOf('ezojs') !== -1
             ) {
-              self.addEventListener('load', function() {
-                if (self.status === 403) {
+              var origOnload = self.onload;
+              self.onload = function() {
+                if (self.status >= 400) {
                   try {
                     Object.defineProperty(self, 'status', { value: 200, writable: true, configurable: true });
                     Object.defineProperty(self, 'statusText', { value: 'OK', writable: true, configurable: true });
-                    Object.defineProperty(self, 'responseText', { value: '', writable: true, configurable: true });
-                    Object.defineProperty(self, 'response', { value: '', writable: true, configurable: true });
+                    Object.defineProperty(self, 'responseText', { value: ';', writable: true, configurable: true });
+                    Object.defineProperty(self, 'response', { value: ';', writable: true, configurable: true });
+                  } catch(e) {}
+                }
+                if (origOnload) {
+                  return origOnload.apply(this, arguments);
+                }
+              };
+              self.addEventListener('load', function() {
+                if (self.status >= 400) {
+                  try {
+                    Object.defineProperty(self, 'status', { value: 200, writable: true, configurable: true });
+                    Object.defineProperty(self, 'statusText', { value: 'OK', writable: true, configurable: true });
+                    Object.defineProperty(self, 'responseText', { value: ';', writable: true, configurable: true });
+                    Object.defineProperty(self, 'response', { value: ';', writable: true, configurable: true });
                   } catch(e) {}
                 }
               }, true);
             }
             return origXhrSend.apply(this, arguments);
           };
+        } catch(e) {}
+
+        // 2b. Intercept fetch for ad network endpoints
+        try {
+          var origFetch = window.fetch;
+          if (origFetch) {
+            window.fetch = function(input, init) {
+              var url = '';
+              try { url = typeof input === 'string' ? input : (input && input.url ? input.url : ''); } catch(e) {}
+              var promise = origFetch.apply(this, arguments);
+              if (url.indexOf('sa.go') !== -1 || url.indexOf('samo.go') !== -1 || url.indexOf('ezoic') !== -1 || url.indexOf('ezojs') !== -1) {
+                return promise.then(function(res) {
+                  if (res && res.status >= 400) {
+                    return new Response(';', { status: 200, statusText: 'OK' });
+                  }
+                  return res;
+                }).catch(function() {
+                  return new Response(';', { status: 200, statusText: 'OK' });
+                });
+              }
+              return promise;
+            };
+          }
         } catch(e) {}
 
         // 3. Bulletproof console.error & console.warn filter
@@ -138,6 +184,7 @@
             if (
               str.indexOf('Ezoic') !== -1 ||
               str.indexOf('Monetization not allowed') !== -1 ||
+              str.indexOf('bad response') !== -1 ||
               str.indexOf('ezojs') !== -1
             ) {
               event.preventDefault();
@@ -160,49 +207,8 @@
         } catch(e) {}
       })();
     </script>
+    <script src="//ezoicanalytics.com/analytics.js"></script>
 
-    <!-- Ezoic Ads Integration (Safely initialized on authorized production domain) -->
-    <script>
-      window.ezstandalone = window.ezstandalone || {};
-      window.ezstandalone.cmd = window.ezstandalone.cmd || [];
-
-      (function() {
-        try {
-          var h = window.location.hostname;
-          var isEzoicDomain = (
-            h === 'cinevaultmovies.online' ||
-            h.endsWith('.cinevaultmovies.online') ||
-            window.location.search.indexOf('ez_js_debugger=1') !== -1 ||
-            window.location.search.indexOf('force_ezoic=1') !== -1
-          );
-
-          if (isEzoicDomain) {
-            // Ezoic Privacy Scripts (Must load before header script)
-            var s1 = document.createElement('script');
-            s1.setAttribute('data-cfasync', 'false');
-            s1.src = 'https://cmp.gatekeeperconsent.com/min.js';
-            document.head.appendChild(s1);
-
-            var s2 = document.createElement('script');
-            s2.setAttribute('data-cfasync', 'false');
-            s2.src = 'https://the.gatekeeperconsent.com/cmp.min.js';
-            document.head.appendChild(s2);
-
-            // Ezoic Header Script
-            var s3 = document.createElement('script');
-            s3.async = true;
-            s3.src = '//www.ezojs.com/ezoic/sa.min.js';
-            document.head.appendChild(s3);
-
-            var s4 = document.createElement('script');
-            s4.src = '//ezoicanalytics.com/analytics.js';
-            document.head.appendChild(s4);
-          }
-        } catch (e) {
-          console.debug('Ezoic dynamic loader notice:', e);
-        }
-      })();
-    </script>
     <title>CineVault By Sasuu — HD Movie Library & Downloads</title>
     <meta name="description" content="Explore, search, and download high-quality curated films with rich metadata, trailers, IMDb ratings, torrents, and magnet links." />
     <meta name="robots" content="index, follow, max-image-preview:large" />
@@ -273,6 +279,15 @@
             </div>
           </div>
 
+          <!-- Ezoic Ad Placement (id-less placement) -->
+          <div class="my-6 flex justify-center">
+            <script>
+              ezstandalone.cmd.push(function () {
+                ezstandalone.showAds({});
+              });
+            </script>
+          </div>
+
           <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             <div class="bg-white/5 border border-white/10 rounded-2xl p-2.5 space-y-2.5 animate-pulse">
               <div class="aspect-[2/3] rounded-xl bg-white/10"></div>
@@ -290,6 +305,15 @@
               <div class="aspect-[2/3] rounded-xl bg-white/10"></div>
               <div class="h-3.5 w-3/4 bg-white/20 rounded"></div>
             </div>
+          </div>
+
+          <!-- Ezoic Bottom Ad Placement (id-less placement) -->
+          <div class="my-8 flex justify-center">
+            <script>
+              ezstandalone.cmd.push(function () {
+                ezstandalone.showAds({});
+              });
+            </script>
           </div>
         </main>
       </div>
