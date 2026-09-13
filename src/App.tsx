@@ -70,7 +70,18 @@ export default function App() {
   const [trailerData, setTrailerData] = useState<{ ytCode: string; title: string } | null>(null);
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
   const [isSpinnerOpen, setIsSpinnerOpen] = useState<boolean>(false);
-  const [policyModalTab, setPolicyModalTab] = useState<'privacy' | 'terms' | 'about' | 'contact' | 'dmca' | 'agreement' | null>(null);
+  const [policyModalTab, setPolicyModalTab] = useState<'privacy' | 'terms' | 'about' | 'contact' | 'dmca' | 'agreement' | null>(() => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname.toLowerCase();
+      if (path.includes('privacy')) return 'privacy';
+      if (path.includes('terms')) return 'terms';
+      if (path.includes('about')) return 'about';
+      if (path.includes('contact')) return 'contact';
+      if (path.includes('dmca')) return 'dmca';
+      if (path.includes('agreement')) return 'agreement';
+    }
+    return null;
+  });
   const [filmographyPerson, setFilmographyPerson] = useState<{ name: string; role?: 'director' | 'actor' | 'cast' } | null>(null);
 
   const handleOpenFilmography = (name: string, role?: 'director' | 'actor' | 'cast') => {

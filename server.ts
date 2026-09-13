@@ -583,6 +583,24 @@ app.get('/ads.txt', (req, res) => {
   res.redirect(301, 'https://srv.adstxtmanager.com/85131/cinevaultmovies.online');
 });
 
+app.get(['/privacy-policy', '/privacy'], (req, res) => {
+  const indexPath = fs.existsSync(detectedIndexHtmlPath)
+    ? detectedIndexHtmlPath
+    : path.resolve(process.cwd(), 'index.html');
+  if (fs.existsSync(indexPath)) {
+    let html = fs.readFileSync(indexPath, 'utf-8');
+    html = html
+      .replace(/<title>.*?<\/title>/, '<title>Privacy Policy — CineVault Movies</title>')
+      .replace(
+        /<meta\s+name="description"\s+content=".*?"\s*\/?>/i,
+        '<meta name="description" content="Privacy Policy for CineVault Movies. Learn how we handle your data, our cookie usage, and Ezoic advertising compliance." />'
+      );
+    html = ensureEzoicProductionTags(html, (req.headers.host as string) || '', req.originalUrl);
+    return res.status(200).set({ 'Content-Type': 'text/html; charset=utf-8' }).send(html);
+  }
+  res.redirect('/');
+});
+
 app.get('/favicon.ico', (req, res) => {
   const favPath = path.resolve(detectedDistPath, 'favicon.svg');
   if (fs.existsSync(favPath)) return res.redirect('/favicon.svg');
@@ -593,6 +611,16 @@ app.get('/favicon.ico', (req, res) => {
 async function injectDynamicMetaTags(htmlTemplate: string, reqUrl: string): Promise<string> {
   try {
     const pathname = new URL(reqUrl, 'http://localhost').pathname;
+
+    if (pathname === '/privacy-policy' || pathname === '/privacy') {
+      return htmlTemplate
+        .replace(/<title>.*?<\/title>/, '<title>Privacy Policy — CineVault Movies</title>')
+        .replace(
+          /<meta\s+name="description"\s+content=".*?"\s*\/?>/i,
+          '<meta name="description" content="Privacy Policy for CineVault Movies. Learn how we handle your data, our cookie usage, and Ezoic advertising compliance." />'
+        );
+    }
+
     const movieMatch = pathname.match(/^\/movies\/([a-zA-Z0-9_-]+)$/);
 
     if (!movieMatch) return htmlTemplate;

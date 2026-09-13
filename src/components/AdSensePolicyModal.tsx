@@ -62,12 +62,24 @@ export const AdSensePolicyModal: React.FC<AdSensePolicyModalProps> = ({
           {activeTab === 'privacy' && (
             <div className="space-y-3">
               <h3 className="text-base font-bold text-white">Privacy Policy</h3>
-              <p>Last updated: August 2026.</p>
-              <p>At CineVault, accessible from our official website, we prioritize the privacy of our visitors. This policy outlines how we handle data.</p>
-              <h4 className="text-sm font-bold text-white pt-2">1. Cookies & Tracking</h4>
-              <p>We use standard client-side web storage (LocalStorage) to maintain your personalized watchlist and browsing preferences. We do not use these to track you across other websites.</p>
-              <h4 className="text-sm font-bold text-white pt-2">2. Third-Party Advertising & Ezoic Privacy</h4>
-              <p>This website uses Ezoic to provide advertising and personalization services. Ezoic and its monetization partners use cookies and tracking technologies in compliance with privacy regulations (including Gatekeeper CMP consent standards). You can review and manage your advertising and privacy preferences at any time via the consent prompt.</p>
+              <p className="text-neutral-400">Last updated: September 2026.</p>
+              <p>At CineVault (<a href="https://cinevaultmovies.online" className="text-rose-400 underline">cinevaultmovies.online</a>), accessible from our official website, the privacy of our visitors is one of our top priorities. This Privacy Policy document outlines the types of information collected and recorded by CineVault and how we use it.</p>
+              
+              <h4 className="text-sm font-bold text-white pt-2">1. Ezoic Service Privacy Policy & Ad Serving</h4>
+              <p>This website uses the services of Ezoic Inc. ("Ezoic") for advertising optimization, analytics, and site personalization. Ezoic employs various technologies to serve tailored advertisements and enhance user experience. A comprehensive overview of Ezoic’s privacy practices and how your data is processed by Ezoic can be found at <a href="https://www.ezoic.com/privacy-policy/" target="_blank" rel="noopener noreferrer" className="text-rose-400 underline">https://www.ezoic.com/privacy-policy/</a>.</p>
+              
+              <h4 className="text-sm font-bold text-white pt-2">2. Cookies, Consent & Gatekeeper CMP</h4>
+              <p>We use cookies, web beacons, and local browser storage (LocalStorage) to remember your movie watchlist, dark mode preferences, and session state. Third-party vendors, including Ezoic and Google, use cookies to serve ads based on a user's prior visits to this website or other websites.</p>
+              <p>Our website utilizes the Gatekeeper Consent Management Platform (CMP) to collect and manage user consent in accordance with the EU General Data Protection Regulation (GDPR) and the ePrivacy Directive. You can review or modify your consent choices at any time through the on-site consent tool.</p>
+
+              <h4 className="text-sm font-bold text-white pt-2">3. Google AdSense & Third-Party Vendors</h4>
+              <p>Google is one of the third-party vendors on our site. It uses cookies, known as DART cookies, to serve ads to our site visitors based on their visit to our site and other sites on the internet. Visitors may choose to decline the use of DART cookies by visiting the Google ad and content network Privacy Policy at <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer" className="text-rose-400 underline">https://policies.google.com/technologies/ads</a>.</p>
+
+              <h4 className="text-sm font-bold text-white pt-2">4. CCPA & GDPR Privacy Rights</h4>
+              <p>Under the GDPR and CCPA (California Consumer Privacy Act), users have the right to request access to personal data collected, request rectification or erasure of their personal data, and opt out of the sale or sharing of personal data. We do not sell personal identification information to third parties.</p>
+
+              <h4 className="text-sm font-bold text-white pt-2">5. Contact Information</h4>
+              <p>If you have additional questions or require more information about our Privacy Policy, do not hesitate to contact us at <span className="font-mono text-rose-400">prospersasuu808@gmail.com</span>.</p>
             </div>
           )}
 
