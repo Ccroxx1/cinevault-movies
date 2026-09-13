@@ -580,7 +580,7 @@ app.post('/api/visitors/record', async (req, res) => {
 });
 
 app.get('/ads.txt', (req, res) => {
-  res.redirect(301, 'https://srv.adstxtmanager.com/19390/cinevaultmovies.online');
+  res.redirect(301, 'https://srv.adstxtmanager.com/85131/cinevaultmovies.online');
 });
 
 app.get('/favicon.ico', (req, res) => {
