@@ -6,7 +6,7 @@ import { FALLBACK_FEATURED_MOVIES } from '../src/data/fallbackMovies.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const SITE_BASE_URL = 'https://cinevault-movies-one.vercel.app';
+const SITE_BASE_URL = 'https://www.cinevaultmovies.online';
 const SITE_NAME = 'CineVault By Sasuu';
 const DEFAULT_DESCRIPTION = 'Explore, search, and download high-quality curated films with rich metadata, trailers, IMDb ratings, torrents, and magnet links.';
 

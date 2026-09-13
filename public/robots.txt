@@ -22,5 +22,5 @@ Allow: /
 User-agent: YandexBot
 Allow: /
 
-Sitemap: https://cinevault-movies-one.vercel.app/sitemap.xml
+Sitemap: https://www.cinevaultmovies.online/sitemap.xml
 

@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const SITE_BASE_URL = 'https://cinevault-movies-one.vercel.app';
+const SITE_BASE_URL = 'https://www.cinevaultmovies.online';
 
 const MIRRORS = [
   'https://yts.gg/api/v2/list_movies.json',

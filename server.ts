@@ -199,7 +199,7 @@ app.get('/api/movies/filmography', async (req, res) => {
           'User-Agent': 'CineVault/1.0 (https://cinevault.app; contact@cinevault.app)',
           'Accept': 'application/json'
         },
-        signal: AbortSignal.timeout(3000)
+        signal: AbortSignal.timeout(6000)
       });
 
       if (searchRes.ok) {
@@ -215,7 +215,7 @@ app.get('/api/movies/filmography', async (req, res) => {
               'User-Agent': 'CineVault/1.0 (https://cinevault.app; contact@cinevault.app)',
               'Accept': 'application/sparql-results+json'
             },
-            signal: AbortSignal.timeout(4000)
+            signal: AbortSignal.timeout(8000)
           });
 
           if (sparqlRes.ok) {
@@ -232,8 +232,8 @@ app.get('/api/movies/filmography', async (req, res) => {
           }
         }
       }
-    } catch (wikiErr) {
-      console.warn(`Wikidata resolution failed for ${personName}:`, wikiErr);
+    } catch {
+      // Graceful fallback to direct catalog index search when Wikidata times out or is temporarily slow
     }
 
     const movies: any[] = [];
@@ -579,6 +579,10 @@ app.post('/api/visitors/record', async (req, res) => {
   });
 });
 
+app.get('/ads.txt', (req, res) => {
+  res.redirect(301, 'https://srv.adstxtmanager.com/19390/cinevaultmovies.online');
+});
+
 app.get('/favicon.ico', (req, res) => {
   const favPath = path.resolve(detectedDistPath, 'favicon.svg');
   if (fs.existsSync(favPath)) return res.redirect('/favicon.svg');
@@ -663,6 +667,23 @@ async function injectDynamicMetaTags(htmlTemplate: string, reqUrl: string): Prom
   return htmlTemplate;
 }
 
+// Ensure Ezoic scripts are delivered in the static HTML for verified production domains or debug requests
+function ensureEzoicProductionTags(html: string, reqHost: string = '', reqUrl: string = ''): string {
+  const isProdHost = reqHost.includes('cinevaultmovies.online');
+  const isDebug = reqUrl.includes('ez_js_debugger=1') || reqUrl.includes('force_ezoic=1');
+
+  if ((isProdHost || isDebug) && !html.includes('sa.min.js')) {
+    const ezoicTags = `
+    <!-- Ezoic Static Tags for Crawler Verification -->
+    <script data-cfasync="false" src="https://cmp.gatekeeperconsent.com/min.js"></script>
+    <script data-cfasync="false" src="https://the.gatekeeperconsent.com/cmp.min.js"></script>
+    <script async src="//www.ezojs.com/ezoic/sa.min.js"></script>
+    <script src="//ezoicanalytics.com/analytics.js"></script>`;
+    return html.replace('</head>', `${ezoicTags}\n  </head>`);
+  }
+  return html;
+}
+
 // Development vs Production Setup
 async function start() {
   if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
@@ -673,7 +694,9 @@ async function start() {
       try {
         let template = fs.readFileSync(path.resolve(process.cwd(), 'index.html'), 'utf-8');
         template = await vite.transformIndexHtml(req.originalUrl, template);
-        res.status(200).set({ 'Content-Type': 'text/html' }).send(await injectDynamicMetaTags(template, req.originalUrl));
+        let html = await injectDynamicMetaTags(template, req.originalUrl);
+        html = ensureEzoicProductionTags(html, (req.headers.host as string) || '', req.originalUrl);
+        res.status(200).set({ 'Content-Type': 'text/html' }).send(html);
       } catch (e: any) { res.status(500).end(e.stack); }
     });
   } else {
@@ -685,7 +708,8 @@ async function start() {
         }
 
         const template = fs.readFileSync(detectedIndexHtmlPath, 'utf-8');
-        const html = await injectDynamicMetaTags(template, req.originalUrl);
+        let html = await injectDynamicMetaTags(template, req.originalUrl);
+        html = ensureEzoicProductionTags(html, (req.headers.host as string) || '', req.originalUrl);
 
         return res
           .status(200)

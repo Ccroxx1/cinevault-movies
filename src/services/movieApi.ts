@@ -716,7 +716,7 @@ export async function fetchFilmography(
       }
     }
   } catch (err) {
-    console.warn('Backend filmography fetch failed, attempting client fallback:', err);
+    console.debug('Backend filmography fetch notice, attempting client fallback:', err);
   }
 
   // 2. Client-side fallback via Wikidata SPARQL
@@ -724,14 +724,14 @@ export async function fetchFilmography(
     const searchUrl = `https://www.wikidata.org/w/api.php?origin=*&action=wbsearchentities&search=${encodeURIComponent(
       trimmed
     )}&type=item&language=en&limit=1&format=json`;
-    const searchRes = await fetch(searchUrl);
+    const searchRes = await fetch(searchUrl, { signal: AbortSignal.timeout(6000) });
     if (searchRes.ok) {
       const searchData = await searchRes.json();
       const qid = searchData?.search?.[0]?.id;
       if (qid) {
         const sparql = `SELECT DISTINCT ?movieLabel ?imdb ?year WHERE { VALUES ?prop { wdt:P161 wdt:P57 wdt:P725 } ?movie ?prop wd:${qid} ; wdt:P345 ?imdb . OPTIONAL { ?movie wdt:P577 ?pubDate . BIND(YEAR(?pubDate) AS ?year) } SERVICE wikibase:label { bd:serviceParam wikibase:language "en". } } ORDER BY DESC(?year) LIMIT 20`;
         const sparqlUrl = `https://query.wikidata.org/sparql?query=${encodeURIComponent(sparql)}&format=json`;
-        const sparqlRes = await fetch(sparqlUrl);
+        const sparqlRes = await fetch(sparqlUrl, { signal: AbortSignal.timeout(8000) });
         if (sparqlRes.ok) {
           const sparqlData = await sparqlRes.json();
           const bindings = sparqlData?.results?.bindings || [];
@@ -765,7 +765,7 @@ export async function fetchFilmography(
       }
     }
   } catch (clientErr) {
-    console.warn('Client-side Wikidata search failed:', clientErr);
+    console.debug('Client-side Wikidata search notice:', clientErr);
   }
 
   // 3. Fallback: Search direct title matches in CineVault catalog

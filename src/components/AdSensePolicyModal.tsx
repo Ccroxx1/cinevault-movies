@@ -66,8 +66,8 @@ export const AdSensePolicyModal: React.FC<AdSensePolicyModalProps> = ({
               <p>At CineVault, accessible from our official website, we prioritize the privacy of our visitors. This policy outlines how we handle data.</p>
               <h4 className="text-sm font-bold text-white pt-2">1. Cookies & Tracking</h4>
               <p>We use standard client-side web storage (LocalStorage) to maintain your personalized watchlist and browsing preferences. We do not use these to track you across other websites.</p>
-              <h4 className="text-sm font-bold text-white pt-2">2. Third-Party Advertising</h4>
-              <p>Google, as a third-party vendor, uses cookies (DART cookies) to serve ads based on your visit to this and other sites. You can opt out of these by visiting the Google Ad and Content Network Privacy Policy.</p>
+              <h4 className="text-sm font-bold text-white pt-2">2. Third-Party Advertising & Ezoic Privacy</h4>
+              <p>This website uses Ezoic to provide advertising and personalization services. Ezoic and its monetization partners use cookies and tracking technologies in compliance with privacy regulations (including Gatekeeper CMP consent standards). You can review and manage your advertising and privacy preferences at any time via the consent prompt.</p>
             </div>
           )}
 

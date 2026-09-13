@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const HOST = 'cinevault-movies-one.vercel.app';
+const HOST = 'www.cinevaultmovies.online';
 const KEY = 'e35378d088b04d1694d7df64ce04a4dc';
 const KEY_LOCATION = `https://${HOST}/${KEY}.txt`;
 

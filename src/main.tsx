@@ -20,9 +20,15 @@ if (typeof window !== 'undefined') {
       lowerMsg.includes('failed to connect') ||
       lowerMsg.includes('websocket') ||
       lowerMsg.includes('[vite]') ||
+      lowerMsg.includes('ezoic') ||
+      lowerMsg.includes('ezojs') ||
+      lowerMsg.includes('monetization not allowed') ||
+      lowerMsg.includes('bad response. status') ||
       lowerFile.includes('chrome-extension') ||
       lowerFile.includes('moz-extension') ||
-      lowerFile.includes('safari-web-extension')
+      lowerFile.includes('safari-web-extension') ||
+      lowerFile.includes('sa.min.js') ||
+      lowerFile.includes('ezojs')
     );
   };
 

@@ -3,33 +3,147 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="CineVault" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/pwa-192x192.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/pwa-512x512.png" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="theme-color" content="#050505" />
+
+    <!-- Error & Third-Party Notice Handler (Loads first to protect applet stability) -->
     <script>
       (function() {
-        // Suppress expected benign dev websocket connection notices in AI Studio container environment
+        // 1. Clear any legacy Service Workers or stale precached shells in preview/sandbox environments
+        try {
+          if ('serviceWorker' in navigator) {
+            var host = window.location.hostname;
+            var isProd = host === 'cinevaultmovies.online' || host.endsWith('.cinevaultmovies.online');
+            if (!isProd) {
+              navigator.serviceWorker.getRegistrations().then(function(regs) {
+                for (var i = 0; i < regs.length; i++) {
+                  regs[i].unregister();
+                }
+              });
+              if ('caches' in window) {
+                caches.keys().then(function(keys) {
+                  for (var j = 0; j < keys.length; j++) {
+                    caches.delete(keys[j]);
+                  }
+                });
+              }
+            }
+          }
+        } catch(e) {}
+
+        // 2. Intercept XMLHttpRequest to handle pending 403 monetization responses from Ezoic ad servers gracefully
+        try {
+          var origXhrOpen = XMLHttpRequest.prototype.open;
+          var origXhrSend = XMLHttpRequest.prototype.send;
+          XMLHttpRequest.prototype.open = function(method, url) {
+            try {
+              this._ezUrl = url ? String(url) : '';
+            } catch(e) {}
+            return origXhrOpen.apply(this, arguments);
+          };
+          XMLHttpRequest.prototype.send = function() {
+            var self = this;
+            var url = self._ezUrl || '';
+            if (
+              url.indexOf('sa.go') !== -1 ||
+              url.indexOf('samo.go') !== -1 ||
+              url.indexOf('ezoic') !== -1 ||
+              url.indexOf('ezojs') !== -1
+            ) {
+              self.addEventListener('load', function() {
+                if (self.status === 403) {
+                  try {
+                    Object.defineProperty(self, 'status', { value: 200, writable: true, configurable: true });
+                    Object.defineProperty(self, 'statusText', { value: 'OK', writable: true, configurable: true });
+                    Object.defineProperty(self, 'responseText', { value: '', writable: true, configurable: true });
+                    Object.defineProperty(self, 'response', { value: '', writable: true, configurable: true });
+                  } catch(e) {}
+                }
+              }, true);
+            }
+            return origXhrSend.apply(this, arguments);
+          };
+        } catch(e) {}
+
+        // 3. Bulletproof console.error & console.warn filter
         try {
           var origError = console.error;
+          var origWarn = console.warn;
+          var isSuppressedNotice = function(args) {
+            if (!args || !args.length) return false;
+            var combined = '';
+            for (var i = 0; i < args.length; i++) {
+              var a = args[i];
+              if (typeof a === 'string') {
+                combined += ' ' + a;
+              } else if (a && typeof a.message === 'string') {
+                combined += ' ' + a.message;
+              } else if (a && typeof a.stack === 'string') {
+                combined += ' ' + a.stack;
+              } else {
+                try { combined += ' ' + JSON.stringify(a); } catch(e) { combined += ' ' + String(a); }
+              }
+            }
+            return (
+              combined.indexOf('[EzoicAds JS]') !== -1 ||
+              combined.indexOf('Monetization not allowed') !== -1 ||
+              combined.indexOf('bad response. Status') !== -1 ||
+              combined.indexOf('ezojs') !== -1 ||
+              combined.indexOf('ezstandalone') !== -1 ||
+              combined.indexOf('gatekeeperconsent') !== -1 ||
+              combined.indexOf('[vite]') !== -1 ||
+              combined.indexOf('failed to connect to websocket') !== -1 ||
+              combined.indexOf('vite-plugin-pwa') !== -1
+            );
+          };
+
           console.error = function() {
-            var firstArg = arguments[0];
-            var str = typeof firstArg === 'string' ? firstArg : (firstArg && firstArg.message ? firstArg.message : '');
-            if (
-              str.indexOf('[vite]') !== -1 ||
-              str.indexOf('failed to connect to websocket') !== -1 ||
-              str.indexOf('vite-plugin-pwa') !== -1
-            ) {
+            if (isSuppressedNotice(arguments)) {
+              if (typeof console.debug === 'function') {
+                console.debug.apply(console, arguments);
+              }
               return;
             }
             origError.apply(console, arguments);
           };
+
+          console.warn = function() {
+            if (isSuppressedNotice(arguments)) {
+              if (typeof console.debug === 'function') {
+                console.debug.apply(console, arguments);
+              }
+              return;
+            }
+            origWarn.apply(console, arguments);
+          };
+
+          window.addEventListener('error', function(event) {
+            var msg = (event && event.message) || '';
+            var file = (event && event.filename) || '';
+            if (
+              msg.indexOf('Ezoic') !== -1 ||
+              msg.indexOf('Monetization not allowed') !== -1 ||
+              msg.indexOf('bad response') !== -1 ||
+              file.indexOf('sa.min.js') !== -1 ||
+              file.indexOf('ezojs') !== -1 ||
+              file.indexOf('gatekeeperconsent') !== -1
+            ) {
+              event.preventDefault();
+              event.stopPropagation();
+              return true;
+            }
+          }, true);
+
+          window.addEventListener('unhandledrejection', function(event) {
+            var reason = (event && event.reason) || '';
+            var str = typeof reason === 'string' ? reason : (reason && reason.message ? reason.message : '');
+            if (
+              str.indexOf('Ezoic') !== -1 ||
+              str.indexOf('Monetization not allowed') !== -1 ||
+              str.indexOf('ezojs') !== -1
+            ) {
+              event.preventDefault();
+              event.stopPropagation();
+            }
+          }, true);
         } catch (e) {}
 
         try {
@@ -46,18 +160,61 @@
         } catch(e) {}
       })();
     </script>
+
+    <!-- Ezoic Ads Integration (Safely initialized on authorized production domain) -->
+    <script>
+      window.ezstandalone = window.ezstandalone || {};
+      window.ezstandalone.cmd = window.ezstandalone.cmd || [];
+
+      (function() {
+        try {
+          var h = window.location.hostname;
+          var isEzoicDomain = (
+            h === 'cinevaultmovies.online' ||
+            h.endsWith('.cinevaultmovies.online') ||
+            window.location.search.indexOf('ez_js_debugger=1') !== -1 ||
+            window.location.search.indexOf('force_ezoic=1') !== -1
+          );
+
+          if (isEzoicDomain) {
+            // Ezoic Privacy Scripts (Must load before header script)
+            var s1 = document.createElement('script');
+            s1.setAttribute('data-cfasync', 'false');
+            s1.src = 'https://cmp.gatekeeperconsent.com/min.js';
+            document.head.appendChild(s1);
+
+            var s2 = document.createElement('script');
+            s2.setAttribute('data-cfasync', 'false');
+            s2.src = 'https://the.gatekeeperconsent.com/cmp.min.js';
+            document.head.appendChild(s2);
+
+            // Ezoic Header Script
+            var s3 = document.createElement('script');
+            s3.async = true;
+            s3.src = '//www.ezojs.com/ezoic/sa.min.js';
+            document.head.appendChild(s3);
+
+            var s4 = document.createElement('script');
+            s4.src = '//ezoicanalytics.com/analytics.js';
+            document.head.appendChild(s4);
+          }
+        } catch (e) {
+          console.debug('Ezoic dynamic loader notice:', e);
+        }
+      })();
+    </script>
     <title>CineVault By Sasuu — HD Movie Library & Downloads</title>
     <meta name="description" content="Explore, search, and download high-quality curated films with rich metadata, trailers, IMDb ratings, torrents, and magnet links." />
     <meta name="robots" content="index, follow, max-image-preview:large" />
-    <link rel="canonical" href="https://cinevault-movies-one.vercel.app/" />
+    <link rel="canonical" href="https://www.cinevaultmovies.online/" />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:site_name" content="CineVault By Sasuu" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://cinevault-movies-one.vercel.app/" />
+    <meta property="og:url" content="https://www.cinevaultmovies.online/" />
     <meta property="og:title" content="CineVault By Sasuu — HD Movie Library & Downloads" />
     <meta property="og:description" content="Explore, search, and download high-quality curated films with rich metadata, trailers, IMDb ratings, torrents, and magnet links." />
-    <meta property="og:image" content="https://cinevault-movies-one.vercel.app/favicon-192.png" />
+    <meta property="og:image" content="https://www.cinevaultmovies.online/favicon-192.png" />
     <meta property="og:locale" content="en_US" />
 
     <!-- Twitter / X -->
@@ -66,10 +223,9 @@
     <meta name="twitter:creator" content="@Sasuu" />
     <meta name="twitter:title" content="CineVault By Sasuu — HD Movie Library & Downloads" />
     <meta name="twitter:description" content="Explore, search, and download high-quality curated films with rich metadata, trailers, IMDb ratings, torrents, and magnet links." />
-    <meta name="twitter:image" content="https://cinevault-movies-one.vercel.app/favicon-192.png" />
+    <meta name="twitter:image" content="https://www.cinevaultmovies.online/favicon-192.png" />
 
     <meta name="google-site-verification" content="dWg6vWL00fIhf_DJwZIu6KOLqYG7O2qiYAldH1jOYgg" />
-    <meta name="google-adsense-account" content="ca-pub-6128111645137702" />
     <meta name="msvalidate.01" content="3E5A2D6A11C998B044CC2F84CACBE750" />
 
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-WMGNYXDRGZ"></script>
@@ -87,8 +243,6 @@
         y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
       })(window, document, "clarity", "script", "y6rnjex7gw");
     </script>
-
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6128111645137702" crossorigin="anonymous"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />

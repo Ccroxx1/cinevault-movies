@@ -2,7 +2,7 @@ import JSZip from 'jszip';
 import { Movie, Torrent, buildMagnetLink, RECOMMENDED_TRACKERS } from '../types';
 import { getMovieSlug } from './seo';
 
-export const SITE_URL = 'https://cinevault-movies-one.vercel.app';
+export const SITE_URL = 'https://www.cinevaultmovies.online';
 export const SITE_NAME = 'CineVault By Sasuu';
 
 /**

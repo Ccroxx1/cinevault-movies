@@ -26,6 +26,7 @@ import { MovieNightSpinnerModal } from './components/MovieNightSpinnerModal';
 import { FilmographyModal } from './components/FilmographyModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { getMoviePath, getMovieSlug, updateDocumentSeo } from './utils/seo';
+import { refreshEzoicAds } from './utils/ezoic';
 
 const DEFAULT_FILTERS: FilterParams = {
   query_term: '',
@@ -231,6 +232,11 @@ export default function App() {
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
+
+  // Refresh Ezoic ads on dynamic route changes (SPA navigation)
+  useEffect(() => {
+    refreshEzoicAds();
+  }, [route.type, (route as any).slug]);
 
   // Navigation Handlers
   const handleSelectMovie = (movie: Movie) => {
