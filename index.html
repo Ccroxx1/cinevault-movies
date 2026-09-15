@@ -234,6 +234,44 @@
     <meta name="google-site-verification" content="dWg6vWL00fIhf_DJwZIu6KOLqYG7O2qiYAldH1jOYgg" />
     <meta name="msvalidate.01" content="3E5A2D6A11C998B044CC2F84CACBE750" />
 
+    <!-- CookieHub CMP -->
+    <script src="https://cdn.cookiehub.eu/c2/b3cbcdd6.js"></script>
+    <script type="text/javascript">
+      (function() {
+        var cpm = {};
+        var initialized = false;
+        function initCookieHub() {
+          if (initialized) return;
+          if (typeof window !== 'undefined' && window.cookiehub && typeof window.cookiehub.load === 'function') {
+            initialized = true;
+            try {
+              window.cookiehub.load(cpm);
+            } catch (e) {
+              console.warn('CookieHub init error:', e);
+            }
+          }
+        }
+
+        initCookieHub();
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', initCookieHub);
+        }
+
+        window.addEventListener('load', initCookieHub);
+
+        var attempts = 0;
+        var interval = setInterval(function() {
+          attempts++;
+          if (initialized || attempts > 25) {
+            clearInterval(interval);
+            return;
+          }
+          initCookieHub();
+        }, 200);
+      })();
+    </script>
+
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK2TX7SLQV"></script>
     <script>
