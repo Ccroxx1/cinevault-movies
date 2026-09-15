@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Globe, X, ExternalLink } from 'lucide-react';
 import { Movie } from '../types';
 
 interface SubtitlesModalProps {
@@ -88,15 +89,17 @@ export const SubtitlesModal: React.FC<SubtitlesModalProps> = ({
           <button
             onClick={onClose}
             className="p-2 text-neutral-400 hover:text-white rounded-full bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+            aria-label="Close subtitles dialog"
+            title="Close"
           >
-                Close
-              </button>
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Language Filter */}
         <div className="space-y-2">
           <label className="text-xs font-semibold text-neutral-300 flex items-center gap-1.5">
-            <span aria-hidden="true" className="hidden" />
+            <Globe className="w-3.5 h-3.5 text-rose-500" />
             <span>Target Language:</span>
           </label>
           <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto scrollbar-thin">
@@ -139,6 +142,7 @@ export const SubtitlesModal: React.FC<SubtitlesModalProps> = ({
                   {provider.description}
                 </p>
               </div>
+              <ExternalLink className="w-4 h-4 text-neutral-500 group-hover:text-white shrink-0 transition-colors" />
             </a>
           ))}
         </div>

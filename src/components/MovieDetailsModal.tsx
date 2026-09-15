@@ -5,7 +5,26 @@ import { downloadMoviePackage, handleBrandedMagnetDownload } from '../utils/down
 import { AdSenseSlot } from './AdSenseSlot';
 import { SubtitlesModal } from './SubtitlesModal';
 import { BatchQualityModal } from './BatchQualityModal';
-import { ArrowLeftRight } from 'lucide-react';
+import { 
+  ArrowLeftRight, 
+  Sparkles, 
+  Star, 
+  X, 
+  ChevronLeft, 
+  ChevronRight,
+  Clock,
+  ExternalLink,
+  MessageSquare,
+  Layers,
+  Download,
+  Users,
+  Image as ImageIcon,
+  ShieldAlert,
+  Archive,
+  Magnet,
+  FileDown,
+  Check
+} from 'lucide-react';
 import { BookmarkPlusIcon, BookmarkIcon, PlayIcon, CopyIcon } from './ActionIcons';
 import { useMovieComparison } from '../context/MovieComparisonContext';
 import { TorrentSwarmHealthBadge } from './TorrentSwarmHealthBadge';
@@ -219,7 +238,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
                   <>
                     <span className="text-neutral-600">•</span>
                     <span className="flex items-center gap-1 text-xs sm:text-sm text-neutral-400">
-                      <span aria-hidden="true" className="hidden" />
+                      <Clock className="w-3.5 h-3.5 text-neutral-500" />
                       {Math.floor(movie.runtime / 60)}h {movie.runtime % 60}m
                     </span>
                   </>
@@ -241,7 +260,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
               {/* Ratings & IMDb Link */}
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-3 pt-1">
                 <div className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/30 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-amber-400 font-bold">
-                  <span aria-hidden="true" className="hidden" />
+                  <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
                   <span className="text-sm sm:text-base">{movie.rating?.toFixed(1) || 'N/A'}</span>
                   <span className="text-[10px] sm:text-xs text-amber-400/70 font-normal">/ 10</span>
                 </div>
@@ -254,7 +273,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
                     className="flex items-center gap-1.5 text-xs font-semibold text-neutral-300 hover:text-amber-400 bg-white/5 hover:bg-white/10 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-white/10 transition-colors"
                   >
                     <span>IMDb</span>
-                    <span aria-hidden="true" className="hidden" />
+                    <ExternalLink className="w-3 h-3 text-neutral-400" />
                   </a>
                 )}
 
@@ -273,7 +292,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
                   className="flex items-center gap-1.5 text-xs font-semibold text-neutral-200 hover:text-white bg-white/5 hover:bg-white/10 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full border border-white/10 transition-colors cursor-pointer"
                   title="Search and download synchronized subtitles"
                 >
-                  <span aria-hidden="true" className="hidden" />
+                  <MessageSquare className="w-3.5 h-3.5 text-neutral-400" />
                   <span>Subtitles</span>
                 </button>
 
@@ -296,7 +315,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
                     className="flex items-center gap-1.5 text-xs font-semibold text-neutral-200 hover:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full border border-emerald-500/30 transition-colors cursor-pointer"
                     title="Compare all resolutions and copy batch magnet links"
                   >
-                    <span aria-hidden="true" className="hidden" />
+                    <Layers className="w-3.5 h-3.5 text-emerald-400" />
                     <span>Compare Qualities ({movie.torrents.length})</span>
                   </button>
                 )}
@@ -334,7 +353,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
                   : 'border-transparent text-neutral-400 hover:text-neutral-200'
               }`}
             >
-              <span aria-hidden="true" className="hidden" />
+              <Download className="w-4 h-4" />
               <span>Downloads & Magnet Links ({movie.torrents?.length || 0})</span>
             </button>
 
@@ -347,7 +366,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
                     : 'border-transparent text-neutral-400 hover:text-neutral-200'
                 }`}
               >
-                <span aria-hidden="true" className="hidden" />
+                <Users className="w-4 h-4" />
                 <span>Cast & Characters ({movie.cast.length})</span>
               </button>
             )}
@@ -361,7 +380,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
                     : 'border-transparent text-neutral-400 hover:text-neutral-200'
                 }`}
               >
-                <span aria-hidden="true" className="hidden" />
+                <ImageIcon className="w-4 h-4" />
                 <span>Screenshots ({screenshots.length})</span>
               </button>
             )}
@@ -375,7 +394,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
                     : 'border-transparent text-neutral-400 hover:text-neutral-200'
                 }`}
               >
-                <span aria-hidden="true" className="hidden" />
+                <ShieldAlert className="w-4 h-4" />
                 <span>Parental Guide ({parentalGuides.length})</span>
               </button>
             )}
@@ -468,17 +487,8 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
                             className="px-3 py-2 bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 rounded-xl text-xs font-bold border border-amber-500/30 flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-60"
                             title="Download full media pack (.zip) with metadata & cover art"
                           >
-                            {isPackaging ? (
-                              <>
-                                <span aria-hidden="true" className="hidden" />
-                                <span>Packaging...</span>
-                              </>
-                            ) : (
-                              <>
-                                <span aria-hidden="true" className="hidden" />
-                                <span>Media Pack</span>
-                              </>
-                            )}
+                            <Archive className={`w-3.5 h-3.5 ${isPackaging ? 'animate-spin' : ''}`} />
+                            <span>{isPackaging ? 'Packaging...' : 'Media Pack'}</span>
                           </button>
 
                           {/* 2. Direct Magnet Download */}
@@ -487,7 +497,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
                             className="flex-1 min-w-[120px] flex items-center justify-center gap-1.5 py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-950/30 transition-colors cursor-pointer"
                             title="Direct Magnet Download (Opens your BitTorrent client)"
                           >
-                            <span aria-hidden="true" className="hidden" />
+                            <Magnet className="w-3.5 h-3.5" />
                             <span>Magnet</span>
                           </button>
 
@@ -501,13 +511,14 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
                             }`}
                             title="Copy raw magnet URI to clipboard"
                           >
-                            <CopyIcon size={15} />
                             {isCopied ? (
                               <>
+                                <Check size={14} className="text-white" />
                                 <span>Copied</span>
                               </>
                             ) : (
                               <>
+                                <CopyIcon size={14} />
                                 <span>Copy URI</span>
                               </>
                             )}
@@ -519,10 +530,10 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
                             target="_blank"
                             rel="noreferrer noopener"
                             download
-                            className="p-2 bg-white/5 hover:bg-white/15 text-neutral-300 rounded-xl border border-white/10 transition-colors flex items-center justify-center"
+                            className="p-2 bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white rounded-xl border border-white/10 transition-colors flex items-center justify-center"
                             title="Download .torrent file"
                           >
-                            <span aria-hidden="true" className="hidden" />
+                            <FileDown className="w-4 h-4" />
                           </a>
                         </div>
                       </div>
@@ -649,7 +660,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
           {suggestions.length > 0 && (
             <div className="pt-6 border-t border-white/10 space-y-4">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <span aria-hidden="true" className="hidden" />
+                <Sparkles className="w-4 h-4 text-rose-500" />
                 <span>You Might Also Like</span>
               </h3>
 
@@ -673,8 +684,8 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
                       </div>
                       <div className="flex items-center justify-between text-[11px] text-neutral-400 mt-0.5">
                         <span>{sug.year}</span>
-                        <div className="flex items-center gap-0.5 text-amber-400 font-semibold">
-                          <span aria-hidden="true" className="hidden" />
+                        <div className="flex items-center gap-1 text-amber-400 font-semibold">
+                          <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                           <span>{sug.rating?.toFixed(1) || 'N/A'}</span>
                         </div>
                       </div>
@@ -707,7 +718,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
                 Still {selectedScreenshotIndex + 1} of {screenshots.length}
               </span>
               <span className="text-xs text-neutral-400 hidden sm:inline">
-                {movie.title} • Press <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-mono"></kbd> / <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-mono"></kbd> or Click Next
+                {movie.title} • Press <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-mono">←</kbd> / <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-mono">→</kbd> or Click Next
               </span>
             </div>
 
@@ -717,7 +728,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
               title="Close Preview (Escape)"
               aria-label="Close screenshot preview"
             >
-              <span aria-hidden="true" className="hidden" />
+              <X className="w-5 h-5" />
             </button>
           </div>
 
@@ -746,7 +757,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
                 title="Previous Still (Left Arrow)"
                 aria-label="Previous screenshot"
               >
-                <span aria-hidden="true" className="hidden" />
+                <ChevronLeft className="w-5 h-5" />
               </button>
             )}
 
@@ -763,7 +774,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
                 title="Next Still (Right Arrow or Space)"
                 aria-label="Next screenshot"
               >
-                <span aria-hidden="true" className="hidden" />
+                <ChevronRight className="w-5 h-5" />
               </button>
             )}
           </div>

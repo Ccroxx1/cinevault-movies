@@ -1,5 +1,6 @@
-import { CopyIcon } from './ActionIcons';
 import React, { useState } from 'react';
+import { Archive, Magnet, Check, Copy, X } from 'lucide-react';
+import { CopyIcon } from './ActionIcons';
 import { Movie, Torrent, buildMagnetLink } from '../types';
 import { downloadMoviePackage, handleBrandedMagnetDownload } from '../utils/downloadPack';
 
@@ -83,9 +84,11 @@ export const BatchQualityModal: React.FC<BatchQualityModalProps> = ({
           <button
             onClick={onClose}
             className="p-2 text-neutral-400 hover:text-white rounded-full bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+            aria-label="Close quality comparison"
+            title="Close"
           >
-                Close
-              </button>
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Comparison Matrix */}
@@ -150,11 +153,7 @@ export const BatchQualityModal: React.FC<BatchQualityModalProps> = ({
                     className="px-3 py-2 bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 hover:text-white text-xs font-bold rounded-xl border border-amber-500/30 flex items-center justify-center gap-1.5 transition-colors cursor-pointer disabled:opacity-60"
                     title="Download ZIP folder with Cover Photo & Site Info"
                   >
-                    {isPackaging ? (
-                      <span aria-hidden="true" className="hidden" />
-                    ) : (
-                      <span aria-hidden="true" className="hidden" />
-                    )}
+                    <Archive className={`w-3.5 h-3.5 ${isPackaging ? 'animate-spin' : ''}`} />
                     <span>Pack (.zip)</span>
                   </button>
 
@@ -163,7 +162,7 @@ export const BatchQualityModal: React.FC<BatchQualityModalProps> = ({
                     className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-md transition-colors cursor-pointer"
                     title="Launch BitTorrent Client & Download CineVault Branded Info"
                   >
-                    <span aria-hidden="true" className="hidden" />
+                    <Magnet className="w-3.5 h-3.5" />
                     <span>Magnet</span>
                   </button>
 
@@ -172,15 +171,14 @@ export const BatchQualityModal: React.FC<BatchQualityModalProps> = ({
                     className="px-3 py-2 bg-[#222222] hover:bg-[#2c2c2c] text-neutral-200 hover:text-white text-xs font-semibold rounded-xl border border-white/10 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                     title="Copy Magnet URI"
                   >
-                    <CopyIcon size={15} />
                     {isCopied ? (
                       <>
-                        <span aria-hidden="true" className="hidden" />
+                        <Check size={14} className="text-emerald-400" />
                         <span className="text-emerald-400">Copied</span>
                       </>
                     ) : (
                       <>
-                        <span aria-hidden="true" className="hidden" />
+                        <CopyIcon size={14} />
                         <span>Copy</span>
                       </>
                     )}
@@ -199,12 +197,12 @@ export const BatchQualityModal: React.FC<BatchQualityModalProps> = ({
           >
             {copiedAll ? (
               <>
-                <span aria-hidden="true" className="hidden" />
+                <Check className="w-4 h-4 text-white" />
                 <span>All Magnets Copied to Clipboard!</span>
               </>
             ) : (
               <>
-                <span aria-hidden="true" className="hidden" />
+                <Copy className="w-4 h-4 text-white" />
                 <span>Copy All {movie.torrents.length} Magnet Links</span>
               </>
             )}

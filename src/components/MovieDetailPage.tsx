@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ArrowLeft, Share2, Check } from 'lucide-react';
 import { Movie, Torrent, ParentalGuide, buildMagnetLink, RECOMMENDED_TRACKERS } from '../types';
 import { fetchMovieDetails, fetchMovieSuggestions, fetchParentalGuides } from '../services/movieApi';
 import { getMoviePath, getMovieCanonicalUrl, updateDocumentSeo } from '../utils/seo';
@@ -277,8 +278,10 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
           <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-20">
             <button
               onClick={onBack || onNavigateHome}
-              className="flex items-center gap-2 px-3.5 py-2 bg-black/60 hover:bg-black/80 text-neutral-200 hover:text-white rounded-full border border-white/10 backdrop-blur-md text-xs font-semibold shadow-lg transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-black/60 hover:bg-black/80 text-neutral-200 hover:text-white rounded-full border border-white/10 backdrop-blur-md text-xs font-semibold shadow-lg transition-all cursor-pointer"
+              aria-label="Go back"
             >
+              <ArrowLeft size={15} />
               <span>Back</span>
             </button>
 
@@ -287,11 +290,18 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                 onClick={handleSharePage}
                 className="flex items-center gap-1.5 px-3 py-2 bg-black/60 hover:bg-black/80 text-neutral-200 hover:text-white rounded-full border border-white/10 backdrop-blur-md text-xs font-semibold shadow-lg transition-all cursor-pointer"
                 title="Share this movie URL"
+                aria-label="Share movie link"
               >
                 {copiedLink ? (
-                  <span className="text-rose-400">URL Copied!</span>
+                  <>
+                    <Check size={14} className="text-emerald-400" />
+                    <span className="text-emerald-400 font-semibold">Copied!</span>
+                  </>
                 ) : (
-                  <span className="hidden sm:inline">Share</span>
+                  <>
+                    <Share2 size={14} />
+                    <span className="hidden sm:inline">Share</span>
+                  </>
                 )}
               </button>
 

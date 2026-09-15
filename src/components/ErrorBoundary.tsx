@@ -1,4 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Home, RefreshCw } from 'lucide-react';
 interface Props {
   children: ReactNode;
 }
@@ -48,7 +49,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 onClick={this.handleReload}
                 className="px-6 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-semibold text-sm rounded-full shadow-lg shadow-rose-900/30 transition-colors flex items-center gap-2 cursor-pointer"
               >
-                <span aria-hidden="true" className="hidden" />
+                <Home className="w-4 h-4" />
                 <span>Return to Home</span>
               </button>
               <button
@@ -56,7 +57,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 onClick={() => window.location.reload()}
                 className="px-5 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-neutral-300 font-semibold text-sm rounded-full transition-colors flex items-center gap-2 cursor-pointer"
               >
-                <span aria-hidden="true" className="hidden" />
+                <RefreshCw className="w-4 h-4" />
                 <span>Reload</span>
               </button>
             </div>

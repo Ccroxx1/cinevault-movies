@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Shuffle } from 'lucide-react';
 import { Movie } from '../types';
 import { fetchMovies } from '../services/movieApi';
 import { MovieCard } from './MovieCard';
@@ -92,10 +93,10 @@ export const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsPr
         <button
           onClick={computeAndFetchRecommendations}
           disabled={isLoading}
-          className="flex items-center gap-1.5 text-xs font-semibold text-neutral-300 hover:text-white bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 text-xs font-semibold text-neutral-300 hover:text-white bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 transition-colors cursor-pointer disabled:opacity-50"
           title="Refresh recommendations"
         >
-          <span aria-hidden="true" className="hidden" />
+          <Shuffle className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
           <span>Shuffle Picks</span>
         </button>
       </div>

@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { ExternalLink, X } from 'lucide-react';
 interface TrailerModalProps {
   ytTrailerCode: string;
   movieTitle: string;
@@ -40,16 +41,17 @@ export const TrailerModal: React.FC<TrailerModalProps> = ({
               className="hidden sm:flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white transition-colors"
             >
               <span>Open on YouTube</span>
-              <span aria-hidden="true" className="hidden" />
+              <ExternalLink className="w-3.5 h-3.5" />
             </a>
 
             <button
               onClick={onClose}
-              className="p-1.5 text-neutral-400 hover:text-white hover:bg-white/10 rounded-full transition-colors cursor-pointer"
+              className="p-2 text-neutral-400 hover:text-white hover:bg-white/10 rounded-full transition-colors cursor-pointer"
               aria-label="Close trailer"
+              title="Close trailer"
             >
-                Close
-              </button>
+              <X className="w-5 h-5" />
+            </button>
           </div>
         </div>
 

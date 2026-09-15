@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Dices } from 'lucide-react';
+import { Dices, Search, HelpCircle, X } from 'lucide-react';
 import { Movie } from '../types';
 import { GENRES } from '../services/movieApi';
 import { CineVaultLogo } from './CineVaultLogo';
@@ -175,6 +175,7 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="relative flex-1 max-w-xs sm:max-w-md lg:max-w-lg mx-1 sm:mx-2">
               <form onSubmit={handleFormSubmit} className="relative" role="search">
                 <div className="relative flex items-center">
+                  <Search className="absolute left-2.5 sm:left-3.5 w-3.5 sm:w-4 h-3.5 sm:h-4 text-neutral-400 pointer-events-none" />
                   <label htmlFor="movie-search-input" className="sr-only">Search movies</label>
                   <input
                     id="movie-search-input"
@@ -199,7 +200,7 @@ export const Header: React.FC<HeaderProps> = ({
                         title="Clear search"
                         aria-label="Clear search"
                       >
-                        <span aria-hidden="true">&times;</span>
+                        <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   )}
@@ -432,9 +433,10 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={onOpenGuide}
                 className="p-2 text-neutral-400 hover:text-white rounded-xl cursor-pointer"
-                aria-label="Download Guide"
+                aria-label="Download Guide & FAQs"
+                title="Download Guide & FAQs"
               >
-                <PlayIcon size={18} className="rotate-90" />
+                <HelpCircle className="w-[18px] h-[18px]" />
               </button>
             </div>
 

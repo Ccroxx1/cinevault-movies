@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { X, Server, Check, Copy } from 'lucide-react';
 import { RECOMMENDED_TRACKERS } from '../types';
 
 interface DownloadGuideModalProps {
@@ -40,9 +41,11 @@ export const DownloadGuideModal: React.FC<DownloadGuideModalProps> = ({
           <button
             onClick={onClose}
             className="p-2 text-neutral-400 hover:text-white hover:bg-white/10 rounded-full transition-colors cursor-pointer"
+            aria-label="Close guide"
+            title="Close"
           >
-                Close
-              </button>
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Steps */}
@@ -94,22 +97,22 @@ export const DownloadGuideModal: React.FC<DownloadGuideModalProps> = ({
         <div className="p-4 bg-[#050505] border border-white/10 rounded-2xl space-y-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-xs font-bold text-neutral-300">
-              <span aria-hidden="true" className="hidden" />
+              <Server className="w-4 h-4 text-emerald-400" />
               <span>Recommended Open BitTorrent Trackers ({RECOMMENDED_TRACKERS.length})</span>
             </div>
 
             <button
               onClick={handleCopyTrackers}
-              className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 font-semibold px-3 py-1 bg-emerald-600/10 rounded-full border border-emerald-500/20 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 font-semibold px-3 py-1 bg-emerald-600/10 rounded-full border border-emerald-500/20 transition-colors cursor-pointer"
             >
               {copiedTrackers ? (
                 <>
-                  <span aria-hidden="true" className="hidden" />
+                  <Check className="w-3.5 h-3.5 text-emerald-400" />
                   <span>Copied All Trackers</span>
                 </>
               ) : (
                 <>
-                  <span aria-hidden="true" className="hidden" />
+                  <Copy className="w-3.5 h-3.5 text-emerald-400" />
                   <span>Copy All Trackers</span>
                 </>
               )}
