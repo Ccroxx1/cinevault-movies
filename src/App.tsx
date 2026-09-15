@@ -143,7 +143,9 @@ export default function App() {
   // Save watchlist to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem('cinevault_watchlist', JSON.stringify(watchlist));
+      if (watchlist.length > 0 || localStorage.getItem('cinevault_watchlist') !== null) {
+        localStorage.setItem('cinevault_watchlist', JSON.stringify(watchlist));
+      }
     } catch (e) {
       console.error('Failed to save watchlist to localStorage:', e);
     }
@@ -152,7 +154,9 @@ export default function App() {
   // Save recentlyViewed to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem('cinevault_recent_views', JSON.stringify(recentlyViewed));
+      if (recentlyViewed.length > 0 || localStorage.getItem('cinevault_recent_views') !== null) {
+        localStorage.setItem('cinevault_recent_views', JSON.stringify(recentlyViewed));
+      }
     } catch (e) {
       console.error('Failed to save recently viewed to localStorage:', e);
     }

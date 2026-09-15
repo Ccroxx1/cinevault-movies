@@ -28,7 +28,9 @@ export const MovieComparisonProvider: React.FC<{ children: React.ReactNode }> = 
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(comparisonList));
+      if (comparisonList.length > 0 || localStorage.getItem(STORAGE_KEY) !== null) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(comparisonList));
+      }
     } catch {}
   }, [comparisonList]);
 
