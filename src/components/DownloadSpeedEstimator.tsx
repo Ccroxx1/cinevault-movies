@@ -7,6 +7,8 @@ interface DownloadSpeedEstimatorProps {
   fileSize?: string;
   sizeFormatted?: string;
   className?: string;
+  selectedSpeed?: number;
+  onSpeedChange?: (speed: number) => void;
 }
 
 const SPEED_PRESETS = [
@@ -34,59 +36,74 @@ export const DownloadSpeedEstimator: React.FC<DownloadSpeedEstimatorProps> = ({
   fileSize,
   sizeFormatted,
   className = '',
+  selectedSpeed: controlledSpeed,
+  onSpeedChange,
 }) => {
-  const [selectedSpeed, setSelectedSpeed] = useState<number>(100); // default 100 Mbps
+  const [internalSpeed, setInternalSpeed] = useState<number>(100); // default 100 Mbps
+  const currentSpeed = controlledSpeed !== undefined ? controlledSpeed : internalSpeed;
+
+  const handleSpeedSelect = (val: number) => {
+    if (onSpeedChange) {
+      onSpeedChange(val);
+    } else {
+      setInternalSpeed(val);
+    }
+  };
 
   const computedBytes = sizeBytes && sizeBytes > 0 
     ? sizeBytes 
     : parseFileSizeToBytes(fileSize || sizeFormatted);
 
-  const estimatedTime = calculateEstimatedDownloadTime(computedBytes, selectedSpeed);
+  const estimatedTime = calculateEstimatedDownloadTime(computedBytes, currentSpeed);
+  const activePreset = SPEED_PRESETS.find((p) => p.value === currentSpeed) || SPEED_PRESETS[2];
 
   return (
-    <div className={`p-3 rounded-xl bg-white/5 border border-white/10 space-y-2 ${className}`}>
-      <div className="flex items-center justify-between text-xs">
-        <div className="flex items-center gap-1.5 text-neutral-300 font-semibold">
-          <Gauge className="w-3.5 h-3.5 text-rose-400" />
-          <span>Download Speed Estimator</span>
+    <div className={`p-2.5 sm:p-3 rounded-xl bg-white/[0.03] border border-white/5 space-y-2 ${className}`}>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+        {/* Left: Speed Indicator & Time Estimate */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 text-neutral-300 font-semibold">
+            <Gauge className="w-3.5 h-3.5 text-rose-500" />
+            <span>Est. Download:</span>
+          </div>
+          <div className="flex items-center gap-1 text-emerald-400 font-mono font-bold">
+            <Clock className="w-3 h-3" />
+            <span>~{estimatedTime}</span>
+          </div>
+          {sizeFormatted && (
+            <span className="text-[11px] text-neutral-500 font-mono hidden md:inline">
+              ({sizeFormatted} @ {activePreset.name.split(' (')[0]})
+            </span>
+          )}
         </div>
-        <div className="flex items-center gap-1 text-emerald-400 font-mono font-bold">
-          <Clock className="w-3 h-3" />
-          <span>~{estimatedTime}</span>
-        </div>
-      </div>
 
-      <div className="flex items-center justify-between gap-1 pt-1">
-        <span className="text-[10px] text-neutral-400 font-mono flex items-center gap-1">
-          <Wifi className="w-3 h-3" /> Speed:
-        </span>
-        <div className="flex items-center gap-1">
-          {SPEED_PRESETS.map((preset) => {
-            const isActive = selectedSpeed === preset.value;
-            return (
-              <button
-                key={preset.value}
-                type="button"
-                onClick={() => setSelectedSpeed(preset.value)}
-                title={preset.name}
-                className={`px-2 py-0.5 rounded text-[10px] font-mono font-semibold transition cursor-pointer ${
-                  isActive
-                    ? 'bg-rose-600 text-white shadow-sm'
-                    : 'bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border border-white/5'
-                }`}
-              >
-                {preset.label}
-              </button>
-            );
-          })}
+        {/* Right: Presets */}
+        <div className="flex items-center gap-1.5 self-start sm:self-auto">
+          <span className="text-[10px] text-neutral-400 font-mono flex items-center gap-1">
+            <Wifi className="w-3 h-3" /> Speed:
+          </span>
+          <div className="flex items-center gap-1">
+            {SPEED_PRESETS.map((preset) => {
+              const isActive = currentSpeed === preset.value;
+              return (
+                <button
+                  key={preset.value}
+                  type="button"
+                  onClick={() => handleSpeedSelect(preset.value)}
+                  title={preset.name}
+                  className={`px-2 py-0.5 rounded text-[10px] font-mono font-semibold transition cursor-pointer ${
+                    isActive
+                      ? 'bg-rose-600 text-white shadow-sm'
+                      : 'bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border border-white/5'
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
-      {sizeFormatted && (
-        <p className="text-[10px] text-neutral-400/80 font-mono text-right">
-          Total payload: <span className="text-neutral-200">{sizeFormatted}</span> @{' '}
-          {SPEED_PRESETS.find((p) => p.value === selectedSpeed)?.name.split(' (')[0]}
-        </p>
-      )}
     </div>
   );
 };

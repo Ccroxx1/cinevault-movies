@@ -21,6 +21,7 @@ interface HeaderProps {
   onSelectGenre?: (genre: string) => void;
   onOpenPolicy?: (tab: 'privacy' | 'terms' | 'about' | 'contact' | 'dmca') => void;
   onOpenSpinner?: () => void;
+  onRequestSearch?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -34,7 +35,8 @@ export const Header: React.FC<HeaderProps> = ({
   onSelectMovie,
   onSelectGenre,
   onOpenPolicy,
-  onOpenSpinner
+  onOpenSpinner,
+  onRequestSearch
 }) => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [quickResults, setQuickResults] = useState<Movie[]>([]);
@@ -47,22 +49,89 @@ export const Header: React.FC<HeaderProps> = ({
   const genreMenuRef = useRef<HTMLDivElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
 
-  // Close drawer on escape key
+  // Global keyboard shortcuts: Space or '/' to take user to search, Escape to close
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === '/' && document.activeElement !== searchInputRef.current) {
-        e.preventDefault();
-        searchInputRef.current?.focus();
-      } else if (e.key === 'Escape') {
+      if (e.key === 'Escape') {
         setIsSearchFocused(false);
         setIsMobileMenuOpen(false);
         setIsGenreDropdownOpen(false);
         searchInputRef.current?.blur();
+        return;
+      }
+
+      // Check if user is typing inside an editable form element
+      const activeEl = document.activeElement as HTMLElement | null;
+      const targetEl = e.target as HTMLElement | null;
+      const isEditable = (el: HTMLElement | null): boolean => {
+        if (!el) return false;
+        const tag = el.tagName ? el.tagName.toUpperCase() : '';
+        return (
+          tag === 'INPUT' ||
+          tag === 'TEXTAREA' ||
+          tag === 'SELECT' ||
+          Boolean(el.isContentEditable) ||
+          el.getAttribute('role') === 'textbox' ||
+          el.getAttribute('role') === 'searchbox' ||
+          el.getAttribute('role') === 'combobox'
+        );
+      };
+
+      if (isEditable(activeEl) || isEditable(targetEl)) {
+        return; // Allow typing spaces normally without interruption
+      }
+
+      // If a video player or trailer modal is active, do not hijack spacebar (used for media controls)
+      if (
+        document.querySelector('[data-trailer-modal]') ||
+        activeEl?.tagName === 'VIDEO' ||
+        activeEl?.tagName === 'IFRAME' ||
+        targetEl?.tagName === 'VIDEO' ||
+        targetEl?.tagName === 'IFRAME'
+      ) {
+        return;
+      }
+
+      // Ignore OS-level modifier key combos (e.g. Cmd+Space, Ctrl+Space, Alt+Space)
+      if (e.ctrlKey || e.metaKey || e.altKey) {
+        return;
+      }
+
+      const isSpace = e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space' || e.keyCode === 32;
+      const isSlash = e.key === '/';
+
+      if (isSpace || isSlash) {
+        // Prevent default browser scrolling down when pressing Space
+        e.preventDefault();
+
+        // Switch to browse / main catalog view if on another route
+        if (onRequestSearch) {
+          onRequestSearch();
+        } else if (currentNav !== 'browse') {
+          onNavSelect('browse');
+        }
+
+        // Close open menus/drawers
+        setIsMobileMenuOpen(false);
+        setIsGenreDropdownOpen(false);
+
+        // Smoothly scroll to the top so search is prominent
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        // Focus search input, select any existing text to allow immediate typing
+        setTimeout(() => {
+          if (searchInputRef.current) {
+            searchInputRef.current.focus();
+            searchInputRef.current.select();
+            setIsSearchFocused(true);
+          }
+        }, 20);
       }
     };
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [currentNav, onNavSelect, onRequestSearch]);
 
   // Prevent background scroll when mobile menu drawer is open
   useEffect(() => {
@@ -185,10 +254,10 @@ export const Header: React.FC<HeaderProps> = ({
                     onChange={(e) => onSearchChange(e.target.value)}
                     onFocus={() => setIsSearchFocused(true)}
                     placeholder="Search titles, actors, directors..."
-                    className="w-full pl-8 sm:pl-10 pr-8 sm:pr-10 py-1.5 sm:py-2.5 text-xs sm:text-sm bg-[#0f0f0f] hover:bg-[#141414] focus:bg-[#141414] border border-white/10 focus:border-rose-500/80 rounded-xl text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 transition-all"
+                    className="w-full pl-8 sm:pl-10 pr-14 sm:pr-16 py-1.5 sm:py-2.5 text-xs sm:text-sm bg-[#0f0f0f] hover:bg-[#141414] focus:bg-[#141414] border border-white/10 focus:border-rose-500/80 rounded-xl text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 transition-all"
                   />
                   
-                  {searchQuery && (
+                  {searchQuery ? (
                     <div className="absolute right-2 sm:right-2.5 flex items-center">
                       <button
                         type="button"
@@ -202,6 +271,12 @@ export const Header: React.FC<HeaderProps> = ({
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
+                    </div>
+                  ) : (
+                    <div className="absolute right-2 sm:right-2.5 hidden sm:flex items-center pointer-events-none select-none">
+                      <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-medium text-neutral-400 bg-white/5 border border-white/10 rounded shadow-xs" title="Press Space to search">
+                        Space
+                      </kbd>
                     </div>
                   )}
                 </div>

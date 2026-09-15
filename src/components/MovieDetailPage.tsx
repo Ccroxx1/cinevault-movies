@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Share2, Check } from 'lucide-react';
+import { ArrowLeft, Share2, Check, Archive, Magnet, FileDown, Layers } from 'lucide-react';
 import { Movie, Torrent, ParentalGuide, buildMagnetLink, RECOMMENDED_TRACKERS } from '../types';
 import { fetchMovieDetails, fetchMovieSuggestions, fetchParentalGuides } from '../services/movieApi';
 import { getMoviePath, getMovieCanonicalUrl, updateDocumentSeo } from '../utils/seo';
@@ -52,6 +52,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
   const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
   const [packagingHash, setPackagingHash] = useState<string | null>(null);
   const [packageProgress, setPackageProgress] = useState<string | null>(null);
+  const [globalSpeed, setGlobalSpeed] = useState<number>(100);
 
   // Sync state if initialMovie changes
   useEffect(() => {
@@ -537,7 +538,25 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
         {activeTab === 'torrents' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <section className="lg:col-span-2 space-y-4">
-              <h2 className="text-lg font-bold text-white">Available Download Formats</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <span>Available Download Formats</span>
+                  <span className="text-xs font-normal text-neutral-400 font-mono">
+                    ({movie.torrents?.length || 0})
+                  </span>
+                </h2>
+                {movie.torrents && movie.torrents.length > 1 && (
+                  <button
+                    onClick={() => setIsBatchModalOpen(true)}
+                    className="text-xs font-semibold text-neutral-300 hover:text-white bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 transition-colors flex items-center gap-1.5 cursor-pointer"
+                    title="Compare all resolutions and formats"
+                  >
+                    <Layers className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Compare Qualities</span>
+                  </button>
+                )}
+              </div>
+
               {movie.torrents && movie.torrents.length > 0 ? (
                 <div className="space-y-3">
                   {movie.torrents.map((torrent, idx) => {
@@ -546,52 +565,111 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                     return (
                       <div
                         key={`${torrent.hash}-${idx}`}
-                        className={`rounded-2xl border transition-all p-4 sm:p-5 ${
-                          is4k ? 'bg-gradient-to-r from-amber-950/25 via-[#111111] to-[#0e0e0e] border-amber-500/35' : 'bg-[#0f0f0f] border-white/5'
+                        className={`rounded-2xl border transition-all p-4 sm:p-5 flex flex-col justify-between gap-3.5 ${
+                          is4k
+                            ? 'bg-gradient-to-r from-amber-950/20 via-[#111111] to-[#0e0e0e] border-amber-500/35 shadow-lg shadow-amber-950/10'
+                            : 'bg-[#0f0f0f] border-white/5 hover:border-white/15'
                         }`}
                       >
-                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                        {/* Primary Format Bar: Technical Details & Action Toolbar */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+                          {/* Left: Resolution, Source, Codec, Size, and Swarm */}
                           <div className="space-y-2">
                             <div className="flex flex-wrap items-center gap-2">
-                              <span className={`px-2.5 py-1 text-xs font-black rounded-lg uppercase ${is4k ? 'bg-amber-500 text-black' : 'bg-neutral-800 text-neutral-200'}`}>
+                              <span
+                                className={`px-2.5 py-1 text-xs font-black rounded-lg uppercase tracking-wider ${
+                                  is4k
+                                    ? 'bg-amber-500 text-black font-extrabold shadow-sm'
+                                    : 'bg-neutral-800 text-neutral-100 border border-white/10'
+                                }`}
+                              >
                                 {torrent.quality}
                               </span>
-                              <span className="text-xs font-semibold text-neutral-300 uppercase px-2 py-0.5 rounded bg-white/5 border border-white/10">
-                                {torrent.type}
+                              <span className="text-xs font-semibold text-neutral-300 uppercase px-2.5 py-1 rounded-lg bg-white/5 border border-white/10">
+                                {torrent.type || 'WEB'}
+                              </span>
+                              {torrent.video_codec && (
+                                <span className="text-xs font-mono text-neutral-400 px-2 py-0.5 rounded bg-white/5 border border-white/5">
+                                  {torrent.video_codec}
+                                </span>
+                              )}
+                              <span className="text-xs font-mono font-bold text-neutral-100 bg-white/10 px-2.5 py-1 rounded-lg border border-white/10">
+                                {torrent.size}
                               </span>
                             </div>
-                            <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
-                               <span className="text-neutral-100">{torrent.size}</span>
-                               <span className="text-emerald-400">{torrent.seeds} Seeds</span>
-                               <span className="text-neutral-400">{torrent.peers} Peers</span>
-                            </div>
-                            <div className="pt-1 flex flex-wrap items-center gap-3">
+
+                            <div className="flex flex-wrap items-center gap-2.5 pt-0.5">
                               <TorrentSwarmHealthBadge seeds={torrent.seeds} peers={torrent.peers} showDetails />
-                              <DownloadSpeedEstimator sizeBytes={torrent.size_bytes} sizeFormatted={torrent.size} />
+                              <span className="text-xs font-mono text-neutral-400">
+                                <span className="text-emerald-400 font-semibold">{torrent.seeds} Seeds</span>
+                                <span className="mx-1.5 text-neutral-600">•</span>
+                                <span>{torrent.peers} Peers</span>
+                              </span>
                             </div>
                           </div>
-                          <div className="flex flex-wrap items-center gap-2">
+
+                          {/* Right: Uniform Action Toolbar */}
+                          <div className="flex items-center gap-2 shrink-0 self-start sm:self-center">
+                            {/* 1. Media Pack */}
                             <button
                               onClick={() => handleDownloadMediaPack(torrent)}
                               disabled={packagingHash === torrent.hash}
-                              className="px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 transition-all cursor-pointer"
+                              className="px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-60 whitespace-nowrap"
+                              title="Download ZIP media package with cover art & specs"
                             >
-                              {packagingHash === torrent.hash ? 'Packaging...' : 'Media Pack'}
+                              <Archive className={`w-3.5 h-3.5 ${packagingHash === torrent.hash ? 'animate-spin' : ''}`} />
+                              <span>{packagingHash === torrent.hash ? 'Packaging...' : 'Media Pack'}</span>
                             </button>
+
+                            {/* 2. Magnet Download */}
                             <button
                               onClick={(e) => handleDirectMagnetDownload(e, torrent)}
-                              className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg transition-all cursor-pointer"
+                              className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-950/30 flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap"
+                              title="Launch BitTorrent client"
                             >
-                              Magnet Download
+                              <Magnet className="w-3.5 h-3.5" />
+                              <span>Magnet Download</span>
                             </button>
+
+                            {/* 3. Copy URI */}
                             <button
                               onClick={() => handleCopyMagnet(torrent)}
-                              className={`p-2 rounded-xl border transition-all cursor-pointer ${isCopied ? 'bg-rose-600 text-white border-rose-500' : 'bg-white/5 border-white/10 text-neutral-300'}`}
-                              title="Copy Magnet URI"
+                              className={`p-2 rounded-xl border transition-all cursor-pointer flex items-center justify-center ${
+                                isCopied
+                                  ? 'bg-rose-600 text-white border-rose-500'
+                                  : 'bg-white/5 hover:bg-white/15 border-white/10 text-neutral-300 hover:text-white'
+                              }`}
+                              title={isCopied ? 'Copied to clipboard' : 'Copy raw magnet URI'}
+                              aria-label="Copy Magnet URI"
                             >
-                              <CopyIcon size={18} />
+                              {isCopied ? <Check size={16} className="text-white" /> : <CopyIcon size={16} />}
                             </button>
+
+                            {/* 4. Direct .torrent file download */}
+                            {torrent.url && (
+                              <a
+                                href={torrent.url}
+                                target="_blank"
+                                rel="noreferrer noopener"
+                                download
+                                className="p-2 rounded-xl bg-white/5 hover:bg-white/15 border border-white/10 text-neutral-300 hover:text-white transition-all flex items-center justify-center"
+                                title="Download .torrent file"
+                                aria-label="Download .torrent file"
+                              >
+                                <FileDown className="w-4 h-4" />
+                              </a>
+                            )}
                           </div>
+                        </div>
+
+                        {/* Bottom Row: Uniform Download Speed Estimator Strip */}
+                        <div className="pt-2.5 border-t border-white/5">
+                          <DownloadSpeedEstimator
+                            sizeBytes={torrent.size_bytes}
+                            sizeFormatted={torrent.size}
+                            selectedSpeed={globalSpeed}
+                            onSpeedChange={setGlobalSpeed}
+                          />
                         </div>
                       </div>
                     );
