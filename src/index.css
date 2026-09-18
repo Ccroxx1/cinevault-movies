@@ -700,9 +700,9 @@
    ========================================================================== */
 
 /* Dialog & Modal Card Surfaces */
-[data-theme="white"] [role="dialog"] > div,
-[data-theme="white"] .fixed.inset-0 > div,
-[data-theme="white"] [class*="fixed inset-0"] > div,
+[data-theme="white"] [role="dialog"]:not(.cinebot-modal-window):not(#cinebot-modal-window) > div,
+[data-theme="white"] .fixed.inset-0:not(.cinebot-modal-window):not(#cinebot-modal-window) > div,
+[data-theme="white"] [class*="fixed inset-0"]:not(.cinebot-modal-window):not(#cinebot-modal-window) > div,
 [data-theme="white"] .modal-dialog-surface {
   background-color: #ffffff !important;
   color: #0f172a !important;
@@ -711,90 +711,250 @@
 }
 
 /* Modal Headers, Sub-bars, and Footers */
-[data-theme="white"] [role="dialog"] [class*="bg-\[\#141414\]"],
-[data-theme="white"] [role="dialog"] [class*="bg-\[\#0d0d0d\]"],
-[data-theme="white"] [role="dialog"] [class*="bg-\[\#0a0a0a\]"],
-[data-theme="white"] [role="dialog"] [class*="bg-\[\#050505\]"],
-[data-theme="white"] [class*="fixed inset-0"] > div [class*="bg-\[\#141414\]"],
-[data-theme="white"] [class*="fixed inset-0"] > div [class*="bg-\[\#0d0d0d\]"],
-[data-theme="white"] [class*="fixed inset-0"] > div [class*="bg-\[\#050505\]"] {
+[data-theme="white"] [role="dialog"]:not(.cinebot-modal-window) [class*="bg-\[\#141414\]"],
+[data-theme="white"] [role="dialog"]:not(.cinebot-modal-window) [class*="bg-\[\#0d0d0d\]"],
+[data-theme="white"] [role="dialog"]:not(.cinebot-modal-window) [class*="bg-\[\#0a0a0a\]"],
+[data-theme="white"] [role="dialog"]:not(.cinebot-modal-window) [class*="bg-\[\#050505\]"],
+[data-theme="white"] [class*="fixed inset-0"]:not(.cinebot-modal-window) > div [class*="bg-\[\#141414\]"],
+[data-theme="white"] [class*="fixed inset-0"]:not(.cinebot-modal-window) > div [class*="bg-\[\#0d0d0d\]"],
+[data-theme="white"] [class*="fixed inset-0"]:not(.cinebot-modal-window) > div [class*="bg-\[\#050505\]"] {
   background-color: #f8fafc !important;
   border-color: rgba(0, 0, 0, 0.08) !important;
 }
 
 /* Inner containers and callouts inside modals */
-[data-theme="white"] [role="dialog"] .bg-white\/5,
-[data-theme="white"] [class*="fixed inset-0"] > div .bg-white\/5,
-[data-theme="white"] [role="dialog"] .bg-white\/10,
-[data-theme="white"] [class*="fixed inset-0"] > div .bg-white\/10 {
+[data-theme="white"] [role="dialog"]:not(.cinebot-modal-window) .bg-white\/5,
+[data-theme="white"] [class*="fixed inset-0"]:not(.cinebot-modal-window) > div .bg-white\/5,
+[data-theme="white"] [role="dialog"]:not(.cinebot-modal-window) .bg-white\/10,
+[data-theme="white"] [class*="fixed inset-0"]:not(.cinebot-modal-window) > div .bg-white\/10 {
   background-color: #f1f5f9 !important;
   border-color: rgba(0, 0, 0, 0.1) !important;
 }
 
 /* All headings inside modals: deep slate 900 */
-[data-theme="white"] [role="dialog"] h1,
-[data-theme="white"] [role="dialog"] h2,
-[data-theme="white"] [role="dialog"] h3,
-[data-theme="white"] [role="dialog"] h4,
-[data-theme="white"] [role="dialog"] h5,
-[data-theme="white"] [role="dialog"] h6,
-[data-theme="white"] [class*="fixed inset-0"] > div h1,
-[data-theme="white"] [class*="fixed inset-0"] > div h2,
-[data-theme="white"] [class*="fixed inset-0"] > div h3,
-[data-theme="white"] [class*="fixed inset-0"] > div h4,
-[data-theme="white"] [class*="fixed inset-0"] > div h5,
-[data-theme="white"] [class*="fixed inset-0"] > div h6 {
+[data-theme="white"] [role="dialog"]:not(.cinebot-modal-window) h1,
+[data-theme="white"] [role="dialog"]:not(.cinebot-modal-window) h2,
+[data-theme="white"] [role="dialog"]:not(.cinebot-modal-window) h3,
+[data-theme="white"] [role="dialog"]:not(.cinebot-modal-window) h4,
+[data-theme="white"] [role="dialog"]:not(.cinebot-modal-window) h5,
+[data-theme="white"] [role="dialog"]:not(.cinebot-modal-window) h6,
+[data-theme="white"] [class*="fixed inset-0"]:not(.cinebot-modal-window) > div h1,
+[data-theme="white"] [class*="fixed inset-0"]:not(.cinebot-modal-window) > div h2,
+[data-theme="white"] [class*="fixed inset-0"]:not(.cinebot-modal-window) > div h3,
+[data-theme="white"] [class*="fixed inset-0"]:not(.cinebot-modal-window) > div h4,
+[data-theme="white"] [class*="fixed inset-0"]:not(.cinebot-modal-window) > div h5,
+[data-theme="white"] [class*="fixed inset-0"]:not(.cinebot-modal-window) > div h6 {
   color: #0f172a !important;
 }
 
 /* All paragraphs, lists, table cells, text blocks inside modals: deep slate 800 */
-[data-theme="white"] [role="dialog"] p,
-[data-theme="white"] [role="dialog"] li,
-[data-theme="white"] [role="dialog"] ul,
-[data-theme="white"] [role="dialog"] ol,
-[data-theme="white"] [role="dialog"] td,
-[data-theme="white"] [role="dialog"] th,
-[data-theme="white"] [role="dialog"] dt,
-[data-theme="white"] [role="dialog"] dd,
-[data-theme="white"] [class*="fixed inset-0"] > div p,
-[data-theme="white"] [class*="fixed inset-0"] > div li,
-[data-theme="white"] [class*="fixed inset-0"] > div td,
-[data-theme="white"] [class*="fixed inset-0"] > div th {
+[data-theme="white"] [role="dialog"]:not(.cinebot-modal-window) p,
+[data-theme="white"] [role="dialog"]:not(.cinebot-modal-window) li,
+[data-theme="white"] [role="dialog"]:not(.cinebot-modal-window) ul,
+[data-theme="white"] [role="dialog"]:not(.cinebot-modal-window) ol,
+[data-theme="white"] [role="dialog"]:not(.cinebot-modal-window) td,
+[data-theme="white"] [role="dialog"]:not(.cinebot-modal-window) th,
+[data-theme="white"] [role="dialog"]:not(.cinebot-modal-window) dt,
+[data-theme="white"] [role="dialog"]:not(.cinebot-modal-window) dd,
+[data-theme="white"] [class*="fixed inset-0"]:not(.cinebot-modal-window) > div p,
+[data-theme="white"] [class*="fixed inset-0"]:not(.cinebot-modal-window) > div li,
+[data-theme="white"] [class*="fixed inset-0"]:not(.cinebot-modal-window) > div td,
+[data-theme="white"] [class*="fixed inset-0"]:not(.cinebot-modal-window) > div th {
   color: #1e293b !important;
 }
 
 /* Explicit text utility overrides inside modals */
-[data-theme="white"] [role="dialog"] .text-white,
-[data-theme="white"] [class*="fixed inset-0"] > div .text-white,
-[data-theme="white"] [role="dialog"] .text-neutral-100,
-[data-theme="white"] [class*="fixed inset-0"] > div .text-neutral-100,
-[data-theme="white"] [role="dialog"] .text-neutral-200,
-[data-theme="white"] [class*="fixed inset-0"] > div .text-neutral-200,
-[data-theme="white"] [role="dialog"] .text-neutral-300,
-[data-theme="white"] [class*="fixed inset-0"] > div .text-neutral-300 {
+[data-theme="white"] [role="dialog"]:not(.cinebot-modal-window) .text-white,
+[data-theme="white"] [class*="fixed inset-0"]:not(.cinebot-modal-window) > div .text-white,
+[data-theme="white"] [role="dialog"]:not(.cinebot-modal-window) .text-neutral-100,
+[data-theme="white"] [class*="fixed inset-0"]:not(.cinebot-modal-window) > div .text-neutral-100,
+[data-theme="white"] [role="dialog"]:not(.cinebot-modal-window) .text-neutral-200,
+[data-theme="white"] [class*="fixed inset-0"]:not(.cinebot-modal-window) > div .text-neutral-200,
+[data-theme="white"] [role="dialog"]:not(.cinebot-modal-window) .text-neutral-300,
+[data-theme="white"] [class*="fixed inset-0"]:not(.cinebot-modal-window) > div .text-neutral-300 {
   color: #0f172a !important;
 }
 
-[data-theme="white"] [role="dialog"] .text-neutral-400,
-[data-theme="white"] [class*="fixed inset-0"] > div .text-neutral-400 {
+[data-theme="white"] [role="dialog"]:not(.cinebot-modal-window) .text-neutral-400,
+[data-theme="white"] [class*="fixed inset-0"]:not(.cinebot-modal-window) > div .text-neutral-400 {
   color: #475569 !important;
 }
 
-[data-theme="white"] [role="dialog"] .text-neutral-500,
-[data-theme="white"] [class*="fixed inset-0"] > div .text-neutral-500 {
+[data-theme="white"] [role="dialog"]:not(.cinebot-modal-window) .text-neutral-500,
+[data-theme="white"] [class*="fixed inset-0"]:not(.cinebot-modal-window) > div .text-neutral-500 {
   color: #64748b !important;
 }
 
 /* Close & secondary action buttons inside modals */
-[data-theme="white"] [role="dialog"] button.text-neutral-400,
-[data-theme="white"] [class*="fixed inset-0"] > div button.text-neutral-400 {
+[data-theme="white"] [role="dialog"]:not(.cinebot-modal-window) button.text-neutral-400,
+[data-theme="white"] [class*="fixed inset-0"]:not(.cinebot-modal-window) > div button.text-neutral-400 {
   color: #334155 !important;
 }
 
-[data-theme="white"] [role="dialog"] button.text-neutral-400:hover,
-[data-theme="white"] [class*="fixed inset-0"] > div button.text-neutral-400:hover {
+[data-theme="white"] [role="dialog"]:not(.cinebot-modal-window) button.text-neutral-400:hover,
+[data-theme="white"] [class*="fixed inset-0"]:not(.cinebot-modal-window) > div button.text-neutral-400:hover {
   color: #0f172a !important;
   background-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+/* ==========================================================================
+   CINEBOT AI CONCIERGE DEDICATED THEME RULES
+   ========================================================================== */
+
+/* CineBot in White Mode */
+[data-theme="white"] .cinebot-modal-window,
+[data-theme="white"] #cinebot-modal-window {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.16) !important;
+}
+
+[data-theme="white"] .cinebot-header {
+  background-color: #f8fafc !important;
+  border-bottom-color: #e2e8f0 !important;
+}
+
+[data-theme="white"] .cinebot-header-title {
+  color: #0f172a !important;
+}
+
+[data-theme="white"] .cinebot-header-sub {
+  color: #64748b !important;
+}
+
+[data-theme="white"] .cinebot-header-btn {
+  color: #64748b !important;
+}
+
+[data-theme="white"] .cinebot-header-btn:hover {
+  color: #0f172a !important;
+  background-color: #e2e8f0 !important;
+}
+
+[data-theme="white"] .cinebot-messages-area {
+  background-color: #f8fafc !important;
+}
+
+[data-theme="white"] .cinebot-bubble-bot {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #1e293b !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+}
+
+[data-theme="white"] .cinebot-bubble-bot p,
+[data-theme="white"] .cinebot-bubble-bot li {
+  color: #1e293b !important;
+}
+
+[data-theme="white"] .cinebot-bubble-bot strong {
+  color: #0f172a !important;
+}
+
+[data-theme="white"] .cinebot-movie-card {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="white"] .cinebot-movie-card:hover {
+  background-color: #f8fafc !important;
+  border-color: #fecdd3 !important;
+}
+
+[data-theme="white"] .cinebot-movie-title {
+  color: #0f172a !important;
+}
+
+[data-theme="white"] .cinebot-movie-year {
+  color: #64748b !important;
+}
+
+[data-theme="white"] .cinebot-movie-reason {
+  color: #334155 !important;
+}
+
+[data-theme="white"] .cinebot-chip-btn {
+  background-color: #ffffff !important;
+  color: #334155 !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="white"] .cinebot-chip-btn:hover {
+  background-color: #fff1f2 !important;
+  color: #e11d48 !important;
+  border-color: #fecdd3 !important;
+}
+
+[data-theme="white"] .cinebot-quick-prompts-bar {
+  background-color: #f8fafc !important;
+  border-top-color: #e2e8f0 !important;
+}
+
+[data-theme="white"] .cinebot-footer-area {
+  background-color: #ffffff !important;
+  border-top-color: #e2e8f0 !important;
+}
+
+[data-theme="white"] .cinebot-input-field {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="white"] .cinebot-input-field::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* CineBot in Blue-Black Mode */
+[data-theme="blue-black"] .cinebot-modal-window,
+[data-theme="blue-black"] #cinebot-modal-window {
+  background-color: #080e1e !important;
+  border-color: rgba(56, 189, 248, 0.2) !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="blue-black"] .cinebot-header {
+  background-color: #0b142c !important;
+  border-bottom-color: rgba(56, 189, 248, 0.2) !important;
+}
+
+[data-theme="blue-black"] .cinebot-messages-area {
+  background-color: #060b17 !important;
+}
+
+[data-theme="blue-black"] .cinebot-bubble-bot {
+  background-color: #0e1938 !important;
+  border-color: rgba(56, 189, 248, 0.2) !important;
+  color: #e2e8f0 !important;
+}
+
+[data-theme="blue-black"] .cinebot-movie-card {
+  background-color: #0d1633 !important;
+  border-color: rgba(56, 189, 248, 0.2) !important;
+}
+
+[data-theme="blue-black"] .cinebot-movie-card:hover {
+  background-color: #121e44 !important;
+  border-color: rgba(56, 189, 248, 0.4) !important;
+}
+
+[data-theme="blue-black"] .cinebot-quick-prompts-bar {
+  background-color: #0a1226 !important;
+  border-top-color: rgba(56, 189, 248, 0.15) !important;
+}
+
+[data-theme="blue-black"] .cinebot-footer-area {
+  background-color: #091024 !important;
+  border-top-color: rgba(56, 189, 248, 0.2) !important;
+}
+
+[data-theme="blue-black"] .cinebot-input-field {
+  background-color: #0e1834 !important;
+  color: #f8fafc !important;
+  border-color: rgba(56, 189, 248, 0.25) !important;
 }
 
 /* Solid colored action buttons inside modals MUST PRESERVE WHITE TEXT */

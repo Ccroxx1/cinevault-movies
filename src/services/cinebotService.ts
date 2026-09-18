@@ -67,6 +67,61 @@ export const CINEBOT_QUICK_PROMPTS = [
   }
 ];
 
+// Fallback curated movie records with verified images and trailers
+export const CINEBOT_FALLBACK_INCEPTION_MOVIE: Movie = {
+  id: 1606,
+  url: 'https://yts.gg/movies/inception-2010',
+  imdb_code: 'tt1375666',
+  title: 'Inception',
+  title_english: 'Inception',
+  title_long: 'Inception (2010)',
+  slug: 'inception-2010',
+  year: 2010,
+  rating: 8.8,
+  runtime: 148,
+  genres: ['Action', 'Adventure', 'Sci-Fi', 'Thriller'],
+  summary: 'A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a CEO.',
+  description_full: 'A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a CEO, but his tragic past may doom the project and his team to disaster.',
+  yt_trailer_code: 'cdx31ak4KbQ',
+  language: 'en',
+  mpa_rating: 'PG-13',
+  medium_cover_image: 'https://img.yts.gg/assets/images/movies/Inception_2010/medium-cover.jpg',
+  large_cover_image: 'https://img.yts.gg/assets/images/movies/Inception_2010/large-cover.jpg',
+  small_cover_image: 'https://img.yts.gg/assets/images/movies/Inception_2010/small-cover.jpg',
+  background_image: 'https://img.yts.gg/assets/images/movies/Inception_2010/background.jpg',
+  background_image_original: 'https://img.yts.gg/assets/images/movies/Inception_2010/background.jpg',
+  torrents: [],
+  date_uploaded: '2015-10-21 00:00:00',
+  date_uploaded_unix: 1445385600
+};
+
+export const CINEBOT_FALLBACK_PRISONERS_MOVIE: Movie = {
+  id: 2407,
+  url: 'https://yts.gg/movies/prisoners-2013',
+  imdb_code: 'tt1392214',
+  title: 'Prisoners',
+  title_english: 'Prisoners',
+  title_long: 'Prisoners (2013)',
+  slug: 'prisoners-2013',
+  year: 2013,
+  rating: 8.2,
+  runtime: 153,
+  genres: ['Crime', 'Drama', 'Mystery', 'Thriller'],
+  summary: 'A desperate father takes the law into his own hands after police fail to find two kidnapped girls.',
+  description_full: 'A desperate father takes the law into his own hands after police fail to find two kidnapped girls.',
+  yt_trailer_code: 'yszyHq-S9W8',
+  language: 'en',
+  mpa_rating: 'R',
+  medium_cover_image: 'https://img.yts.gg/assets/images/movies/Prisoners_2013/medium-cover.jpg',
+  large_cover_image: 'https://img.yts.gg/assets/images/movies/Prisoners_2013/large-cover.jpg',
+  small_cover_image: 'https://img.yts.gg/assets/images/movies/Prisoners_2013/small-cover.jpg',
+  background_image: 'https://img.yts.gg/assets/images/movies/Prisoners_2013/background.jpg',
+  background_image_original: 'https://img.yts.gg/assets/images/movies/Prisoners_2013/background.jpg',
+  torrents: [],
+  date_uploaded: '2015-10-21 00:00:00',
+  date_uploaded_unix: 1445385600
+};
+
 export async function sendCineBotMessage(payload: CineBotChatPayload): Promise<CineBotChatResponse> {
   try {
     const res = await fetch('/api/cinebot/chat', {
@@ -81,6 +136,28 @@ export async function sendCineBotMessage(payload: CineBotChatPayload): Promise<C
     if (res.ok) {
       const data = await res.json();
       if (data && data.reply) {
+        // Ensure any suggested movies without movieData are looked up if possible
+        if (Array.isArray(data.suggestedMovies) && data.suggestedMovies.length > 0) {
+          const hydrated = await Promise.all(
+            data.suggestedMovies.map(async (sugg: any) => {
+              if (sugg.movieData) return sugg;
+              try {
+                const searchRes = await fetch(`/api/movies?query_term=${encodeURIComponent(sugg.searchTerm || sugg.title)}&limit=1`);
+                if (searchRes.ok) {
+                  const mJson = await searchRes.json();
+                  const found = mJson?.data?.movies?.[0];
+                  if (found) {
+                    return { ...sugg, movieData: found };
+                  }
+                }
+              } catch {
+                // Keep original
+              }
+              return sugg;
+            })
+          );
+          data.suggestedMovies = hydrated;
+        }
         return data as CineBotChatResponse;
       }
     }
@@ -91,17 +168,21 @@ export async function sendCineBotMessage(payload: CineBotChatPayload): Promise<C
   // Fallback if network or server endpoint is unreachable
   return {
     status: 'ok',
-    reply: "I'm temporarily operating in offline cinephile mode. I love films with razor-sharp direction and unforgettable atmosphere. Tell me a favorite director, genre, or the exact feeling you want to experience tonight!",
+    reply: "I'm operating in offline cinephile mode with full access to our curated cinema vault. Here are two unforgettable tension masterclasses to explore, or tell me your favorite genre, director, or the feeling you want to experience!",
     suggestedMovies: [
       {
         title: 'Inception',
         year: 2010,
-        reason: 'Masterclass in cerebral sci-fi heists and practical set-pieces.'
+        reason: 'Masterclass in cerebral sci-fi heists and practical set-pieces.',
+        searchTerm: 'Inception 2010',
+        movieData: CINEBOT_FALLBACK_INCEPTION_MOVIE
       },
       {
         title: 'Prisoners',
         year: 2013,
-        reason: 'Relentless atmospheric tension and haunting performances.'
+        reason: 'Relentless atmospheric tension and haunting performances.',
+        searchTerm: 'tt1392214',
+        movieData: CINEBOT_FALLBACK_PRISONERS_MOVIE
       }
     ],
     recommendedFilters: {

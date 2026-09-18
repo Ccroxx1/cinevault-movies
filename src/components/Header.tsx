@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Dices, Search, HelpCircle, X, Sparkles } from 'lucide-react';
+import { Dices, Search, HelpCircle, X, Sparkles, ChevronDown, Palette } from 'lucide-react';
 import { Movie } from '../types';
 import { GENRES } from '../services/movieApi';
 import { CineVaultLogo } from './CineVaultLogo';
@@ -8,6 +8,7 @@ import { ColorModeSelector } from './ColorModeSelector';
 import { PWAInstallButton } from './PWAInstallButton';
 import { VisitorCountBadge } from './VisitorCountBadge';
 import { CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
+import { useTheme, COLOR_MODES } from '../context/ThemeContext';
 
 interface HeaderProps {
   searchQuery: string;
@@ -40,15 +41,21 @@ export const Header: React.FC<HeaderProps> = ({
   onRequestSearch,
   onOpenCineBot
 }) => {
+  const { colorMode, setColorMode } = useTheme();
+  const isWhite = colorMode === 'white';
+  const isBlueBlack = colorMode === 'blue-black';
+
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [quickResults, setQuickResults] = useState<Movie[]>([]);
   const [isSearchingQuick, setIsSearchingQuick] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isGenreDropdownOpen, setIsGenreDropdownOpen] = useState(false);
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   
   const searchInputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const genreMenuRef = useRef<HTMLDivElement>(null);
+  const moreMenuRef = useRef<HTMLDivElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
 
   // Global keyboard shortcuts: Space or '/' to take user to search, Escape to close
@@ -58,6 +65,7 @@ export const Header: React.FC<HeaderProps> = ({
         setIsSearchFocused(false);
         setIsMobileMenuOpen(false);
         setIsGenreDropdownOpen(false);
+        setIsMoreMenuOpen(false);
         searchInputRef.current?.blur();
         return;
       }
@@ -116,6 +124,7 @@ export const Header: React.FC<HeaderProps> = ({
         // Close open menus/drawers
         setIsMobileMenuOpen(false);
         setIsGenreDropdownOpen(false);
+        setIsMoreMenuOpen(false);
 
         // Smoothly scroll to the top so search is prominent
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -188,6 +197,12 @@ export const Header: React.FC<HeaderProps> = ({
         !genreMenuRef.current.contains(e.target as Node)
       ) {
         setIsGenreDropdownOpen(false);
+      }
+      if (
+        moreMenuRef.current &&
+        !moreMenuRef.current.contains(e.target as Node)
+      ) {
+        setIsMoreMenuOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -455,19 +470,10 @@ export const Header: React.FC<HeaderProps> = ({
                 )}
               </button>
 
-              {onOpenCineBot && (
-                <button
-                  onClick={onOpenCineBot}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-rose-300 hover:text-white bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 transition-all cursor-pointer shadow-[0_0_12px_rgba(225,29,72,0.15)] group"
-                  title="CineBot AI - Movie Concierge & Vibe Discovery"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-rose-400 group-hover:rotate-12 transition-transform" />
-                  <span>CineBot AI</span>
-                </button>
-              )}
-
+              {/* Movie Night Roulette - kept directly on navbar */}
               {onOpenSpinner && (
                 <button
+                  id="header-roulette-btn"
                   onClick={onOpenSpinner}
                   className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-amber-300 hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-all cursor-pointer shadow-sm"
                   title="Surprise Me - Movie Night Roulette"
@@ -477,19 +483,151 @@ export const Header: React.FC<HeaderProps> = ({
                 </button>
               )}
 
-              <PWAInstallButton variant="nav" />
+              {/* Dropdown Menu: CineBot AI, Install App, Guide, and Theme */}
+              <div className="relative" ref={moreMenuRef}>
+                <button
+                  id="header-more-menu-btn"
+                  type="button"
+                  onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
+                  aria-expanded={isMoreMenuOpen}
+                  aria-haspopup="true"
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    isMoreMenuOpen
+                      ? isWhite
+                        ? 'bg-slate-200 text-slate-900 border border-slate-300'
+                        : 'bg-white/15 text-white border border-white/20'
+                      : isWhite
+                      ? 'text-slate-700 hover:text-slate-950 hover:bg-slate-100 border border-transparent'
+                      : 'text-neutral-300 hover:text-white hover:bg-white/5 border border-transparent'
+                  }`}
+                  title="More options & features"
+                >
+                  <span>More</span>
+                  <ChevronDown
+                    size={14}
+                    className={`transition-transform duration-200 ${isMoreMenuOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
 
-              <button
-                onClick={onOpenGuide}
-                className="p-2 text-neutral-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors shrink-0 cursor-pointer text-xs font-bold"
-                aria-label="Download Guide"
-              >
-                Guide
-              </button>
+                {isMoreMenuOpen && (
+                  <div
+                    className={`absolute top-full right-0 mt-2 w-64 p-2 rounded-2xl shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150 border ${
+                      isWhite
+                        ? 'bg-white border-slate-200 text-slate-800 shadow-slate-900/15'
+                        : isBlueBlack
+                        ? 'bg-[#0b142c] border-sky-400/20 text-slate-200 shadow-sky-950/50'
+                        : 'bg-[#0e0e12] border-white/15 text-neutral-200 shadow-black/80'
+                    }`}
+                  >
+                    <div className="space-y-1">
+                      {/* CineBot AI */}
+                      {onOpenCineBot && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsMoreMenuOpen(false);
+                            onOpenCineBot();
+                          }}
+                          className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs text-left transition-colors cursor-pointer group ${
+                            isWhite
+                              ? 'hover:bg-rose-50 text-slate-800 hover:text-rose-600'
+                              : 'hover:bg-rose-500/15 text-neutral-200 hover:text-white'
+                          }`}
+                        >
+                          <div className="w-7 h-7 rounded-lg bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 group-hover:bg-rose-600 group-hover:text-white transition-colors shrink-0">
+                            <Sparkles className="w-3.5 h-3.5" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold">CineBot AI</span>
+                              <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                                Gemini
+                              </span>
+                            </div>
+                            <div className={`text-[10px] truncate ${isWhite ? 'text-slate-500' : 'text-neutral-400'}`}>
+                              Film Concierge & Vibe Discovery
+                            </div>
+                          </div>
+                        </button>
+                      )}
 
-              <div className="h-4 w-px bg-white/10 mx-1" aria-hidden="true" />
+                      {/* Install App */}
+                      <PWAInstallButton
+                        variant="menu"
+                        onAfterClick={() => setIsMoreMenuOpen(false)}
+                      />
 
-              <ColorModeSelector variant="dropdown" />
+                      {/* Download Guide */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsMoreMenuOpen(false);
+                          onOpenGuide();
+                        }}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs text-left transition-colors cursor-pointer group ${
+                          isWhite
+                            ? 'hover:bg-slate-100 text-slate-800 hover:text-slate-950'
+                            : 'hover:bg-white/5 text-neutral-200 hover:text-white'
+                        }`}
+                      >
+                        <div className={`w-7 h-7 rounded-lg border flex items-center justify-center transition-colors shrink-0 ${
+                          isWhite
+                            ? 'bg-slate-100 border-slate-200 text-slate-600 group-hover:bg-slate-200'
+                            : 'bg-white/5 border-white/10 text-neutral-400 group-hover:bg-white/10 group-hover:text-white'
+                        }`}>
+                          <HelpCircle className="w-3.5 h-3.5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold">Download Guide</div>
+                          <div className={`text-[10px] truncate ${isWhite ? 'text-slate-500' : 'text-neutral-400'}`}>
+                            Torrents, player & tips
+                          </div>
+                        </div>
+                      </button>
+                    </div>
+
+                    {/* Theme / Color Mode Selector */}
+                    <div className={`pt-2 mt-1.5 border-t ${isWhite ? 'border-slate-100' : 'border-white/10'}`}>
+                      <div className="px-2.5 pb-1.5 flex items-center justify-between">
+                        <span className={`text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${
+                          isWhite ? 'text-slate-500' : 'text-neutral-400'
+                        }`}>
+                          <Palette className="w-3 h-3 text-rose-500" />
+                          <span>Theme</span>
+                        </span>
+                        <span className="text-[10px] font-mono text-rose-500 font-bold capitalize">
+                          {colorMode}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-1 px-1">
+                        {COLOR_MODES.map((mode) => {
+                          const isActive = colorMode === mode.id;
+                          return (
+                            <button
+                              key={mode.id}
+                              type="button"
+                              onClick={() => setColorMode(mode.id)}
+                              className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl border transition-all cursor-pointer select-none text-center ${
+                                isActive
+                                  ? 'border-rose-500 bg-rose-500/15 text-rose-500 font-bold shadow-xs'
+                                  : isWhite
+                                  ? 'border-slate-200 hover:border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-700'
+                                  : 'border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10 text-neutral-300'
+                              }`}
+                              title={mode.tagline}
+                            >
+                              <div className="flex items-center gap-1 mb-1">
+                                <span className={`w-2.5 h-2.5 rounded-full ${mode.dotColor}`} />
+                              </div>
+                              <span className="text-[11px] leading-tight">{mode.name}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </nav>
 
             {/* Mobile Actions */}
