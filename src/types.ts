@@ -46,6 +46,7 @@ export interface Movie {
   small_cover_image: string;
   medium_cover_image: string;
   large_cover_image: string;
+  state?: string;
   torrents: Torrent[];
   date_uploaded: string;
   date_uploaded_unix: number;

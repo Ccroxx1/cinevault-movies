@@ -9,13 +9,15 @@ interface EztvMovieSectionProps {
   movieTitle: string;
   onShowToast?: (message: string, type?: 'success' | 'info' | 'error') => void;
   onNavigateToSeries?: () => void;
+  onSelectSeries?: (params: { imdb?: string; title?: string; torrent?: EztvTorrent }) => void;
 }
 
 export const EztvMovieSection: React.FC<EztvMovieSectionProps> = ({
   imdbCode,
   movieTitle,
   onShowToast,
-  onNavigateToSeries
+  onNavigateToSeries,
+  onSelectSeries
 }) => {
   const [torrents, setTorrents] = useState<EztvTorrent[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -143,7 +145,18 @@ export const EztvMovieSection: React.FC<EztvMovieSectionProps> = ({
             return (
               <div
                 key={torrent.id || torrent.hash}
-                className="pt-2.5 first:pt-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs"
+                onClick={() => {
+                  if (onSelectSeries) {
+                    onSelectSeries({
+                      imdb: imdbCode,
+                      title: movieTitle,
+                      torrent
+                    });
+                  }
+                }}
+                className={`pt-2.5 first:pt-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs group p-2 rounded-xl transition-all ${
+                  onSelectSeries ? 'cursor-pointer hover:bg-white/[0.04]' : ''
+                }`}
               >
                 <div className="space-y-1 flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-1.5">
@@ -172,9 +185,14 @@ export const EztvMovieSection: React.FC<EztvMovieSectionProps> = ({
                     <span className="text-neutral-500 font-mono text-[11px]">
                       {formatEztvDate(torrent.date_released_unix)}
                     </span>
+                    {onSelectSeries && (
+                      <span className="text-[10px] font-semibold text-rose-400 group-hover:underline ml-auto hidden sm:inline">
+                        Series Details →
+                      </span>
+                    )}
                   </div>
 
-                  <p className="text-neutral-200 font-semibold truncate" title={torrent.title}>
+                  <p className="text-neutral-200 font-semibold truncate group-hover:text-rose-400 transition-colors" title={torrent.title}>
                     {torrent.title}
                   </p>
 
@@ -185,7 +203,21 @@ export const EztvMovieSection: React.FC<EztvMovieSectionProps> = ({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0 self-start sm:self-center">
+                <div
+                  className="flex items-center gap-2 shrink-0 self-start sm:self-center"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {onSelectSeries && (
+                    <button
+                      onClick={() => onSelectSeries({ imdb: imdbCode, title: movieTitle, torrent })}
+                      className="px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-rose-600 hover:text-white text-neutral-300 font-semibold flex items-center gap-1 transition-all cursor-pointer text-xs"
+                      title="View full TV series details"
+                    >
+                      <Tv className="w-3.5 h-3.5" />
+                      <span>Details</span>
+                    </button>
+                  )}
+
                   <button
                     onClick={() => handleLaunchMagnet(torrent)}
                     className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"

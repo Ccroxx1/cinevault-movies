@@ -464,11 +464,18 @@ app.get(['/api/movie_parental_guides', '/api/movies/parental_guides'], async (re
 // ==========================================
 // EZTV API PROXY & RESOLVER (https://eztvx.to/api/get-torrents)
 // ==========================================
-const EZTV_API_MIRRORS = [
+let EZTV_API_MIRRORS = [
   'https://eztvx.to/api/get-torrents',
-  'https://eztv.re/api/get-torrents',
-  'https://eztvstatus.org/api/get-torrents'
+  'https://eztv.wf/api/get-torrents',
+  'https://eztv.tf/api/get-torrents',
+  'https://eztv.yt/api/get-torrents',
+  'https://eztv.li/api/get-torrents',
+  'https://eztv.ag/api/get-torrents',
+  'https://eztv.re/api/get-torrents'
 ];
+
+// Persistent in-memory fallback snapshot for general releases
+let eztvGeneralFallbackSnapshot: any = null;
 
 async function fetchEztvFromMirrors(params: Record<string, string>): Promise<any> {
   const queryString = new URLSearchParams(params).toString();
@@ -479,26 +486,49 @@ async function fetchEztvFromMirrors(params: Record<string, string>): Promise<any
   }
 
   let lastError: any = null;
-  for (const mirror of EZTV_API_MIRRORS) {
+  for (let i = 0; i < EZTV_API_MIRRORS.length; i++) {
+    const mirror = EZTV_API_MIRRORS[i];
     const targetUrl = `${mirror}?${queryString}`;
     try {
       const response = await fetch(targetUrl, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
           'Accept': 'application/json'
         },
-        signal: AbortSignal.timeout(6500)
+        redirect: 'follow',
+        signal: AbortSignal.timeout(5000)
       });
       if (response.ok) {
         const json = await response.json();
-        if (json && typeof json === 'object') {
+        if (json && typeof json === 'object' && Array.isArray(json.torrents)) {
           cache.set(cacheKey, { timestamp: Date.now(), data: json });
+          // Save general snapshot if not a specific IMDb search
+          if (!params.imdb_id && json.torrents.length > 0) {
+            eztvGeneralFallbackSnapshot = json;
+          }
+          // Prioritize fastest responding mirror for future requests
+          if (i > 0) {
+            EZTV_API_MIRRORS.splice(i, 1);
+            EZTV_API_MIRRORS.unshift(mirror);
+          }
           return json;
         }
       }
     } catch (err: any) {
       lastError = err;
     }
+  }
+
+  // If general browse query failed, fallback to snapshot if available
+  if (!params.imdb_id && eztvGeneralFallbackSnapshot) {
+    console.warn('EZTV mirrors unreachable, returning fallback snapshot.');
+    return eztvGeneralFallbackSnapshot;
+  }
+
+  // If stale cached data exists for this key, return it as emergency fallback
+  if (cached && cached.data) {
+    console.warn('Returning stale cached EZTV data.');
+    return cached.data;
   }
 
   throw lastError || new Error('All EZTV mirrors failed to respond.');
@@ -1571,6 +1601,10 @@ async function start() {
   if (!process.env.VERCEL) {
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`🎬 CineVault running on http://0.0.0.0:${PORT}`);
+      // Prime initial EZTV cache in background so TV torrents are instantly ready
+      fetchEztvFromMirrors({ limit: '40', page: '1' }).catch((e) => {
+        console.warn('Initial background EZTV seed notice:', e.message);
+      });
     });
   }
 }

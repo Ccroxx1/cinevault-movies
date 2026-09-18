@@ -775,6 +775,7 @@ export default function App() {
                 small_cover_image: show.image || '',
                 medium_cover_image: show.image || '',
                 large_cover_image: show.image || '',
+                yt_trailer_code: '',
                 state: 'ok',
                 torrents: [],
                 date_uploaded: new Date().toISOString(),
@@ -838,6 +839,7 @@ export default function App() {
                 onOpenFilmography={handleOpenFilmography}
                 onAskCineBot={handleOpenCineBotWithPrompt}
                 onNavigateToSeries={handleNavigateSeries}
+                onSelectSeries={handleSelectSeries}
               />
             ) : null}
           </div>

@@ -61,8 +61,16 @@ export async function searchTvShows(query: string): Promise<TvShowInfo[]> {
   return [];
 }
 
+const CLIENT_EZTV_MIRRORS = [
+  'https://eztvx.to/api/get-torrents',
+  'https://eztv.wf/api/get-torrents',
+  'https://eztv.tf/api/get-torrents',
+  'https://eztv.yt/api/get-torrents',
+  'https://eztv.ag/api/get-torrents'
+];
+
 /**
- * Fetch torrents from the EZTV API (proxied via /api/eztv)
+ * Fetch torrents from the EZTV API (proxied via /api/eztv with direct client-side fallback)
  * Documentation: https://eztvx.to/api/get-torrents
  */
 export async function fetchEztvTorrents(params: EztvFetchParams = {}): Promise<EztvApiResponse> {
@@ -86,36 +94,101 @@ export async function fetchEztvTorrents(params: EztvFetchParams = {}): Promise<E
     query.set('limit', String(Math.min(100, Math.max(1, params.limit))));
   }
 
-  const url = `/api/eztv${query.toString() ? `?${query.toString()}` : ''}`;
+  const queryString = query.toString();
+  const url = `/api/eztv${queryString ? `?${queryString}` : ''}`;
 
-  const response = await fetch(url, {
-    headers: {
-      'Accept': 'application/json'
+  let backendError: Error | null = null;
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+
+    if (response.ok) {
+      const data: EztvApiResponse = await response.json();
+      return {
+        torrents_count: data.torrents_count || (data.torrents ? data.torrents.length : 0),
+        limit: data.limit || params.limit || 30,
+        page: data.page || params.page || 1,
+        imdb_id: data.imdb_id || params.imdb_id,
+        resolved_title: data.resolved_title,
+        show_meta: data.show_meta || null,
+        message: data.message,
+        torrents: Array.isArray(data.torrents) ? data.torrents : []
+      };
+    } else {
+      let msg = `EZTV proxy error (${response.status})`;
+      try {
+        const errJson = await response.json();
+        if (errJson.status_message) msg = errJson.status_message;
+      } catch {
+        // ignore
+      }
+      backendError = new Error(msg);
     }
-  });
+  } catch (err: any) {
+    backendError = err instanceof Error ? err : new Error(String(err));
+  }
 
-  if (!response.ok) {
-    let errorMsg = `EZTV API responded with status ${response.status}`;
+  // Dual-layer fallback: Direct fetch to CORS-enabled EZTV mirrors from browser
+  console.warn('Backend EZTV proxy unavailable, attempting direct mirror query...', backendError?.message);
+  
+  let targetImdbId = params.imdb_id ? params.imdb_id.replace(/^tt/i, '').trim() : '';
+  let resolvedTitle: string | undefined = undefined;
+  let showMeta: TvShowInfo | null = null;
+
+  if (!targetImdbId && params.search && params.search.trim()) {
     try {
-      const errJson = await response.json();
-      if (errJson.status_message) errorMsg = errJson.status_message;
+      const shows = await searchTvShows(params.search.trim());
+      if (shows && shows.length > 0) {
+        showMeta = shows[0];
+        targetImdbId = shows[0].imdb_id;
+        resolvedTitle = shows[0].name;
+      }
     } catch {
       // ignore
     }
-    throw new Error(errorMsg);
   }
 
-  const data: EztvApiResponse = await response.json();
-  return {
-    torrents_count: data.torrents_count || (data.torrents ? data.torrents.length : 0),
-    limit: data.limit || params.limit || 30,
-    page: data.page || params.page || 1,
-    imdb_id: data.imdb_id || params.imdb_id,
-    resolved_title: data.resolved_title,
-    show_meta: data.show_meta || null,
-    message: data.message,
-    torrents: Array.isArray(data.torrents) ? data.torrents : []
-  };
+  const directParams = new URLSearchParams();
+  if (targetImdbId) {
+    directParams.set('imdb_id', targetImdbId);
+  }
+  if (params.page && params.page > 0) {
+    directParams.set('page', String(params.page));
+  }
+  if (params.limit && params.limit > 0) {
+    directParams.set('limit', String(params.limit));
+  }
+
+  const directQuery = directParams.toString();
+  for (const mirror of CLIENT_EZTV_MIRRORS) {
+    try {
+      const res = await fetch(`${mirror}?${directQuery}`, {
+        headers: { 'Accept': 'application/json' },
+        signal: AbortSignal.timeout(6000)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && Array.isArray(data.torrents)) {
+          return {
+            torrents_count: data.torrents_count || data.torrents.length,
+            limit: data.limit || params.limit || 30,
+            page: data.page || params.page || 1,
+            imdb_id: targetImdbId || params.imdb_id,
+            resolved_title: resolvedTitle,
+            show_meta: showMeta,
+            torrents: data.torrents
+          };
+        }
+      }
+    } catch {
+      // continue to next mirror
+    }
+  }
+
+  throw backendError || new Error('All EZTV mirrors failed to respond. Please try again.');
 }
 
 /**
@@ -253,7 +326,13 @@ export async function fetchTvShowDetails(params: { imdb?: string; id?: number; t
   const query = new URLSearchParams();
   if (params.imdb) query.set('imdb', params.imdb.trim());
   if (params.id) query.set('id', String(params.id));
-  if (params.title) query.set('title', params.title.trim());
+  
+  const cleanedTitle = params.title ? extractShowTitleFromRelease(params.title) : undefined;
+  if (cleanedTitle) {
+    query.set('title', cleanedTitle.trim());
+  } else if (params.title) {
+    query.set('title', params.title.trim());
+  }
 
   const queryString = query.toString();
   if (!queryString) return null;
@@ -280,8 +359,9 @@ export async function fetchTvShowDetails(params: { imdb?: string; id?: number; t
     } else if (params.id) {
       const idRes = await fetch(`https://api.tvmaze.com/shows/${params.id}`);
       if (idRes.ok) rawShow = await idRes.json();
-    } else if (params.title) {
-      const searchRes = await fetch(`https://api.tvmaze.com/search/shows?q=${encodeURIComponent(params.title)}`);
+    } else if (cleanedTitle || params.title) {
+      const searchTitle = cleanedTitle || params.title || '';
+      const searchRes = await fetch(`https://api.tvmaze.com/search/shows?q=${encodeURIComponent(searchTitle)}`);
       if (searchRes.ok) {
         const results = await searchRes.json();
         if (results?.[0]?.show) rawShow = results[0].show;

@@ -28,6 +28,7 @@ interface MovieDetailPageProps {
   onOpenFilmography?: (name: string, role?: 'director' | 'actor' | 'cast') => void;
   onAskCineBot?: (prompt: string) => void;
   onNavigateToSeries?: () => void;
+  onSelectSeries?: (params: { imdb?: string; title?: string; torrent?: any }) => void;
 }
 
 export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
@@ -43,7 +44,8 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
   onOpenGuide,
   onOpenFilmography,
   onAskCineBot,
-  onNavigateToSeries
+  onNavigateToSeries,
+  onSelectSeries
 }) => {
   const [movie, setMovie] = useState<Movie>(initialMovie);
   const [loadingDetails, setLoadingDetails] = useState(false);
@@ -706,6 +708,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                     // Feedback handled within or passed
                   }}
                   onNavigateToSeries={onNavigateToSeries}
+                  onSelectSeries={onSelectSeries}
                 />
               </section>
             )}

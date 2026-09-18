@@ -28,7 +28,8 @@ import {
   formatEztvDate,
   parseQualityFromEztv,
   getSeriesPath,
-  getSeriesSlug
+  getSeriesSlug,
+  extractShowTitleFromRelease
 } from '../services/eztvApi';
 import { updateDocumentSeo } from '../utils/seo';
 import { AdSenseSlot } from './AdSenseSlot';
@@ -39,12 +40,13 @@ import { CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
 
 interface SeriesDetailPageProps {
   seriesId?: string; // IMDb ID (e.g. tt5753856) or slug
+  seriesTitle?: string;
   initialShow?: TvShowDetails | TvShowInfo | null;
   initialTorrent?: EztvTorrent | null;
   onBack?: () => void;
   onNavigateHome: () => void;
   onNavigateToSeries: (query?: string, imdbId?: string) => void;
-  onSelectSeries?: (params: { imdb?: string; title?: string; torrent?: EztvTorrent }) => void;
+  onSelectSeries?: (params: { imdb?: string; title?: string; torrent?: EztvTorrent; show?: TvShowInfo }) => void;
   onSelectGenre?: (genre: string) => void;
   onPlayTrailer?: (ytCode: string, title: string) => void;
   onCopyMagnet: (magnetUrl: string, title: string) => void;
@@ -71,6 +73,7 @@ const POPULAR_RECOMMENDED_SHOWS = [
 
 export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
   seriesId,
+  seriesTitle,
   initialShow,
   initialTorrent,
   onBack,
@@ -87,10 +90,72 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
   isWatchlisted,
   onToggleWatchlist
 }) => {
-  const [show, setShow] = useState<TvShowDetails | null>((initialShow as TvShowDetails) || null);
-  const [torrents, setTorrents] = useState<EztvTorrent[]>([]);
-  const [isLoadingDetails, setIsLoadingDetails] = useState<boolean>(!initialShow);
-  const [isLoadingTorrents, setIsLoadingTorrents] = useState<boolean>(true);
+  // Target IMDb or title
+  const effectiveImdb = useMemo(() => {
+    if (initialShow?.imdb_code) return initialShow.imdb_code;
+    if (initialShow?.imdb_id) return `tt${initialShow.imdb_id}`;
+    if (initialTorrent?.imdb_id && initialTorrent.imdb_id !== '0') return `tt${initialTorrent.imdb_id}`;
+    if (seriesId && /^tt\d+/i.test(seriesId)) {
+      const match = seriesId.match(/^(tt\d+)/i);
+      if (match) return match[1];
+    }
+    return undefined;
+  }, [initialShow, initialTorrent, seriesId]);
+
+  const cleanInitialTitle = useMemo(() => {
+    if (initialShow?.name) return initialShow.name;
+    if (seriesTitle) return seriesTitle;
+    if (initialTorrent?.title) return extractShowTitleFromRelease(initialTorrent.title);
+    if (seriesId) {
+      const match = seriesId.match(/^tt\d+-?(.*)/i);
+      if (match && match[1]) return match[1].replace(/-/g, ' ').trim();
+      return seriesId.replace(/^(tt\d+-?)/i, '').replace(/-/g, ' ').trim();
+    }
+    return '';
+  }, [initialShow, seriesTitle, initialTorrent, seriesId]);
+
+  const [show, setShow] = useState<TvShowDetails | null>(() => {
+    if (initialShow && (initialShow as TvShowDetails).episodes) return initialShow as TvShowDetails;
+    if (initialShow?.name) {
+      return {
+        id: initialShow.id || 0,
+        name: initialShow.name,
+        imdb_code: initialShow.imdb_code || (initialShow.imdb_id ? `tt${initialShow.imdb_id}` : ''),
+        imdb_id: initialShow.imdb_id || (initialShow.imdb_code ? initialShow.imdb_code.replace(/^tt/i, '') : ''),
+        year: initialShow.year,
+        rating: initialShow.rating || 7.9,
+        image: initialShow.image,
+        summary: initialShow.summary,
+        genres: initialShow.genres || ['TV Series'],
+        network: initialShow.network,
+        cast: [],
+        episodes: []
+      };
+    }
+    if (cleanInitialTitle) {
+      return {
+        id: 0,
+        name: cleanInitialTitle,
+        imdb_code: effectiveImdb || '',
+        imdb_id: effectiveImdb ? effectiveImdb.replace(/^tt/i, '') : '',
+        year: initialTorrent?.date_released_unix ? new Date(initialTorrent.date_released_unix * 1000).getFullYear().toString() : undefined,
+        rating: 7.9,
+        genres: ['TV Series', 'Drama'],
+        summary: `Explore and download high-speed television series releases for ${cleanInitialTitle}. Complete seasons and individual episodes verified in 1080p, 720p, and HEVC.`,
+        cast: [],
+        episodes: []
+      };
+    }
+    return null;
+  });
+
+  const [torrents, setTorrents] = useState<EztvTorrent[]>(() => {
+    return initialTorrent ? [initialTorrent] : [];
+  });
+  const [isLoadingDetails, setIsLoadingDetails] = useState<boolean>(() => {
+    return !initialShow?.name && !cleanInitialTitle;
+  });
+  const [isLoadingTorrents, setIsLoadingTorrents] = useState<boolean>(!initialTorrent);
   const [error, setError] = useState<string | null>(null);
 
   // Tab state
@@ -106,21 +171,14 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
   // Selected episode filter for episode guide tab
   const [guideSeason, setGuideSeason] = useState<number>(1);
 
-  // Target IMDb or title
-  const effectiveImdb = useMemo(() => {
-    if (initialShow?.imdb_code) return initialShow.imdb_code;
-    if (initialShow?.imdb_id) return `tt${initialShow.imdb_id}`;
-    if (initialTorrent?.imdb_id && initialTorrent.imdb_id !== '0') return `tt${initialTorrent.imdb_id}`;
-    if (seriesId && /^tt\d+/i.test(seriesId)) return seriesId;
-    return undefined;
-  }, [initialShow, initialTorrent, seriesId]);
-
   // Load TV show details and episodes
   useEffect(() => {
     let isMounted = true;
 
     const loadShowData = async () => {
-      setIsLoadingDetails(true);
+      if (!show?.episodes || show.episodes.length === 0) {
+        setIsLoadingDetails(true);
+      }
       setError(null);
 
       try {
@@ -128,15 +186,19 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
 
         if (effectiveImdb) {
           details = await fetchTvShowDetails({ imdb: effectiveImdb });
-        } else if (seriesId) {
-          // If seriesId is a slug like "tt5753856-dark" or "dark"
+        }
+        if (!details && cleanInitialTitle) {
+          details = await fetchTvShowDetails({ title: cleanInitialTitle });
+        }
+        if (!details && seriesId) {
           const match = seriesId.match(/^(tt\d+)/i);
           if (match) {
             details = await fetchTvShowDetails({ imdb: match[1] });
           } else {
             details = await fetchTvShowDetails({ title: seriesId.replace(/-/g, ' ') });
           }
-        } else if (initialTorrent?.title) {
+        }
+        if (!details && initialTorrent?.title) {
           details = await fetchTvShowDetails({ title: initialTorrent.title });
         }
 
@@ -145,14 +207,16 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
             setShow(details);
           } else if (initialShow) {
             setShow(initialShow as TvShowDetails);
-          } else {
+          } else if (!cleanInitialTitle) {
             setError('Television series information could not be located.');
           }
         }
       } catch (err: any) {
         if (isMounted) {
           console.error('Error fetching TV details:', err);
-          setError('Failed to load series details. Please check your connection.');
+          if (!show) {
+            setError('Failed to load series details. Please check your connection.');
+          }
         }
       } finally {
         if (isMounted) setIsLoadingDetails(false);
@@ -164,7 +228,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [effectiveImdb, seriesId, initialTorrent]);
+  }, [effectiveImdb, seriesId, initialTorrent, cleanInitialTitle]);
 
   // Load torrents for this TV show
   useEffect(() => {
@@ -182,15 +246,21 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
         }
 
         // If no torrents returned by IMDb ID or no IMDb ID, fallback to title search
-        if ((!res || !res.torrents || res.torrents.length === 0) && (show?.name || seriesId)) {
-          const searchTitle = show?.name || (seriesId ? seriesId.replace(/^(tt\d+-?)/i, '').replace(/-/g, ' ') : '');
+        if ((!res || !res.torrents || res.torrents.length === 0) && (show?.name || cleanInitialTitle)) {
+          const searchTitle = show?.name || cleanInitialTitle;
           if (searchTitle) {
             res = await fetchEztvTorrents({ search: searchTitle, limit: 100 });
           }
         }
 
-        if (isMounted && res) {
-          setTorrents(res.torrents || []);
+        if (isMounted && res && res.torrents && res.torrents.length > 0) {
+          const allTorrents = [...res.torrents];
+          if (initialTorrent && !allTorrents.some(t => t.hash === initialTorrent.hash)) {
+            allTorrents.unshift(initialTorrent);
+          }
+          setTorrents(allTorrents);
+        } else if (isMounted && initialTorrent) {
+          setTorrents([initialTorrent]);
         }
       } catch (err) {
         if (isMounted) {
@@ -201,7 +271,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
       }
     };
 
-    if (show?.imdb_code || show?.name || effectiveImdb) {
+    if (show?.imdb_code || show?.name || effectiveImdb || cleanInitialTitle) {
       loadReleases();
     } else {
       setIsLoadingTorrents(false);
@@ -210,7 +280,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [show?.imdb_code, show?.name, effectiveImdb, seriesId]);
+  }, [show?.imdb_code, show?.name, effectiveImdb, seriesId, cleanInitialTitle]);
 
   // Dynamic SEO head tags
   useEffect(() => {
@@ -553,6 +623,17 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
 
               {/* Action Toolbar */}
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5 sm:gap-3 pt-2">
+                {onPlayTrailer && (
+                  <button
+                    onClick={() => onPlayTrailer('', `${show?.name || cleanInitialTitle} Official Trailer`)}
+                    className="movie-trailer-btn px-4 sm:px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs sm:text-sm rounded-full shadow-lg shadow-rose-950/50 flex items-center gap-2 transition-all cursor-pointer"
+                    title="Watch Official Trailer"
+                  >
+                    <PlayIcon size={16} />
+                    <span>Watch Trailer</span>
+                  </button>
+                )}
+
                 {primaryTorrent && (
                   <>
                     <button
@@ -561,7 +642,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                       title={`Launch ${primaryTorrent.title} Magnet Download directly`}
                     >
                       <Magnet size={16} />
-                      <span>Magnet Download (Latest Release)</span>
+                      <span>Magnet Download</span>
                     </button>
 
                     <button
@@ -573,7 +654,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                       {copiedHash === primaryTorrent.hash ? (
                         <span className="text-emerald-700 font-semibold">URI Copied!</span>
                       ) : (
-                        <span>Copy Magnet URI</span>
+                        <span>Copy URI</span>
                       )}
                     </button>
                   </>
@@ -767,12 +848,15 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                       ? `S${String(sNum).padStart(2, '0')}E${String(eNum).padStart(2, '0')}`
                       : null;
                     const isCopied = copiedHash === torrent.hash;
+                    const isSelectedInitial = initialTorrent && torrent.hash === initialTorrent.hash;
 
                     return (
                       <div
                         key={torrent.id || torrent.hash}
                         className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 ${
-                          q.is4k
+                          isSelectedInitial
+                            ? 'bg-rose-950/30 border-rose-500/70 shadow-lg shadow-rose-950/20 ring-2 ring-rose-500/60'
+                            : q.is4k
                             ? 'bg-gradient-to-r from-amber-950/20 via-[#111111] to-[#0e0e0e] border-amber-500/35 shadow-lg shadow-amber-950/10'
                             : 'bg-[#0f0f13] border-white/10 hover:border-white/20'
                         }`}
@@ -780,6 +864,12 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                         {/* Left: Metadata and Title */}
                         <div className="space-y-1.5 flex-1 min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
+                            {isSelectedInitial && (
+                              <span className="px-2 py-0.5 rounded-md bg-rose-600 text-white font-extrabold text-[11px] shadow-xs animate-pulse tracking-wide">
+                                Selected File
+                              </span>
+                            )}
+
                             {epTag && (
                               <span className="px-2 py-0.5 rounded-md bg-rose-600/20 text-rose-300 border border-rose-500/30 text-xs font-mono font-bold">
                                 {epTag}

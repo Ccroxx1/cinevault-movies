@@ -35,7 +35,7 @@ interface EztvViewProps {
   initialImdb?: string;
   onShowToast: (message: string, type?: 'success' | 'info' | 'error') => void;
   onOpenGuide: () => void;
-  onSelectSeries?: (params: { imdb?: string; title?: string; torrent?: EztvTorrent }) => void;
+  onSelectSeries?: (params: { imdb?: string; title?: string; torrent?: EztvTorrent; show?: TvShowInfo }) => void;
 }
 
 const POPULAR_SHOWS = [
@@ -240,7 +240,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
 
   const handleSelectRelease = (torrent: EztvTorrent) => {
     if (!onSelectSeries) return;
-    const showTitle = extractShowTitleFromRelease(torrent.title);
+    const showTitle = showMeta?.name || extractShowTitleFromRelease(torrent.title);
     const imdbCode = (torrent.imdb_id && torrent.imdb_id !== '0')
       ? (torrent.imdb_id.startsWith('tt') ? torrent.imdb_id : `tt${torrent.imdb_id}`)
       : (showMeta?.imdb_code || undefined);
@@ -248,7 +248,8 @@ export const EztvView: React.FC<EztvViewProps> = ({
     onSelectSeries({
       imdb: imdbCode,
       title: showTitle,
-      torrent
+      torrent,
+      show: showMeta || undefined
     });
   };
 
@@ -562,7 +563,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
               <div className="flex items-center gap-2">
                 {onSelectSeries && (
                   <button
-                    onClick={() => onSelectSeries({ imdb: showMeta.imdb_code, title: showMeta.name })}
+                    onClick={() => onSelectSeries({ imdb: showMeta.imdb_code, title: showMeta.name, show: showMeta })}
                     className="px-3.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-md shadow-rose-950/40 flex items-center gap-1.5 transition-all cursor-pointer"
                   >
                     <Tv className="w-3.5 h-3.5" />

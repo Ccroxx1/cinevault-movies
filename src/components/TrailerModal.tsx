@@ -19,7 +19,15 @@ export const TrailerModal: React.FC<TrailerModalProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
-  if (!ytTrailerCode) return null;
+  if (!ytTrailerCode && !movieTitle) return null;
+
+  const embedUrl = ytTrailerCode
+    ? `https://www.youtube-nocookie.com/embed/${ytTrailerCode}?autoplay=1&rel=0&modestbranding=1`
+    : `https://www.youtube-nocookie.com/embed?listType=search&list=${encodeURIComponent(movieTitle + ' official trailer')}&autoplay=1`;
+
+  const externalUrl = ytTrailerCode
+    ? `https://www.youtube.com/watch?v=${ytTrailerCode}`
+    : `https://www.youtube.com/results?search_query=${encodeURIComponent(movieTitle + ' official trailer')}`;
 
   return (
     <div data-trailer-modal="true" className="fixed inset-0 z-60 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-150" role="dialog" aria-modal="true" aria-label={`${movieTitle} Trailer`}>
@@ -35,7 +43,7 @@ export const TrailerModal: React.FC<TrailerModalProps> = ({
 
           <div className="flex items-center gap-3">
             <a
-              href={`https://www.youtube.com/watch?v=${ytTrailerCode}`}
+              href={externalUrl}
               target="_blank"
               rel="noreferrer noopener"
               className="hidden sm:flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white transition-colors"
@@ -58,7 +66,7 @@ export const TrailerModal: React.FC<TrailerModalProps> = ({
         {/* 16:9 Video Player Container */}
         <div className="relative aspect-video w-full bg-black">
           <iframe
-            src={`https://www.youtube-nocookie.com/embed/${ytTrailerCode}?autoplay=1&rel=0&modestbranding=1`}
+            src={embedUrl}
             title={`${movieTitle} Trailer`}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
