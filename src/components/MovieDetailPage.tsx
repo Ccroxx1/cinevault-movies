@@ -256,7 +256,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
       </nav>
 
       {/* Hero Movie Presentation Header */}
-      <header className="relative rounded-3xl overflow-hidden border border-white/10 bg-[#0a0a0a] shadow-2xl">
+      <header className="movie-detail-hero hero-cinema-container relative rounded-3xl overflow-hidden border border-white/10 bg-[#0a0a0a] shadow-2xl">
         
         {/* Backdrop Banner */}
         <div className="relative h-72 sm:h-96 md:h-[420px] w-full overflow-hidden bg-[#050505]">
@@ -353,63 +353,63 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
             <div className="flex-1 space-y-4 text-center md:text-left">
               
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
-                <span className="px-2.5 py-1 text-xs font-black uppercase tracking-wider bg-rose-600 text-white rounded-lg shadow-md shadow-rose-900/30">
+                <span className="movie-hero-badge px-2.5 py-1 text-xs font-black uppercase tracking-wider bg-rose-600 text-white rounded-lg shadow-md shadow-rose-900/30">
                   {movie.year || 'HD'}
                 </span>
 
                 {movie.mpa_rating && (
-                  <span className="px-2 py-1 text-xs font-bold tracking-wider bg-neutral-800 text-neutral-200 border border-white/10 rounded-lg">
+                  <span className="movie-hero-badge px-2 py-1 text-xs font-bold tracking-wider bg-neutral-800 text-neutral-200 border border-white/10 rounded-lg">
                     {movie.mpa_rating}
                   </span>
                 )}
 
                 {movie.language && (
-                  <span className="px-2 py-1 text-xs font-semibold uppercase tracking-wider bg-white/5 text-neutral-300 border border-white/10 rounded-lg">
+                  <span className="movie-hero-badge px-2 py-1 text-xs font-semibold uppercase tracking-wider bg-white/5 text-neutral-300 border border-white/10 rounded-lg">
                     {movie.language}
                   </span>
                 )}
 
                 {movie.torrents?.some(t => t.quality?.includes('2160p')) && (
-                  <span className="px-2 py-1 text-xs font-extrabold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-lg">
+                  <span className="movie-hero-badge px-2 py-1 text-xs font-extrabold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-lg">
                     4K Ultra HD
                   </span>
                 )}
               </div>
 
               <div>
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black font-display text-white tracking-tight leading-tight">
+                <h1 className="movie-hero-title text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black font-display text-white tracking-tight leading-tight drop-shadow-md">
                   {movie.title}
                 </h1>
                 {movie.title_english && movie.title_english !== movie.title && (
-                  <p className="text-sm text-neutral-400 font-medium mt-1">
+                  <p className="movie-hero-subtitle text-sm text-neutral-300 font-medium mt-1">
                     English: {movie.title_english}
                   </p>
                 )}
               </div>
 
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 sm:gap-6 py-2 text-xs sm:text-sm text-neutral-300">
-                <div className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-xl text-amber-400 font-bold">
-                  <span className="text-base">{movie.rating ? movie.rating.toFixed(1) : 'NR'}</span>
-                  <span className="text-[10px] text-amber-400/70 font-normal">/10 IMDb</span>
+              <div className="movie-hero-meta-row flex flex-wrap items-center justify-center md:justify-start gap-4 sm:gap-6 py-2 text-xs sm:text-sm text-neutral-200">
+                <div className="movie-imdb-badge flex items-center gap-1.5 bg-amber-500/20 border border-amber-500/35 px-3 py-1.5 rounded-xl text-amber-300 font-bold">
+                  <span className="text-base font-extrabold">{movie.rating ? movie.rating.toFixed(1) : 'NR'}</span>
+                  <span className="text-[10px] text-amber-200/90 font-medium">/10 IMDb</span>
                 </div>
 
                 {movie.runtime > 0 && (
-                  <div className="flex items-center gap-1.5 text-neutral-300 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl">
+                  <div className="movie-meta-pill flex items-center gap-1.5 text-neutral-100 bg-white/10 border border-white/15 px-3 py-1.5 rounded-xl backdrop-blur-sm">
                     <span>{movie.runtime} min ({Math.floor(movie.runtime / 60)}h {movie.runtime % 60}m)</span>
                   </div>
                 )}
 
-                <div className="flex items-center gap-1.5 text-neutral-300 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl">
+                <div className="movie-meta-pill flex items-center gap-1.5 text-neutral-100 bg-white/10 border border-white/15 px-3 py-1.5 rounded-xl backdrop-blur-sm">
                   <span>{movie.torrents?.length || 0} Download Formats</span>
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-1.5">
+              <div className="movie-hero-genres flex flex-wrap items-center justify-center md:justify-start gap-1.5">
                 {movie.genres?.map((genre) => (
                   <button
                     key={genre}
                     onClick={() => onSelectGenre(genre)}
-                    className="px-3 py-1 text-xs font-semibold text-neutral-300 bg-white/5 hover:bg-rose-600/20 hover:text-rose-400 hover:border-rose-500/30 rounded-full border border-white/10 transition-colors cursor-pointer"
+                    className="movie-genre-chip px-3 py-1 text-xs font-semibold text-neutral-200 bg-white/10 hover:bg-rose-600/30 hover:text-white hover:border-rose-500/40 rounded-full border border-white/15 transition-colors cursor-pointer backdrop-blur-sm"
                   >
                     {genre}
                   </button>
@@ -468,14 +468,14 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
 
                 <button
                   onClick={() => setIsSubtitlesOpen(true)}
-                  className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-neutral-200 hover:text-white font-semibold text-xs sm:text-sm rounded-full border border-white/10 transition-colors flex items-center gap-1.5 cursor-pointer"
+                  className="movie-action-pill px-4 py-2.5 bg-white/10 hover:bg-white/20 text-neutral-100 hover:text-white font-semibold text-xs sm:text-sm rounded-full border border-white/15 transition-colors flex items-center gap-1.5 cursor-pointer backdrop-blur-sm"
                 >
                   <span>Subtitles</span>
                 </button>
 
                 <button
                   onClick={onOpenGuide}
-                  className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-neutral-200 hover:text-white font-semibold text-xs sm:text-sm rounded-full border border-white/10 transition-colors flex items-center gap-1.5 cursor-pointer"
+                  className="movie-action-pill px-4 py-2.5 bg-white/10 hover:bg-white/20 text-neutral-100 hover:text-white font-semibold text-xs sm:text-sm rounded-full border border-white/15 transition-colors flex items-center gap-1.5 cursor-pointer backdrop-blur-sm"
                 >
                   <span>How to Download</span>
                 </button>

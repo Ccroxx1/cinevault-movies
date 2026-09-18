@@ -1040,4 +1040,134 @@
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
 }
 
+/* ==========================================================================
+   MOVIE DETAIL HERO PRESENTATION - PRISTINE CONTRAST OVER BACKDROP
+   Ensures title, metadata, ratings, and genre tags are crystal clear and visible
+   across all themes (especially in White mode).
+   ========================================================================== */
+
+.movie-detail-hero {
+  background-color: #0b0c12 !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="white"] .movie-detail-hero,
+[data-theme="white"] header.movie-detail-hero {
+  background-color: #0b0c12 !important;
+  border-color: rgba(0, 0, 0, 0.15) !important;
+  box-shadow: 0 20px 45px -15px rgba(0, 0, 0, 0.35) !important;
+  color: #ffffff !important;
+}
+
+/* Ensure backdrop gradient retains dark contrast inside movie-detail-hero */
+[data-theme="white"] .movie-detail-hero .from-\[\#0a0a0a\] {
+  --tw-gradient-from: #0b0c12 var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgba(11, 12, 18, 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+/* Titles and headings inside Movie Detail Hero */
+[data-theme="white"] .movie-detail-hero h1,
+[data-theme="white"] .movie-detail-hero h2,
+[data-theme="white"] .movie-detail-hero h3,
+[data-theme="white"] .movie-detail-hero .movie-hero-title,
+[data-theme="white"] .movie-detail-hero .text-white,
+[data-theme="white"] .movie-detail-hero .text-neutral-100,
+[data-theme="white"] .movie-detail-hero .text-neutral-200,
+[data-theme="white"] .movie-detail-hero .hover\:text-white:hover {
+  color: #ffffff !important;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9) !important;
+}
+
+/* Subtitle and secondary metadata labels */
+[data-theme="white"] .movie-detail-hero .movie-hero-subtitle,
+[data-theme="white"] .movie-detail-hero .text-neutral-300,
+[data-theme="white"] .movie-detail-hero .text-neutral-400 {
+  color: #e2e8f0 !important;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Metadata Pills (Runtime, Download Formats) */
+[data-theme="white"] .movie-detail-hero .movie-meta-pill,
+[data-theme="white"] .movie-detail-hero .bg-white\/10,
+[data-theme="white"] .movie-detail-hero .bg-white\/5 {
+  background-color: rgba(255, 255, 255, 0.14) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+[data-theme="white"] .movie-detail-hero .movie-meta-pill *,
+[data-theme="white"] .movie-detail-hero .bg-white\/10 *,
+[data-theme="white"] .movie-detail-hero .bg-white\/5 * {
+  color: #ffffff !important;
+}
+
+/* IMDb Rating Badge in Hero */
+[data-theme="white"] .movie-detail-hero .movie-imdb-badge,
+[data-theme="white"] .movie-detail-hero .bg-amber-500\/20,
+[data-theme="white"] .movie-detail-hero .bg-amber-500\/10 {
+  background-color: rgba(245, 158, 11, 0.22) !important;
+  border-color: rgba(245, 158, 11, 0.45) !important;
+  color: #fbbf24 !important;
+}
+
+[data-theme="white"] .movie-detail-hero .movie-imdb-badge *,
+[data-theme="white"] .movie-detail-hero .text-amber-400,
+[data-theme="white"] .movie-detail-hero .text-amber-300 {
+  color: #fbbf24 !important;
+}
+
+[data-theme="white"] .movie-detail-hero .text-amber-200\/90,
+[data-theme="white"] .movie-detail-hero .text-amber-400\/70 {
+  color: #fde68a !important;
+}
+
+/* Genre chips inside Hero */
+[data-theme="white"] .movie-detail-hero .movie-genre-chip,
+[data-theme="white"] .movie-detail-hero .movie-hero-genres button {
+  background-color: rgba(255, 255, 255, 0.14) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+[data-theme="white"] .movie-detail-hero .movie-genre-chip:hover,
+[data-theme="white"] .movie-detail-hero .movie-hero-genres button:hover {
+  background-color: rgba(225, 29, 72, 0.4) !important;
+  border-color: rgba(225, 29, 72, 0.7) !important;
+  color: #ffffff !important;
+}
+
+/* Hero Action Pills (Subtitles, How to Download) */
+[data-theme="white"] .movie-detail-hero .movie-action-pill {
+  background-color: rgba(255, 255, 255, 0.14) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+[data-theme="white"] .movie-detail-hero .movie-action-pill:hover {
+  background-color: rgba(255, 255, 255, 0.24) !important;
+  color: #ffffff !important;
+}
+
+/* Quick Action Buttons (Back, Share, Watchlist on top of banner) */
+[data-theme="white"] .movie-detail-hero .bg-black\/60,
+[data-theme="white"] .movie-detail-hero .bg-black\/80 {
+  background-color: rgba(0, 0, 0, 0.75) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="white"] .movie-detail-hero .bg-black\/60 *,
+[data-theme="white"] .movie-detail-hero .bg-black\/80 * {
+  color: #ffffff !important;
+}
+
+
 
