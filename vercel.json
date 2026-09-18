@@ -40,6 +40,18 @@
   ],
   "rewrites": [
     {
+      "source": "/api/cinebot/:path*",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/api/cinebot",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/api/health",
+      "destination": "/api/index"
+    },
+    {
       "source": "/api/visitors/:path*",
       "destination": "/api/index"
     },

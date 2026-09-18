@@ -160,6 +160,8 @@ export async function sendCineBotMessage(payload: CineBotChatPayload): Promise<C
         }
         return data as CineBotChatResponse;
       }
+    } else {
+      console.warn(`[CineBot] Server responded with status ${res.status}: ${res.statusText}`);
     }
   } catch (err) {
     console.warn('[CineBot] Fetch error:', err);

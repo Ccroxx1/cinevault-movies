@@ -316,7 +316,7 @@ Your core objectives:
         parts: [{ text: contextualized }]
       });
 
-      const CANDIDATE_MODELS = ['gemini-3.1-flash-lite', 'gemini-3.8-flash', 'gemini-flash-latest'];
+      const CANDIDATE_MODELS = ['gemini-3.8-flash', 'gemini-3.1-flash-lite', 'gemini-flash-latest'];
       let successfulModel: string | null = null;
       let rawText = '';
 
