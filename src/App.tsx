@@ -25,6 +25,8 @@ import { MovieComparisonModal } from './components/MovieComparisonModal';
 import { MovieNightSpinnerModal } from './components/MovieNightSpinnerModal';
 import { FilmographyModal } from './components/FilmographyModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
+import { CineBotModal } from './components/CineBotModal';
+import { CineBotLauncher } from './components/CineBotLauncher';
 import { getMoviePath, getMovieSlug, updateDocumentSeo } from './utils/seo';
 import { refreshEzoicAds } from './utils/ezoic';
 
@@ -83,6 +85,13 @@ export default function App() {
     return null;
   });
   const [filmographyPerson, setFilmographyPerson] = useState<{ name: string; role?: 'director' | 'actor' | 'cast' } | null>(null);
+  const [isCineBotOpen, setIsCineBotOpen] = useState<boolean>(false);
+  const [cineBotInitialPrompt, setCineBotInitialPrompt] = useState<string | null>(null);
+
+  const handleOpenCineBotWithPrompt = (prompt: string) => {
+    setCineBotInitialPrompt(prompt);
+    setIsCineBotOpen(true);
+  };
 
   const handleOpenFilmography = (name: string, role?: 'director' | 'actor' | 'cast') => {
     setFilmographyPerson({ name, role: role || 'cast' });
@@ -589,6 +598,7 @@ export default function App() {
         }}
         onOpenPolicy={(tab) => setPolicyModalTab(tab)}
         onOpenSpinner={() => setIsSpinnerOpen(true)}
+        onOpenCineBot={() => setIsCineBotOpen(true)}
         onRequestSearch={() => {
           if (route.type !== 'browse') {
             setRoute({ type: 'browse' });
@@ -658,6 +668,7 @@ export default function App() {
                 onToggleWatchlist={handleToggleWatchlist}
                 onOpenGuide={() => setIsGuideOpen(true)}
                 onOpenFilmography={handleOpenFilmography}
+                onAskCineBot={handleOpenCineBotWithPrompt}
               />
             ) : null}
           </div>
@@ -948,6 +959,39 @@ export default function App() {
         }}
         watchlist={watchlist}
         onToggleWatchlist={handleToggleWatchlist}
+      />
+
+      {/* CineBot AI Floating Launcher & Modal */}
+      <CineBotLauncher
+        isOpen={isCineBotOpen}
+        onOpen={() => setIsCineBotOpen(true)}
+      />
+
+      <CineBotModal
+        isOpen={isCineBotOpen}
+        onClose={() => setIsCineBotOpen(false)}
+        onSelectMovie={handleSelectMovie}
+        onPlayTrailer={(ytCode, title) => {
+          handlePlayTrailer(ytCode, title);
+        }}
+        watchlist={watchlist}
+        onToggleWatchlist={handleToggleWatchlist}
+        onApplyFilters={(newFilters) => {
+          setFilters((prev) => ({
+            ...prev,
+            ...newFilters,
+            page: 1
+          }));
+          setCurrentNav('browse');
+          setRoute({ type: 'browse' });
+          if (window.location.pathname !== '/') {
+            window.history.pushState({ type: 'browse' }, '', '/');
+          }
+          addToast('info', 'Filters Applied', `Updated catalog: ${newFilters.genre || 'all genres'} ${newFilters.minimum_rating ? `(min ${newFilters.minimum_rating}★)` : ''}`);
+        }}
+        initialPrompt={cineBotInitialPrompt}
+        onClearInitialPrompt={() => setCineBotInitialPrompt(null)}
+        activeMovie={route.type === 'movie' ? route.movie : null}
       />
 
       <ToastContainer toasts={toasts} onDismiss={removeToast} />

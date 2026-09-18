@@ -185,3 +185,29 @@ export function buildMagnetLink(torrentHash: string, movieTitle: string): string
 }
 
 export type ColorMode = 'black' | 'white' | 'blue-black';
+
+export interface CineBotMovieSuggestion {
+  title: string;
+  year?: number;
+  reason: string;
+  searchTerm?: string;
+  movieData?: Movie;
+}
+
+export interface CineBotRecommendedFilters {
+  genre?: string | null;
+  minimum_rating?: number | null;
+  decade?: string | null;
+  quality?: string | null;
+}
+
+export interface CineBotMessage {
+  id: string;
+  sender: 'user' | 'cinebot';
+  text: string;
+  timestamp: number;
+  suggestedMovies?: CineBotMovieSuggestion[];
+  recommendedFilters?: CineBotRecommendedFilters;
+  followUpSuggestions?: string[];
+  source?: string;
+}

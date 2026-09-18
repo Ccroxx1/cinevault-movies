@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Share2, Check, Archive, Magnet, FileDown, Layers } from 'lucide-react';
+import { ArrowLeft, Share2, Check, Archive, Magnet, FileDown, Layers, Sparkles } from 'lucide-react';
 import { Movie, Torrent, ParentalGuide, buildMagnetLink, RECOMMENDED_TRACKERS } from '../types';
 import { fetchMovieDetails, fetchMovieSuggestions, fetchParentalGuides } from '../services/movieApi';
 import { getMoviePath, getMovieCanonicalUrl, updateDocumentSeo } from '../utils/seo';
@@ -25,6 +25,7 @@ interface MovieDetailPageProps {
   onToggleWatchlist: (movie: Movie) => void;
   onOpenGuide: () => void;
   onOpenFilmography?: (name: string, role?: 'director' | 'actor' | 'cast') => void;
+  onAskCineBot?: (prompt: string) => void;
 }
 
 export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
@@ -38,7 +39,8 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
   isWatchlisted,
   onToggleWatchlist,
   onOpenGuide,
-  onOpenFilmography
+  onOpenFilmography,
+  onAskCineBot
 }) => {
   const [movie, setMovie] = useState<Movie>(initialMovie);
   const [loadingDetails, setLoadingDetails] = useState(false);
@@ -477,6 +479,17 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                 >
                   <span>How to Download</span>
                 </button>
+
+                {onAskCineBot && (
+                  <button
+                    onClick={() => onAskCineBot(`Recommend 3 films that share a similar mood, tension, or cinematic style with "${movie.title}" (${movie.year})`)}
+                    className="px-4 py-2.5 bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 hover:text-white font-bold text-xs sm:text-sm rounded-full border border-rose-500/35 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm shadow-rose-950/30"
+                    title="Ask CineBot AI for movies like this"
+                  >
+                    <Sparkles className="w-4 h-4 text-rose-400" />
+                    <span>Ask CineBot AI</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>

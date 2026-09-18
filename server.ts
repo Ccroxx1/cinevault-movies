@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
+import { GoogleGenAI } from '@google/genai';
 import { buildMovieHtml, getMovieSlug, slugify, SITE_BASE_URL } from './src/utils/htmlBuilder.js';
 
 const currentFilename = typeof __filename !== 'undefined' ? __filename : '';
@@ -138,6 +139,281 @@ async function fetchFromApi(endpoint: string, queryParams: Record<string, any>):
 
 // Common API Routes
 app.get('/api/health', (req, res) => res.send('CineVault OK'));
+
+// ==========================================
+// CineBot AI Concierge (Gemini 3.8 Flash)
+// ==========================================
+let genAiClient: GoogleGenAI | null = null;
+function getGenAi(): GoogleGenAI | null {
+  if (!genAiClient && process.env.GEMINI_API_KEY) {
+    try {
+      genAiClient = new GoogleGenAI({
+        apiKey: process.env.GEMINI_API_KEY,
+        httpOptions: {
+          headers: {
+            'User-Agent': 'aistudio-build',
+          }
+        }
+      });
+    } catch (err) {
+      console.error('[CineBot] Error initializing GoogleGenAI:', err);
+    }
+  }
+  return genAiClient;
+}
+
+async function generateLocalCineBotResponse(prompt: string, context?: any): Promise<any> {
+  const lower = prompt.toLowerCase();
+  let queryTerm = '';
+  let genre: string | null = null;
+  let decade: string | null = null;
+  let minRating: number | null = 7.5;
+  let editorialPitch = '';
+
+  if (lower.includes('magician') || lower.includes('bank heist') || lower.includes('now you see me') || lower.includes('magic')) {
+    queryTerm = 'Now You See Me';
+    editorialPitch = 'The film you are thinking of is **Now You See Me** (2013), directed by Louis Leterrier. It stars Jesse Eisenberg, Mark Ruffalo, Woody Harrelson, and Morgan Freeman as "The Four Horsemen," master illusionists who pull off high-stakes bank heists during their live spectacles.';
+  } else if (lower.includes('cube') || lower.includes('geometric rooms') || lower.includes('trapped in rooms')) {
+    queryTerm = 'Cube';
+    editorialPitch = 'That sounds exactly like Vincenzo Natali’s cult 1997 psychological sci-fi thriller **Cube**. Strangers wake up trapped inside a lethal geometric labyrinth of puzzle rooms riddled with deadly booby traps.';
+  } else if (lower.includes('island') && (lower.includes('detective') || lower.includes('memory') || lower.includes('asylum') || lower.includes('investigate'))) {
+    queryTerm = 'Shutter Island';
+    editorialPitch = 'You are remembering Martin Scorsese’s masterclass psychological thriller **Shutter Island** (2010). Leonardo DiCaprio stars as U.S. Marshal Teddy Daniels, sent to investigate a hospital for the criminally insane situated on a storm-lashed island.';
+  } else if (lower.includes('dream') && (lower.includes('subconscious') || lower.includes('within a dream') || lower.includes('totem') || lower.includes('spinning top'))) {
+    queryTerm = 'Inception';
+    editorialPitch = 'That is Christopher Nolan’s landmark sci-fi heist masterpiece **Inception** (2010), starring Leonardo DiCaprio as Dom Cobb, an extractor who infiltrates the subconscious minds of targets.';
+  } else if (lower.includes('mind-bending') || lower.includes('sci-fi') || lower.includes('twist') || lower.includes('space') || lower.includes('quantum')) {
+    queryTerm = 'sci-fi';
+    genre = 'Sci-Fi';
+    editorialPitch = 'Mind-bending cinema thrives on reality-bending concepts, existential stakes, and sharp twists. Here are high-caliber cerebral films that deliver on that promise:';
+  } else if (lower.includes('date night') || lower.includes('romance') || lower.includes('couple') || lower.includes('chemistry')) {
+    queryTerm = 'romance';
+    genre = 'Romance';
+    editorialPitch = 'The key to great date-night viewing is effortless charm, sharp dialogue, and memorable character chemistry. These selections hit that sweet spot:';
+  } else if (lower.includes('noir') || lower.includes('thriller') || lower.includes('detective') || lower.includes('crime') || lower.includes('rain') || lower.includes('mystery')) {
+    queryTerm = 'thriller';
+    genre = 'Thriller';
+    minRating = 7.8;
+    editorialPitch = 'Atmospheric crime and neo-noir movies captivate through stylish shadows, moody scores, and moral ambiguity. Here are riveting tension masterclasses:';
+  } else if (lower.includes('action') || lower.includes('adrenaline') || lower.includes('fury') || lower.includes('stunt') || lower.includes('chase')) {
+    queryTerm = 'action';
+    genre = 'Action';
+    editorialPitch = 'For pure visceral adrenaline, kinetic choreography and relentless momentum are king. Here are peak high-octane cinematic rides:';
+  } else if (lower.includes('comedy') || lower.includes('funny') || lower.includes('laugh') || lower.includes('hilarious')) {
+    queryTerm = 'comedy';
+    genre = 'Comedy';
+    editorialPitch = 'From razor-sharp satire to laugh-out-loud situational humor, these comedy standouts showcase impeccable comedic timing and high rewatchability:';
+  } else if (lower.includes('horror') || lower.includes('scary') || lower.includes('dread') || lower.includes('creepy') || lower.includes('ghost')) {
+    queryTerm = 'horror';
+    genre = 'Horror';
+    editorialPitch = 'True cinematic horror is built on creeping dread, sound design, and psychological vulnerability rather than simple jump scares. Check out these chilling picks:';
+  } else {
+    const cleaned = lower.replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(w => w.length > 3 && !['movie', 'film', 'give', 'show', 'what', 'like', 'some', 'about', 'recommend', 'tell'].includes(w));
+    queryTerm = cleaned.slice(0, 2).join(' ') || 'thriller';
+    editorialPitch = `Exploring films that match your request for "${prompt.trim()}": here are acclaimed selections curated for rich storytelling and immersive direction:`;
+  }
+
+  let foundMovies: any[] = [];
+  try {
+    const apiRes = await fetchFromApi('list_movies.json', {
+      query_term: queryTerm,
+      limit: 3,
+      sort_by: 'rating'
+    });
+    if (apiRes?.data?.movies && Array.isArray(apiRes.data.movies)) {
+      foundMovies = apiRes.data.movies;
+    }
+  } catch (err) {
+    // ignore
+  }
+
+  const suggestedMovies = foundMovies.map((m: any) => ({
+    title: m.title_english || m.title,
+    year: m.year,
+    reason: `Rated ${m.rating}/10 on IMDb with memorable cinematography and direction.`,
+    searchTerm: m.title_english || m.title,
+    movieData: m
+  }));
+
+  return {
+    reply: editorialPitch,
+    suggestedMovies,
+    recommendedFilters: {
+      genre,
+      minimum_rating: minRating,
+      decade
+    },
+    followUpSuggestions: [
+      `Show me more ${genre || 'acclaimed'} films with unexpected twists`,
+      'What are the highest-rated films in this category?',
+      'Give me something similar released before the year 2000'
+    ]
+  };
+}
+
+app.post('/api/cinebot/chat', async (req, res) => {
+  const { message, history = [], context = {} } = req.body;
+  if (!message || typeof message !== 'string') {
+    return res.status(400).json({ status: 'error', status_message: 'Message is required' });
+  }
+
+  const userPrompt = message.trim();
+  const ai = getGenAi();
+
+  if (ai) {
+    try {
+      const systemInstruction = `You are CineBot, CineVault's conversational AI movie concierge and resident film expert.
+You possess deep, encyclopedic knowledge of cinema history, directors, screenplays, cinematographers, cult classics, hidden gems, and blockbusters.
+
+Your core objectives:
+1. Recommend 1 to 3 specific films directly addressing the user's mood, requested genre, theme, aesthetic, or plot fragment.
+2. If the user describes a vague plot or forgotten scene, accurately identify the film title and year.
+3. Answer movie questions with spoiler-free vibe checks, thematic insights, and content suitability.
+4. Keep your commentary sharp, punchy, cinephile-savvy, and engaging (2 to 3 paragraphs max).
+5. Always output STRICT, VALID JSON adhering to this exact schema:
+{
+  "reply": "Your conversational response in clean Markdown. Feel free to bold film titles like **Blade Runner 2049** and use bullet points where helpful.",
+  "suggestedMovies": [
+    {
+      "title": "Exact Title of Movie",
+      "year": 2017,
+      "reason": "One punchy sentence explaining why this matches their request",
+      "searchTerm": "Clean search title to look up in the catalog"
+    }
+  ],
+  "recommendedFilters": {
+    "genre": "Sci-Fi", // Optional: valid CineVault genre string or null
+    "minimum_rating": 7.5, // Optional minimum rating number 1-9 or null
+    "decade": "2010s" // Optional decade e.g. 1980s, 1990s, 2000s, 2010s, 2020s or null
+  },
+  "followUpSuggestions": [
+    "Short natural follow-up prompt 1",
+    "Short natural follow-up prompt 2",
+    "Short natural follow-up prompt 3"
+  ]
+}`;
+
+      const contents: Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }> = [];
+
+      if (Array.isArray(history)) {
+        for (const turn of history.slice(-6)) {
+          if (turn.role === 'user' || turn.role === 'model') {
+            contents.push({
+              role: turn.role,
+              parts: [{ text: String(turn.text || '') }]
+            });
+          }
+        }
+      }
+
+      let contextualized = userPrompt;
+      if (context && context.activeMovieTitle) {
+        contextualized += `\n[Context: User is currently viewing "${context.activeMovieTitle}" (${context.activeMovieYear || ''}) - Genres: ${context.activeMovieGenres?.join(', ') || 'N/A'}]`;
+      }
+
+      contents.push({
+        role: 'user',
+        parts: [{ text: contextualized }]
+      });
+
+      const CANDIDATE_MODELS = ['gemini-3.1-flash-lite', 'gemini-3.8-flash', 'gemini-flash-latest'];
+      let successfulModel: string | null = null;
+      let rawText = '';
+
+      for (const modelName of CANDIDATE_MODELS) {
+        try {
+          const response = await ai.models.generateContent({
+            model: modelName,
+            contents,
+            config: {
+              systemInstruction,
+              responseMimeType: 'application/json',
+              temperature: 0.7,
+            }
+          });
+
+          const text = response.text ? response.text.trim() : '';
+          if (text) {
+            rawText = text;
+            successfulModel = modelName;
+            break;
+          }
+        } catch (modelErr: any) {
+          const status = modelErr?.status || modelErr?.code;
+          const msg = modelErr?.message || String(modelErr);
+          console.warn(`[CineBot] Model ${modelName} unavailable (${status || 'error'}: ${msg.slice(0, 100)}). Trying fallback model...`);
+        }
+      }
+
+      let parsed: any = null;
+
+      if (rawText) {
+        try {
+          parsed = JSON.parse(rawText);
+        } catch (parseErr) {
+          const cleaned = rawText.replace(/^```json\s*/i, '').replace(/\s*```$/i, '').trim();
+          try {
+            parsed = JSON.parse(cleaned);
+          } catch (cleanErr) {
+            console.warn('[CineBot] JSON parse error from model response:', cleanErr);
+          }
+        }
+      }
+
+      if (parsed && parsed.reply) {
+        // Enrich suggested movies with real catalog data from movie API
+        if (Array.isArray(parsed.suggestedMovies) && parsed.suggestedMovies.length > 0) {
+          const enriched = await Promise.all(
+            parsed.suggestedMovies.slice(0, 4).map(async (item: any) => {
+              try {
+                const term = item.searchTerm || item.title;
+                const searchRes = await fetchFromApi('list_movies.json', {
+                  query_term: term,
+                  limit: 2
+                });
+                const movies = searchRes?.data?.movies;
+                if (Array.isArray(movies) && movies.length > 0) {
+                  const match = movies.find((m: any) => item.year ? Math.abs(m.year - item.year) <= 1 : true) || movies[0];
+                  return {
+                    ...item,
+                    movieData: match
+                  };
+                }
+              } catch (enrichErr) {
+                // Return original item without movieData if API query times out
+              }
+              return item;
+            })
+          );
+          parsed.suggestedMovies = enriched;
+        }
+
+        return res.json({
+          status: 'ok',
+          source: successfulModel || 'gemini',
+          ...parsed
+        });
+      }
+    } catch (geminiError: any) {
+      console.warn('[CineBot] All Gemini API models failed or returned invalid response, falling back to local cinema engine:', geminiError?.message || geminiError);
+    }
+  }
+
+  // Fallback engine
+  try {
+    const fallbackResponse = await generateLocalCineBotResponse(userPrompt, context);
+    return res.json({
+      status: 'ok',
+      source: 'cinevault-curated',
+      ...fallbackResponse
+    });
+  } catch (err: any) {
+    return res.status(500).json({
+      status: 'error',
+      status_message: 'CineBot was unable to process this request. Please try again.'
+    });
+  }
+});
 
 app.get(['/api/movies', '/api/movies/list'], async (req, res) => {
   try {

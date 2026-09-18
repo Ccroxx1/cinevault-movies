@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Dices, Search, HelpCircle, X } from 'lucide-react';
+import { Dices, Search, HelpCircle, X, Sparkles } from 'lucide-react';
 import { Movie } from '../types';
 import { GENRES } from '../services/movieApi';
 import { CineVaultLogo } from './CineVaultLogo';
@@ -22,6 +22,7 @@ interface HeaderProps {
   onOpenPolicy?: (tab: 'privacy' | 'terms' | 'about' | 'contact' | 'dmca') => void;
   onOpenSpinner?: () => void;
   onRequestSearch?: () => void;
+  onOpenCineBot?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -36,7 +37,8 @@ export const Header: React.FC<HeaderProps> = ({
   onSelectGenre,
   onOpenPolicy,
   onOpenSpinner,
-  onRequestSearch
+  onRequestSearch,
+  onOpenCineBot
 }) => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [quickResults, setQuickResults] = useState<Movie[]>([]);
@@ -453,6 +455,17 @@ export const Header: React.FC<HeaderProps> = ({
                 )}
               </button>
 
+              {onOpenCineBot && (
+                <button
+                  onClick={onOpenCineBot}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-rose-300 hover:text-white bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 transition-all cursor-pointer shadow-[0_0_12px_rgba(225,29,72,0.15)] group"
+                  title="CineBot AI - Movie Concierge & Vibe Discovery"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-rose-400 group-hover:rotate-12 transition-transform" />
+                  <span>CineBot AI</span>
+                </button>
+              )}
+
               {onOpenSpinner && (
                 <button
                   onClick={onOpenSpinner}
@@ -481,6 +494,18 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Mobile Actions */}
             <div className="flex items-center gap-1.5 lg:hidden">
+              {onOpenCineBot && (
+                <button
+                  onClick={onOpenCineBot}
+                  className="p-2 text-rose-400 hover:text-rose-300 rounded-xl cursor-pointer relative"
+                  aria-label="CineBot AI Concierge"
+                  title="CineBot AI Concierge"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                </button>
+              )}
+
               {onOpenSpinner && (
                 <button
                   onClick={onOpenSpinner}
@@ -575,6 +600,20 @@ export const Header: React.FC<HeaderProps> = ({
                 >
                   My Watchlist ({watchlistCount})
                 </button>
+                {onOpenCineBot && (
+                  <button
+                    onClick={() => { setIsMobileMenuOpen(false); onOpenCineBot(); }}
+                    className="w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold text-rose-300 bg-rose-500/10 border border-rose-500/25 hover:bg-rose-500/20 flex items-center justify-between cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-rose-400" />
+                      <span>CineBot AI Concierge</span>
+                    </div>
+                    <span className="text-[9px] uppercase font-mono font-bold px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300">
+                      Gemini
+                    </span>
+                  </button>
+                )}
                 {onOpenSpinner && (
                   <button
                     onClick={() => { setIsMobileMenuOpen(false); onOpenSpinner(); }}
