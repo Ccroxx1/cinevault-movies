@@ -321,28 +321,38 @@ Your core objectives:
       let rawText = '';
 
       for (const modelName of CANDIDATE_MODELS) {
-        try {
-          const response = await ai.models.generateContent({
-            model: modelName,
-            contents,
-            config: {
-              systemInstruction,
-              responseMimeType: 'application/json',
-              temperature: 0.7,
-            }
-          });
+        // Attempt generation with quick retry on transient 503 capacity spikes
+        for (let attempt = 0; attempt < 2; attempt++) {
+          try {
+            const response = await ai.models.generateContent({
+              model: modelName,
+              contents,
+              config: {
+                systemInstruction,
+                responseMimeType: 'application/json',
+                temperature: 0.7,
+              }
+            });
 
-          const text = response.text ? response.text.trim() : '';
-          if (text) {
-            rawText = text;
-            successfulModel = modelName;
+            const text = response.text ? response.text.trim() : '';
+            if (text) {
+              rawText = text;
+              successfulModel = modelName;
+              break;
+            }
+          } catch (modelErr: any) {
+            const status = modelErr?.status || modelErr?.code;
+            const isTransient = status === 503 || status === 429 || String(modelErr?.message || '').includes('high demand');
+            if (isTransient && attempt === 0) {
+              // Quick backoff for temporary capacity spike
+              await new Promise((resolve) => setTimeout(resolve, 350));
+              continue;
+            }
+            // Move to next candidate model smoothly without noisy warning
             break;
           }
-        } catch (modelErr: any) {
-          const status = modelErr?.status || modelErr?.code;
-          const msg = modelErr?.message || String(modelErr);
-          console.warn(`[CineBot] Model ${modelName} unavailable (${status || 'error'}: ${msg.slice(0, 100)}). Trying fallback model...`);
         }
+        if (rawText) break;
       }
 
       let parsed: any = null;
@@ -395,7 +405,7 @@ Your core objectives:
         });
       }
     } catch (geminiError: any) {
-      console.warn('[CineBot] All Gemini API models failed or returned invalid response, falling back to local cinema engine:', geminiError?.message || geminiError);
+      console.info('[CineBot] AI model service momentarily busy, using curated cinema engine:', geminiError?.message || geminiError);
     }
   }
 

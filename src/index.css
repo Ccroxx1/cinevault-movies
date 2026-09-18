@@ -801,6 +801,31 @@
    CINEBOT AI CONCIERGE DEDICATED THEME RULES
    ========================================================================== */
 
+/* CineBot Launcher Button in White Mode */
+[data-theme="white"] .cinebot-launcher-btn {
+  background: #ffffff !important;
+  border-color: rgba(225, 29, 72, 0.35) !important;
+  box-shadow: 0 10px 30px rgba(225, 29, 72, 0.18), 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+}
+
+[data-theme="white"] .cinebot-launcher-btn .cinebot-launcher-title {
+  color: #0f172a !important;
+}
+
+[data-theme="white"] .cinebot-launcher-btn:hover .cinebot-launcher-title {
+  color: #e11d48 !important;
+}
+
+[data-theme="white"] .cinebot-launcher-btn .cinebot-launcher-sub {
+  color: #64748b !important;
+}
+
+[data-theme="white"] .cinebot-launcher-btn .cinebot-launcher-badge {
+  background-color: #ffe4e6 !important;
+  color: #e11d48 !important;
+  border-color: #fda4af !important;
+}
+
 /* CineBot in White Mode */
 [data-theme="white"] .cinebot-modal-window,
 [data-theme="white"] #cinebot-modal-window {
