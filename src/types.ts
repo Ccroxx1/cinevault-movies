@@ -211,3 +211,89 @@ export interface CineBotMessage {
   followUpSuggestions?: string[];
   source?: string;
 }
+
+// TV Show Metadata
+export interface TvShowInfo {
+  id?: number;
+  name: string;
+  imdb_code: string;
+  imdb_id: string;
+  year?: string;
+  rating?: number;
+  image?: string;
+  summary?: string;
+  genres?: string[];
+  network?: string;
+}
+
+export interface TvCastMember {
+  person: {
+    id: number;
+    name: string;
+    image?: { medium?: string; original?: string } | null;
+  };
+  character: {
+    id: number;
+    name: string;
+    image?: { medium?: string; original?: string } | null;
+  };
+}
+
+export interface TvEpisode {
+  id: number;
+  name: string;
+  season: number;
+  number: number;
+  airdate?: string;
+  runtime?: number;
+  image?: { medium?: string; original?: string } | null;
+  summary?: string;
+}
+
+export interface TvShowDetails extends TvShowInfo {
+  status?: string;
+  runtime?: number;
+  averageRuntime?: number;
+  premiered?: string;
+  ended?: string;
+  officialSite?: string;
+  type?: string;
+  language?: string;
+  cast?: TvCastMember[];
+  episodes?: TvEpisode[];
+  backdropImage?: string;
+}
+
+// EZTV API Types (https://eztvx.to/api/get-torrents)
+export interface EztvTorrent {
+  id: number;
+  hash: string;
+  filename: string;
+  episode_url?: string;
+  torrent_url?: string;
+  magnet_url: string;
+  title: string;
+  imdb_id: string;
+  season: string;
+  episode: string;
+  small_screenshot?: string;
+  large_screenshot?: string;
+  seeds: number;
+  peers: number;
+  date_released_unix: number;
+  size_bytes: string | number;
+}
+
+export interface EztvApiResponse {
+  status?: string;
+  imdb_id?: string;
+  resolved_title?: string;
+  show_meta?: TvShowInfo | null;
+  torrents_count: number;
+  limit: number;
+  page: number;
+  torrents: EztvTorrent[];
+  status_message?: string;
+  message?: string;
+}
+

@@ -461,6 +461,515 @@ app.get(['/api/movie_parental_guides', '/api/movies/parental_guides'], async (re
   }
 });
 
+// ==========================================
+// EZTV API PROXY & RESOLVER (https://eztvx.to/api/get-torrents)
+// ==========================================
+const EZTV_API_MIRRORS = [
+  'https://eztvx.to/api/get-torrents',
+  'https://eztv.re/api/get-torrents',
+  'https://eztvstatus.org/api/get-torrents'
+];
+
+async function fetchEztvFromMirrors(params: Record<string, string>): Promise<any> {
+  const queryString = new URLSearchParams(params).toString();
+  const cacheKey = `eztv:${queryString}`;
+  const cached = cache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < 10 * 60 * 1000) {
+    return cached.data;
+  }
+
+  let lastError: any = null;
+  for (const mirror of EZTV_API_MIRRORS) {
+    const targetUrl = `${mirror}?${queryString}`;
+    try {
+      const response = await fetch(targetUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'application/json'
+        },
+        signal: AbortSignal.timeout(6500)
+      });
+      if (response.ok) {
+        const json = await response.json();
+        if (json && typeof json === 'object') {
+          cache.set(cacheKey, { timestamp: Date.now(), data: json });
+          return json;
+        }
+      }
+    } catch (err: any) {
+      lastError = err;
+    }
+  }
+
+  throw lastError || new Error('All EZTV mirrors failed to respond.');
+}
+
+interface ShowSearchResult {
+  id?: number;
+  name: string;
+  imdb_id: string; // digits only
+  imdb_code: string; // with tt
+  year?: string;
+  rating?: number;
+  image?: string;
+  summary?: string;
+  genres?: string[];
+  network?: string;
+}
+
+// Helper to strip season, episode, quality tags from raw show search query
+function extractShowSearch(raw: string): { cleanedTitle: string; season?: number; episode?: number } {
+  let cleaned = raw.trim();
+  let season: number | undefined;
+  let episode: number | undefined;
+
+  const seMatch = cleaned.match(/\bS(\d{1,2})(?:E(\d{1,2}))?\b/i);
+  if (seMatch) {
+    season = parseInt(seMatch[1], 10);
+    if (seMatch[2]) episode = parseInt(seMatch[2], 10);
+    cleaned = cleaned.replace(seMatch[0], ' ').trim();
+  } else {
+    const seasonMatch = cleaned.match(/\bseason\s*(\d{1,2})\b/i);
+    if (seasonMatch) {
+      season = parseInt(seasonMatch[1], 10);
+      cleaned = cleaned.replace(seasonMatch[0], ' ').trim();
+    }
+    const epMatch = cleaned.match(/\bepisode\s*(\d{1,2})\b/i);
+    if (epMatch) {
+      episode = parseInt(epMatch[1], 10);
+      cleaned = cleaned.replace(epMatch[0], ' ').trim();
+    }
+  }
+
+  // Remove common quality / codec terms from show search
+  cleaned = cleaned.replace(/\b(1080p|720p|2160p|4k|uhd|hevc|x265|x264|web-?dl|webrip|hdtv|bluray|complete|repack)\b/gi, ' ').trim();
+  // Remove trailing and leading punctuation / spaces
+  cleaned = cleaned.replace(/^[-–—:\s]+|[-–—:\s]+$/g, '').replace(/\s+/g, ' ').trim();
+
+  return { cleanedTitle: cleaned || raw.trim(), season, episode };
+}
+
+// Resolve TV show title to IMDb ID via TVmaze (primary) with Wikidata fallback
+async function resolveTvShowByTitle(rawTitle: string): Promise<ShowSearchResult | null> {
+  const cleanTitle = rawTitle.trim();
+  if (!cleanTitle) return null;
+
+  const cacheKey = `tv_show_resolve:${cleanTitle.toLowerCase()}`;
+  const cached = cache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < 3600000) return cached.data as ShowSearchResult;
+
+  const { cleanedTitle } = extractShowSearch(cleanTitle);
+
+  // 1. Try TVmaze API
+  try {
+    const queriesToTry = [cleanedTitle];
+    if (cleanedTitle.toLowerCase() !== cleanTitle.toLowerCase()) {
+      queriesToTry.push(cleanTitle);
+    }
+
+    for (const q of queriesToTry) {
+      const tvmazeUrl = `https://api.tvmaze.com/search/shows?q=${encodeURIComponent(q)}`;
+      const res = await fetch(tvmazeUrl, {
+        headers: { 'Accept': 'application/json' },
+        signal: AbortSignal.timeout(4500)
+      });
+      if (res.ok) {
+        const items: any[] = await res.json();
+        for (const item of items) {
+          const show = item?.show;
+          const rawImdb = show?.externals?.imdb;
+          // Must start with tt followed by 5-9 digits
+          if (rawImdb && typeof rawImdb === 'string' && /^tt\d{5,9}$/i.test(rawImdb)) {
+            const digits = rawImdb.replace(/^tt/i, '');
+            const result: ShowSearchResult = {
+              id: show.id,
+              name: show.name || cleanTitle,
+              imdb_id: digits,
+              imdb_code: rawImdb,
+              year: show.premiered ? show.premiered.slice(0, 4) : undefined,
+              rating: show.rating?.average || undefined,
+              image: show.image?.medium || show.image?.original || undefined,
+              summary: show.summary ? show.summary.replace(/<[^>]*>?/gm, '').trim() : undefined,
+              genres: show.genres || [],
+              network: show.network?.name || show.webChannel?.name || undefined
+            };
+            cache.set(cacheKey, { timestamp: Date.now(), data: result });
+            return result;
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('TVmaze resolution error:', err);
+  }
+
+  // 2. Fallback to Wikidata
+  try {
+    const searchUrl = `https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${encodeURIComponent(cleanedTitle)}&type=item&language=en&limit=10&format=json`;
+    const sRes = await fetch(searchUrl, {
+      headers: {
+        'User-Agent': 'CineVault/1.0 (https://cinevault.app; contact@cinevault.app)',
+        'Accept': 'application/json'
+      },
+      signal: AbortSignal.timeout(4500)
+    });
+    if (sRes.ok) {
+      const sData: any = await sRes.json();
+      const entities = sData?.search || [];
+      const prioritized = [...entities].sort((a, b) => {
+        const aDesc = (a.description || '').toLowerCase();
+        const bDesc = (b.description || '').toLowerCase();
+        const aIsTv = /television|series|show|serial|drama|sitcom|anime|broadcast/.test(aDesc);
+        const bIsTv = /television|series|show|serial|drama|sitcom|anime|broadcast/.test(bDesc);
+        if (aIsTv && !bIsTv) return -1;
+        if (!aIsTv && bIsTv) return 1;
+        return 0;
+      });
+
+      const targetIds = prioritized.slice(0, 5).map((e: any) => e.id).filter(Boolean);
+      if (targetIds.length > 0) {
+        const entUrl = `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${targetIds.join('|')}&props=claims&format=json`;
+        const eRes = await fetch(entUrl, {
+          headers: {
+            'User-Agent': 'CineVault/1.0 (https://cinevault.app; contact@cinevault.app)',
+            'Accept': 'application/json'
+          },
+          signal: AbortSignal.timeout(4500)
+        });
+        if (eRes.ok) {
+          const eData: any = await eRes.json();
+          for (const candId of targetIds) {
+            const p345Claims = eData?.entities?.[candId]?.claims?.P345;
+            if (Array.isArray(p345Claims)) {
+              for (const claim of p345Claims) {
+                const imdbCode = claim?.mainsnak?.datavalue?.value;
+                if (imdbCode && typeof imdbCode === 'string' && /^tt\d{5,9}$/i.test(imdbCode)) {
+                  const digits = imdbCode.replace(/^tt/i, '');
+                  const matchedEntity = entities.find((e: any) => e.id === candId);
+                  const result: ShowSearchResult = {
+                    name: matchedEntity?.label || cleanTitle,
+                    imdb_id: digits,
+                    imdb_code: imdbCode,
+                    summary: matchedEntity?.description || undefined
+                  };
+                  cache.set(cacheKey, { timestamp: Date.now(), data: result });
+                  return result;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Wikidata fallback resolution error:', err);
+  }
+
+  return null;
+}
+
+// TV show search & autocomplete endpoint
+app.get(['/api/tv/shows', '/api/tv/search'], async (req, res) => {
+  const rawQ = typeof req.query.q === 'string' ? req.query.q.trim() : (typeof req.query.query === 'string' ? req.query.query.trim() : '');
+  if (!rawQ) {
+    return res.json({ status: 'ok', shows: [] });
+  }
+
+  const { cleanedTitle } = extractShowSearch(rawQ);
+  const cacheKey = `tv_autocomplete:${cleanedTitle.toLowerCase()}`;
+  const cached = cache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < 3600000) {
+    return res.json({ status: 'ok', shows: cached.data });
+  }
+
+  try {
+    const tvmazeUrl = `https://api.tvmaze.com/search/shows?q=${encodeURIComponent(cleanedTitle)}`;
+    const tvRes = await fetch(tvmazeUrl, {
+      headers: { 'Accept': 'application/json' },
+      signal: AbortSignal.timeout(4000)
+    });
+    if (tvRes.ok) {
+      const data: any[] = await tvRes.json();
+      const shows: ShowSearchResult[] = data
+        .filter((item) => {
+          const rawImdb = item?.show?.externals?.imdb;
+          return item?.show?.name && rawImdb && /^tt\d{5,9}$/i.test(rawImdb);
+        })
+        .map((item) => {
+          const s = item.show;
+          const imdb: string = s.externals.imdb;
+          return {
+            id: s.id,
+            name: s.name,
+            imdb_code: imdb,
+            imdb_id: imdb.replace(/^tt/i, ''),
+            year: s.premiered ? s.premiered.slice(0, 4) : undefined,
+            rating: s.rating?.average || undefined,
+            image: s.image?.medium || s.image?.original || undefined,
+            summary: s.summary ? s.summary.replace(/<[^>]*>?/gm, '').trim() : undefined,
+            genres: s.genres || [],
+            network: s.network?.name || s.webChannel?.name || undefined
+          };
+        })
+        .slice(0, 8);
+
+      cache.set(cacheKey, { timestamp: Date.now(), data: shows });
+      return res.json({ status: 'ok', shows });
+    }
+  } catch (err: any) {
+    console.warn('TV autocomplete error:', err);
+  }
+
+  return res.json({ status: 'ok', shows: [] });
+});
+
+// TV show full details endpoint (metadata, cast, episodes)
+app.get('/api/tv/details', async (req, res) => {
+  try {
+    const rawImdb = typeof req.query.imdb === 'string' ? req.query.imdb.trim() : (typeof req.query.imdb_id === 'string' ? req.query.imdb_id.trim() : '');
+    const rawId = typeof req.query.id === 'string' ? req.query.id.trim() : '';
+    const rawTitle = typeof req.query.title === 'string' ? req.query.title.trim() : (typeof req.query.q === 'string' ? req.query.q.trim() : '');
+
+    const cacheKey = `tv_details:${rawImdb || rawId || rawTitle.toLowerCase()}`;
+    const cached = cache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < 7200000) {
+      return res.json({ status: 'ok', show: cached.data });
+    }
+
+    let tvmazeShow: any = null;
+
+    // 1. By IMDb ID
+    if (rawImdb) {
+      const imdbCode = rawImdb.startsWith('tt') ? rawImdb : `tt${rawImdb}`;
+      try {
+        const lookupRes = await fetch(`https://api.tvmaze.com/lookup/shows?imdb=${imdbCode}`, {
+          headers: { 'Accept': 'application/json' },
+          redirect: 'follow',
+          signal: AbortSignal.timeout(6000)
+        });
+        if (lookupRes.ok) {
+          tvmazeShow = await lookupRes.json();
+        }
+      } catch (err) {
+        console.warn('TVmaze IMDb lookup failed:', err);
+      }
+    }
+
+    // 2. By TVmaze ID
+    if (!tvmazeShow && rawId) {
+      try {
+        const idRes = await fetch(`https://api.tvmaze.com/shows/${rawId}`, {
+          headers: { 'Accept': 'application/json' },
+          signal: AbortSignal.timeout(6000)
+        });
+        if (idRes.ok) {
+          tvmazeShow = await idRes.json();
+        }
+      } catch (err) {
+        console.warn('TVmaze ID lookup failed:', err);
+      }
+    }
+
+    // 3. By Title
+    if (!tvmazeShow && rawTitle) {
+      const resolved = await resolveTvShowByTitle(rawTitle);
+      if (resolved && resolved.imdb_code) {
+        try {
+          const lookupRes = await fetch(`https://api.tvmaze.com/lookup/shows?imdb=${resolved.imdb_code}`, {
+            headers: { 'Accept': 'application/json' },
+            redirect: 'follow',
+            signal: AbortSignal.timeout(6000)
+          });
+          if (lookupRes.ok) {
+            tvmazeShow = await lookupRes.json();
+          }
+        } catch (err) {
+          console.warn('TVmaze title lookup failed:', err);
+        }
+      }
+    }
+
+    if (!tvmazeShow) {
+      return res.status(404).json({ status: 'error', status_message: 'Television series details not found' });
+    }
+
+    // Fetch cast and episodes in parallel
+    const showId = tvmazeShow.id;
+    const [castRes, episodesRes] = await Promise.allSettled([
+      fetch(`https://api.tvmaze.com/shows/${showId}/cast`, {
+        headers: { 'Accept': 'application/json' },
+        signal: AbortSignal.timeout(5000)
+      }),
+      fetch(`https://api.tvmaze.com/shows/${showId}/episodes`, {
+        headers: { 'Accept': 'application/json' },
+        signal: AbortSignal.timeout(5000)
+      })
+    ]);
+
+    let castList: any[] = [];
+    if (castRes.status === 'fulfilled' && castRes.value.ok) {
+      try {
+        const rawCast = await castRes.value.json();
+        if (Array.isArray(rawCast)) {
+          castList = rawCast.slice(0, 16).map((c) => ({
+            person: {
+              id: c.person?.id,
+              name: c.person?.name,
+              image: c.person?.image ? { medium: c.person.image.medium, original: c.person.image.original } : null
+            },
+            character: {
+              id: c.character?.id,
+              name: c.character?.name,
+              image: c.character?.image ? { medium: c.character.image.medium, original: c.character.image.original } : null
+            }
+          }));
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    let episodesList: any[] = [];
+    if (episodesRes.status === 'fulfilled' && episodesRes.value.ok) {
+      try {
+        const rawEpisodes = await episodesRes.value.json();
+        if (Array.isArray(rawEpisodes)) {
+          episodesList = rawEpisodes.map((e) => ({
+            id: e.id,
+            name: e.name,
+            season: e.season,
+            number: e.number,
+            airdate: e.airdate,
+            runtime: e.runtime,
+            image: e.image ? { medium: e.image.medium, original: e.image.original } : null,
+            summary: e.summary ? e.summary.replace(/<[^>]*>?/gm, '').trim() : ''
+          }));
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    const rawImdbCode = tvmazeShow.externals?.imdb || (rawImdb.startsWith('tt') ? rawImdb : `tt${rawImdb}`);
+    const digitsOnly = (rawImdbCode || '').replace(/^tt/i, '');
+
+    const details = {
+      id: tvmazeShow.id,
+      name: tvmazeShow.name,
+      imdb_code: rawImdbCode,
+      imdb_id: digitsOnly,
+      year: tvmazeShow.premiered ? tvmazeShow.premiered.slice(0, 4) : undefined,
+      rating: tvmazeShow.rating?.average || undefined,
+      image: tvmazeShow.image?.original || tvmazeShow.image?.medium || undefined,
+      backdropImage: tvmazeShow.image?.original || episodesList.find(e => e.image?.original)?.image?.original || undefined,
+      summary: tvmazeShow.summary ? tvmazeShow.summary.replace(/<[^>]*>?/gm, '').trim() : undefined,
+      genres: tvmazeShow.genres || [],
+      network: tvmazeShow.network?.name || tvmazeShow.webChannel?.name || undefined,
+      status: tvmazeShow.status,
+      runtime: tvmazeShow.runtime || tvmazeShow.averageRuntime,
+      averageRuntime: tvmazeShow.averageRuntime,
+      premiered: tvmazeShow.premiered,
+      ended: tvmazeShow.ended,
+      officialSite: tvmazeShow.officialSite,
+      type: tvmazeShow.type,
+      language: tvmazeShow.language,
+      cast: castList,
+      episodes: episodesList
+    };
+
+    cache.set(cacheKey, { timestamp: Date.now(), data: details });
+    return res.json({ status: 'ok', show: details });
+  } catch (err: any) {
+    console.error('TV details endpoint error:', err);
+    return res.status(500).json({ status: 'error', status_message: 'Failed to fetch TV details' });
+  }
+});
+
+app.get(['/api/eztv', '/api/eztv/torrents', '/api/eztv/get-torrents'], async (req, res) => {
+  try {
+    const rawImdb = typeof req.query.imdb_id === 'string' ? req.query.imdb_id.trim() : '';
+    const rawSearch = typeof req.query.search === 'string' ? req.query.search.trim() : (typeof req.query.query === 'string' ? req.query.query.trim() : '');
+    const page = Math.min(100, Math.max(1, parseInt(String(req.query.page || '1'), 10) || 1));
+    const limit = Math.min(100, Math.max(1, parseInt(String(req.query.limit || '40'), 10) || 40));
+
+    let effectiveImdbId = '';
+    let resolvedTitle = '';
+    let showMeta: ShowSearchResult | null = null;
+    let searchParsing: { cleanedTitle: string; season?: number; episode?: number } | null = null;
+
+    if (rawImdb) {
+      effectiveImdbId = rawImdb.replace(/^tt/i, '').trim();
+    } else if (rawSearch) {
+      if (/^tt\d{5,9}$/i.test(rawSearch)) {
+        effectiveImdbId = rawSearch.replace(/^tt/i, '');
+      } else if (/^\d{6,8}$/.test(rawSearch)) {
+        effectiveImdbId = rawSearch;
+      } else {
+        searchParsing = extractShowSearch(rawSearch);
+        showMeta = await resolveTvShowByTitle(rawSearch);
+        if (showMeta) {
+          effectiveImdbId = showMeta.imdb_id;
+          resolvedTitle = showMeta.name;
+        }
+      }
+    }
+
+    // CRITICAL: If a search was requested by user, but NO show/imdb_id was resolved:
+    // DO NOT return random latest releases! Return an empty result with a clear message!
+    if (rawSearch && !effectiveImdbId) {
+      return res.json({
+        status: 'ok',
+        imdb_id: null,
+        resolved_title: null,
+        show_meta: null,
+        torrents_count: 0,
+        limit,
+        page,
+        torrents: [],
+        message: `No television series found matching "${rawSearch}". Try searching with show title (e.g. Breaking Bad) or IMDb ID (e.g. tt0903747).`
+      });
+    }
+
+    const upstreamParams: Record<string, string> = {
+      page: String(page),
+      limit: String(limit)
+    };
+
+    if (effectiveImdbId) {
+      upstreamParams.imdb_id = effectiveImdbId;
+    }
+
+    const result = await fetchEztvFromMirrors(upstreamParams);
+    let torrents = Array.isArray(result.torrents) ? result.torrents : [];
+
+    // If season filter was extracted from the search query (e.g. "Breaking Bad S02" or "Stranger Things season 4")
+    if (searchParsing?.season !== undefined && torrents.length > 0) {
+      const sStr = String(searchParsing.season);
+      const filtered = torrents.filter((t: any) => String(t.season) === sStr || (t.title && new RegExp(`[\\b_\\.]S0?${sStr}[\\b_\\.]`, 'i').test(t.title)));
+      if (filtered.length > 0) {
+        torrents = filtered;
+      }
+    }
+
+    return res.json({
+      status: 'ok',
+      imdb_id: effectiveImdbId || result.imdb_id || null,
+      resolved_title: resolvedTitle || (showMeta ? showMeta.name : null),
+      show_meta: showMeta || null,
+      torrents_count: result.torrents_count || torrents.length,
+      limit: result.limit || limit,
+      page: result.page || page,
+      torrents
+    });
+  } catch (err: any) {
+    return res.status(500).json({
+      status: 'error',
+      status_message: err.message || 'Failed to fetch from EZTV API'
+    });
+  }
+});
+
+
 app.get('/api/movies/filmography', async (req, res) => {
   const personName = typeof req.query.name === 'string' ? req.query.name.trim() : '';
   const role = typeof req.query.role === 'string' ? req.query.role : 'cast';

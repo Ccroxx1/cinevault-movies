@@ -12,6 +12,7 @@ import { TorrentSwarmHealthBadge } from './TorrentSwarmHealthBadge';
 import { DownloadSpeedEstimator } from './DownloadSpeedEstimator';
 import { BookmarkPlusIcon, BookmarkIcon, PlayIcon, CopyIcon } from './ActionIcons';
 import { CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
+import { EztvMovieSection } from './EztvMovieSection';
 
 interface MovieDetailPageProps {
   movie: Movie;
@@ -26,6 +27,7 @@ interface MovieDetailPageProps {
   onOpenGuide: () => void;
   onOpenFilmography?: (name: string, role?: 'director' | 'actor' | 'cast') => void;
   onAskCineBot?: (prompt: string) => void;
+  onNavigateToSeries?: () => void;
 }
 
 export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
@@ -40,7 +42,8 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
   onToggleWatchlist,
   onOpenGuide,
   onOpenFilmography,
-  onAskCineBot
+  onAskCineBot,
+  onNavigateToSeries
 }) => {
   const [movie, setMovie] = useState<Movie>(initialMovie);
   const [loadingDetails, setLoadingDetails] = useState(false);
@@ -692,6 +695,20 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                 <p className="text-neutral-500 text-sm">No files indexed for this title.</p>
               )}
             </section>
+
+            {/* EZTV TV & Episode Releases Section */}
+            {movie.imdb_code && (
+              <section className="space-y-3">
+                <EztvMovieSection
+                  imdbCode={movie.imdb_code}
+                  movieTitle={movie.title}
+                  onShowToast={(msg, type) => {
+                    // Feedback handled within or passed
+                  }}
+                  onNavigateToSeries={onNavigateToSeries}
+                />
+              </section>
+            )}
 
             <section className="space-y-4">
               <div className="p-5 rounded-2xl bg-[#0e0e0e] border border-white/10 space-y-3">

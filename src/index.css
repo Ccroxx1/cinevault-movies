@@ -359,8 +359,14 @@
 [data-theme="white"] .bg-\[\#1f1f1f\],
 [data-theme="white"] .bg-\[\#222222\],
 [data-theme="white"] .bg-neutral-900,
+[data-theme="white"] .bg-neutral-900\/90,
 [data-theme="white"] .bg-neutral-900\/80,
-[data-theme="white"] .bg-neutral-900\/60 {
+[data-theme="white"] .bg-neutral-900\/70,
+[data-theme="white"] .bg-neutral-900\/60,
+[data-theme="white"] .bg-neutral-900\/50,
+[data-theme="white"] .bg-neutral-900\/40,
+[data-theme="white"] .bg-neutral-900\/30,
+[data-theme="white"] .bg-neutral-900\/20 {
   background-color: #f1f5f9 !important;
   border-color: rgba(0, 0, 0, 0.12) !important;
 }
@@ -510,8 +516,173 @@
 [data-theme="white"] .bg-\[\#6ac045\],
 [data-theme="white"] .bg-\[\#6ac045\] *,
 [data-theme="white"] .hover\:bg-\[\#5ca63c\]:hover,
-[data-theme="white"] .hover\:bg-\[\#5ca63c\]:hover * {
+[data-theme="white"] .hover\:bg-\[\#5ca63c\]:hover *,
+[data-theme="white"] button[class*="bg-emerald"],
+[data-theme="white"] button[class*="bg-emerald"] *,
+[data-theme="white"] button[class*="bg-rose"],
+[data-theme="white"] button[class*="bg-rose"] *,
+[data-theme="white"] .bg-emerald-600.text-white,
+[data-theme="white"] .bg-rose-600.text-white {
   color: #ffffff !important;
+}
+
+/* 2b. EZTV Television Suite Theming */
+.eztv-hero-banner {
+  background: linear-gradient(135deg, rgba(76, 5, 25, 0.45) 0%, #121218 50%, #08080c 100%);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="blue-black"] .eztv-hero-banner {
+  background: linear-gradient(135deg, rgba(8, 47, 73, 0.45) 0%, #0d1527 50%, #060b17 100%) !important;
+  border-color: rgba(56, 189, 248, 0.2) !important;
+}
+
+[data-theme="white"] .eztv-hero-banner {
+  background: linear-gradient(135deg, #fff1f2 0%, #ffffff 50%, #f8fafc 100%) !important;
+  border-color: rgba(225, 29, 72, 0.2) !important;
+  box-shadow: 0 10px 30px -10px rgba(225, 29, 72, 0.1) !important;
+}
+
+[data-theme="white"] .eztv-hero-banner .eztv-hero-badge {
+  background-color: #ffe4e6 !important;
+  color: #be123c !important;
+  border-color: #fda4af !important;
+}
+
+[data-theme="white"] .eztv-hero-banner h1,
+[data-theme="white"] .eztv-hero-banner .eztv-hero-title {
+  color: #0f172a !important;
+}
+
+[data-theme="white"] .eztv-hero-banner p,
+[data-theme="white"] .eztv-hero-banner .eztv-hero-sub {
+  color: #475569 !important;
+}
+
+.eztv-search-box {
+  background-color: rgba(0, 0, 0, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+.eztv-search-box::placeholder {
+  color: #9ca3af;
+}
+
+[data-theme="white"] .eztv-search-box {
+  background-color: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.18) !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+[data-theme="white"] .eztv-search-box::placeholder {
+  color: #64748b !important;
+}
+
+.eztv-tag-btn {
+  background-color: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #d4d4d8;
+}
+.eztv-tag-btn:hover {
+  background-color: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+[data-theme="white"] .eztv-tag-btn {
+  background-color: #f1f5f9 !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+  color: #334155 !important;
+}
+[data-theme="white"] .eztv-tag-btn:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+.eztv-tag-btn.is-active,
+[data-theme="white"] .eztv-tag-btn.is-active {
+  background-color: #e11d48 !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 12px -2px rgba(225, 29, 72, 0.35) !important;
+}
+
+.eztv-release-row {
+  background-color: #0d0d10;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+.eztv-release-row:hover {
+  background-color: #14141a;
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+[data-theme="blue-black"] .eztv-release-row {
+  background-color: #0b1428 !important;
+  border-color: rgba(56, 189, 248, 0.14) !important;
+}
+[data-theme="blue-black"] .eztv-release-row:hover {
+  background-color: #101c38 !important;
+  border-color: rgba(56, 189, 248, 0.28) !important;
+}
+
+[data-theme="white"] .eztv-release-row {
+  background-color: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.09) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03) !important;
+}
+[data-theme="white"] .eztv-release-row:hover {
+  background-color: #f8fafc !important;
+  border-color: rgba(225, 29, 72, 0.25) !important;
+  box-shadow: 0 4px 14px -3px rgba(0, 0, 0, 0.07) !important;
+}
+
+[data-theme="white"] .eztv-release-row h3 {
+  color: #0f172a !important;
+}
+[data-theme="white"] .eztv-release-row:hover h3 {
+  color: #e11d48 !important;
+}
+
+.eztv-showcase-card {
+  background-color: #0c0c10;
+  border: 1px solid rgba(225, 29, 72, 0.25);
+}
+
+[data-theme="blue-black"] .eztv-showcase-card {
+  background-color: #0b1428 !important;
+  border-color: rgba(56, 189, 248, 0.25) !important;
+}
+
+[data-theme="white"] .eztv-showcase-card {
+  background-color: #ffffff !important;
+  border-color: rgba(225, 29, 72, 0.22) !important;
+  box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.07) !important;
+}
+[data-theme="white"] .eztv-showcase-card h2 {
+  color: #0f172a !important;
+}
+[data-theme="white"] .eztv-showcase-card p {
+  color: #334155 !important;
+}
+
+[data-theme="white"] .eztv-suggestions-menu {
+  background-color: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.15) !important;
+}
+[data-theme="white"] .eztv-suggestions-menu .suggestion-header {
+  background-color: #f8fafc !important;
+  border-bottom-color: rgba(0, 0, 0, 0.08) !important;
+  color: #64748b !important;
+}
+[data-theme="white"] .eztv-suggestions-menu button {
+  border-bottom-color: rgba(0, 0, 0, 0.05) !important;
+}
+[data-theme="white"] .eztv-suggestions-menu button:hover {
+  background-color: #f1f5f9 !important;
+}
+[data-theme="white"] .eztv-suggestions-menu h4 {
+  color: #0f172a !important;
 }
 
 /* 3. Floating Badges and Overlays on Movie Posters & Media Cards ONLY */

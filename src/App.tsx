@@ -27,6 +27,10 @@ import { FilmographyModal } from './components/FilmographyModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { CineBotModal } from './components/CineBotModal';
 import { CineBotLauncher } from './components/CineBotLauncher';
+import { EztvView } from './components/EztvView';
+import { SeriesDetailPage } from './components/SeriesDetailPage';
+import { TvShowDetails, TvShowInfo, EztvTorrent } from './types';
+import { getSeriesSlug, extractShowTitleFromRelease } from './services/eztvApi';
 import { getMoviePath, getMovieSlug, updateDocumentSeo } from './utils/seo';
 import { refreshEzoicAds } from './utils/ezoic';
 
@@ -44,9 +48,13 @@ const DEFAULT_FILTERS: FilterParams = {
 };
 
 interface AppRoute {
-  type: 'browse' | 'movie' | 'watchlist';
+  type: 'browse' | 'movie' | 'watchlist' | 'series' | 'series_detail';
   slug?: string;
   movie?: Movie | null;
+  seriesQuery?: string;
+  seriesImdb?: string;
+  seriesShow?: TvShowDetails | TvShowInfo | null;
+  seriesTorrent?: EztvTorrent | null;
 }
 
 export default function App() {
@@ -222,6 +230,41 @@ export default function App() {
         return;
       }
 
+      // Check if TV Series route
+      if (pathname === '/series' || pathname === '/tv') {
+        const searchQuery = searchParams.get('search') || searchParams.get('q') || searchParams.get('query') || undefined;
+        const imdbId = searchParams.get('imdb') || searchParams.get('imdb_id') || undefined;
+        setRoute({ type: 'series', seriesQuery: searchQuery, seriesImdb: imdbId });
+        setCurrentNav('series');
+        updateDocumentSeo({
+          title: searchQuery ? `"${searchQuery}" — TV Series & Episodes (EZTV) — CineVault` : 'TV Series & Episode Torrents (EZTV) — CineVault',
+          description: 'Explore and download television series, full seasons, and episodes powered by the EZTV API.',
+          breadcrumbs: [
+            { name: 'Home', item: '/' },
+            { name: 'TV Series', item: '/series' }
+          ]
+        });
+        return;
+      }
+
+      // Check if TV Series Detail route: /series/:slug or /tv/:slug
+      const seriesMatch = pathname.match(/^\/(?:series|tv)\/([^/]+)/i);
+      if (seriesMatch && seriesMatch[1] && seriesMatch[1] !== 'search') {
+        const seriesSlug = decodeURIComponent(seriesMatch[1]);
+        const imdbMatch = seriesSlug.match(/^(tt\d+)/i);
+        const effectiveImdb = imdbMatch ? imdbMatch[1] : undefined;
+        const cleanTitle = seriesSlug.replace(/^(tt\d+-?)/i, '').replace(/-/g, ' ');
+
+        setRoute({
+          type: 'series_detail',
+          slug: seriesSlug,
+          seriesImdb: effectiveImdb,
+          seriesQuery: cleanTitle || undefined
+        });
+        setCurrentNav('series');
+        return;
+      }
+
       // Default Browse Route
       setRoute({ type: 'browse' });
       setCurrentNav('browse');
@@ -319,6 +362,54 @@ export default function App() {
       ]
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleNavigateSeries = (query?: string, imdbId?: string) => {
+    setRoute({ type: 'series', seriesQuery: query, seriesImdb: imdbId });
+    setCurrentNav('series');
+    setMovieSlugError(null);
+
+    const params = new URLSearchParams();
+    if (query) params.set('search', query);
+    if (imdbId) params.set('imdb', imdbId);
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    const targetUrl = `/series${queryString}`;
+
+    if (window.location.pathname + window.location.search !== targetUrl) {
+      window.history.pushState({ type: 'series', seriesQuery: query, seriesImdb: imdbId }, '', targetUrl);
+    }
+
+    updateDocumentSeo({
+      title: query ? `"${query}" — TV Series & Episodes (EZTV) — CineVault` : 'TV Series & Episode Torrents (EZTV) — CineVault',
+      description: 'Explore and download television series, full seasons, and episodes powered by the EZTV API.',
+      breadcrumbs: [
+        { name: 'Home', item: '/' },
+        { name: 'TV Series', item: '/series' }
+      ]
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSelectSeries = (params: { imdb?: string; title?: string; torrent?: EztvTorrent; show?: TvShowDetails | TvShowInfo }) => {
+    const title = params.title || params.show?.name || (params.torrent ? extractShowTitleFromRelease(params.torrent.title) : '');
+    const imdb = params.imdb || params.show?.imdb_code || params.show?.imdb_id || (params.torrent?.imdb_id && params.torrent.imdb_id !== '0' ? `tt${params.torrent.imdb_id}` : undefined);
+    const seriesSlug = getSeriesSlug(title, imdb);
+    const seriesPath = `/series/${seriesSlug}`;
+
+    setRoute({
+      type: 'series_detail',
+      slug: seriesSlug,
+      seriesImdb: imdb,
+      seriesQuery: title,
+      seriesShow: params.show || null,
+      seriesTorrent: params.torrent || null
+    });
+    setCurrentNav('series');
+    setMovieSlugError(null);
+
+    if (window.location.pathname !== seriesPath) {
+      window.history.pushState({ type: 'series_detail', slug: seriesSlug }, '', seriesPath);
+    }
   };
 
   const handleBack = () => {
@@ -463,6 +554,11 @@ export default function App() {
       return;
     }
 
+    if (nav === 'series' || nav === 'tv') {
+      handleNavigateSeries();
+      return;
+    }
+
     if (route.type !== 'browse') {
       setRoute({ type: 'browse' });
       if (window.location.pathname !== '/') {
@@ -521,6 +617,12 @@ export default function App() {
   };
 
   const handleSearchSubmit = (query: string) => {
+    const trimmed = query.trim();
+    if (currentNav === 'series' || route.type === 'series') {
+      handleNavigateSeries(trimmed);
+      return;
+    }
+
     if (route.type !== 'browse') {
       setRoute({ type: 'browse' });
       if (window.location.pathname !== '/') {
@@ -534,7 +636,7 @@ export default function App() {
     setCurrentNav('browse');
     setFilters((prev) => ({
       ...prev,
-      query_term: query,
+      query_term: trimmed,
       page: 1
     }));
   };
@@ -578,6 +680,7 @@ export default function App() {
         watchlistCount={watchlist.length}
         onOpenGuide={() => setIsGuideOpen(true)}
         onSelectMovie={handleSelectMovie}
+        onSelectTvShow={(show) => handleSelectSeries({ imdb: show.imdb_code, title: show.name, show })}
         onSelectGenre={(genre) => {
           if (route.type !== 'browse') {
             setRoute({ type: 'browse' });
@@ -615,7 +718,72 @@ export default function App() {
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         
-        {route.type === 'movie' ? (
+        {route.type === 'series' ? (
+          <EztvView
+            initialQuery={route.seriesQuery}
+            initialImdb={route.seriesImdb}
+            onShowToast={(msg, type) => addToast(type || 'info', msg)}
+            onOpenGuide={() => setIsGuideOpen(true)}
+            onSelectSeries={handleSelectSeries}
+          />
+        ) : route.type === 'series_detail' ? (
+          <SeriesDetailPage
+            seriesId={route.slug || route.seriesImdb || undefined}
+            initialShow={route.seriesShow}
+            initialTorrent={route.seriesTorrent}
+            onBack={handleBack}
+            onNavigateHome={handleNavigateHome}
+            onNavigateToSeries={handleNavigateSeries}
+            onSelectSeries={handleSelectSeries}
+            onSelectGenre={(_genre) => {
+              handleNavigateSeries(undefined, undefined);
+            }}
+            onPlayTrailer={handlePlayTrailer}
+            onCopyMagnet={handleCopyMagnet}
+            onShowToast={(msg, type) => addToast(type || 'info', msg)}
+            onOpenGuide={() => setIsGuideOpen(true)}
+            onOpenFilmography={handleOpenFilmography}
+            onAskCineBot={handleOpenCineBotWithPrompt}
+            isWatchlisted={(idOrImdb) => {
+              return watchlist.some(
+                (m) =>
+                  String(m.id) === String(idOrImdb) ||
+                  m.imdb_code === String(idOrImdb) ||
+                  m.title.toLowerCase() === String(idOrImdb).toLowerCase()
+              );
+            }}
+            onToggleWatchlist={(show) => {
+              const asMovie: Movie = {
+                id: show.id || Math.floor(Math.random() * 900000) + 100000,
+                url: `https://yts.mx/movies/${show.imdb_code || 'tv-series'}`,
+                imdb_code: show.imdb_code || '',
+                title: show.name,
+                title_english: show.name,
+                title_long: `${show.name} (${show.year || 'Series'})`,
+                slug: show.imdb_code || show.name.toLowerCase().replace(/\s+/g, '-'),
+                year: show.year ? parseInt(show.year, 10) : new Date().getFullYear(),
+                rating: show.rating || 8.0,
+                runtime: 60,
+                genres: show.genres || ['Drama'],
+                summary: show.summary || '',
+                description_full: show.summary || '',
+                synopsis: show.summary || '',
+                language: 'English',
+                mpa_rating: 'TV-MA',
+                background_image: show.image || '',
+                background_image_original: show.image || '',
+                small_cover_image: show.image || '',
+                medium_cover_image: show.image || '',
+                large_cover_image: show.image || '',
+                state: 'ok',
+                torrents: [],
+                date_uploaded: new Date().toISOString(),
+                date_uploaded_unix: Math.floor(Date.now() / 1000)
+              };
+              handleToggleWatchlist(asMovie);
+            }}
+          />
+        ) : route.type === 'movie' ? (
           <div>
             {isMovieSlugLoading ? (
               <div className="space-y-6 animate-pulse py-8">
@@ -669,6 +837,7 @@ export default function App() {
                 onOpenGuide={() => setIsGuideOpen(true)}
                 onOpenFilmography={handleOpenFilmography}
                 onAskCineBot={handleOpenCineBotWithPrompt}
+                onNavigateToSeries={handleNavigateSeries}
               />
             ) : null}
           </div>

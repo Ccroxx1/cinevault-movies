@@ -75,7 +75,7 @@ export interface SeoMetaOptions {
   description?: string;
   canonicalUrl?: string;
   ogImage?: string;
-  ogType?: 'website' | 'video.movie' | 'article';
+  ogType?: 'website' | 'video.movie' | 'video.tv_show' | 'article';
   movie?: Movie;
   breadcrumbs?: { name: string; item: string }[];
 }

@@ -30,6 +30,7 @@ import { useMovieComparison } from '../context/MovieComparisonContext';
 import { TorrentSwarmHealthBadge } from './TorrentSwarmHealthBadge';
 import { DownloadSpeedEstimator } from './DownloadSpeedEstimator';
 import { CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
+import { EztvMovieSection } from './EztvMovieSection';
 
 interface MovieDetailsModalProps {
   movie: Movie;
@@ -41,6 +42,7 @@ interface MovieDetailsModalProps {
   onToggleWatchlist: (movie: Movie) => void;
   onOpenFilmography?: (personName: string, role: 'director' | 'actor') => void;
   onAskCineBot?: (prompt: string) => void;
+  onNavigateToSeries?: () => void;
 }
 
 export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
@@ -52,7 +54,8 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
   isWatchlisted,
   onToggleWatchlist,
   onOpenFilmography,
-  onAskCineBot
+  onAskCineBot,
+  onNavigateToSeries
 }) => {
   const { addToComparison, removeFromComparison, isInComparison } = useMovieComparison();
   const [movie, setMovie] = useState<Movie>(initialMovie);
@@ -556,6 +559,21 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
               ) : (
                 <div className="p-8 text-center text-neutral-400 bg-[#050505] rounded-2xl border border-white/10">
                   No torrent files currently available for this movie.
+                </div>
+              )}
+
+              {/* EZTV Series & Episode Torrents */}
+              {movie.imdb_code && (
+                <div className="pt-2">
+                  <EztvMovieSection
+                    imdbCode={movie.imdb_code}
+                    movieTitle={movie.title}
+                    onShowToast={(msg) => onCopyMagnet('', msg)}
+                    onNavigateToSeries={() => {
+                      onClose();
+                      onNavigateToSeries?.();
+                    }}
+                  />
                 </div>
               )}
             </div>
