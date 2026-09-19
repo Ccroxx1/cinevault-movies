@@ -14,9 +14,10 @@ import {
   ChevronDown,
   Minimize2,
   Maximize2,
-  Film
+  Film,
+  Tv
 } from 'lucide-react';
-import { Movie, CineBotMessage, FilterParams } from '../types';
+import { Movie, CineBotMessage, FilterParams, CineBotShowSuggestion, TvShowInfo } from '../types';
 import { sendCineBotMessage, CINEBOT_QUICK_PROMPTS } from '../services/cinebotService';
 import { CINEVAULT_POSTER_FALLBACK, normalizeImageUrl } from '../utils/imageFallback';
 import { useTheme } from '../context/ThemeContext';
@@ -32,6 +33,10 @@ interface CineBotModalProps {
   initialPrompt?: string | null;
   onClearInitialPrompt?: () => void;
   activeMovie?: Movie | null;
+  activeSeriesTitle?: string;
+  activeSeriesImdb?: string;
+  onSelectSeries?: (params: { imdb?: string; title?: string; torrent?: any; show?: any }) => void;
+  onNavigateToSeries?: (query?: string, imdbId?: string) => void;
 }
 
 export const CineBotModal: React.FC<CineBotModalProps> = ({
@@ -44,7 +49,11 @@ export const CineBotModal: React.FC<CineBotModalProps> = ({
   onApplyFilters,
   initialPrompt,
   onClearInitialPrompt,
-  activeMovie
+  activeMovie,
+  activeSeriesTitle,
+  activeSeriesImdb,
+  onSelectSeries,
+  onNavigateToSeries
 }) => {
   const { colorMode } = useTheme();
   const isWhite = colorMode === 'white';
@@ -55,11 +64,12 @@ export const CineBotModal: React.FC<CineBotModalProps> = ({
       {
         id: 'welcome-msg',
         sender: 'cinebot',
-        text: "👋 Welcome to **CineBot**! I'm your AI movie concierge and resident cinephile.\n\nHere are some things you can ask me:\n- 🔍 **Forgotten Plots:** *\"What is the movie where magicians rob a bank during a show?\"*\n- 🍿 **Nuanced Vibes:** *\"Fast-paced 90s cyber thriller with practical effects\"*\n- 🍷 **Date Night:** *\"Sharp, funny, non-cringe romance under 100 minutes\"*\n- 🧠 **Themes & Directors:** *\"Movies with cosmic mystery like Interstellar or Arrival\"*",
+        text: "👋 Welcome to **CineBot**! I'm your AI cinema and TV series concierge.\n\nHere are some things you can ask me:\n- 📺 **TV Series & Shows:** *\"Search Loki series\"*, *\"Shows like Dark or Severance\"*, *\"Best HBO crime drama\"*\n- 🔍 **Forgotten Plots:** *\"What is the movie where magicians rob a bank during a show?\"*\n- 🍿 **Nuanced Vibes:** *\"Fast-paced 90s cyber thriller\"* or *\"Binge-worthy mini-series\"*\n- 🍷 **Date Night:** *\"Sharp, funny, non-cringe romance under 100 minutes\"*",
         timestamp: Date.now(),
         followUpSuggestions: [
-          "Suggest a mind-bending sci-fi with twist endings",
-          "What are the best neo-noir thrillers?",
+          "Tell me about the Loki TV series",
+          "Suggest a mind-bending sci-fi series with twist endings",
+          "What are the best prestige crime dramas?",
           "Find a fast-paced survival action film"
         ]
       }
@@ -73,16 +83,17 @@ export const CineBotModal: React.FC<CineBotModalProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Hydrate any suggested movies missing movieData in background
+  // Hydrate any suggested movies and TV series missing catalog data in background
   useEffect(() => {
     let isMounted = true;
-    const missing: { msgId: string; suggIdx: number; term: string }[] = [];
+    const missingMovies: { msgId: string; suggIdx: number; term: string }[] = [];
+    const missingShows: { msgId: string; suggIdx: number; term: string; imdb?: string }[] = [];
 
     messages.forEach((msg) => {
       if (msg.suggestedMovies && Array.isArray(msg.suggestedMovies)) {
         msg.suggestedMovies.forEach((sugg, idx) => {
           if (!sugg.movieData && (sugg.searchTerm || sugg.title)) {
-            missing.push({
+            missingMovies.push({
               msgId: msg.id,
               suggIdx: idx,
               term: sugg.searchTerm || sugg.title
@@ -90,10 +101,23 @@ export const CineBotModal: React.FC<CineBotModalProps> = ({
           }
         });
       }
+
+      if (msg.suggestedShows && Array.isArray(msg.suggestedShows)) {
+        msg.suggestedShows.forEach((sugg, idx) => {
+          if (!sugg.showData && (sugg.imdb_code || sugg.searchTerm || sugg.title)) {
+            missingShows.push({
+              msgId: msg.id,
+              suggIdx: idx,
+              term: sugg.searchTerm || sugg.title,
+              imdb: sugg.imdb_code
+            });
+          }
+        });
+      }
     });
 
-    if (missing.length > 0) {
-      missing.forEach(async ({ msgId, suggIdx, term }) => {
+    if (missingMovies.length > 0) {
+      missingMovies.forEach(async ({ msgId, suggIdx, term }) => {
         try {
           const res = await fetch(`/api/movies?query_term=${encodeURIComponent(term)}&limit=1`);
           if (res.ok) {
@@ -111,6 +135,36 @@ export const CineBotModal: React.FC<CineBotModalProps> = ({
                     };
                   }
                   return { ...m, suggestedMovies: updated };
+                })
+              );
+            }
+          }
+        } catch {
+          // ignore lookup error
+        }
+      });
+    }
+
+    if (missingShows.length > 0) {
+      missingShows.forEach(async ({ msgId, suggIdx, term, imdb }) => {
+        try {
+          const queryParam = imdb ? `imdb=${encodeURIComponent(imdb)}` : `title=${encodeURIComponent(term)}`;
+          const res = await fetch(`/api/tv/details?${queryParam}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data?.status === 'ok' && data?.show && isMounted) {
+              setMessages((prev) =>
+                prev.map((m) => {
+                  if (m.id !== msgId || !m.suggestedShows) return m;
+                  const updated = [...m.suggestedShows];
+                  if (updated[suggIdx]) {
+                    updated[suggIdx] = {
+                      ...updated[suggIdx],
+                      imdb_code: data.show.imdb_code || updated[suggIdx].imdb_code,
+                      showData: data.show
+                    };
+                  }
+                  return { ...m, suggestedShows: updated };
                 })
               );
             }
@@ -144,6 +198,48 @@ export const CineBotModal: React.FC<CineBotModalProps> = ({
       }
     } catch (err) {
       console.warn('[CineBot] Could not resolve movie:', err);
+    }
+  };
+
+  // Safe TV series click handler that resolves showData on demand and opens SeriesDetailPage
+  const handleSeriesClick = async (sugg: CineBotShowSuggestion) => {
+    if (onSelectSeries) {
+      if (sugg.showData) {
+        onSelectSeries({
+          imdb: sugg.imdb_code || sugg.showData.imdb_code,
+          title: sugg.title || sugg.showData.name,
+          show: sugg.showData
+        });
+        onClose();
+        return;
+      }
+      try {
+        const queryParam = sugg.imdb_code 
+          ? `imdb=${encodeURIComponent(sugg.imdb_code)}` 
+          : `title=${encodeURIComponent(sugg.searchTerm || sugg.title)}`;
+        const res = await fetch(`/api/tv/details?${queryParam}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.status === 'ok' && data.show) {
+            onSelectSeries({
+              imdb: data.show.imdb_code || sugg.imdb_code,
+              title: data.show.name || sugg.title,
+              show: data.show
+            });
+            onClose();
+            return;
+          }
+        }
+      } catch {}
+
+      onSelectSeries({
+        imdb: sugg.imdb_code,
+        title: sugg.title
+      });
+      onClose();
+    } else if (onNavigateToSeries) {
+      onNavigateToSeries(sugg.title);
+      onClose();
     }
   };
 
@@ -193,10 +289,12 @@ export const CineBotModal: React.FC<CineBotModalProps> = ({
         text: m.text
       }));
 
-      const context = activeMovie ? {
-        activeMovieTitle: activeMovie.title,
-        activeMovieYear: activeMovie.year,
-        activeMovieGenres: activeMovie.genres
+      const context = (activeMovie || activeSeriesTitle || activeSeriesImdb) ? {
+        activeMovieTitle: activeMovie?.title,
+        activeMovieYear: activeMovie?.year,
+        activeMovieGenres: activeMovie?.genres,
+        activeSeriesTitle: activeSeriesTitle,
+        activeSeriesImdb: activeSeriesImdb
       } : undefined;
 
       const res = await sendCineBotMessage({
@@ -211,6 +309,7 @@ export const CineBotModal: React.FC<CineBotModalProps> = ({
         text: res.reply,
         timestamp: Date.now(),
         suggestedMovies: res.suggestedMovies,
+        suggestedShows: res.suggestedShows,
         recommendedFilters: res.recommendedFilters,
         followUpSuggestions: res.followUpSuggestions,
         source: res.source
@@ -449,35 +548,55 @@ export const CineBotModal: React.FC<CineBotModalProps> = ({
                 {isBot ? (
                   renderFormattedMarkdown(msg.text)
                 ) : (
-                  <p className="text-xs sm:text-[13px] leading-relaxed whitespace-pre-wrap font-medium">
+                  <p className="text-xs sm:text-[13px] leading-relaxed whitespace-pre-wrap font-medium text-white">
                     {msg.text}
                   </p>
                 )}
 
                 {/* Filter recommendation button */}
-                {isBot && msg.recommendedFilters && onApplyFilters && (
+                {isBot && msg.recommendedFilters && (
                   <div className={`mt-3 pt-2.5 border-t ${isWhite ? 'border-slate-100' : 'border-white/10'}`}>
-                    <button
-                      onClick={() => {
-                        const filtersToApply: Partial<FilterParams> = {};
-                        if (msg.recommendedFilters?.genre) filtersToApply.genre = msg.recommendedFilters.genre;
-                        if (msg.recommendedFilters?.minimum_rating) filtersToApply.minimum_rating = msg.recommendedFilters.minimum_rating;
-                        if (msg.recommendedFilters?.decade) filtersToApply.decade = msg.recommendedFilters.decade;
-                        onApplyFilters(filtersToApply);
-                        onClose();
-                      }}
-                      className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
-                        isWhite
-                          ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200'
-                          : 'bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border-rose-500/30'
-                      }`}
-                      title="Apply recommended filters to main catalog"
-                    >
-                      <SlidersHorizontal className="w-3 h-3 text-rose-500" />
-                      <span>
-                        Apply Catalog Filter {msg.recommendedFilters.genre ? `(${msg.recommendedFilters.genre})` : ''}
-                      </span>
-                    </button>
+                    {msg.recommendedFilters.format === 'tv' && onNavigateToSeries ? (
+                      <button
+                        onClick={() => {
+                          onNavigateToSeries(msg.suggestedShows?.[0]?.title);
+                          onClose();
+                        }}
+                        className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all cursor-pointer cinebot-filter-btn ${
+                          isWhite
+                            ? 'bg-sky-50 hover:bg-sky-100 text-sky-800 border-sky-200'
+                            : isBlueBlack
+                            ? 'bg-sky-950/60 hover:bg-sky-900/70 text-sky-200 border-sky-400/30'
+                            : 'bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border-sky-500/30'
+                        }`}
+                        title="Explore TV Series Catalog"
+                      >
+                        <Tv className="w-3.5 h-3.5 text-sky-400" />
+                        <span>Explore TV Series Catalog</span>
+                      </button>
+                    ) : onApplyFilters ? (
+                      <button
+                        onClick={() => {
+                          const filtersToApply: Partial<FilterParams> = {};
+                          if (msg.recommendedFilters?.genre) filtersToApply.genre = msg.recommendedFilters.genre;
+                          if (msg.recommendedFilters?.minimum_rating) filtersToApply.minimum_rating = msg.recommendedFilters.minimum_rating;
+                          if (msg.recommendedFilters?.decade) filtersToApply.decade = msg.recommendedFilters.decade;
+                          onApplyFilters(filtersToApply);
+                          onClose();
+                        }}
+                        className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all cursor-pointer cinebot-filter-btn ${
+                          isWhite
+                            ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200'
+                            : 'bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border-rose-500/30'
+                        }`}
+                        title="Apply recommended filters to main catalog"
+                      >
+                        <SlidersHorizontal className="w-3 h-3 text-rose-500" />
+                        <span>
+                          Apply Catalog Filter {msg.recommendedFilters.genre ? `(${msg.recommendedFilters.genre})` : ''}
+                        </span>
+                      </button>
+                    ) : null}
                   </div>
                 )}
               </div>
@@ -574,7 +693,7 @@ export const CineBotModal: React.FC<CineBotModalProps> = ({
                               {movieObj?.yt_trailer_code && onPlayTrailer && (
                                 <button
                                   onClick={() => onPlayTrailer(movieObj.yt_trailer_code, movieObj.title)}
-                                  className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded border transition-colors cursor-pointer ${
+                                  className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded border transition-colors cursor-pointer cinebot-trailer-btn ${
                                     isWhite
                                       ? 'text-rose-700 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 border-rose-200'
                                       : 'text-rose-300 hover:text-rose-200 bg-rose-500/10 hover:bg-rose-500/20 border-rose-500/20'
@@ -588,7 +707,9 @@ export const CineBotModal: React.FC<CineBotModalProps> = ({
                               {movieObj && (
                                 <button
                                   onClick={() => onToggleWatchlist(movieObj)}
-                                  className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded transition-colors cursor-pointer ${
+                                  className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded transition-colors cursor-pointer cinebot-save-btn ${
+                                    isBookmarked ? 'is-saved' : ''
+                                  } ${
                                     isBookmarked
                                       ? isWhite
                                         ? 'text-amber-700 bg-amber-50 border border-amber-300'

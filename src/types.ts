@@ -195,11 +195,21 @@ export interface CineBotMovieSuggestion {
   movieData?: Movie;
 }
 
+export interface CineBotShowSuggestion {
+  title: string;
+  year?: number | string;
+  reason: string;
+  searchTerm?: string;
+  imdb_code?: string;
+  showData?: TvShowInfo;
+}
+
 export interface CineBotRecommendedFilters {
   genre?: string | null;
   minimum_rating?: number | null;
   decade?: string | null;
   quality?: string | null;
+  format?: 'movie' | 'tv' | 'all' | null;
 }
 
 export interface CineBotMessage {
@@ -208,6 +218,7 @@ export interface CineBotMessage {
   text: string;
   timestamp: number;
   suggestedMovies?: CineBotMovieSuggestion[];
+  suggestedShows?: CineBotShowSuggestion[];
   recommendedFilters?: CineBotRecommendedFilters;
   followUpSuggestions?: string[];
   source?: string;

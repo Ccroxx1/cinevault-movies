@@ -169,62 +169,263 @@ async function generateLocalCineBotResponse(prompt: string, context?: any): Prom
   let decade: string | null = null;
   let minRating: number | null = 7.5;
   let editorialPitch = '';
+  const suggestedShows: any[] = [];
 
-  if (lower.includes('magician') || lower.includes('bank heist') || lower.includes('now you see me') || lower.includes('magic')) {
-    queryTerm = 'Now You See Me';
-    editorialPitch = 'The film you are thinking of is **Now You See Me** (2013), directed by Louis Leterrier. It stars Jesse Eisenberg, Mark Ruffalo, Woody Harrelson, and Morgan Freeman as "The Four Horsemen," master illusionists who pull off high-stakes bank heists during their live spectacles.';
-  } else if (lower.includes('cube') || lower.includes('geometric rooms') || lower.includes('trapped in rooms')) {
-    queryTerm = 'Cube';
-    editorialPitch = 'That sounds exactly like Vincenzo Natali’s cult 1997 psychological sci-fi thriller **Cube**. Strangers wake up trapped inside a lethal geometric labyrinth of puzzle rooms riddled with deadly booby traps.';
-  } else if (lower.includes('island') && (lower.includes('detective') || lower.includes('memory') || lower.includes('asylum') || lower.includes('investigate'))) {
-    queryTerm = 'Shutter Island';
-    editorialPitch = 'You are remembering Martin Scorsese’s masterclass psychological thriller **Shutter Island** (2010). Leonardo DiCaprio stars as U.S. Marshal Teddy Daniels, sent to investigate a hospital for the criminally insane situated on a storm-lashed island.';
-  } else if (lower.includes('dream') && (lower.includes('subconscious') || lower.includes('within a dream') || lower.includes('totem') || lower.includes('spinning top'))) {
-    queryTerm = 'Inception';
-    editorialPitch = 'That is Christopher Nolan’s landmark sci-fi heist masterpiece **Inception** (2010), starring Leonardo DiCaprio as Dom Cobb, an extractor who infiltrates the subconscious minds of targets.';
-  } else if (lower.includes('mind-bending') || lower.includes('sci-fi') || lower.includes('twist') || lower.includes('space') || lower.includes('quantum')) {
-    queryTerm = 'sci-fi';
-    genre = 'Sci-Fi';
-    editorialPitch = 'Mind-bending cinema thrives on reality-bending concepts, existential stakes, and sharp twists. Here are high-caliber cerebral films that deliver on that promise:';
-  } else if (lower.includes('date night') || lower.includes('romance') || lower.includes('couple') || lower.includes('chemistry')) {
-    queryTerm = 'romance';
-    genre = 'Romance';
-    editorialPitch = 'The key to great date-night viewing is effortless charm, sharp dialogue, and memorable character chemistry. These selections hit that sweet spot:';
-  } else if (lower.includes('noir') || lower.includes('thriller') || lower.includes('detective') || lower.includes('crime') || lower.includes('rain') || lower.includes('mystery')) {
-    queryTerm = 'thriller';
-    genre = 'Thriller';
-    minRating = 7.8;
-    editorialPitch = 'Atmospheric crime and neo-noir movies captivate through stylish shadows, moody scores, and moral ambiguity. Here are riveting tension masterclasses:';
-  } else if (lower.includes('action') || lower.includes('adrenaline') || lower.includes('fury') || lower.includes('stunt') || lower.includes('chase')) {
-    queryTerm = 'action';
-    genre = 'Action';
-    editorialPitch = 'For pure visceral adrenaline, kinetic choreography and relentless momentum are king. Here are peak high-octane cinematic rides:';
-  } else if (lower.includes('comedy') || lower.includes('funny') || lower.includes('laugh') || lower.includes('hilarious')) {
-    queryTerm = 'comedy';
-    genre = 'Comedy';
-    editorialPitch = 'From razor-sharp satire to laugh-out-loud situational humor, these comedy standouts showcase impeccable comedic timing and high rewatchability:';
-  } else if (lower.includes('horror') || lower.includes('scary') || lower.includes('dread') || lower.includes('creepy') || lower.includes('ghost')) {
-    queryTerm = 'horror';
-    genre = 'Horror';
-    editorialPitch = 'True cinematic horror is built on creeping dread, sound design, and psychological vulnerability rather than simple jump scares. Check out these chilling picks:';
-  } else {
-    const cleaned = lower.replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(w => w.length > 3 && !['movie', 'film', 'give', 'show', 'what', 'like', 'some', 'about', 'recommend', 'tell'].includes(w));
-    queryTerm = cleaned.slice(0, 2).join(' ') || 'thriller';
-    editorialPitch = `Exploring films that match your request for "${prompt.trim()}": here are acclaimed selections curated for rich storytelling and immersive direction:`;
+  // 1. Check for specific famous TV series queries
+  if (lower.includes('loki')) {
+    editorialPitch = 'Looking for **Loki**? The acclaimed Marvel Studios / Disney+ series stars Tom Hiddleston as the God of Mischief navigating the Time Variance Authority (TVA) across multiple timelines and realities. You can explore all seasons and episodes right here in CineVault!';
+    const lokiShow = await resolveTvShowByTitle('Loki');
+    if (lokiShow) {
+      suggestedShows.push({
+        title: 'Loki',
+        year: 2021,
+        reason: 'Masterclass timeline thriller following the God of Mischief inside the TVA multiverse.',
+        searchTerm: 'Loki',
+        imdb_code: 'tt9140554',
+        showData: lokiShow
+      });
+    }
+    queryTerm = 'Thor Ragnarok';
+  } else if (lower.includes('dark') && (lower.includes('german') || lower.includes('time') || lower.includes('series') || lower.includes('show') || lower.includes('travel') || lower.includes('winden'))) {
+    editorialPitch = 'That is Baran bo Odar’s mind-bending German sci-fi thriller series **Dark** (2017–2020) on Netflix. A missing child in the small town of Winden uncovers a four-generation time travel conspiracy across a 33-year cycle.';
+    const darkShow = await resolveTvShowByTitle('Dark');
+    if (darkShow) {
+      suggestedShows.push({
+        title: 'Dark',
+        year: 2017,
+        reason: 'Prestige German sci-fi masterpiece exploring four interconnected family trees across generational time loops.',
+        searchTerm: 'Dark',
+        imdb_code: 'tt5753856',
+        showData: darkShow
+      });
+    }
+  } else if (lower.includes('breaking bad') || lower.includes('walter white') || lower.includes('heisenberg')) {
+    editorialPitch = 'You’re asking about Vince Gilligan’s acclaimed masterpiece **Breaking Bad** (2008–2013). High school chemistry teacher Walter White transforms into the ruthless methamphetamine kingpin Heisenberg.';
+    const bbShow = await resolveTvShowByTitle('Breaking Bad');
+    if (bbShow) {
+      suggestedShows.push({
+        title: 'Breaking Bad',
+        year: 2008,
+        reason: 'Legendary AMC crime saga tracking Walter White’s dark transformation from teacher to drug kingpin.',
+        searchTerm: 'Breaking Bad',
+        imdb_code: 'tt0903747',
+        showData: bbShow
+      });
+    }
+    queryTerm = 'El Camino: A Breaking Bad Movie';
+  } else if (lower.includes('better call saul') || lower.includes('saul goodman') || lower.includes('jimmy mcgill')) {
+    editorialPitch = 'That’s **Better Call Saul** (2015–2022), the extraordinary prequel and sequel to Breaking Bad tracking Jimmy McGill’s tragic metamorphosis into criminal defense attorney Saul Goodman.';
+    const bcsShow = await resolveTvShowByTitle('Better Call Saul');
+    if (bcsShow) {
+      suggestedShows.push({
+        title: 'Better Call Saul',
+        year: 2015,
+        reason: 'Vince Gilligan and Peter Gould’s poignant legal tragedy exploring the moral unraveling of Jimmy McGill.',
+        searchTerm: 'Better Call Saul',
+        imdb_code: 'tt3032476',
+        showData: bcsShow
+      });
+    }
+  } else if (lower.includes('stranger things') || lower.includes('upside down') || lower.includes('hawkins') || lower.includes('eleven')) {
+    editorialPitch = 'You’re thinking of the Duffer Brothers’ nostalgic sci-fi hit **Stranger Things** (2016–present). When a young boy vanishes in Hawkins, Indiana, his friends discover secret government experiments and the terrifying Upside Down.';
+    const stShow = await resolveTvShowByTitle('Stranger Things');
+    if (stShow) {
+      suggestedShows.push({
+        title: 'Stranger Things',
+        year: 2016,
+        reason: '80s Spielbergian sci-fi horror adventure following a group of kids uncovering supernatural government mysteries.',
+        searchTerm: 'Stranger Things',
+        imdb_code: 'tt4574334',
+        showData: stShow
+      });
+    }
+  } else if (lower.includes('severance') || lower.includes('lumon')) {
+    editorialPitch = 'That’s Dan Erickson and Ben Stiller’s critically acclaimed psychological workplace thriller **Severance** on Apple TV+. Employees undergo a surgical procedure separating their work memories from their personal lives.';
+    const sevShow = await resolveTvShowByTitle('Severance');
+    if (sevShow) {
+      suggestedShows.push({
+        title: 'Severance',
+        year: 2022,
+        reason: 'Dystopian corporate mystery following employees whose memories are surgically bifurcated between home and work.',
+        searchTerm: 'Severance',
+        imdb_code: 'tt11280740',
+        showData: sevShow
+      });
+    }
+  } else if (lower.includes('the boys') || lower.includes('homelander') || lower.includes('billy butcher')) {
+    editorialPitch = 'You’re referring to Eric Kripke’s subversive superhero satire **The Boys** on Prime Video. A vigilante group fights back against corrupt corporate superheroes managed by Vought International.';
+    const boysShow = await resolveTvShowByTitle('The Boys');
+    if (boysShow) {
+      suggestedShows.push({
+        title: 'The Boys',
+        year: 2019,
+        reason: 'Brutal, razor-sharp satire following non-powered vigilantes taking on corrupt corporate superheroes.',
+        searchTerm: 'The Boys',
+        imdb_code: 'tt1190634',
+        showData: boysShow
+      });
+    }
+  } else if (lower.includes('game of thrones') || lower.includes('house of the dragon') || lower.includes('westeros') || lower.includes('targaryen')) {
+    editorialPitch = 'Exploring the epic fantasy realms of Westeros? Here are HBO’s flagship saga **House of the Dragon** and **Game of Thrones**, chronicling dynastic civil wars, dragons, and royal intrigue.';
+    const hotdShow = await resolveTvShowByTitle('House of the Dragon');
+    if (hotdShow) {
+      suggestedShows.push({
+        title: 'House of the Dragon',
+        year: 2022,
+        reason: 'The Dance of the Dragons Targaryen civil war featuring epic dragon warfare and royal betrayal.',
+        searchTerm: 'House of the Dragon',
+        imdb_code: 'tt11198330',
+        showData: hotdShow
+      });
+    }
+  } else if (lower.includes('fallout') && (lower.includes('vault') || lower.includes('wasteland') || lower.includes('lucy') || lower.includes('ghoul') || lower.includes('series') || lower.includes('show'))) {
+    editorialPitch = 'You’re asking about Jonathan Nolan and Lisa Joy’s acclaimed Prime Video adaptation of **Fallout** (2024). Lucy leaves Vault 33 to brave the retro-futuristic nuclear wasteland of post-apocalyptic Los Angeles.';
+    const falloutShow = await resolveTvShowByTitle('Fallout');
+    if (falloutShow) {
+      suggestedShows.push({
+        title: 'Fallout',
+        year: 2024,
+        reason: 'Darkly humorous post-apocalyptic saga exploring the irradiated wasteland of 2296 Los Angeles.',
+        searchTerm: 'Fallout',
+        imdb_code: 'tt12637874',
+        showData: falloutShow
+      });
+    }
+  } else if (lower.includes('the bear') || lower.includes('carmy') || lower.includes('chicago beef')) {
+    editorialPitch = 'That’s Christopher Storer’s high-stress, Emmy-winning culinary drama **The Bear** on FX/Hulu. Fine-dining chef Carmen "Carmy" Berzatto returns home to Chicago to run his family’s Italian beef sandwich shop.';
+    const bearShow = await resolveTvShowByTitle('The Bear');
+    if (bearShow) {
+      suggestedShows.push({
+        title: 'The Bear',
+        year: 2022,
+        reason: 'Relentless, emotional pressure-cooker kitchen drama tracking fine-dining chef Carmy Berzatto.',
+        searchTerm: 'The Bear',
+        imdb_code: 'tt14452776',
+        showData: bearShow
+      });
+    }
+  } else if (lower.includes('the last of us') || lower.includes('cordyceps') || (lower.includes('joel') && lower.includes('ellie'))) {
+    editorialPitch = 'That is Craig Mazin and Neil Druckmann’s acclaimed HBO adaptation of **The Last of Us** (2023). Hardened survivor Joel is tasked with escorting 14-year-old Ellie across a fungus-ravaged post-apocalyptic United States.';
+    const tlouShow = await resolveTvShowByTitle('The Last of Us');
+    if (tlouShow) {
+      suggestedShows.push({
+        title: 'The Last of Us',
+        year: 2023,
+        reason: 'Emotionally devastating post-apocalyptic drama following Joel and Ellie across a ruined America.',
+        searchTerm: 'The Last of Us',
+        imdb_code: 'tt3581920',
+        showData: tlouShow
+      });
+    }
+  } else if (lower.includes('succession') || lower.includes('logan roy') || lower.includes('waystar')) {
+    editorialPitch = 'That is Jesse Armstrong’s razor-sharp HBO satirical drama **Succession** (2018–2023). The Machiavellian children of media titan Logan Roy vie for control of Waystar RoyCo.';
+    const succShow = await resolveTvShowByTitle('Succession');
+    if (succShow) {
+      suggestedShows.push({
+        title: 'Succession',
+        year: 2018,
+        reason: 'Brilliant Shakespearean satire tracking the ruthless power struggles of the billionaire Roy dynasty.',
+        searchTerm: 'Succession',
+        imdb_code: 'tt7660850',
+        showData: succShow
+      });
+    }
+  }
+
+  // 2. Generic TV detection or searching TV series by candidate title
+  const isTvOriented = lower.includes('tv') || 
+    lower.includes('series') || 
+    lower.includes('show') || 
+    lower.includes('shows') || 
+    lower.includes('season') || 
+    lower.includes('episode') || 
+    lower.includes('binge');
+
+  if (suggestedShows.length === 0 && (isTvOriented || prompt.trim().split(/\s+/).length <= 4)) {
+    const candidateName = prompt
+      .replace(/\b(tv|television|series|shows?|episodes?|seasons?|watch|stream|find|recommend|search|about|like|best)\b/gi, '')
+      .replace(/[^a-zA-Z0-9\s]/g, '')
+      .trim();
+
+    if (candidateName.length >= 2) {
+      try {
+        const foundShow = await resolveTvShowByTitle(candidateName);
+        if (foundShow && foundShow.name) {
+          suggestedShows.push({
+            title: foundShow.name,
+            year: foundShow.year ? parseInt(foundShow.year, 10) : undefined,
+            reason: foundShow.summary ? foundShow.summary.slice(0, 140) + '...' : `Acclaimed TV series rated ${foundShow.rating ? foundShow.rating + '/10' : 'high'} on IMDb.`,
+            searchTerm: foundShow.name,
+            imdb_code: foundShow.imdb_code,
+            showData: foundShow
+          });
+          if (!editorialPitch) {
+            editorialPitch = `Found TV series **${foundShow.name}**${foundShow.year ? ` (${foundShow.year})` : ''} on ${foundShow.network || 'television'}. You can explore episodes, seasons, and torrent releases directly in CineVault:`;
+          }
+        }
+      } catch {}
+    }
+  }
+
+  if (!editorialPitch) {
+    if (lower.includes('magician') || lower.includes('bank heist') || lower.includes('now you see me') || lower.includes('magic')) {
+      queryTerm = 'Now You See Me';
+      editorialPitch = 'The film you are thinking of is **Now You See Me** (2013), directed by Louis Leterrier. It stars Jesse Eisenberg, Mark Ruffalo, Woody Harrelson, and Morgan Freeman as "The Four Horsemen," master illusionists who pull off high-stakes bank heists during their live spectacles.';
+    } else if (lower.includes('cube') || lower.includes('geometric rooms') || lower.includes('trapped in rooms')) {
+      queryTerm = 'Cube';
+      editorialPitch = 'That sounds exactly like Vincenzo Natali’s cult 1997 psychological sci-fi thriller **Cube**. Strangers wake up trapped inside a lethal geometric labyrinth of puzzle rooms riddled with deadly booby traps.';
+    } else if (lower.includes('island') && (lower.includes('detective') || lower.includes('memory') || lower.includes('asylum') || lower.includes('investigate'))) {
+      queryTerm = 'Shutter Island';
+      editorialPitch = 'You are remembering Martin Scorsese’s masterclass psychological thriller **Shutter Island** (2010). Leonardo DiCaprio stars as U.S. Marshal Teddy Daniels, sent to investigate a hospital for the criminally insane situated on a storm-lashed island.';
+    } else if (lower.includes('dream') && (lower.includes('subconscious') || lower.includes('within a dream') || lower.includes('totem') || lower.includes('spinning top'))) {
+      queryTerm = 'Inception';
+      editorialPitch = 'That is Christopher Nolan’s landmark sci-fi heist masterpiece **Inception** (2010), starring Leonardo DiCaprio as Dom Cobb, an extractor who infiltrates the subconscious minds of targets.';
+    } else if (lower.includes('mind-bending') || lower.includes('sci-fi') || lower.includes('twist') || lower.includes('space') || lower.includes('quantum')) {
+      queryTerm = 'sci-fi';
+      genre = 'Sci-Fi';
+      editorialPitch = 'Mind-bending cinema thrives on reality-bending concepts, existential stakes, and sharp twists. Here are high-caliber cerebral films that deliver on that promise:';
+    } else if (lower.includes('date night') || lower.includes('romance') || lower.includes('couple') || lower.includes('chemistry')) {
+      queryTerm = 'romance';
+      genre = 'Romance';
+      editorialPitch = 'The key to great date-night viewing is effortless charm, sharp dialogue, and memorable character chemistry. These selections hit that sweet spot:';
+    } else if (lower.includes('noir') || lower.includes('thriller') || lower.includes('detective') || lower.includes('crime') || lower.includes('rain') || lower.includes('mystery')) {
+      queryTerm = 'thriller';
+      genre = 'Thriller';
+      minRating = 7.8;
+      editorialPitch = 'Atmospheric crime and neo-noir movies captivate through stylish shadows, moody scores, and moral ambiguity. Here are riveting tension masterclasses:';
+    } else if (lower.includes('action') || lower.includes('adrenaline') || lower.includes('fury') || lower.includes('stunt') || lower.includes('chase')) {
+      queryTerm = 'action';
+      genre = 'Action';
+      editorialPitch = 'For pure visceral adrenaline, kinetic choreography and relentless momentum are king. Here are peak high-octane cinematic rides:';
+    } else if (lower.includes('comedy') || lower.includes('funny') || lower.includes('laugh') || lower.includes('hilarious')) {
+      queryTerm = 'comedy';
+      genre = 'Comedy';
+      editorialPitch = 'From razor-sharp satire to laugh-out-loud situational humor, these comedy standouts showcase impeccable comedic timing and high rewatchability:';
+    } else if (lower.includes('horror') || lower.includes('scary') || lower.includes('dread') || lower.includes('creepy') || lower.includes('ghost')) {
+      queryTerm = 'horror';
+      genre = 'Horror';
+      editorialPitch = 'True cinematic horror is built on creeping dread, sound design, and psychological vulnerability rather than simple jump scares. Check out these chilling picks:';
+    } else {
+      const cleaned = lower.replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(w => w.length > 3 && !['movie', 'film', 'give', 'show', 'what', 'like', 'some', 'about', 'recommend', 'tell', 'series'].includes(w));
+      queryTerm = cleaned.slice(0, 2).join(' ') || 'thriller';
+      editorialPitch = `Exploring titles that match your request for "${prompt.trim()}": here are acclaimed selections curated for rich storytelling and immersive direction:`;
+    }
   }
 
   let foundMovies: any[] = [];
-  try {
-    const apiRes = await fetchFromApi('list_movies.json', {
-      query_term: queryTerm,
-      limit: 3,
-      sort_by: 'rating'
-    });
-    if (apiRes?.data?.movies && Array.isArray(apiRes.data.movies)) {
-      foundMovies = apiRes.data.movies;
+  if (queryTerm || suggestedShows.length === 0) {
+    try {
+      const apiRes = await fetchFromApi('list_movies.json', {
+        query_term: queryTerm || 'acclaimed',
+        limit: 3,
+        sort_by: 'rating'
+      });
+      if (apiRes?.data?.movies && Array.isArray(apiRes.data.movies)) {
+        foundMovies = apiRes.data.movies;
+      }
+    } catch (err) {
+      // ignore
     }
-  } catch (err) {
-    // ignore
   }
 
   const suggestedMovies = foundMovies.map((m: any) => ({
@@ -235,19 +436,29 @@ async function generateLocalCineBotResponse(prompt: string, context?: any): Prom
     movieData: m
   }));
 
+  const followUpSuggestions = suggestedShows.length > 0
+    ? [
+        `Show me all seasons and episodes for ${suggestedShows[0].title}`,
+        `What are the best TV series similar to ${suggestedShows[0].title}?`,
+        'Recommend acclaimed movies with similar vibe'
+      ]
+    : [
+        `Show me more ${genre || 'acclaimed'} titles with unexpected twists`,
+        'What are the highest-rated titles in this category?',
+        'Give me something similar released before the year 2000'
+      ];
+
   return {
     reply: editorialPitch,
     suggestedMovies,
+    suggestedShows,
     recommendedFilters: {
       genre,
       minimum_rating: minRating,
-      decade
+      decade,
+      format: suggestedShows.length > 0 ? 'tv' : 'movie'
     },
-    followUpSuggestions: [
-      `Show me more ${genre || 'acclaimed'} films with unexpected twists`,
-      'What are the highest-rated films in this category?',
-      'Give me something similar released before the year 2000'
-    ]
+    followUpSuggestions
   };
 }
 
@@ -262,17 +473,22 @@ app.post('/api/cinebot/chat', async (req, res) => {
 
   if (ai) {
     try {
-      const systemInstruction = `You are CineBot, CineVault's conversational AI movie concierge and resident film expert.
-You possess deep, encyclopedic knowledge of cinema history, directors, screenplays, cinematographers, cult classics, hidden gems, and blockbusters.
+      const systemInstruction = `You are CineBot, CineVault's conversational AI concierge and expert in both cinema and television series.
+You possess deep, encyclopedic knowledge of cinema history, directors, screenplays, cinematographers, cult classics, and blockbusters, AS WELL AS prestige television series across all networks and platforms (HBO, Netflix, Apple TV+, AMC, BBC, Disney+, Showtime, Prime Video, FX, Hulu, etc.).
+
+CineVault features BOTH a complete Movie catalog (powered by YTS) AND a Television Series catalog (powered by TVmaze and EZTV with full episode guides, season torrents, and playback).
 
 Your core objectives:
-1. Recommend 1 to 3 specific films directly addressing the user's mood, requested genre, theme, aesthetic, or plot fragment.
-2. If the user describes a vague plot or forgotten scene, accurately identify the film title and year.
-3. Answer movie questions with spoiler-free vibe checks, thematic insights, and content suitability.
+1. Understand whether the user is asking about a TV series, a movie, or both:
+   - If the user explicitly asks for TV series (e.g., "TV series", "shows", "shows like Dark", "best comedy show", "binge-worthy series"), or queries a famous TV series (e.g., "Loki", "Dark", "Breaking Bad", "Stranger Things", "Severance", "The Bear", "Fallout", "House of the Dragon", "The Boys", "Game of Thrones", "Shogun", "The Last of Us", "Succession", "True Detective", "Peaky Blinders"), you MUST recommend the relevant TV series in the "suggestedShows" array!
+   - If the query could refer to both a TV show and related movies (like "Loki", which is a standalone TV series and also appears in Thor films), include the TV series in "suggestedShows" AND any relevant films in "suggestedMovies".
+   - If the user asks for a movie or cinema vibe, recommend films in the "suggestedMovies" array.
+2. If the user describes a vague plot or forgotten scene from a movie OR television series, accurately identify whether it is a film or TV show, and provide the exact title and year.
+3. Answer movie and TV questions with spoiler-free vibe checks, thematic insights, season highlights, and content suitability.
 4. Keep your commentary sharp, punchy, cinephile-savvy, and engaging (2 to 3 paragraphs max).
 5. Always output STRICT, VALID JSON adhering to this exact schema:
 {
-  "reply": "Your conversational response in clean Markdown. Feel free to bold film titles like **Blade Runner 2049** and use bullet points where helpful.",
+  "reply": "Your conversational response in clean Markdown. Feel free to bold titles like **Loki** or **Blade Runner 2049** and use bullet points where helpful.",
   "suggestedMovies": [
     {
       "title": "Exact Title of Movie",
@@ -281,10 +497,19 @@ Your core objectives:
       "searchTerm": "Clean search title to look up in the catalog"
     }
   ],
+  "suggestedShows": [
+    {
+      "title": "Exact Title of TV Show",
+      "year": 2021,
+      "reason": "One punchy sentence explaining why this series matches their request",
+      "searchTerm": "Clean show title to look up on TVmaze",
+      "imdb_code": "tt9140554" // Optional IMDb tt ID if known
+    }
+  ],
   "recommendedFilters": {
     "genre": "Sci-Fi", // Optional: valid CineVault genre string or null
     "minimum_rating": 7.5, // Optional minimum rating number 1-9 or null
-    "decade": "2010s" // Optional decade e.g. 1980s, 1990s, 2000s, 2010s, 2020s or null
+    "decade": "2020s" // Optional decade e.g. 1980s, 1990s, 2000s, 2010s, 2020s or null
   },
   "followUpSuggestions": [
     "Short natural follow-up prompt 1",
@@ -308,7 +533,10 @@ Your core objectives:
 
       let contextualized = userPrompt;
       if (context && context.activeMovieTitle) {
-        contextualized += `\n[Context: User is currently viewing "${context.activeMovieTitle}" (${context.activeMovieYear || ''}) - Genres: ${context.activeMovieGenres?.join(', ') || 'N/A'}]`;
+        contextualized += `\n[Context: User is currently viewing movie "${context.activeMovieTitle}" (${context.activeMovieYear || ''}) - Genres: ${context.activeMovieGenres?.join(', ') || 'N/A'}]`;
+      }
+      if (context && context.activeSeriesTitle) {
+        contextualized += `\n[Context: User is currently viewing TV series "${context.activeSeriesTitle}" (IMDb: ${context.activeSeriesImdb || 'N/A'})]`;
       }
 
       contents.push({
@@ -371,7 +599,7 @@ Your core objectives:
       }
 
       if (parsed && parsed.reply) {
-        // Enrich suggested movies with real catalog data from movie API
+        // 1. Enrich suggested movies with real catalog data from movie API
         if (Array.isArray(parsed.suggestedMovies) && parsed.suggestedMovies.length > 0) {
           const enriched = await Promise.all(
             parsed.suggestedMovies.slice(0, 4).map(async (item: any) => {
@@ -396,6 +624,60 @@ Your core objectives:
             })
           );
           parsed.suggestedMovies = enriched;
+        }
+
+        // 2. Enrich suggested TV series with real catalog data from TVmaze
+        if (Array.isArray(parsed.suggestedShows) && parsed.suggestedShows.length > 0) {
+          const enrichedShows = await Promise.all(
+            parsed.suggestedShows.slice(0, 4).map(async (item: any) => {
+              try {
+                const term = item.searchTerm || item.title;
+                let showData: any = null;
+                if (item.imdb_code) {
+                  try {
+                    const lookupRes = await fetch(`https://api.tvmaze.com/lookup/shows?imdb=${item.imdb_code}`, {
+                      headers: { 'Accept': 'application/json' },
+                      redirect: 'follow',
+                      signal: AbortSignal.timeout(4500)
+                    });
+                    if (lookupRes.ok) {
+                      const raw = await lookupRes.json();
+                      showData = {
+                        id: raw.id,
+                        name: raw.name || item.title,
+                        imdb_code: item.imdb_code,
+                        imdb_id: item.imdb_code.replace(/^tt/i, ''),
+                        year: raw.premiered ? raw.premiered.slice(0, 4) : String(item.year || ''),
+                        rating: raw.rating?.average || undefined,
+                        image: raw.image?.medium || raw.image?.original || undefined,
+                        summary: raw.summary ? raw.summary.replace(/<[^>]*>?/gm, '').trim() : undefined,
+                        genres: raw.genres || [],
+                        network: raw.network?.name || raw.webChannel?.name || undefined
+                      };
+                    }
+                  } catch {}
+                }
+                if (!showData) {
+                  const resolved = await resolveTvShowByTitle(term);
+                  if (resolved) {
+                    showData = resolved;
+                  }
+                }
+                if (showData) {
+                  return {
+                    ...item,
+                    year: item.year || (showData.year ? parseInt(showData.year, 10) : undefined),
+                    imdb_code: showData.imdb_code || item.imdb_code,
+                    showData
+                  };
+                }
+              } catch (showErr) {
+                // keep original item
+              }
+              return item;
+            })
+          );
+          parsed.suggestedShows = enrichedShows;
         }
 
         return res.json({

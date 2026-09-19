@@ -187,13 +187,18 @@
   border-bottom-color: rgba(56, 189, 248, 0.14) !important;
 }
 
+/* Full page article containers should remain transparent to preserve theme backgrounds */
+[data-theme="blue-black"] article {
+  background-color: transparent !important;
+}
+
 /* Primary Dark Cards & Modals */
-[data-theme="blue-black"] article,
 [data-theme="blue-black"] .bg-\[\#060608\],
 [data-theme="blue-black"] .bg-\[\#0a0a0a\],
 [data-theme="blue-black"] .bg-\[\#0c0c0c\],
 [data-theme="blue-black"] .bg-\[\#0d0d0d\],
 [data-theme="blue-black"] .bg-\[\#0e0e0e\],
+[data-theme="blue-black"] .bg-\[\#0f0f13\],
 [data-theme="blue-black"] .bg-\[\#101010\] {
   background-color: #0b1328 !important;
   border-color: rgba(56, 189, 248, 0.16) !important;
@@ -201,6 +206,7 @@
 
 /* Secondary & Nested Containers */
 [data-theme="blue-black"] .bg-\[\#0f0f0f\],
+[data-theme="blue-black"] .bg-\[\#0f0f13\],
 [data-theme="blue-black"] .bg-\[\#111111\],
 [data-theme="blue-black"] .bg-\[\#121212\],
 [data-theme="blue-black"] .bg-\[\#141414\],
@@ -329,8 +335,12 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
+/* Full page article containers should remain transparent to preserve theme backgrounds */
+[data-theme="white"] article {
+  background-color: transparent !important;
+}
+
 /* Primary Cards & Elevated Surfaces */
-[data-theme="white"] article,
 [data-theme="white"] .bg-\[\#060608\],
 [data-theme="white"] .bg-\[\#0a0a0a\],
 [data-theme="white"] .bg-\[\#0a0a0a\]\/95,
@@ -339,6 +349,7 @@
 [data-theme="white"] .bg-\[\#0c0c0c\],
 [data-theme="white"] .bg-\[\#0d0d0d\],
 [data-theme="white"] .bg-\[\#0e0e0e\],
+[data-theme="white"] .bg-\[\#0f0f13\],
 [data-theme="white"] .bg-\[\#101010\] {
   background-color: #ffffff !important;
   border-color: rgba(0, 0, 0, 0.09) !important;
@@ -347,6 +358,7 @@
 
 /* Secondary Containers, Rows & Inputs */
 [data-theme="white"] .bg-\[\#0f0f0f\],
+[data-theme="white"] .bg-\[\#0f0f13\],
 [data-theme="white"] .bg-\[\#111111\],
 [data-theme="white"] .bg-\[\#121212\],
 [data-theme="white"] .bg-\[\#121212\]\/95,
@@ -517,12 +529,21 @@
 [data-theme="white"] .bg-\[\#6ac045\] *,
 [data-theme="white"] .hover\:bg-\[\#5ca63c\]:hover,
 [data-theme="white"] .hover\:bg-\[\#5ca63c\]:hover *,
-[data-theme="white"] button[class*="bg-emerald"],
-[data-theme="white"] button[class*="bg-emerald"] *,
-[data-theme="white"] button[class*="bg-rose"],
-[data-theme="white"] button[class*="bg-rose"] *,
+[data-theme="white"] button.bg-emerald-600,
+[data-theme="white"] button.bg-emerald-600 *,
+[data-theme="white"] button.bg-emerald-500,
+[data-theme="white"] button.bg-emerald-500 *,
+[data-theme="white"] button.bg-rose-600,
+[data-theme="white"] button.bg-rose-600 *,
+[data-theme="white"] button.bg-rose-500,
+[data-theme="white"] button.bg-rose-500 *,
+[data-theme="white"] button.bg-rose-700,
+[data-theme="white"] button.bg-rose-700 *,
 [data-theme="white"] .bg-emerald-600.text-white,
-[data-theme="white"] .bg-rose-600.text-white {
+[data-theme="white"] .bg-rose-600.text-white,
+[data-theme="white"] [class*="bg-rose-600"].text-white,
+[data-theme="white"] [class*="bg-rose-500"].text-white,
+[data-theme="white"] [class*="from-rose-600"].text-white {
   color: #ffffff !important;
 }
 
@@ -1048,6 +1069,31 @@
   color: #0f172a !important;
 }
 
+/* User speech bubble in light mode: pristine white text on crimson gradient */
+[data-theme="white"] .cinebot-bubble-user,
+[data-theme="white"] .cinebot-bubble-user *,
+[data-theme="white"] .cinebot-bubble-user p,
+[data-theme="white"] .cinebot-bubble-user span {
+  color: #ffffff !important;
+}
+
+/* Catalog Filter Chip in light mode: deep rose text on soft rose tint background */
+[data-theme="white"] .cinebot-filter-btn {
+  background-color: #fff1f2 !important;
+  color: #be123c !important;
+  border-color: #fecdd3 !important;
+}
+
+[data-theme="white"] .cinebot-filter-btn:hover {
+  background-color: #ffe4e6 !important;
+  color: #9f1239 !important;
+  border-color: #fda4af !important;
+}
+
+[data-theme="white"] .cinebot-filter-btn * {
+  color: #be123c !important;
+}
+
 [data-theme="white"] .cinebot-movie-card {
   background-color: #ffffff !important;
   border-color: #e2e8f0 !important;
@@ -1069,6 +1115,52 @@
 
 [data-theme="white"] .cinebot-movie-reason {
   color: #334155 !important;
+}
+
+/* Trailer button in CineBot in light mode: deep rose text and play icon on rose tint */
+[data-theme="white"] .cinebot-trailer-btn {
+  background-color: #fff1f2 !important;
+  color: #be123c !important;
+  border-color: #fecdd3 !important;
+}
+
+[data-theme="white"] .cinebot-trailer-btn:hover {
+  background-color: #ffe4e6 !important;
+  color: #9f1239 !important;
+  border-color: #fda4af !important;
+}
+
+[data-theme="white"] .cinebot-trailer-btn * {
+  color: #be123c !important;
+}
+
+/* Action button neutral (Details, Save) in CineBot */
+[data-theme="white"] .cinebot-action-btn-neutral {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="white"] .cinebot-action-btn-neutral:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="white"] .cinebot-save-btn {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="white"] .cinebot-save-btn:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="white"] .cinebot-save-btn.is-saved {
+  background-color: #fef3c7 !important;
+  color: #b45309 !important;
+  border-color: #fcd34d !important;
 }
 
 [data-theme="white"] .cinebot-chip-btn {
@@ -1125,6 +1217,43 @@
   background-color: #0e1938 !important;
   border-color: rgba(56, 189, 248, 0.2) !important;
   color: #e2e8f0 !important;
+}
+
+[data-theme="blue-black"] .cinebot-bubble-user,
+[data-theme="blue-black"] .cinebot-bubble-user *,
+[data-theme="blue-black"] .cinebot-bubble-user p,
+[data-theme="blue-black"] .cinebot-bubble-user span {
+  color: #ffffff !important;
+}
+
+[data-theme="blue-black"] .cinebot-filter-btn {
+  background-color: rgba(244, 63, 94, 0.15) !important;
+  color: #fda4af !important;
+  border-color: rgba(244, 63, 94, 0.3) !important;
+}
+
+[data-theme="blue-black"] .cinebot-filter-btn:hover {
+  background-color: rgba(244, 63, 94, 0.25) !important;
+  color: #fecdd3 !important;
+}
+
+[data-theme="blue-black"] .cinebot-filter-btn * {
+  color: #fda4af !important;
+}
+
+[data-theme="blue-black"] .cinebot-trailer-btn {
+  background-color: rgba(244, 63, 94, 0.12) !important;
+  color: #fda4af !important;
+  border-color: rgba(244, 63, 94, 0.25) !important;
+}
+
+[data-theme="blue-black"] .cinebot-trailer-btn:hover {
+  background-color: rgba(244, 63, 94, 0.22) !important;
+  color: #fecdd3 !important;
+}
+
+[data-theme="blue-black"] .cinebot-trailer-btn * {
+  color: #fda4af !important;
 }
 
 [data-theme="blue-black"] .cinebot-movie-card {

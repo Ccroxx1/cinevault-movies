@@ -1,11 +1,14 @@
-import { CineBotMessage, Movie } from '../types';
+import { CineBotMessage, Movie, TvShowInfo, CineBotShowSuggestion } from '../types';
 
 export interface CineBotContext {
   activeMovieTitle?: string;
   activeMovieYear?: number;
   activeMovieGenres?: string[];
+  activeSeriesTitle?: string;
+  activeSeriesImdb?: string;
   currentGenre?: string;
   watchlistTitles?: string[];
+  preferredFormat?: 'movie' | 'tv' | 'all';
 }
 
 export interface CineBotChatPayload {
@@ -24,11 +27,20 @@ export interface CineBotChatResponse {
     searchTerm?: string;
     movieData?: Movie;
   }>;
+  suggestedShows?: Array<{
+    title: string;
+    year?: number | string;
+    reason: string;
+    searchTerm?: string;
+    imdb_code?: string;
+    showData?: TvShowInfo;
+  }>;
   recommendedFilters?: {
     genre?: string | null;
     minimum_rating?: number | null;
     decade?: string | null;
     quality?: string | null;
+    format?: 'movie' | 'tv' | 'all' | null;
   };
   followUpSuggestions?: string[];
   source?: string;
@@ -36,14 +48,24 @@ export interface CineBotChatResponse {
 
 export const CINEBOT_QUICK_PROMPTS = [
   {
+    icon: '📺',
+    label: 'Search Loki & TV Series',
+    prompt: 'Tell me about the Loki TV series and other mind-bending sci-fi shows like Dark, Severance, and Fallout.'
+  },
+  {
     icon: '🔍',
     label: 'Identify Vague Plot',
-    prompt: 'Can you help me find a movie where a group of magicians pull off bank heists during their shows?'
+    prompt: 'Can you help me find a movie or show where a group of magicians pull off bank heists during their shows?'
   },
   {
     icon: '🧠',
     label: 'Mind-Bending Sci-Fi',
     prompt: 'Give me complex, mind-bending sci-fi films with puzzle plots and twist endings like Arrival and Primer.'
+  },
+  {
+    icon: '🔥',
+    label: 'Binge-Worthy TV Series',
+    prompt: 'Recommend prestige, addictive drama series with incredible season arcs like Breaking Bad, Succession, and The Bear.'
   },
   {
     icon: '🍷',
@@ -53,7 +75,7 @@ export const CINEBOT_QUICK_PROMPTS = [
   {
     icon: '🌧️',
     label: 'Atmospheric Neo-Noir',
-    prompt: 'Atmospheric, rain-soaked crime mysteries with brooding detectives and stylish visuals like Blade Runner or Se7en.'
+    prompt: 'Atmospheric, rain-soaked crime mysteries with brooding detectives and stylish visuals like Blade Runner or True Detective.'
   },
   {
     icon: '🍿',
@@ -158,6 +180,36 @@ export async function sendCineBotMessage(payload: CineBotChatPayload): Promise<C
           );
           data.suggestedMovies = hydrated;
         }
+
+        // Ensure any suggested TV series without showData are hydrated with poster & details
+        if (Array.isArray(data.suggestedShows) && data.suggestedShows.length > 0) {
+          const hydratedShows = await Promise.all(
+            data.suggestedShows.map(async (sugg: any) => {
+              if (sugg.showData) return sugg;
+              try {
+                const queryParam = sugg.imdb_code 
+                  ? `imdb=${encodeURIComponent(sugg.imdb_code)}` 
+                  : `title=${encodeURIComponent(sugg.searchTerm || sugg.title)}`;
+                const res = await fetch(`/api/tv/details?${queryParam}`);
+                if (res.ok) {
+                  const sJson = await res.json();
+                  if (sJson.status === 'ok' && sJson.show) {
+                    return {
+                      ...sugg,
+                      imdb_code: sJson.show.imdb_code || sugg.imdb_code,
+                      showData: sJson.show
+                    };
+                  }
+                }
+              } catch {
+                // Keep original
+              }
+              return sugg;
+            })
+          );
+          data.suggestedShows = hydratedShows;
+        }
+
         return data as CineBotChatResponse;
       }
     } else {

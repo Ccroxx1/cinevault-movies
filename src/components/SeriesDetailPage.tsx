@@ -59,16 +59,16 @@ interface SeriesDetailPageProps {
 }
 
 const POPULAR_RECOMMENDED_SHOWS = [
-  { name: 'Dark', imdb: 'tt5753856', year: '2017', genre: 'Sci-Fi' },
-  { name: 'Loki', imdb: 'tt9140554', year: '2021', genre: 'Action' },
-  { name: 'Breaking Bad', imdb: 'tt0903747', year: '2008', genre: 'Crime' },
-  { name: 'Stranger Things', imdb: 'tt4574334', year: '2016', genre: 'Drama' },
-  { name: 'Severance', imdb: 'tt11280740', year: '2022', genre: 'Mystery' },
-  { name: 'The Boys', imdb: 'tt1190634', year: '2019', genre: 'Action' },
-  { name: 'House of the Dragon', imdb: 'tt11198330', year: '2022', genre: 'Fantasy' },
-  { name: 'The Last of Us', imdb: 'tt3581920', year: '2023', genre: 'Adventure' },
-  { name: 'Fallout', imdb: 'tt12637874', year: '2024', genre: 'Sci-Fi' },
-  { name: 'The Bear', imdb: 'tt14452792', year: '2022', genre: 'Comedy' }
+  { name: 'Dark', imdb: 'tt5753856', year: '2017', genre: 'Sci-Fi', rating: 8.7, image: 'https://static.tvmaze.com/uploads/images/medium_portrait/504/1262352.jpg' },
+  { name: 'Loki', imdb: 'tt9140554', year: '2021', genre: 'Action', rating: 8.2, image: 'https://static.tvmaze.com/uploads/images/medium_portrait/482/1206173.jpg' },
+  { name: 'Breaking Bad', imdb: 'tt0903747', year: '2008', genre: 'Crime', rating: 9.5, image: 'https://static.tvmaze.com/uploads/images/medium_portrait/501/1253519.jpg' },
+  { name: 'Stranger Things', imdb: 'tt4574334', year: '2016', genre: 'Drama', rating: 8.6, image: 'https://static.tvmaze.com/uploads/images/medium_portrait/394/986060.jpg' },
+  { name: 'Severance', imdb: 'tt11280740', year: '2022', genre: 'Mystery', rating: 8.7, image: 'https://static.tvmaze.com/uploads/images/medium_portrait/402/1005273.jpg' },
+  { name: 'The Boys', imdb: 'tt1190634', year: '2019', genre: 'Action', rating: 8.7, image: 'https://static.tvmaze.com/uploads/images/medium_portrait/499/1248464.jpg' },
+  { name: 'House of the Dragon', imdb: 'tt11198330', year: '2022', genre: 'Fantasy', rating: 8.4, image: 'https://static.tvmaze.com/uploads/images/medium_portrait/482/1206103.jpg' },
+  { name: 'The Last of Us', imdb: 'tt3581920', year: '2023', genre: 'Adventure', rating: 8.8, image: 'https://static.tvmaze.com/uploads/images/medium_portrait/444/1110904.jpg' },
+  { name: 'Fallout', imdb: 'tt12637874', year: '2024', genre: 'Sci-Fi', rating: 8.4, image: 'https://static.tvmaze.com/uploads/images/medium_portrait/504/1260846.jpg' },
+  { name: 'The Bear', imdb: 'tt14452792', year: '2022', genre: 'Comedy', rating: 8.6, image: 'https://static.tvmaze.com/uploads/images/medium_portrait/482/1206126.jpg' }
 ];
 
 export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
@@ -739,13 +739,13 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
 
         {/* Tab 1: Torrents & Magnets */}
         {activeTab === 'torrents' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
             
             {/* Left 2 Columns: Releases List & Filters */}
             <section className="lg:col-span-2 space-y-4">
               
               {/* Filter Controls Header */}
-              <div className="p-4 rounded-2xl bg-[#0f0f13] border border-white/10 space-y-3">
+              <div className="p-4 rounded-2xl bg-[#0e0e0e] border border-white/10 space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <Filter className="w-4 h-4 text-rose-500" />
@@ -835,7 +835,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
               {isLoadingTorrents ? (
                 <div className="space-y-3 py-6">
                   {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="h-20 bg-[#0f0f13] border border-white/5 rounded-2xl animate-pulse" />
+                    <div key={i} className="h-20 bg-[#0e0e0e] border border-white/5 rounded-2xl animate-pulse" />
                   ))}
                 </div>
               ) : filteredTorrents.length > 0 ? (
@@ -858,7 +858,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                             ? 'bg-rose-950/30 border-rose-500/70 shadow-lg shadow-rose-950/20 ring-2 ring-rose-500/60'
                             : q.is4k
                             ? 'bg-gradient-to-r from-amber-950/20 via-[#111111] to-[#0e0e0e] border-amber-500/35 shadow-lg shadow-amber-950/10'
-                            : 'bg-[#0f0f13] border-white/10 hover:border-white/20'
+                            : 'bg-[#0e0e0e] border-white/10 hover:border-white/20'
                         }`}
                       >
                         {/* Left: Metadata and Title */}
@@ -952,7 +952,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                   })}
                 </div>
               ) : (
-                <div className="text-center py-12 px-4 rounded-3xl bg-[#0f0f13] border border-white/10 space-y-3">
+                <div className="text-center py-12 px-4 rounded-3xl bg-[#0e0e0e] border border-white/10 space-y-3">
                   <Tv className="w-10 h-10 text-neutral-600 mx-auto" />
                   <div className="space-y-1">
                     <h3 className="text-base font-bold text-white">No matching releases found</h3>
@@ -978,7 +978,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
             <aside className="space-y-6">
               
               {/* Synopsis Card */}
-              <div className="p-5 rounded-2xl bg-[#0f0f13] border border-white/10 space-y-3">
+              <div className="p-5 rounded-2xl bg-[#0e0e0e] border border-white/10 space-y-3">
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
                   <Film className="w-4 h-4 text-rose-500" />
                   <span>Series Synopsis</span>
@@ -1003,7 +1003,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
 
               {/* Download Speed Estimator */}
               {primaryTorrent && (
-                <div className="p-5 rounded-2xl bg-[#0f0f13] border border-white/10 space-y-3">
+                <div className="p-5 rounded-2xl bg-[#0e0e0e] border border-white/10 space-y-3">
                   <h3 className="text-sm font-bold text-white flex items-center gap-2">
                     <Clock className="w-4 h-4 text-emerald-400" />
                     <span>Download Time Estimator</span>
@@ -1016,7 +1016,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
               )}
 
               {/* Quick Tech Specs */}
-              <div className="p-5 rounded-2xl bg-[#0f0f13] border border-white/10 space-y-3 text-xs">
+              <div className="p-5 rounded-2xl bg-[#0e0e0e] border border-white/10 space-y-3 text-xs">
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
                   <Info className="w-4 h-4 text-neutral-400" />
                   <span>Technical Overview</span>
@@ -1064,7 +1064,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                     className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                       guideSeason === sNum
                         ? 'bg-rose-600 text-white shadow-md'
-                        : 'bg-[#0f0f13] text-neutral-300 hover:bg-white/10 border border-white/10'
+                        : 'bg-[#0e0e0e] text-neutral-300 hover:bg-white/10 border border-white/10'
                     }`}
                   >
                     Season {s}
@@ -1083,7 +1083,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                   return (
                     <div
                       key={ep.id}
-                      className="p-4 rounded-2xl bg-[#0f0f13] border border-white/10 hover:border-white/20 transition-all flex flex-col sm:flex-row gap-4"
+                      className="p-4 rounded-2xl bg-[#0e0e0e] border border-white/10 hover:border-white/20 transition-all flex flex-col sm:flex-row gap-4"
                     >
                       {/* Thumbnail Still */}
                       <div className="sm:w-36 aspect-video rounded-xl overflow-hidden bg-black/40 shrink-0 relative">
@@ -1155,7 +1155,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
               <div
                 key={c.person.id}
                 onClick={() => onOpenFilmography && onOpenFilmography(c.person.name, 'actor')}
-                className="group p-3 rounded-2xl bg-[#0f0f13] border border-white/10 hover:border-rose-500/40 transition-all text-center space-y-2.5 cursor-pointer"
+                className="group p-3 rounded-2xl bg-[#0e0e0e] border border-white/10 hover:border-rose-500/40 transition-all text-center space-y-2.5 cursor-pointer"
               >
                 <div className="aspect-[3/4] rounded-xl overflow-hidden bg-black/40 relative">
                   {c.person.image?.medium || c.person.image?.original ? (
@@ -1190,7 +1190,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
         {/* Tab 4: Overview */}
         {activeTab === 'overview' && (
           <div className="max-w-3xl space-y-6">
-            <div className="p-6 rounded-3xl bg-[#0f0f13] border border-white/10 space-y-4">
+            <div className="p-6 rounded-3xl bg-[#0e0e0e] border border-white/10 space-y-4">
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
                 <Info className="w-5 h-5 text-rose-500" />
                 <span>About {show?.name}</span>
@@ -1218,9 +1218,18 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
 
       {/* Recommended & Acclaimed TV Series Row */}
       <section className="space-y-4 pt-8 border-t border-white/10">
-        <div>
-          <h2 className="text-lg font-bold text-white">Popular Television Series</h2>
-          <p className="text-xs text-neutral-400">Explore other acclaimed shows available on CineVault</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-white">Popular Television Series</h2>
+            <p className="text-xs text-neutral-400">Explore other acclaimed shows available on CineVault</p>
+          </div>
+          <button
+            onClick={() => onNavigateToSeries && onNavigateToSeries()}
+            className="text-xs text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1 cursor-pointer"
+          >
+            <span>Browse All Series</span>
+            <ChevronRight size={14} />
+          </button>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
@@ -1228,13 +1237,35 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
             <button
               key={pop.imdb}
               onClick={() => onSelectSeries && onSelectSeries({ imdb: pop.imdb, title: pop.name })}
-              className="p-3 rounded-2xl bg-[#0f0f13] border border-white/10 hover:border-rose-500/40 hover:bg-white/5 transition-all text-left space-y-2 cursor-pointer group"
+              className="p-2.5 sm:p-3 rounded-2xl bg-[#0e0e0e] border border-white/10 hover:border-rose-500/40 hover:bg-white/5 transition-all text-left space-y-2.5 cursor-pointer group shadow-sm hover:shadow-xl"
             >
-              <div className="aspect-[2/3] rounded-xl bg-black/40 overflow-hidden flex items-center justify-center text-neutral-600 group-hover:text-rose-400 transition-colors">
-                <Tv size={36} />
+              <div className="aspect-[2/3] rounded-xl bg-neutral-900 overflow-hidden relative border border-white/5">
+                <img
+                  src={pop.image}
+                  alt={pop.name}
+                  loading="lazy"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    const fallback = e.currentTarget.parentElement?.querySelector('.tv-fallback-box');
+                    if (fallback) fallback.classList.remove('hidden');
+                  }}
+                />
+                <div className="tv-fallback-box hidden absolute inset-0 flex flex-col items-center justify-center bg-neutral-900 text-neutral-500 p-2 text-center">
+                  <Tv size={28} className="text-rose-500/60 mb-1" />
+                  <span className="text-[10px] font-bold text-neutral-300 line-clamp-1">{pop.name}</span>
+                </div>
+                <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-md bg-black/80 backdrop-blur-xs text-[10px] font-bold text-amber-400 flex items-center gap-0.5 border border-white/10 shadow-xs">
+                  <span>★</span>
+                  <span>{pop.rating}</span>
+                </div>
+                <div className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded bg-black/75 backdrop-blur-xs text-[9px] font-bold text-neutral-300 border border-white/10">
+                  {pop.genre}
+                </div>
               </div>
-              <div>
-                <h4 className="text-xs font-bold text-white group-hover:text-rose-400 transition-colors truncate">
+
+              <div className="space-y-0.5">
+                <h4 className="text-xs font-bold text-neutral-200 group-hover:text-rose-400 transition-colors truncate">
                   {pop.name}
                 </h4>
                 <p className="text-[11px] text-neutral-400">
