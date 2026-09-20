@@ -744,6 +744,137 @@ export const CineBotModal: React.FC<CineBotModalProps> = ({
                 </div>
               )}
 
+              {/* Suggested TV Series Cards */}
+              {isBot && msg.suggestedShows && msg.suggestedShows.length > 0 && (
+                <div className="w-full mt-2.5 space-y-2">
+                  <div className={`text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 pl-1 ${
+                    isWhite ? 'text-sky-700' : isBlueBlack ? 'text-sky-300' : 'text-sky-400'
+                  }`}>
+                    <Tv className="w-3 h-3 text-sky-400" />
+                    <span>Recommended TV Series & Shows</span>
+                  </div>
+
+                  <div className="space-y-2">
+                    {msg.suggestedShows.map((showSugg, showIdx) => {
+                      const showObj = showSugg.showData;
+                      const posterUrl = showObj?.image || CINEVAULT_POSTER_FALLBACK;
+                      const networkName = showObj?.network;
+                      const ratingVal = showObj?.rating;
+                      const displayYear = showSugg.year || showObj?.year;
+
+                      return (
+                        <div
+                          key={showIdx}
+                          className={`flex items-center gap-3 p-2.5 rounded-xl border transition-all group cinebot-movie-card ${
+                            isWhite
+                              ? 'bg-white hover:bg-sky-50/40 border-slate-200 hover:border-sky-300 shadow-xs'
+                              : isBlueBlack
+                              ? 'bg-[#0d1633] hover:bg-[#121e44] border-sky-400/20 hover:border-sky-400/40 shadow-sm'
+                              : 'bg-[#121216] hover:bg-[#141b2b] border-white/10 hover:border-sky-500/30'
+                          }`}
+                        >
+                          {/* Series Poster */}
+                          <div 
+                            onClick={() => handleSeriesClick(showSugg)}
+                            className="relative w-11 h-16 rounded-lg overflow-hidden shrink-0 bg-neutral-800 cursor-pointer shadow-sm"
+                          >
+                            <img
+                              src={normalizeImageUrl(posterUrl)}
+                              alt={showSugg.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = CINEVAULT_POSTER_FALLBACK;
+                              }}
+                            />
+                            <div className="absolute top-0 right-0 bg-sky-600/90 text-[8px] font-bold text-white px-1 py-0.2 rounded-bl">
+                              TV
+                            </div>
+                            {ratingVal ? (
+                              <div className="absolute bottom-0 inset-x-0 bg-black/80 backdrop-blur-xs py-0.5 text-center text-[9px] font-bold text-amber-400 flex items-center justify-center gap-0.5">
+                                <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
+                                <span>{Number(ratingVal).toFixed(1)}</span>
+                              </div>
+                            ) : null}
+                          </div>
+
+                          {/* Series Details & Actions */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-baseline justify-between gap-1">
+                              <h4 
+                                onClick={() => handleSeriesClick(showSugg)}
+                                className={`text-xs font-bold truncate cursor-pointer transition-colors cinebot-movie-title ${
+                                  isWhite ? 'text-slate-900 group-hover:text-sky-600' : 'text-white group-hover:text-sky-400'
+                                }`}
+                              >
+                                {showSugg.title}
+                              </h4>
+                              <div className="flex items-center gap-1 shrink-0">
+                                {displayYear && (
+                                  <span className={`text-[10px] font-mono ${
+                                    isWhite ? 'text-slate-500' : isBlueBlack ? 'text-sky-300/70' : 'text-neutral-400'
+                                  }`}>
+                                    {String(displayYear).slice(0, 4)}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            {networkName && (
+                              <div className={`text-[9px] font-medium ${
+                                isWhite ? 'text-sky-600' : 'text-sky-300'
+                              }`}>
+                                {networkName}
+                              </div>
+                            )}
+
+                            <p className={`text-[11px] line-clamp-2 mt-0.5 cinebot-movie-reason ${
+                              isWhite ? 'text-slate-600' : isBlueBlack ? 'text-slate-300' : 'text-neutral-300'
+                            }`}>
+                              {showSugg.reason || showObj?.summary?.replace(/<[^>]*>/g, '') || 'Critically acclaimed television series.'}
+                            </p>
+
+                            {/* Action Buttons */}
+                            <div className="flex items-center gap-2 mt-2">
+                              <button
+                                onClick={() => handleSeriesClick(showSugg)}
+                                className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded border transition-colors cursor-pointer ${
+                                  isWhite
+                                    ? 'text-sky-800 hover:text-sky-950 bg-sky-50 hover:bg-sky-100 border-sky-200'
+                                    : isBlueBlack
+                                    ? 'text-sky-200 hover:text-white bg-sky-950/60 hover:bg-sky-900/70 border-sky-400/30'
+                                    : 'text-sky-300 hover:text-sky-100 bg-sky-500/10 hover:bg-sky-500/20 border-sky-500/20'
+                                }`}
+                              >
+                                <Tv className="w-2.5 h-2.5 text-sky-400" />
+                                <span>Episodes & Torrents</span>
+                              </button>
+
+                              {onNavigateToSeries && (
+                                <button
+                                  onClick={() => {
+                                    onNavigateToSeries(showSugg.title, showSugg.imdb_code);
+                                    onClose();
+                                  }}
+                                  className={`text-[10px] font-semibold px-2 py-0.5 rounded border transition-colors cursor-pointer cinebot-action-btn-neutral ${
+                                    isWhite
+                                      ? 'text-slate-700 hover:text-slate-950 bg-slate-100 hover:bg-slate-200 border-slate-200'
+                                      : isBlueBlack
+                                      ? 'text-sky-200 hover:text-white bg-sky-950/40 hover:bg-sky-900/50 border-sky-400/30'
+                                      : 'text-neutral-200 hover:text-white bg-white/5 hover:bg-white/10 border-white/10'
+                                  }`}
+                                >
+                                  Search TV Tab
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Follow-up Question Chips */}
               {isBot && msg.followUpSuggestions && msg.followUpSuggestions.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mt-2 pl-1 max-w-[95%]">
@@ -833,7 +964,7 @@ export const CineBotModal: React.FC<CineBotModalProps> = ({
               type="text"
               value={inputVal}
               onChange={(e) => setInputVal(e.target.value)}
-              placeholder="Ask CineBot (e.g. 'thrillers like Prisoners', '80s sci-fi')..."
+              placeholder="Ask CineBot (e.g. 'Loki series', 'shows like Dark', '90s sci-fi')..."
               className={`w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl border focus:outline-none transition-colors cinebot-input-field ${
                 isWhite
                   ? 'bg-slate-50 text-slate-900 placeholder-slate-400 border-slate-300 focus:bg-white focus:border-rose-500'

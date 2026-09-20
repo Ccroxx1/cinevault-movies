@@ -57,26 +57,105 @@ interface AppRoute {
   seriesTorrent?: EztvTorrent | null;
 }
 
+function parseCurrentUrl(): {
+  route: AppRoute;
+  currentNav: string;
+  initialFilters?: Partial<FilterParams>;
+} {
+  if (typeof window === 'undefined') {
+    return { route: { type: 'browse' }, currentNav: 'browse' };
+  }
+
+  const pathname = window.location.pathname;
+  const searchParams = new URLSearchParams(window.location.search);
+
+  // Check if URL matches /movies/:slug
+  const movieMatch = pathname.match(/^\/movies\/([^/]+)/);
+  if (movieMatch) {
+    const slug = movieMatch[1];
+    return {
+      route: { type: 'movie', slug, movie: null },
+      currentNav: 'browse'
+    };
+  }
+
+  // Check if Watchlist route
+  if (pathname === '/watchlist') {
+    return {
+      route: { type: 'watchlist' },
+      currentNav: 'watchlist'
+    };
+  }
+
+  // Check if TV Series route: /series or /tv
+  if (pathname === '/series' || pathname === '/tv') {
+    const searchQuery = searchParams.get('search') || searchParams.get('q') || searchParams.get('query') || undefined;
+    const imdbId = searchParams.get('imdb') || searchParams.get('imdb_id') || undefined;
+    return {
+      route: { type: 'series', seriesQuery: searchQuery, seriesImdb: imdbId },
+      currentNav: 'series'
+    };
+  }
+
+  // Check if TV Series Detail route: /series/:slug or /tv/:slug
+  const seriesMatch = pathname.match(/^\/(?:series|tv)\/([^/]+)/i);
+  if (seriesMatch && seriesMatch[1] && seriesMatch[1] !== 'search') {
+    const seriesSlug = decodeURIComponent(seriesMatch[1]);
+    const imdbMatch = seriesSlug.match(/^(tt\d+)/i);
+    const effectiveImdb = imdbMatch ? imdbMatch[1] : undefined;
+    const cleanTitle = seriesSlug.replace(/^(tt\d+-?)/i, '').replace(/-/g, ' ');
+
+    return {
+      route: {
+        type: 'series_detail',
+        slug: seriesSlug,
+        seriesImdb: effectiveImdb,
+        seriesQuery: cleanTitle || undefined
+      },
+      currentNav: 'series'
+    };
+  }
+
+  // Default Browse Route
+  const genreParam = searchParams.get('genre');
+  const queryParam = searchParams.get('q') || searchParams.get('query');
+  const yearParam = searchParams.get('year');
+
+  return {
+    route: { type: 'browse' },
+    currentNav: 'browse',
+    initialFilters: {
+      ...(genreParam ? { genre: genreParam } : {}),
+      ...(queryParam ? { query_term: queryParam } : {}),
+      ...(yearParam ? { year: yearParam } : {})
+    }
+  };
+}
+
 export default function App() {
-  const [filters, setFilters] = useState<FilterParams>(DEFAULT_FILTERS);
+  const [initialUrlState] = useState(() => parseCurrentUrl());
+  const [filters, setFilters] = useState<FilterParams>(() => ({
+    ...DEFAULT_FILTERS,
+    ...(initialUrlState.initialFilters || {})
+  }));
   const [movies, setMovies] = useState<Movie[]>([]);
   const [featuredMovies, setFeaturedMovies] = useState<Movie[]>([]);
-  const [isFeaturedLoading, setIsFeaturedLoading] = useState<boolean>(true);
+  const [isFeaturedLoading, setIsFeaturedLoading] = useState<boolean>(() => initialUrlState.route.type === 'browse');
   const [totalCount, setTotalCount] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(() => initialUrlState.route.type === 'browse');
   const [error, setError] = useState<string | null>(null);
 
   // Router State
-  const [route, setRoute] = useState<AppRoute>({ type: 'browse' });
+  const [route, setRoute] = useState<AppRoute>(() => initialUrlState.route);
   const [isMovieSlugLoading, setIsMovieSlugLoading] = useState<boolean>(false);
   const [movieSlugError, setMovieSlugError] = useState<string | null>(null);
 
   // Curated sections state map: sectionId -> Movie[]
   const [sectionMovies, setSectionMovies] = useState<Record<string, Movie[]>>({});
-  const [isSectionsLoading, setIsSectionsLoading] = useState<boolean>(true);
+  const [isSectionsLoading, setIsSectionsLoading] = useState<boolean>(() => initialUrlState.route.type === 'browse');
   
   // Navigation & Modals
-  const [currentNav, setCurrentNav] = useState<string>('browse');
+  const [currentNav, setCurrentNav] = useState<string>(() => initialUrlState.currentNav);
   const [trailerData, setTrailerData] = useState<{ ytCode: string; title: string } | null>(null);
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
   const [isSpinnerOpen, setIsSpinnerOpen] = useState<boolean>(false);
@@ -182,30 +261,26 @@ export default function App() {
   // Initial Route Parser & Browser History Listener
   useEffect(() => {
     const resolveLocation = async () => {
-      const pathname = window.location.pathname;
-      const searchParams = new URLSearchParams(window.location.search);
+      const parsed = parseCurrentUrl();
 
       // Check if URL matches /movies/:slug
-      const movieMatch = pathname.match(/^\/movies\/([^\/]+)/);
-
-      if (movieMatch) {
-        const slug = movieMatch[1];
+      if (parsed.route.type === 'movie' && parsed.route.slug) {
         setRoute((prev) => {
-          if (prev.type === 'movie' && prev.slug === slug && prev.movie) {
+          if (prev.type === 'movie' && prev.slug === parsed.route.slug && prev.movie) {
             return prev;
           }
-          return { type: 'movie', slug, movie: null };
+          return { type: 'movie', slug: parsed.route.slug, movie: null };
         });
 
         setIsMovieSlugLoading(true);
         setMovieSlugError(null);
 
         try {
-          const found = await fetchMovieBySlug(slug);
+          const found = await fetchMovieBySlug(parsed.route.slug);
           if (found) {
-            setRoute({ type: 'movie', slug, movie: found });
+            setRoute({ type: 'movie', slug: parsed.route.slug, movie: found });
           } else {
-            setMovieSlugError(`Movie "${slug}" could not be located in the catalog.`);
+            setMovieSlugError(`Movie "${parsed.route.slug}" could not be located in the catalog.`);
           }
         } catch (err: any) {
           setMovieSlugError('Failed to load movie details. Please check your internet connection.');
@@ -215,8 +290,7 @@ export default function App() {
         return;
       }
 
-      // Check if Watchlist route
-      if (pathname === '/watchlist') {
+      if (parsed.route.type === 'watchlist') {
         setRoute({ type: 'watchlist' });
         setCurrentNav('watchlist');
         updateDocumentSeo({
@@ -230,14 +304,11 @@ export default function App() {
         return;
       }
 
-      // Check if TV Series route
-      if (pathname === '/series' || pathname === '/tv') {
-        const searchQuery = searchParams.get('search') || searchParams.get('q') || searchParams.get('query') || undefined;
-        const imdbId = searchParams.get('imdb') || searchParams.get('imdb_id') || undefined;
-        setRoute({ type: 'series', seriesQuery: searchQuery, seriesImdb: imdbId });
+      if (parsed.route.type === 'series') {
+        setRoute(parsed.route);
         setCurrentNav('series');
         updateDocumentSeo({
-          title: searchQuery ? `"${searchQuery}" — TV Series & Episodes (EZTV) — CineVault` : 'TV Series & Episode Torrents (EZTV) — CineVault',
+          title: parsed.route.seriesQuery ? `"${parsed.route.seriesQuery}" — TV Series & Episodes (EZTV) — CineVault` : 'TV Series & Episode Torrents (EZTV) — CineVault',
           description: 'Explore and download television series, full seasons, and episodes powered by the EZTV API.',
           breadcrumbs: [
             { name: 'Home', item: '/' },
@@ -247,20 +318,8 @@ export default function App() {
         return;
       }
 
-      // Check if TV Series Detail route: /series/:slug or /tv/:slug
-      const seriesMatch = pathname.match(/^\/(?:series|tv)\/([^/]+)/i);
-      if (seriesMatch && seriesMatch[1] && seriesMatch[1] !== 'search') {
-        const seriesSlug = decodeURIComponent(seriesMatch[1]);
-        const imdbMatch = seriesSlug.match(/^(tt\d+)/i);
-        const effectiveImdb = imdbMatch ? imdbMatch[1] : undefined;
-        const cleanTitle = seriesSlug.replace(/^(tt\d+-?)/i, '').replace(/-/g, ' ');
-
-        setRoute({
-          type: 'series_detail',
-          slug: seriesSlug,
-          seriesImdb: effectiveImdb,
-          seriesQuery: cleanTitle || undefined
-        });
+      if (parsed.route.type === 'series_detail') {
+        setRoute(parsed.route);
         setCurrentNav('series');
         return;
       }
@@ -269,17 +328,10 @@ export default function App() {
       setRoute({ type: 'browse' });
       setCurrentNav('browse');
 
-      // Check for search or genre query parameters in URL
-      const genreParam = searchParams.get('genre');
-      const queryParam = searchParams.get('q') || searchParams.get('query');
-      const yearParam = searchParams.get('year');
-
-      if (genreParam || queryParam || yearParam) {
+      if (parsed.initialFilters) {
         setFilters((prev) => ({
           ...prev,
-          genre: genreParam || prev.genre,
-          query_term: queryParam || prev.query_term,
-          year: yearParam || prev.year,
+          ...parsed.initialFilters,
           page: 1
         }));
       }
@@ -289,7 +341,10 @@ export default function App() {
       });
     };
 
-    resolveLocation();
+    // If initial route was movie without data, resolve it
+    if (route.type === 'movie' && route.slug && !route.movie) {
+      resolveLocation();
+    }
 
     // Listen for forward/backward browser navigation
     const handlePopState = () => {
@@ -422,6 +477,7 @@ export default function App() {
 
   // Fetch a rich, diverse pool of Featured Movies from multiple streams
   const loadFeatured = useCallback(async () => {
+    if (route.type !== 'browse') return;
     setIsFeaturedLoading(true);
     try {
       // Parallel fetch across different high-quality dimensions
@@ -467,6 +523,7 @@ export default function App() {
 
   // Fetch all Curated Homepage Sections
   useEffect(() => {
+    if (route.type !== 'browse') return;
     const loadCuratedSections = async () => {
       setIsSectionsLoading(true);
       try {
@@ -525,7 +582,7 @@ export default function App() {
 
   // Fetch Main Movies Catalog
   const loadMovies = useCallback(async () => {
-    if (route.type === 'watchlist' || route.type === 'movie') return;
+    if (route.type !== 'browse') return;
 
     setIsLoading(true);
     setError(null);
@@ -728,7 +785,9 @@ export default function App() {
           />
         ) : route.type === 'series_detail' ? (
           <SeriesDetailPage
+            key={route.slug || route.seriesImdb || route.seriesQuery || 'series-detail'}
             seriesId={route.slug || route.seriesImdb || undefined}
+            seriesTitle={route.seriesQuery}
             initialShow={route.seriesShow}
             initialTorrent={route.seriesTorrent}
             onBack={handleBack}
@@ -1163,6 +1222,10 @@ export default function App() {
         initialPrompt={cineBotInitialPrompt}
         onClearInitialPrompt={() => setCineBotInitialPrompt(null)}
         activeMovie={route.type === 'movie' ? route.movie : null}
+        activeSeriesTitle={route.type === 'series_detail' ? (route.seriesQuery || route.seriesShow?.name) : undefined}
+        activeSeriesImdb={route.type === 'series_detail' ? route.seriesImdb : undefined}
+        onSelectSeries={handleSelectSeries}
+        onNavigateToSeries={handleNavigateSeries}
       />
 
       <ToastContainer toasts={toasts} onDismiss={removeToast} />
