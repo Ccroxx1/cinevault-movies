@@ -419,23 +419,25 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleNavigateSeries = (query?: string, imdbId?: string) => {
-    setRoute({ type: 'series', seriesQuery: query, seriesImdb: imdbId });
+  const handleNavigateSeries = (query?: unknown, imdbId?: unknown) => {
+    const safeQuery = typeof query === 'string' ? query : undefined;
+    const safeImdb = typeof imdbId === 'string' ? imdbId : undefined;
+    setRoute({ type: 'series', seriesQuery: safeQuery, seriesImdb: safeImdb });
     setCurrentNav('series');
     setMovieSlugError(null);
 
     const params = new URLSearchParams();
-    if (query) params.set('search', query);
-    if (imdbId) params.set('imdb', imdbId);
+    if (safeQuery) params.set('search', safeQuery);
+    if (safeImdb) params.set('imdb', safeImdb);
     const queryString = params.toString() ? `?${params.toString()}` : '';
     const targetUrl = `/series${queryString}`;
 
     if (window.location.pathname + window.location.search !== targetUrl) {
-      window.history.pushState({ type: 'series', seriesQuery: query, seriesImdb: imdbId }, '', targetUrl);
+      window.history.pushState({ type: 'series', seriesQuery: safeQuery, seriesImdb: safeImdb }, '', targetUrl);
     }
 
     updateDocumentSeo({
-      title: query ? `"${query}" — TV Series & Episodes (EZTV) — CineVault` : 'TV Series & Episode Torrents (EZTV) — CineVault',
+      title: safeQuery ? `"${safeQuery}" — TV Series & Episodes (EZTV) — CineVault` : 'TV Series & Episode Torrents (EZTV) — CineVault',
       description: 'Explore and download television series, full seasons, and episodes powered by the EZTV API.',
       breadcrumbs: [
         { name: 'Home', item: '/' },

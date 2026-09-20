@@ -151,15 +151,15 @@ interface SeriesDetailPageProps {
 
 const POPULAR_RECOMMENDED_SHOWS = [
   { name: 'Dark', imdb: 'tt5753856', year: '2017', genre: 'Sci-Fi', rating: 8.7, image: 'https://static.tvmaze.com/uploads/images/medium_portrait/504/1262352.jpg' },
-  { name: 'Loki', imdb: 'tt9140554', year: '2021', genre: 'Action', rating: 8.2, image: 'https://static.tvmaze.com/uploads/images/medium_portrait/482/1206173.jpg' },
+  { name: 'Loki', imdb: 'tt9140554', year: '2021', genre: 'Action', rating: 8.2, image: 'https://static.tvmaze.com/uploads/images/medium_portrait/478/1195717.jpg' },
   { name: 'Breaking Bad', imdb: 'tt0903747', year: '2008', genre: 'Crime', rating: 9.5, image: 'https://static.tvmaze.com/uploads/images/medium_portrait/501/1253519.jpg' },
-  { name: 'Stranger Things', imdb: 'tt4574334', year: '2016', genre: 'Drama', rating: 8.6, image: 'https://static.tvmaze.com/uploads/images/medium_portrait/394/986060.jpg' },
-  { name: 'Severance', imdb: 'tt11280740', year: '2022', genre: 'Mystery', rating: 8.7, image: 'https://static.tvmaze.com/uploads/images/medium_portrait/402/1005273.jpg' },
-  { name: 'The Boys', imdb: 'tt1190634', year: '2019', genre: 'Action', rating: 8.7, image: 'https://static.tvmaze.com/uploads/images/medium_portrait/499/1248464.jpg' },
-  { name: 'House of the Dragon', imdb: 'tt11198330', year: '2022', genre: 'Fantasy', rating: 8.4, image: 'https://static.tvmaze.com/uploads/images/medium_portrait/482/1206103.jpg' },
-  { name: 'The Last of Us', imdb: 'tt3581920', year: '2023', genre: 'Adventure', rating: 8.8, image: 'https://static.tvmaze.com/uploads/images/medium_portrait/444/1110904.jpg' },
-  { name: 'Fallout', imdb: 'tt12637874', year: '2024', genre: 'Sci-Fi', rating: 8.4, image: 'https://static.tvmaze.com/uploads/images/medium_portrait/504/1260846.jpg' },
-  { name: 'The Bear', imdb: 'tt14452792', year: '2022', genre: 'Comedy', rating: 8.6, image: 'https://static.tvmaze.com/uploads/images/medium_portrait/482/1206126.jpg' }
+  { name: 'Stranger Things', imdb: 'tt4574334', year: '2016', genre: 'Drama', rating: 8.6, image: 'https://static.tvmaze.com/uploads/images/medium_portrait/595/1489169.jpg' },
+  { name: 'Severance', imdb: 'tt11280740', year: '2022', genre: 'Mystery', rating: 8.7, image: 'https://static.tvmaze.com/uploads/images/medium_portrait/548/1371406.jpg' },
+  { name: 'The Boys', imdb: 'tt1190634', year: '2019', genre: 'Action', rating: 8.7, image: 'https://static.tvmaze.com/uploads/images/medium_portrait/619/1547768.jpg' },
+  { name: 'House of the Dragon', imdb: 'tt11198330', year: '2022', genre: 'Fantasy', rating: 8.4, image: 'https://static.tvmaze.com/uploads/images/medium_portrait/627/1568449.jpg' },
+  { name: 'The Last of Us', imdb: 'tt3581920', year: '2023', genre: 'Adventure', rating: 8.8, image: 'https://static.tvmaze.com/uploads/images/medium_portrait/563/1409008.jpg' },
+  { name: 'Fallout', imdb: 'tt12637874', year: '2024', genre: 'Sci-Fi', rating: 8.4, image: 'https://static.tvmaze.com/uploads/images/medium_portrait/599/1499142.jpg' },
+  { name: 'The Bear', imdb: 'tt14452776', year: '2022', genre: 'Comedy', rating: 8.6, image: 'https://static.tvmaze.com/uploads/images/medium_portrait/629/1574642.jpg' }
 ];
 
 export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
@@ -2081,6 +2081,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                   src={pop.image}
                   alt={pop.name}
                   loading="lazy"
+                  referrerPolicy="no-referrer"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';

@@ -91,7 +91,7 @@ export const EztvMovieSection: React.FC<EztvMovieSectionProps> = ({
         </div>
         {onNavigateToSeries && (
           <button
-            onClick={onNavigateToSeries}
+            onClick={() => onNavigateToSeries()}
             className="text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1 cursor-pointer"
           >
             <span>Browse TV Series Catalog</span>

@@ -48,7 +48,7 @@ const POPULAR_SHOWS = [
   { name: 'House of the Dragon', imdb: 'tt11198330' },
   { name: 'The Last of Us', imdb: 'tt3581920' },
   { name: 'Fallout', imdb: 'tt12637874' },
-  { name: 'The Bear', imdb: 'tt14452792' },
+  { name: 'The Bear', imdb: 'tt14452776' },
   { name: 'Friends', imdb: 'tt0108778' }
 ];
 
@@ -61,10 +61,10 @@ export const EztvView: React.FC<EztvViewProps> = ({
   onOpenGuide,
   onSelectSeries
 }) => {
-  const [searchInput, setSearchInput] = useState(initialQuery || '');
-  const [activeQuery, setActiveQuery] = useState(initialQuery || '');
-  const [activeImdbId, setActiveImdbId] = useState<string | null>(initialImdb || null);
-  const [activeShowName, setActiveShowName] = useState<string | null>(initialQuery || null);
+  const [searchInput, setSearchInput] = useState(typeof initialQuery === 'string' ? initialQuery : '');
+  const [activeQuery, setActiveQuery] = useState<string>(typeof initialQuery === 'string' ? initialQuery : '');
+  const [activeImdbId, setActiveImdbId] = useState<string | null>(typeof initialImdb === 'string' ? initialImdb : null);
+  const [activeShowName, setActiveShowName] = useState<string | null>(typeof initialQuery === 'string' ? initialQuery : null);
   const [showMeta, setShowMeta] = useState<TvShowInfo | null>(null);
 
   // Autocomplete suggestions
@@ -89,14 +89,16 @@ export const EztvView: React.FC<EztvViewProps> = ({
 
   // Sync props changes (e.g. from Header or URL updates)
   useEffect(() => {
-    if (initialQuery !== undefined && initialQuery !== activeQuery) {
-      setSearchInput(initialQuery);
-      setActiveQuery(initialQuery);
-      setActiveImdbId(initialImdb || null);
-      setActiveShowName(initialQuery || null);
+    const safeQuery = typeof initialQuery === 'string' ? initialQuery : '';
+    const safeImdb = typeof initialImdb === 'string' ? initialImdb : null;
+    if (initialQuery !== undefined && safeQuery !== activeQuery) {
+      setSearchInput(safeQuery);
+      setActiveQuery(safeQuery);
+      setActiveImdbId(safeImdb);
+      setActiveShowName(safeQuery || null);
       setCurrentPage(1);
-    } else if (initialImdb !== undefined && initialImdb !== activeImdbId) {
-      setActiveImdbId(initialImdb);
+    } else if (initialImdb !== undefined && safeImdb !== activeImdbId) {
+      setActiveImdbId(safeImdb);
       setCurrentPage(1);
     }
   }, [initialQuery, initialImdb]);
@@ -474,7 +476,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
               Popular Series:
             </span>
             {POPULAR_SHOWS.map((show) => {
-              const isSelected = activeImdbId === show.imdb || activeQuery.toLowerCase() === show.name.toLowerCase();
+              const isSelected = activeImdbId === show.imdb || (typeof activeQuery === 'string' && !!activeQuery && activeQuery.toLowerCase() === show.name.toLowerCase());
               return (
                 <button
                   key={show.imdb}
