@@ -768,6 +768,50 @@
   border-color: #fcd34d !important;
 }
 
+/* 4K/2160p Torrent Release Cards in White Mode */
+[data-theme="white"] .from-amber-950\/20 {
+  background-image: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
+  background-color: #fffbeb !important;
+  border-color: #fcd34d !important;
+  box-shadow: 0 2px 8px -2px rgba(245, 158, 11, 0.15) !important;
+}
+
+[data-theme="white"] .from-amber-950\/20 .text-neutral-300,
+[data-theme="white"] .from-amber-950\/20 .text-neutral-400 {
+  color: #334155 !important;
+}
+
+[data-theme="white"] .from-amber-950\/20 .text-neutral-100 {
+  color: #0f172a !important;
+}
+
+[data-theme="white"] .from-amber-950\/20 .bg-white\/5,
+[data-theme="white"] .from-amber-950\/20 .bg-white\/10 {
+  background-color: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  color: #1e293b !important;
+}
+
+[data-theme="white"] .from-amber-950\/20 button.bg-white\/5,
+[data-theme="white"] .from-amber-950\/20 a.bg-white\/5 {
+  background-color: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.14) !important;
+  color: #334155 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="white"] .from-amber-950\/20 button.bg-white\/5:hover,
+[data-theme="white"] .from-amber-950\/20 a.bg-white\/5:hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+/* Blue-Black Theme: ensure 4K torrent cards use navy undertones */
+[data-theme="blue-black"] .from-amber-950\/20 {
+  background-image: linear-gradient(90deg, rgba(69, 26, 3, 0.25) 0%, #0e1834 50%, #0b1328 100%) !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
 [data-theme="white"] .from-cyan-600\/30 {
   background-image: linear-gradient(180deg, #ecfeff 0%, #cffafe 100%) !important;
   border-color: #67e8f9 !important;

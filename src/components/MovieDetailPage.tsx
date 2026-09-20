@@ -13,6 +13,7 @@ import { DownloadSpeedEstimator } from './DownloadSpeedEstimator';
 import { BookmarkPlusIcon, BookmarkIcon, PlayIcon, CopyIcon } from './ActionIcons';
 import { CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
 import { EztvMovieSection } from './EztvMovieSection';
+import { useTheme } from '../context/ThemeContext';
 
 interface MovieDetailPageProps {
   movie: Movie;
@@ -47,6 +48,10 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
   onNavigateToSeries,
   onSelectSeries
 }) => {
+  const { colorMode } = useTheme();
+  const isWhite = colorMode === 'white';
+  const isBlueBlack = colorMode === 'blue-black';
+
   const [movie, setMovie] = useState<Movie>(initialMovie);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [suggestions, setSuggestions] = useState<Movie[]>([]);
@@ -585,7 +590,15 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                         key={`${torrent.hash}-${idx}`}
                         className={`rounded-2xl border transition-all p-4 sm:p-5 flex flex-col justify-between gap-3.5 ${
                           is4k
-                            ? 'bg-gradient-to-r from-amber-950/20 via-[#111111] to-[#0e0e0e] border-amber-500/35 shadow-lg shadow-amber-950/10'
+                            ? isWhite
+                              ? 'bg-amber-50/70 border-amber-300/80 shadow-xs'
+                              : isBlueBlack
+                              ? 'bg-gradient-to-r from-amber-950/20 via-[#0e1834] to-[#0b1328] border-amber-500/35 shadow-lg shadow-amber-950/10'
+                              : 'bg-gradient-to-r from-amber-950/20 via-[#111111] to-[#0e0e0e] border-amber-500/35 shadow-lg shadow-amber-950/10'
+                            : isWhite
+                            ? 'bg-white hover:border-slate-300 border-slate-200 shadow-xs'
+                            : isBlueBlack
+                            ? 'bg-[#0b1329] border-sky-900/40 hover:border-sky-800/60'
                             : 'bg-[#0f0f0f] border-white/5 hover:border-white/15'
                         }`}
                       >
@@ -598,29 +611,43 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                                 className={`px-2.5 py-1 text-xs font-black rounded-lg uppercase tracking-wider ${
                                   is4k
                                     ? 'bg-amber-500 text-black font-extrabold shadow-sm'
+                                    : isWhite
+                                    ? 'bg-slate-100 text-slate-800 border border-slate-300'
                                     : 'bg-neutral-800 text-neutral-100 border border-white/10'
                                 }`}
                               >
                                 {torrent.quality}
                               </span>
-                              <span className="text-xs font-semibold text-neutral-300 uppercase px-2.5 py-1 rounded-lg bg-white/5 border border-white/10">
+                              <span className={`text-xs font-semibold uppercase px-2.5 py-1 rounded-lg border ${
+                                isWhite
+                                  ? 'text-slate-700 bg-white/90 border-slate-200 shadow-2xs'
+                                  : 'text-neutral-300 bg-white/5 border-white/10'
+                              }`}>
                                 {torrent.type || 'WEB'}
                               </span>
                               {torrent.video_codec && (
-                                <span className="text-xs font-mono text-neutral-400 px-2 py-0.5 rounded bg-white/5 border border-white/5">
+                                <span className={`text-xs font-mono px-2 py-0.5 rounded border ${
+                                  isWhite
+                                    ? 'text-slate-600 bg-white/90 border-slate-200'
+                                    : 'text-neutral-400 bg-white/5 border-white/5'
+                                }`}>
                                   {torrent.video_codec}
                                 </span>
                               )}
-                              <span className="text-xs font-mono font-bold text-neutral-100 bg-white/10 px-2.5 py-1 rounded-lg border border-white/10">
+                              <span className={`text-xs font-mono font-bold px-2.5 py-1 rounded-lg border ${
+                                isWhite
+                                  ? 'text-slate-900 bg-white border-slate-200 shadow-2xs'
+                                  : 'text-neutral-100 bg-white/10 border-white/10'
+                              }`}>
                                 {torrent.size}
                               </span>
                             </div>
 
                             <div className="flex flex-wrap items-center gap-2.5 pt-0.5">
                               <TorrentSwarmHealthBadge seeds={torrent.seeds} peers={torrent.peers} showDetails />
-                              <span className="text-xs font-mono text-neutral-400">
-                                <span className="text-emerald-400 font-semibold">{torrent.seeds} Seeds</span>
-                                <span className="mx-1.5 text-neutral-600">•</span>
+                              <span className={`text-xs font-mono ${isWhite ? 'text-slate-600' : 'text-neutral-400'}`}>
+                                <span className="text-emerald-500 font-semibold">{torrent.seeds} Seeds</span>
+                                <span className={`mx-1.5 ${isWhite ? 'text-slate-300' : 'text-neutral-600'}`}>•</span>
                                 <span>{torrent.peers} Peers</span>
                               </span>
                             </div>
@@ -632,7 +659,11 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                             <button
                               onClick={() => handleDownloadMediaPack(torrent)}
                               disabled={packagingHash === torrent.hash}
-                              className="px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-60 whitespace-nowrap"
+                              className={`px-3.5 py-2 rounded-xl text-xs font-bold border flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-60 whitespace-nowrap ${
+                                isWhite
+                                  ? 'bg-amber-100 hover:bg-amber-200/80 text-amber-900 border-amber-300 shadow-2xs'
+                                  : 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border-amber-500/30'
+                              }`}
                               title="Download ZIP media package with cover art & specs"
                             >
                               <Archive className={`w-3.5 h-3.5 ${packagingHash === torrent.hash ? 'animate-spin' : ''}`} />
@@ -655,6 +686,8 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                               className={`p-2 rounded-xl border transition-all cursor-pointer flex items-center justify-center ${
                                 isCopied
                                   ? 'bg-rose-600 text-white border-rose-500'
+                                  : isWhite
+                                  ? 'bg-white hover:bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-900 shadow-2xs'
                                   : 'bg-white/5 hover:bg-white/15 border-white/10 text-neutral-300 hover:text-white'
                               }`}
                               title={isCopied ? 'Copied to clipboard' : 'Copy raw magnet URI'}
@@ -670,7 +703,11 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                                 target="_blank"
                                 rel="noreferrer noopener"
                                 download
-                                className="p-2 rounded-xl bg-white/5 hover:bg-white/15 border border-white/10 text-neutral-300 hover:text-white transition-all flex items-center justify-center"
+                                className={`p-2 rounded-xl border transition-all flex items-center justify-center ${
+                                  isWhite
+                                    ? 'bg-white hover:bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-900 shadow-2xs'
+                                    : 'bg-white/5 hover:bg-white/15 border border-white/10 text-neutral-300 hover:text-white'
+                                }`}
                                 title="Download .torrent file"
                                 aria-label="Download .torrent file"
                               >
@@ -681,7 +718,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                         </div>
 
                         {/* Bottom Row: Uniform Download Speed Estimator Strip */}
-                        <div className="pt-2.5 border-t border-white/5">
+                        <div className={`pt-2.5 border-t ${isWhite ? 'border-slate-200/80' : 'border-white/5'}`}>
                           <DownloadSpeedEstimator
                             sizeBytes={torrent.size_bytes}
                             sizeFormatted={torrent.size}
