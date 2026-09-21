@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { showEzoicAds } from '../utils/ezoic';
+import { useTheme } from '../context/ThemeContext';
 
 interface AdSenseSlotProps {
   slotId?: string;
@@ -14,20 +14,35 @@ export const AdSenseSlot: React.FC<AdSenseSlotProps> = ({
   format = 'auto',
   className = ''
 }) => {
-  const adRef = useRef<HTMLDivElement | null>(null);
-  const pushedRef = useRef<boolean>(false);
+  const { colorMode } = useTheme();
+  const isWhite = colorMode === 'white';
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const loadedRef = useRef<boolean>(false);
 
   useEffect(() => {
-    // Prevent duplicate calls in React StrictMode / re-renders
-    if (pushedRef.current) return;
-    pushedRef.current = true;
+    if (loadedRef.current) return;
+    loadedRef.current = true;
 
-    const timer = setTimeout(() => {
-      // Trigger Ezoic standalone ad placement as instructed in Ezoic documentation
-      showEzoicAds({});
-    }, 150);
+    try {
+      const host = window.location.hostname;
+      const isProd = host === 'cinevaultmovies.online' || host.endsWith('.cinevaultmovies.online');
+      const isDebug =
+        window.location.search.indexOf('force_ads=1') !== -1 ||
+        window.location.search.indexOf('force_adsterra=1') !== -1 ||
+        window.location.search.indexOf('ez_js_debugger=1') !== -1;
 
-    return () => clearTimeout(timer);
+      if (isProd || isDebug) {
+        // Load Adsterra Native Banner script if not already present
+        const scriptSrc = 'https://pl31437220.profitableratecpmnetwork.com/2e2c5aa1814513310d921e06208ff111/invoke.js';
+        if (!document.querySelector(`script[src*="2e2c5aa1814513310d921e06208ff111"]`)) {
+          const script = document.createElement('script');
+          script.async = true;
+          script.setAttribute('data-cfasync', 'false');
+          script.src = scriptSrc;
+          document.head.appendChild(script);
+        }
+      }
+    } catch (e) {}
   }, []);
 
   // Format-specific sizing constraints to avoid Cumulative Layout Shift (CLS)
@@ -46,24 +61,34 @@ export const AdSenseSlot: React.FC<AdSenseSlotProps> = ({
 
   return (
     <div
-      className={`relative w-full rounded-2xl bg-[#0a0a0a]/80 border border-white/10 p-3 sm:p-4 flex flex-col items-center justify-center overflow-hidden my-6 transition-all ${getContainerStyles()} ${className}`}
+      className={`relative w-full rounded-2xl border p-3 sm:p-4 flex flex-col items-center justify-center overflow-hidden my-6 transition-all ${
+        isWhite
+          ? 'bg-slate-50 border-slate-200 shadow-xs'
+          : 'bg-[#0a0a0a]/80 border-white/10'
+      } ${getContainerStyles()} ${className}`}
     >
       {/* Standard Advertisement Labeling */}
-      <div className="w-full flex items-center justify-between pb-2 mb-2 border-b border-white/5 text-[10px] text-neutral-500 uppercase tracking-widest font-mono select-none">
-        <span className="font-semibold text-neutral-400">Advertisement</span>
-        <span className="text-neutral-600">Sponsor</span>
+      <div
+        className={`w-full flex items-center justify-between pb-2 mb-2 border-b text-[10px] uppercase tracking-widest font-mono select-none ${
+          isWhite ? 'border-slate-200 text-slate-500' : 'border-white/5 text-neutral-500'
+        }`}
+      >
+        <span className={`font-semibold ${isWhite ? 'text-slate-700' : 'text-neutral-400'}`}>Advertisement</span>
+        <span className={isWhite ? 'text-slate-400' : 'text-neutral-600'}>Sponsored Content</span>
       </div>
 
-      {/* Ezoic In-Page Ad Container */}
+      {/* Adsterra Native Banner Container */}
       <div
-        ref={adRef}
-        className="w-full flex items-center justify-center overflow-hidden min-h-[60px] ezoic-ad"
-        {...(slotId ? { id: `ezoic-pub-ad-placeholder-${slotId}` } : {})}
+        ref={containerRef}
+        id="container-2e2c5aa1814513310d921e06208ff111"
+        className="w-full flex items-center justify-center overflow-hidden min-h-[60px]"
+        {...(slotId ? { 'data-slot-id': slotId } : {})}
       />
     </div>
   );
 };
 
 export const AdSlot = AdSenseSlot;
+
 
 

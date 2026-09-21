@@ -1802,15 +1802,23 @@ async function injectDynamicMetaTags(htmlTemplate: string, reqUrl: string): Prom
   return htmlTemplate;
 }
 
-// Ensure Ezoic scripts are delivered in the static HTML in the required order
+// Ensure Ad network scripts (Adsterra, Ezoic) are delivered in the static HTML
 function ensureEzoicProductionTags(html: string, reqHost: string = '', reqUrl: string = ''): string {
+  const isProdHost = reqHost.includes('cinevaultmovies.online');
+  const isDebug = reqUrl.includes('ez_js_debugger=1') || reqUrl.includes('force_ezoic=1') || reqUrl.includes('force_ads=1');
+
+  if ((isProdHost || isDebug) && !html.includes('0626bb7ebab6d2671706e9b94ba2b96f.js')) {
+    const adsterraTags = `
+    <!-- Adsterra SocialBar & Popunder Tags -->
+    <script async src="https://pl31437221.profitableratecpmnetwork.com/06/26/bb/0626bb7ebab6d2671706e9b94ba2b96f.js"></script>
+    <script async src="https://pl31437219.profitableratecpmnetwork.com/14/5a/57/145a579d83e9caaf18d1d1f81ab75ab8.js"></script>`;
+    html = html.replace('<head>', `<head>\n${adsterraTags}`);
+  }
+
   // If html already contains sa.min.js, it is already wired directly in the template
   if (html.includes('sa.min.js')) {
     return html;
   }
-
-  const isProdHost = reqHost.includes('cinevaultmovies.online');
-  const isDebug = reqUrl.includes('ez_js_debugger=1') || reqUrl.includes('force_ezoic=1');
 
   if (isProdHost || isDebug) {
     const ezoicTags = `

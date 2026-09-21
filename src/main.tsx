@@ -20,14 +20,24 @@ if (typeof window !== 'undefined') {
       lowerMsg.includes('failed to connect') ||
       lowerMsg.includes('websocket') ||
       lowerMsg.includes('[vite]') ||
+      lowerMsg.includes('country consent') ||
+      lowerMsg.includes('sacountry') ||
+      lowerMsg.includes('gatekeeper') ||
       lowerMsg.includes('ezoic') ||
       lowerMsg.includes('ezojs') ||
+      lowerMsg.includes('profitableratecpmnetwork') ||
+      lowerMsg.includes('adsterra') ||
       lowerMsg.includes('monetization not allowed') ||
-      lowerMsg.includes('bad response. status') ||
+      lowerMsg.includes('bad response') ||
       lowerFile.includes('chrome-extension') ||
       lowerFile.includes('moz-extension') ||
       lowerFile.includes('safari-web-extension') ||
       lowerFile.includes('sa.min.js') ||
+      lowerFile.includes('sacountry') ||
+      lowerFile.includes('gatekeeperconsent') ||
+      lowerFile.includes('ezoic') ||
+      lowerFile.includes('profitableratecpmnetwork') ||
+      lowerFile.includes('adsterra') ||
       lowerFile.includes('ezojs')
     );
   };
