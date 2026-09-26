@@ -27,6 +27,7 @@ if (typeof window !== 'undefined') {
       lowerMsg.includes('ezojs') ||
       lowerMsg.includes('profitableratecpmnetwork') ||
       lowerMsg.includes('adsterra') ||
+      lowerMsg.includes('eagerdazzle') ||
       lowerMsg.includes('monetization not allowed') ||
       lowerMsg.includes('bad response') ||
       lowerFile.includes('chrome-extension') ||
@@ -38,6 +39,7 @@ if (typeof window !== 'undefined') {
       lowerFile.includes('ezoic') ||
       lowerFile.includes('profitableratecpmnetwork') ||
       lowerFile.includes('adsterra') ||
+      lowerFile.includes('eagerdazzle') ||
       lowerFile.includes('ezojs')
     );
   };
