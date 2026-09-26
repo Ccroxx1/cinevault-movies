@@ -16,6 +16,7 @@ import { ToastContainer, ToastMessage } from './components/Toast';
 import { AdSensePolicyModal } from './components/AdSensePolicyModal';
 import { CookieConsentBanner } from './components/CookieConsentBanner';
 import { AdSenseSlot } from './components/AdSenseSlot';
+import { AdsterraBanner } from './components/AdsterraBanner';
 import { Footer } from './components/Footer';
 import { CuratedCollections } from './components/CuratedCollections';
 import { RecentlyViewedStrip } from './components/RecentlyViewedStrip';
@@ -955,6 +956,7 @@ export default function App() {
             )}
 
             <AdSenseSlot format="auto" responsive={true} className="my-6" />
+            <AdsterraBanner />
 
             <div id="movie-catalog-section" className="space-y-4 my-8">
               <div className="flex flex-wrap items-center justify-between gap-3">
