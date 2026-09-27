@@ -1,9 +1,34 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 const invokeScriptUrl = 'https://eagerdazzle.com/a62700da0f74191791572095727853bc/invoke.js';
+const desktopBannerWidth = 728;
+const bannerHeight = 90;
 
 export const AdsterraBanner: React.FC = () => {
+  const bannerViewportRef = useRef<HTMLDivElement | null>(null);
   const adContainerRef = useRef<HTMLDivElement | null>(null);
+  const [bannerScale, setBannerScale] = useState(1);
+
+  useLayoutEffect(() => {
+    const updateBannerScale = () => {
+      const availableWidth = bannerViewportRef.current?.clientWidth ?? window.innerWidth;
+      setBannerScale(Math.min(1, availableWidth / desktopBannerWidth));
+    };
+
+    updateBannerScale();
+    const viewport = bannerViewportRef.current;
+    const resizeObserver = typeof ResizeObserver !== 'undefined'
+      ? new ResizeObserver(updateBannerScale)
+      : null;
+
+    if (viewport && resizeObserver) resizeObserver.observe(viewport);
+    window.addEventListener('resize', updateBannerScale);
+
+    return () => {
+      resizeObserver?.disconnect();
+      window.removeEventListener('resize', updateBannerScale);
+    };
+  }, []);
 
   useEffect(() => {
     const host = window.location.hostname;
@@ -22,8 +47,8 @@ export const AdsterraBanner: React.FC = () => {
     optionsScript.textContent = `window.atOptions = ${JSON.stringify({
       key: 'a62700da0f74191791572095727853bc',
       format: 'iframe',
-      height: 90,
-      width: 728,
+      height: bannerHeight,
+      width: desktopBannerWidth,
       params: {},
     })};`;
 
@@ -31,7 +56,7 @@ export const AdsterraBanner: React.FC = () => {
     invokeScript.src = invokeScriptUrl;
     invokeScript.async = false;
     invokeScript.setAttribute('data-cfasync', 'false');
-    invokeScript.onerror = () => console.warn('Adsterra 728x90 banner failed to load.');
+    invokeScript.onerror = () => console.warn('Adsterra banner failed to load.');
 
     adContainer.append(optionsScript, invokeScript);
 
@@ -48,12 +73,12 @@ export const AdsterraBanner: React.FC = () => {
         <span className="font-semibold text-neutral-400">Advertisement</span>
         <span>Sponsored Content</span>
       </div>
-      <div className="flex w-full flex-col items-center gap-3 overflow-x-auto">
+      <div className="flex w-full flex-col items-center gap-3">
         <a
           href="https://beta.publishers.adsterra.com/referral/BYyJkzF7DE"
           target="_blank"
           rel="nofollow noopener noreferrer"
-          className="block w-full max-w-[728px] shrink-0"
+          className="block w-full max-w-[728px]"
         >
           <img
             src="https://landings-cdn.adsterratech.com/referralBanners/png/728%20x%2090%20px.png"
@@ -64,10 +89,20 @@ export const AdsterraBanner: React.FC = () => {
           />
         </a>
         <div
-          ref={adContainerRef}
-          className="min-h-[90px] w-[728px] max-w-none"
-          aria-label="Advertisement"
-        />
+          ref={bannerViewportRef}
+          className="flex w-full justify-center overflow-hidden"
+          style={{ height: bannerHeight * bannerScale }}
+        >
+          <div
+            ref={adContainerRef}
+            className="h-[90px] w-[728px] shrink-0"
+            style={{
+              transform: `scale(${bannerScale})`,
+              transformOrigin: 'top center',
+            }}
+            aria-label="Advertisement"
+          />
+        </div>
       </div>
     </aside>
   );
