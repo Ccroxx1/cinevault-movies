@@ -861,9 +861,9 @@ function extractShowSearch(raw: string): { cleanedTitle: string; season?: number
   return { cleanedTitle: cleaned || raw.trim(), season, episode };
 }
 
-// Clean TV Series Name from raw EZTV release title
-export function extractShowTitleFromRelease(rawTitle: string): string {
-  if (!rawTitle) return '';
+// Clean TV Series Name and extract Year from raw EZTV release title
+export function extractShowTitleAndYear(rawTitle: string): { title: string; year?: string } {
+  if (!rawTitle) return { title: '', year: undefined };
   let cleaned = rawTitle;
 
   // Cut off at S01E01, S01, Season 1, etc.
@@ -871,15 +871,25 @@ export function extractShowTitleFromRelease(rawTitle: string): string {
   cleaned = cleaned.replace(/\bseason\s*\d{1,2}\b.*$/i, '');
   cleaned = cleaned.replace(/\bepisode\s*\d{1,2}\b.*$/i, '');
 
-  // Cut off common release tags
-  cleaned = cleaned.replace(/\b(1080p|720p|2160p|4k|uhd|hevc|x265|x264|web-?dl|webrip|hdtv|bluray|eztv)\b.*$/gi, '');
+  // Cut off common release tags and scene group names
+  cleaned = cleaned.replace(/\b(1080p|720p|2160p|4k|uhd|hevc|x265|x264|web-?dl|webrip|hdtv|bluray|eztv|xvid|afg|megusta|msd)\b.*$/gi, '');
 
   // Replace dots, underscores with spaces
   cleaned = cleaned.replace(/[._]/g, ' ').replace(/\s+/g, ' ').trim();
-  // Remove year if at end e.g. "Show Name 2022" -> "Show Name"
-  cleaned = cleaned.replace(/\s+\(\d{4}\)$/, '').trim();
 
-  return cleaned || rawTitle;
+  // Extract year if present at the end: e.g. "Dark Matter 2024" or "Dark Matter (2024)"
+  let year: string | undefined;
+  const yearMatch = cleaned.match(/\s+(?:\()?((?:19|20)\d{2})(?:\))?$/);
+  if (yearMatch) {
+    year = yearMatch[1];
+    cleaned = cleaned.replace(yearMatch[0], '').trim();
+  }
+
+  return { title: cleaned || rawTitle, year };
+}
+
+export function extractShowTitleFromRelease(rawTitle: string): string {
+  return extractShowTitleAndYear(rawTitle).title;
 }
 
 // Resolve TV show title to IMDb ID via TVmaze (primary) with Wikidata fallback
@@ -1081,7 +1091,8 @@ export async function resolveOfficialPoster(params: {
 
   // 3. Official IMDb suggestion API by Title Search
   if (cleanTitle) {
-    const searchName = extractShowTitleFromRelease(cleanTitle);
+    const { title: searchName, year: releaseYear } = extractShowTitleAndYear(cleanTitle);
+    const targetYear = yearNum || (releaseYear ? parseInt(releaseYear, 10) : undefined);
     const slug = searchName.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').slice(0, 32);
     const firstChar = slug[0] || 'a';
 
@@ -1097,12 +1108,12 @@ export async function resolveOfficialPoster(params: {
           // Find matching item with an image, prioritizing year and title similarity
           const withImages = sJson.d.filter((it: any) => Boolean(it?.i?.imageUrl));
           let match = withImages.find((it: any) => {
-            const yMatches = yearNum && it.y ? Math.abs(it.y - yearNum) <= 1 : true;
+            const yMatches = targetYear && it.y ? Math.abs(it.y - targetYear) <= 1 : true;
             const lMatches = it.l && it.l.toLowerCase().includes(searchName.toLowerCase());
             return yMatches && lMatches;
           });
-          if (!match && yearNum) {
-            match = withImages.find((it: any) => it.y && Math.abs(it.y - yearNum) <= 1);
+          if (!match && targetYear) {
+            match = withImages.find((it: any) => it.y && Math.abs(it.y - targetYear) <= 1);
           }
           if (!match) {
             match = withImages[0];
@@ -1130,16 +1141,21 @@ export async function resolveOfficialPoster(params: {
       });
       if (tvRes.ok) {
         const tvList: any[] = await tvRes.json();
-        for (const item of tvList) {
-          const imgUrl = item?.show?.image?.original || item?.show?.image?.medium;
-          if (imgUrl) {
-            const result: ResolvedPoster = {
-              poster: imgUrl,
-              source: 'tvmaze-title'
-            };
-            posterCache.set(cacheKey, { timestamp: Date.now(), data: result });
-            return result;
-          }
+        // If targetYear is provided, look for matching year first
+        let matchedItem = tvList.find((item: any) => {
+          if (!targetYear || !item?.show?.premiered) return false;
+          const showYear = parseInt(item.show.premiered.slice(0, 4), 10);
+          return Math.abs(showYear - targetYear) <= 1;
+        }) || tvList[0];
+
+        const imgUrl = matchedItem?.show?.image?.original || matchedItem?.show?.image?.medium;
+        if (imgUrl) {
+          const result: ResolvedPoster = {
+            poster: imgUrl,
+            source: 'tvmaze-title'
+          };
+          posterCache.set(cacheKey, { timestamp: Date.now(), data: result });
+          return result;
         }
       }
     } catch {}

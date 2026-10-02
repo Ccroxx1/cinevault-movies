@@ -93,6 +93,7 @@ export function getPosterCandidates(movie?: {
     if (year) params.set('year', year);
     params.set('type', 'movie');
     params.set('size', 'medium');
+    rawList.push(`/api/movies/poster?${params.toString()}`);
     rawList.push(`/api/poster?${params.toString()}`);
   }
 
@@ -111,6 +112,7 @@ export function getPosterCandidates(movie?: {
     if (year) params.set('year', year);
     params.set('type', 'movie');
     params.set('size', 'medium');
+    rawList.push(`/api/movies/poster?${params.toString()}`);
     rawList.push(`/api/poster?${params.toString()}`);
   }
 
@@ -129,7 +131,7 @@ export function getPosterCandidates(movie?: {
 /**
  * Returns an ordered array of candidate poster URLs for Television Series.
  * Sequence:
- * 1. Official Genuine Key Art & Poster Resolver (/api/poster?imdb=...&type=tv)
+ * 1. Official Genuine Key Art & Poster Resolver (/api/tv/poster?imdb=...&type=tv)
  * 2. High-resolution TVmaze or external poster
  * 3. Associated release poster_url (if provided)
  * 4. Official Server Title Resolver (for series without known IMDb ID)
@@ -160,6 +162,7 @@ export function getSeriesPosterCandidates(series?: {
     if (year) params.set('year', year);
     params.set('type', 'tv');
     params.set('size', 'medium');
+    rawList.push(`/api/tv/poster?${params.toString()}`);
     rawList.push(`/api/poster?${params.toString()}`);
   }
 
@@ -175,6 +178,7 @@ export function getSeriesPosterCandidates(series?: {
     if (year) params.set('year', year);
     params.set('type', 'tv');
     params.set('size', 'medium');
+    rawList.push(`/api/tv/poster?${params.toString()}`);
     rawList.push(`/api/poster?${params.toString()}`);
   }
 

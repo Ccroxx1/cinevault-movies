@@ -262,12 +262,12 @@ export function parseQualityFromEztv(title: string, filename?: string): {
 }
 
 /**
- * Clean TV Series Name from raw EZTV release title
- * e.g. "Dark.S01E01.1080p.WEBRip..." -> "Dark"
- * e.g. "Sydney Harbour Cops S01E01 1080p HDTV..." -> "Sydney Harbour Cops"
+ * Clean TV Series Name and extract Year from raw EZTV release title
+ * e.g. "Dark.Matter.2024.S02E06.1080p.HEVC..." -> { title: "Dark Matter", year: "2024" }
+ * e.g. "War.2026.S01E01.1080p.HEVC..." -> { title: "War", year: "2026" }
  */
-export function extractShowTitleFromRelease(rawTitle: string): string {
-  if (!rawTitle) return '';
+export function extractShowTitleAndYear(rawTitle: string): { title: string; year?: string } {
+  if (!rawTitle) return { title: '', year: undefined };
   let cleaned = rawTitle;
 
   // Cut off at S01E01, S01, Season 1, etc.
@@ -275,15 +275,25 @@ export function extractShowTitleFromRelease(rawTitle: string): string {
   cleaned = cleaned.replace(/\bseason\s*\d{1,2}\b.*$/i, '');
   cleaned = cleaned.replace(/\bepisode\s*\d{1,2}\b.*$/i, '');
 
-  // Cut off common release tags
-  cleaned = cleaned.replace(/\b(1080p|720p|2160p|4k|uhd|hevc|x265|x264|web-?dl|webrip|hdtv|bluray|eztv)\b.*$/gi, '');
+  // Cut off common release tags and scene group names
+  cleaned = cleaned.replace(/\b(1080p|720p|2160p|4k|uhd|hevc|x265|x264|web-?dl|webrip|hdtv|bluray|eztv|xvid|afg|megusta|msd)\b.*$/gi, '');
 
   // Replace dots, underscores with spaces
   cleaned = cleaned.replace(/[._]/g, ' ').replace(/\s+/g, ' ').trim();
-  // Remove year if at end e.g. "Show Name 2022" -> "Show Name"
-  cleaned = cleaned.replace(/\s+\(\d{4}\)$/, '').trim();
 
-  return cleaned || rawTitle;
+  // Extract year if present at the end: e.g. "Dark Matter 2024" or "Dark Matter (2024)"
+  let year: string | undefined;
+  const yearMatch = cleaned.match(/\s+(?:\()?((?:19|20)\d{2})(?:\))?$/);
+  if (yearMatch) {
+    year = yearMatch[1];
+    cleaned = cleaned.replace(yearMatch[0], '').trim();
+  }
+
+  return { title: cleaned || rawTitle, year };
+}
+
+export function extractShowTitleFromRelease(rawTitle: string): string {
+  return extractShowTitleAndYear(rawTitle).title;
 }
 
 /**

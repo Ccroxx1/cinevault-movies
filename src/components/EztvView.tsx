@@ -26,10 +26,11 @@ import {
   formatEztvBytes,
   formatEztvDate,
   parseQualityFromEztv,
-  extractShowTitleFromRelease
+  extractShowTitleFromRelease,
+  extractShowTitleAndYear
 } from '../services/eztvApi';
 import { CopyIcon } from './ActionIcons';
-import { getPrimarySeriesPoster, CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
+import { getSeriesPosterCandidates, getPrimarySeriesPoster, CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
 
 interface EztvViewProps {
   initialQuery?: string;
@@ -54,6 +55,170 @@ const POPULAR_SHOWS = [
 ];
 
 const QUALITY_FILTERS = ['All', '1080p', '720p', '4K UHD', 'x265 / HEVC', '480p'];
+
+interface EztvReleaseRowProps {
+  torrent: EztvTorrent;
+  showMeta?: TvShowInfo | null;
+  isCopied: boolean;
+  onSelectRelease: (torrent: EztvTorrent) => void;
+  onLaunchMagnet: (torrent: EztvTorrent) => void;
+  onCopyMagnet: (torrent: EztvTorrent) => void;
+}
+
+const EztvReleaseRow: React.FC<EztvReleaseRowProps> = ({
+  torrent,
+  showMeta,
+  isCopied,
+  onSelectRelease,
+  onLaunchMagnet,
+  onCopyMagnet
+}) => {
+  const { quality, isHevc } = parseQualityFromEztv(torrent.title, torrent.filename);
+  const { title: showTitle, year: showYear } = extractShowTitleAndYear(torrent.title);
+  const imdbParam = (torrent.imdb_id && torrent.imdb_id !== '0') ? `tt${torrent.imdb_id}` : (showMeta?.imdb_code || '');
+
+  const posterCandidates = useMemo(() => {
+    return getSeriesPosterCandidates({
+      name: showTitle,
+      imdb_code: imdbParam,
+      imdb_id: torrent.imdb_id,
+      year: showYear,
+      poster_url: torrent.poster_url,
+      image: showMeta?.image
+    });
+  }, [showTitle, imdbParam, torrent.imdb_id, showYear, torrent.poster_url, showMeta?.image]);
+
+  const [candidateIndex, setCandidateIndex] = useState(0);
+
+  useEffect(() => {
+    setCandidateIndex(0);
+  }, [torrent.id, torrent.hash]);
+
+  const handleImageError = () => {
+    if (candidateIndex + 1 < posterCandidates.length) {
+      setCandidateIndex((prev) => prev + 1);
+    }
+  };
+
+  const currentPosterSrc = posterCandidates[candidateIndex] || CINEVAULT_POSTER_FALLBACK;
+
+  return (
+    <div
+      onClick={() => onSelectRelease(torrent)}
+      className="group p-3.5 sm:p-4 rounded-2xl border transition-all duration-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4 eztv-release-row shadow-xs cursor-pointer hover:border-rose-500/50 hover:bg-white/[0.03]"
+    >
+      <div className="flex items-start sm:items-center gap-3.5 flex-1 min-w-0">
+        {/* Real Official Show Poster Thumbnail */}
+        <div className="w-12 h-16 sm:w-14 sm:h-20 bg-neutral-900 rounded-xl overflow-hidden shrink-0 border border-white/10 relative shadow-md">
+          <img
+            src={currentPosterSrc}
+            alt={showTitle}
+            loading="lazy"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+            referrerPolicy="no-referrer"
+            onError={handleImageError}
+          />
+        </div>
+
+        {/* Release Details */}
+        <div className="flex-1 min-w-0 space-y-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Season / Episode Badge */}
+            {torrent.season && torrent.episode && (
+              <span className="px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-500 font-bold border border-rose-500/30 text-xs font-mono">
+                S{String(torrent.season).padStart(2, '0')}E{String(torrent.episode).padStart(2, '0')}
+              </span>
+            )}
+
+            {/* Quality Badge */}
+            <span className="px-2 py-0.5 rounded-md bg-white/10 text-neutral-300 text-xs font-semibold border border-white/10">
+              {quality}
+            </span>
+
+            {/* HEVC Badge */}
+            {isHevc && (
+              <span className="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-400 border border-purple-500/30 text-xs font-semibold">
+                x265 / HEVC
+              </span>
+            )}
+
+            {/* Seeds / Peers */}
+            <span className="flex items-center gap-1 text-xs font-semibold text-emerald-500">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              {torrent.seeds || 0} seeds
+            </span>
+
+            <span className="text-xs text-neutral-400 font-mono">
+              {torrent.peers || 0} peers
+            </span>
+
+            <span className="text-[11px] text-rose-400 font-semibold group-hover:underline ml-auto hidden sm:inline-flex items-center gap-1">
+              Series Details →
+            </span>
+          </div>
+
+          {/* Torrent Title */}
+          <h3 className="text-sm font-semibold text-white group-hover:text-rose-400 transition-colors break-all leading-snug">
+            {torrent.title}
+          </h3>
+
+          {/* Meta Specs Strip */}
+          <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-400 font-mono">
+            <span>{formatEztvBytes(torrent.size_bytes)}</span>
+            <span>•</span>
+            <span>{formatEztvDate(torrent.date_released_unix)}</span>
+            {torrent.filename && (
+              <>
+                <span>•</span>
+                <span className="text-neutral-500 truncate max-w-xs">{torrent.filename}</span>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div
+        className="flex items-center gap-2 shrink-0 self-end lg:self-center"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* View Details Button */}
+        <button
+          onClick={() => onSelectRelease(torrent)}
+          className="px-3 py-2 rounded-xl text-xs font-semibold bg-white/10 hover:bg-rose-600 hover:text-white text-neutral-200 border border-white/10 flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap"
+          title="View full TV series detail page"
+        >
+          <Tv className="w-3.5 h-3.5" />
+          <span>Details</span>
+        </button>
+
+        {/* Magnet Download */}
+        <button
+          onClick={() => onLaunchMagnet(torrent)}
+          className="px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-950/40 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap"
+          title="Launch BitTorrent client"
+        >
+          <Magnet className="w-4 h-4" />
+          <span>Magnet Download</span>
+        </button>
+
+        {/* Copy Magnet */}
+        <button
+          onClick={() => onCopyMagnet(torrent)}
+          className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-center ${
+            isCopied
+              ? 'bg-rose-600 text-white border-rose-500'
+              : 'bg-white/5 hover:bg-white/15 border-white/10 text-neutral-300 hover:text-white'
+          }`}
+          title={isCopied ? 'Copied to clipboard' : 'Copy raw magnet URI'}
+          aria-label="Copy Magnet URI"
+        >
+          {isCopied ? <Check className="w-4 h-4 text-white" /> : <CopyIcon size={16} />}
+        </button>
+      </div>
+    </div>
+  );
+};
 
 export const EztvView: React.FC<EztvViewProps> = ({
   initialQuery,
@@ -750,138 +915,17 @@ export const EztvView: React.FC<EztvViewProps> = ({
       {/* Torrents Release List */}
       {!isLoading && !error && filteredTorrents.length > 0 && (
         <div className="space-y-2.5">
-          {filteredTorrents.map((torrent) => {
-            const { quality, isHevc } = parseQualityFromEztv(torrent.title, torrent.filename);
-            const isCopied = copiedHash === torrent.hash;
-            const showTitle = extractShowTitleFromRelease(torrent.title);
-            const imdbParam = (torrent.imdb_id && torrent.imdb_id !== '0') ? `tt${torrent.imdb_id}` : (showMeta?.imdb_code || '');
-            const posterSrc = getPrimarySeriesPoster({
-              name: showTitle,
-              imdb_code: imdbParam,
-              imdb_id: torrent.imdb_id,
-              poster_url: torrent.poster_url
-            });
-
-            return (
-              <div
-                key={torrent.id || torrent.hash}
-                onClick={() => handleSelectRelease(torrent)}
-                className="group p-3.5 sm:p-4 rounded-2xl border transition-all duration-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4 eztv-release-row shadow-xs cursor-pointer hover:border-rose-500/50 hover:bg-white/[0.03]"
-              >
-                <div className="flex items-start sm:items-center gap-3.5 flex-1 min-w-0">
-                  {/* Real Official Show Poster Thumbnail */}
-                  <div className="w-12 h-16 sm:w-14 sm:h-20 bg-neutral-900 rounded-xl overflow-hidden shrink-0 border border-white/10 relative shadow-md">
-                    <img
-                      src={posterSrc}
-                      alt={showTitle}
-                      loading="lazy"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                      referrerPolicy="no-referrer"
-                      onError={(e) => {
-                        e.currentTarget.src = CINEVAULT_POSTER_FALLBACK;
-                      }}
-                    />
-                  </div>
-
-                  {/* Release Details */}
-                  <div className="flex-1 min-w-0 space-y-1.5">
-                    <div className="flex flex-wrap items-center gap-2">
-                      {/* Season / Episode Badge */}
-                      {torrent.season && torrent.episode && (
-                        <span className="px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-500 font-bold border border-rose-500/30 text-xs font-mono">
-                          S{String(torrent.season).padStart(2, '0')}E{String(torrent.episode).padStart(2, '0')}
-                        </span>
-                      )}
-
-                      {/* Quality Badge */}
-                      <span className="px-2 py-0.5 rounded-md bg-white/10 text-neutral-300 text-xs font-semibold border border-white/10">
-                        {quality}
-                      </span>
-
-                      {/* HEVC Badge */}
-                      {isHevc && (
-                        <span className="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-400 border border-purple-500/30 text-xs font-semibold">
-                          x265 / HEVC
-                        </span>
-                      )}
-
-                      {/* Seeds / Peers */}
-                      <span className="flex items-center gap-1 text-xs font-semibold text-emerald-500">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        {torrent.seeds || 0} seeds
-                      </span>
-
-                      <span className="text-xs text-neutral-400 font-mono">
-                        {torrent.peers || 0} peers
-                      </span>
-
-                      <span className="text-[11px] text-rose-400 font-semibold group-hover:underline ml-auto hidden sm:inline-flex items-center gap-1">
-                        Series Details →
-                      </span>
-                    </div>
-
-                    {/* Torrent Title */}
-                    <h3 className="text-sm font-semibold text-white group-hover:text-rose-400 transition-colors break-all leading-snug">
-                      {torrent.title}
-                    </h3>
-
-                    {/* Meta Specs Strip */}
-                    <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-400 font-mono">
-                      <span>{formatEztvBytes(torrent.size_bytes)}</span>
-                      <span>•</span>
-                      <span>{formatEztvDate(torrent.date_released_unix)}</span>
-                      {torrent.filename && (
-                        <>
-                          <span>•</span>
-                          <span className="text-neutral-500 truncate max-w-xs">{torrent.filename}</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div
-                  className="flex items-center gap-2 shrink-0 self-end lg:self-center"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {/* View Details Button */}
-                  <button
-                    onClick={() => handleSelectRelease(torrent)}
-                    className="px-3 py-2 rounded-xl text-xs font-semibold bg-white/10 hover:bg-rose-600 hover:text-white text-neutral-200 border border-white/10 flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap"
-                    title="View full TV series detail page"
-                  >
-                    <Tv className="w-3.5 h-3.5" />
-                    <span>Details</span>
-                  </button>
-
-                  {/* Magnet Download */}
-                  <button
-                    onClick={() => handleLaunchMagnet(torrent)}
-                    className="px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-950/40 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap"
-                    title="Launch BitTorrent client"
-                  >
-                    <Magnet className="w-4 h-4" />
-                    <span>Magnet Download</span>
-                  </button>
-
-                  {/* Copy Magnet */}
-                  <button
-                    onClick={() => handleCopyMagnet(torrent)}
-                    className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-center ${
-                      isCopied
-                        ? 'bg-rose-600 text-white border-rose-500'
-                        : 'bg-white/5 hover:bg-white/15 border-white/10 text-neutral-300 hover:text-white'
-                    }`}
-                    title={isCopied ? 'Copied to clipboard' : 'Copy raw magnet URI'}
-                    aria-label="Copy Magnet URI"
-                  >
-                    {isCopied ? <Check className="w-4 h-4 text-white" /> : <CopyIcon size={16} />}
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+          {filteredTorrents.map((torrent) => (
+            <EztvReleaseRow
+              key={torrent.id || torrent.hash}
+              torrent={torrent}
+              showMeta={showMeta}
+              isCopied={copiedHash === torrent.hash}
+              onSelectRelease={handleSelectRelease}
+              onLaunchMagnet={handleLaunchMagnet}
+              onCopyMagnet={handleCopyMagnet}
+            />
+          ))}
         </div>
       )}
 
