@@ -52,24 +52,159 @@ function buildImageVariants(url?: string): string[] {
 
 /**
  * Returns an ordered array of candidate poster URLs from highest preference to lowest.
- * Sequence: large_cover_image (500x750 sharp) -> medium_cover_image -> small_cover_image -> local fallback
+ * Sequence:
+ * 1. Direct IMDb poster if explicitly provided
+ * 2. Official Genuine Theatrical Poster Resolver (/api/poster?imdb=...&size=medium)
+ * 3. High-res catalog cover artwork (large_cover_image)
+ * 4. Medium cover artwork
+ * 5. Official Title Search Resolver (for titles without known IMDb ID)
+ * 6. Secondary CDN mirrors & small cover artwork
+ * 7. Local SVG fallback
  */
 export function getPosterCandidates(movie?: {
+  id?: number | string;
+  title?: string;
+  title_english?: string;
+  imdb_code?: string;
+  year?: number | string;
   medium_cover_image?: string;
   large_cover_image?: string;
   small_cover_image?: string;
+  imdb_poster?: string;
 } | null): string[] {
   if (!movie) return [CINEVAULT_POSTER_FALLBACK];
 
-  const rawList = [
-    ...buildImageVariants(movie.large_cover_image),
-    ...buildImageVariants(movie.medium_cover_image),
-    ...buildImageVariants(movie.small_cover_image),
-    CINEVAULT_POSTER_FALLBACK,
-  ].filter((s) => typeof s === 'string' && s.trim().length > 0) as string[];
+  const rawList: string[] = [];
+
+  // 1. Direct IMDb poster if explicitly provided
+  if (movie.imdb_poster) {
+    rawList.push(movie.imdb_poster);
+  }
+
+  // 2. Official Genuine Theatrical Poster Resolver (retrieves genuine theatrical release poster from IMDb CDN)
+  const imdbCode = (movie.imdb_code || '').trim();
+  const title = (movie.title || movie.title_english || '').trim();
+  const year = movie.year ? String(movie.year) : '';
+
+  if (imdbCode && /^tt\d+/i.test(imdbCode)) {
+    const params = new URLSearchParams();
+    params.set('imdb', imdbCode);
+    if (title) params.set('title', title);
+    if (year) params.set('year', year);
+    params.set('type', 'movie');
+    params.set('size', 'medium');
+    rawList.push(`/api/poster?${params.toString()}`);
+  }
+
+  // 3. High-res catalog cover artwork
+  if (movie.large_cover_image) {
+    rawList.push(...buildImageVariants(movie.large_cover_image));
+  }
+  if (movie.medium_cover_image) {
+    rawList.push(...buildImageVariants(movie.medium_cover_image));
+  }
+
+  // 4. Official Title Search Resolver if no valid IMDb code was provided
+  if (!imdbCode && title) {
+    const params = new URLSearchParams();
+    params.set('title', title);
+    if (year) params.set('year', year);
+    params.set('type', 'movie');
+    params.set('size', 'medium');
+    rawList.push(`/api/poster?${params.toString()}`);
+  }
+
+  // 5. Small cover image
+  if (movie.small_cover_image) {
+    rawList.push(...buildImageVariants(movie.small_cover_image));
+  }
+
+  // 6. Final fallback
+  rawList.push(CINEVAULT_POSTER_FALLBACK);
 
   // Deduplicate while preserving sequence order
-  return Array.from(new Set(rawList));
+  return Array.from(new Set(rawList.filter((s) => typeof s === 'string' && s.trim().length > 0)));
+}
+
+/**
+ * Returns an ordered array of candidate poster URLs for Television Series.
+ * Sequence:
+ * 1. Official Genuine Key Art & Poster Resolver (/api/poster?imdb=...&type=tv)
+ * 2. High-resolution TVmaze or external poster
+ * 3. Associated release poster_url (if provided)
+ * 4. Official Server Title Resolver (for series without known IMDb ID)
+ * 5. Local SVG fallback
+ */
+export function getSeriesPosterCandidates(series?: {
+  id?: number | string;
+  name?: string;
+  title?: string;
+  imdb_code?: string;
+  imdb_id?: string;
+  year?: number | string;
+  image?: string;
+  poster_url?: string;
+} | null): string[] {
+  if (!series) return [CINEVAULT_POSTER_FALLBACK];
+
+  const rawList: string[] = [];
+  const rawImdb = series.imdb_code || (series.imdb_id ? (series.imdb_id.startsWith('tt') ? series.imdb_id : `tt${series.imdb_id}`) : '');
+  const cleanTitle = (series.name || series.title || '').trim();
+  const year = series.year ? String(series.year) : '';
+
+  // 1. Official Genuine Series Poster Resolver via IMDb / TVmaze
+  if (rawImdb && /^tt\d+/i.test(rawImdb)) {
+    const params = new URLSearchParams();
+    params.set('imdb', rawImdb);
+    if (cleanTitle) params.set('title', cleanTitle);
+    if (year) params.set('year', year);
+    params.set('type', 'tv');
+    params.set('size', 'medium');
+    rawList.push(`/api/poster?${params.toString()}`);
+  }
+
+  // 2. Resolved series image if present and not fallback SVG
+  if (series.image && !series.image.startsWith('data:image/svg')) {
+    rawList.push(series.image);
+  }
+
+  // 3. Official Server Title Resolver if no IMDb ID
+  if (!rawImdb && cleanTitle) {
+    const params = new URLSearchParams();
+    params.set('title', cleanTitle);
+    if (year) params.set('year', year);
+    params.set('type', 'tv');
+    params.set('size', 'medium');
+    rawList.push(`/api/poster?${params.toString()}`);
+  }
+
+  // 4. Attached release poster_url
+  if (series.poster_url && !series.poster_url.startsWith('data:image/svg')) {
+    rawList.push(series.poster_url);
+  }
+
+  // 5. Final fallback
+  rawList.push(CINEVAULT_POSTER_FALLBACK);
+
+  return Array.from(new Set(rawList.filter((s) => typeof s === 'string' && s.trim().length > 0)));
+}
+
+/**
+ * Convenience helper to get the highest priority original poster for any movie object
+ */
+export function getPrimaryMoviePoster(movie?: any): string {
+  if (!movie) return CINEVAULT_POSTER_FALLBACK;
+  const candidates = getPosterCandidates(movie);
+  return candidates[0] || CINEVAULT_POSTER_FALLBACK;
+}
+
+/**
+ * Convenience helper to get the highest priority original poster for any TV series object
+ */
+export function getPrimarySeriesPoster(series?: any): string {
+  if (!series) return CINEVAULT_POSTER_FALLBACK;
+  const candidates = getSeriesPosterCandidates(series);
+  return candidates[0] || CINEVAULT_POSTER_FALLBACK;
 }
 
 /**

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { X, User, Film, Star, Calendar, Clock, Loader2 } from 'lucide-react';
 import { Movie } from '../types';
 import { fetchFilmography } from '../services/movieApi';
-import { CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
+import { CINEVAULT_POSTER_FALLBACK, getPrimaryMoviePoster } from '../utils/imageFallback';
 
 interface FilmographyModalProps {
   personName: string | null;
@@ -155,7 +155,7 @@ export const FilmographyModal: React.FC<FilmographyModalProps> = ({
                 >
                   <div className="aspect-[2/3] w-full bg-neutral-900 overflow-hidden relative">
                     <img
-                      src={m.medium_cover_image || m.large_cover_image || CINEVAULT_POSTER_FALLBACK}
+                      src={getPrimaryMoviePoster(m)}
                       alt={m.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       referrerPolicy="no-referrer"

@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { Movie, CineBotMessage, FilterParams, CineBotShowSuggestion, TvShowInfo } from '../types';
 import { sendCineBotMessage, CINEBOT_QUICK_PROMPTS } from '../services/cinebotService';
-import { CINEVAULT_POSTER_FALLBACK, normalizeImageUrl } from '../utils/imageFallback';
+import { CINEVAULT_POSTER_FALLBACK, normalizeImageUrl, getPrimaryMoviePoster, getPrimarySeriesPoster } from '../utils/imageFallback';
 import { useTheme } from '../context/ThemeContext';
 
 interface CineBotModalProps {
@@ -615,7 +615,7 @@ export const CineBotModal: React.FC<CineBotModalProps> = ({
                     {msg.suggestedMovies.map((sugg, sIdx) => {
                       const movieObj = sugg.movieData;
                       const isBookmarked = movieObj ? watchlist.some((w) => w.id === movieObj.id) : false;
-                      const posterUrl = movieObj?.medium_cover_image || movieObj?.small_cover_image || CINEVAULT_POSTER_FALLBACK;
+                      const posterUrl = getPrimaryMoviePoster(movieObj);
 
                       return (
                         <div
@@ -757,7 +757,11 @@ export const CineBotModal: React.FC<CineBotModalProps> = ({
                   <div className="space-y-2">
                     {msg.suggestedShows.map((showSugg, showIdx) => {
                       const showObj = showSugg.showData;
-                      const posterUrl = showObj?.image || CINEVAULT_POSTER_FALLBACK;
+                      const posterUrl = getPrimarySeriesPoster(showObj || {
+                        name: showSugg.title,
+                        imdb_code: showSugg.imdb_code,
+                        year: showSugg.year
+                      });
                       const networkName = showObj?.network;
                       const ratingVal = showObj?.rating;
                       const displayYear = showSugg.year || showObj?.year;

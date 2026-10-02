@@ -1,7 +1,7 @@
 import React from 'react';
 import { Movie, buildMagnetLink } from '../types';
 import { PlayIcon } from './ActionIcons';
-import { CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
+import { CINEVAULT_POSTER_FALLBACK, getPrimaryMoviePoster } from '../utils/imageFallback';
 
 interface RecentlyViewedStripProps {
   recentMovies: Movie[];
@@ -54,13 +54,13 @@ export const RecentlyViewedStrip: React.FC<RecentlyViewedStripProps> = ({
             >
               <div className="relative aspect-[2/3] w-full overflow-hidden bg-neutral-900">
                 <img
-                  src={movie.medium_cover_image || movie.large_cover_image || CINEVAULT_POSTER_FALLBACK}
+                  src={getPrimaryMoviePoster(movie)}
                   alt={`${movie.title} Poster`}
                   loading="lazy"
                   width="176"
                   height="264"
                   onError={(e) => {
-                    (e.target as HTMLElement).style.display = 'none';
+                    e.currentTarget.src = CINEVAULT_POSTER_FALLBACK;
                   }}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />

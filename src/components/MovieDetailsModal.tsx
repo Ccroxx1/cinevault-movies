@@ -29,7 +29,7 @@ import { BookmarkPlusIcon, BookmarkIcon, PlayIcon, CopyIcon } from './ActionIcon
 import { useMovieComparison } from '../context/MovieComparisonContext';
 import { TorrentSwarmHealthBadge } from './TorrentSwarmHealthBadge';
 import { DownloadSpeedEstimator } from './DownloadSpeedEstimator';
-import { CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
+import { CINEVAULT_POSTER_FALLBACK, getPrimaryMoviePoster } from '../utils/imageFallback';
 import { EztvMovieSection } from './EztvMovieSection';
 
 interface MovieDetailsModalProps {
@@ -167,8 +167,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
   const rawBackdrop = movie.background_image_original || movie.background_image || screenshots[0];
   const backdropImage = (typeof rawBackdrop === 'string' && rawBackdrop.trim().length > 0) ? rawBackdrop : null;
 
-  const posterUrl = [movie.large_cover_image, movie.medium_cover_image, movie.small_cover_image]
-    .find((url) => typeof url === 'string' && url.trim().length > 0) || CINEVAULT_POSTER_FALLBACK;
+  const posterUrl = getPrimaryMoviePoster(movie);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto bg-black/90 backdrop-blur-xl animate-in fade-in duration-200" role="dialog" aria-modal="true" aria-label={movie.title}>
@@ -704,7 +703,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
                   >
                     <div className="aspect-[2/3] rounded-xl overflow-hidden bg-neutral-900">
                       <img
-                        src={sug.medium_cover_image || sug.small_cover_image || CINEVAULT_POSTER_FALLBACK}
+                        src={getPrimaryMoviePoster(sug)}
                         alt={sug.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                       />

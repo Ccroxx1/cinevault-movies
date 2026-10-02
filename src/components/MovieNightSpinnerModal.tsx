@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { Movie } from '../types';
 import { GENRES } from '../services/movieApi';
-import { CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
+import { CINEVAULT_POSTER_FALLBACK, getPrimaryMoviePoster } from '../utils/imageFallback';
 
 interface MovieNightSpinnerModalProps {
   isOpen: boolean;
@@ -189,7 +189,7 @@ export const MovieNightSpinnerModal: React.FC<MovieNightSpinnerModalProps> = ({
               <div className="flex gap-4 items-start">
                 <div className="w-28 sm:w-32 aspect-[2/3] rounded-xl overflow-hidden bg-neutral-900 shrink-0 border border-white/10 shadow-lg relative">
                   <img
-                    src={displayMovie.medium_cover_image || displayMovie.large_cover_image || CINEVAULT_POSTER_FALLBACK}
+                    src={getPrimaryMoviePoster(displayMovie)}
                     alt={displayMovie.title}
                     className="w-full h-full object-cover"
                     referrerPolicy="no-referrer"

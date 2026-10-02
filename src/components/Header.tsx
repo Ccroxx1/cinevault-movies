@@ -7,7 +7,7 @@ import { BookmarkIcon, PlayIcon } from './ActionIcons';
 import { ColorModeSelector } from './ColorModeSelector';
 import { PWAInstallButton } from './PWAInstallButton';
 import { VisitorCountBadge } from './VisitorCountBadge';
-import { CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
+import { CINEVAULT_POSTER_FALLBACK, getPrimaryMoviePoster } from '../utils/imageFallback';
 import { useTheme, COLOR_MODES } from '../context/ThemeContext';
 
 interface HeaderProps {
@@ -406,17 +406,14 @@ export const Header: React.FC<HeaderProps> = ({
                             className="w-full flex items-center gap-2.5 sm:gap-3 p-2 sm:p-2.5 hover:bg-white/5 rounded-xl cursor-pointer transition-colors text-left group"
                           >
                             <img
-                              src={
-                                [movie.small_cover_image, movie.medium_cover_image, movie.large_cover_image]
-                                  .find((url) => typeof url === 'string' && url.trim().length > 0) || CINEVAULT_POSTER_FALLBACK
-                              }
+                              src={getPrimaryMoviePoster(movie)}
                               alt=""
                               loading="lazy"
                               width="40"
                               height="56"
                               className="w-8 h-11 sm:w-10 sm:h-14 object-cover rounded bg-neutral-900 shrink-0"
                               onError={(e) => {
-                                (e.target as HTMLElement).style.display = 'none';
+                                e.currentTarget.src = CINEVAULT_POSTER_FALLBACK;
                               }}
                             />
                             <div className="flex-1 min-w-0">

@@ -22,7 +22,7 @@ import { useMovieComparison } from '../context/MovieComparisonContext';
 import { buildMagnetLink, Movie, Torrent } from '../types';
 import { TorrentSwarmHealthBadge } from './TorrentSwarmHealthBadge';
 import { DownloadSpeedEstimator } from './DownloadSpeedEstimator';
-import { CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
+import { CINEVAULT_POSTER_FALLBACK, getPrimaryMoviePoster } from '../utils/imageFallback';
 
 interface MovieComparisonModalProps {
   onSelectMovie?: (movie: Movie) => void;
@@ -169,7 +169,7 @@ export const MovieComparisonModal: React.FC<MovieComparisonModalProps> = ({
                       >
                         <div className="aspect-[2/3] rounded-lg overflow-hidden bg-neutral-800 mb-1.5">
                           <img
-                            src={cand.medium_cover_image || cand.small_cover_image || CINEVAULT_POSTER_FALLBACK}
+                            src={getPrimaryMoviePoster(cand)}
                             alt={cand.title}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                             loading="lazy"
@@ -223,7 +223,7 @@ export const MovieComparisonModal: React.FC<MovieComparisonModalProps> = ({
                       <div className="space-y-3">
                         <div className="aspect-[2/3] max-w-[170px] mx-auto rounded-xl overflow-hidden shadow-lg border border-white/10 bg-neutral-900">
                           <img
-                            src={movie.medium_cover_image || movie.large_cover_image || CINEVAULT_POSTER_FALLBACK}
+                            src={getPrimaryMoviePoster(movie)}
                             alt={movie.title}
                             className="w-full h-full object-cover"
                             referrerPolicy="no-referrer"

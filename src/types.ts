@@ -290,6 +290,7 @@ export interface EztvTorrent {
   episode: string;
   small_screenshot?: string;
   large_screenshot?: string;
+  poster_url?: string;
   seeds: number;
   peers: number;
   date_released_unix: number;

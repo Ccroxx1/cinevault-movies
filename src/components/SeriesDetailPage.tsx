@@ -46,7 +46,7 @@ import { AdSenseSlot } from './AdSenseSlot';
 import { TorrentSwarmHealthBadge } from './TorrentSwarmHealthBadge';
 import { DownloadSpeedEstimator } from './DownloadSpeedEstimator';
 import { BookmarkPlusIcon, BookmarkIcon, PlayIcon, CopyIcon } from './ActionIcons';
-import { CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
+import { getSeriesPosterCandidates, getPrimarySeriesPoster, CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
 
 /**
  * Robust parsing of season, episode, packs, and quality from EZTV release titles
@@ -662,8 +662,30 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
     return isWatchlisted(target) || isWatchlisted(show.name);
   }, [isWatchlisted, show]);
 
-  const posterUrl = show?.image || CINEVAULT_POSTER_FALLBACK;
-  const backdropImage = show?.backdropImage || show?.image || null;
+  const seriesPosterCandidates = useMemo(() => {
+    return getSeriesPosterCandidates({
+      ...show,
+      name: show?.name || cleanInitialTitle,
+      title: show?.name || cleanInitialTitle,
+      imdb_code: effectiveImdb,
+      image: show?.image
+    });
+  }, [show, cleanInitialTitle, effectiveImdb]);
+
+  const [posterIndex, setPosterIndex] = useState(0);
+
+  useEffect(() => {
+    setPosterIndex(0);
+  }, [seriesPosterCandidates]);
+
+  const handlePosterError = () => {
+    if (posterIndex + 1 < seriesPosterCandidates.length) {
+      setPosterIndex((prev) => prev + 1);
+    }
+  };
+
+  const currentPosterSrc = seriesPosterCandidates[posterIndex] || CINEVAULT_POSTER_FALLBACK;
+  const backdropImage = show?.backdropImage || show?.image || currentPosterSrc || null;
 
   return (
     <article className="w-full space-y-8 animate-in fade-in duration-300">
@@ -785,12 +807,15 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
             {/* Poster Card */}
             <div className="shrink-0 mx-auto md:mx-0 w-48 sm:w-56 md:w-64 aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl border-2 border-white/10 bg-[#050505] relative group">
               <img
-                src={posterUrl}
+                key={`series-poster-${show?.name || effectiveImdb || 'series'}-${posterIndex}`}
+                src={currentPosterSrc}
                 alt={`${show?.name || 'TV Series'} Official Poster`}
                 width="256"
                 height="384"
                 loading="eager"
-                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+                onError={handlePosterError}
+                className="w-full h-full object-cover transition-opacity duration-300"
               />
 
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 text-white pointer-events-none">
@@ -2078,15 +2103,13 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
             >
               <div className="aspect-[2/3] rounded-xl bg-neutral-900 overflow-hidden relative border border-white/5">
                 <img
-                  src={pop.image}
+                  src={getPrimarySeriesPoster(pop)}
                   alt={pop.name}
                   loading="lazy"
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                    const fallback = e.currentTarget.parentElement?.querySelector('.tv-fallback-box');
-                    if (fallback) fallback.classList.remove('hidden');
+                    e.currentTarget.src = CINEVAULT_POSTER_FALLBACK;
                   }}
                 />
                 <div className="tv-fallback-box hidden absolute inset-0 flex flex-col items-center justify-center bg-neutral-900 text-neutral-500 p-2 text-center">

@@ -11,7 +11,7 @@ import { BatchQualityModal } from './BatchQualityModal';
 import { TorrentSwarmHealthBadge } from './TorrentSwarmHealthBadge';
 import { DownloadSpeedEstimator } from './DownloadSpeedEstimator';
 import { BookmarkPlusIcon, BookmarkIcon, PlayIcon, CopyIcon } from './ActionIcons';
-import { CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
+import { getPosterCandidates, CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
 import { EztvMovieSection } from './EztvMovieSection';
 import { useTheme } from '../context/ThemeContext';
 
@@ -215,8 +215,20 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
   const rawBackdrop = movie.background_image_original || movie.background_image || screenshots[0];
   const backdropImage = (typeof rawBackdrop === 'string' && rawBackdrop.trim().length > 0) ? rawBackdrop : null;
 
-  const posterUrl = [movie.large_cover_image, movie.medium_cover_image, movie.small_cover_image]
-    .find((url) => typeof url === 'string' && url.trim().length > 0) || CINEVAULT_POSTER_FALLBACK;
+  const posterCandidates = getPosterCandidates(movie);
+  const [posterIndex, setPosterIndex] = useState(0);
+
+  useEffect(() => {
+    setPosterIndex(0);
+  }, [movie.id]);
+
+  const handlePosterError = () => {
+    if (posterIndex + 1 < posterCandidates.length) {
+      setPosterIndex((prev) => prev + 1);
+    }
+  };
+
+  const currentPosterSrc = posterCandidates[posterIndex] || CINEVAULT_POSTER_FALLBACK;
 
   return (
     <article className="w-full space-y-8 animate-in fade-in duration-300">
@@ -340,12 +352,15 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
             {/* Poster Card */}
             <div className="shrink-0 mx-auto md:mx-0 w-48 sm:w-56 md:w-64 aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl border-2 border-white/10 bg-[#050505] relative group">
               <img
-                src={posterUrl}
+                key={`detail-poster-${movie.id}-${posterIndex}`}
+                src={currentPosterSrc}
                 alt={`${movie.title} (${movie.year}) Official Poster`}
                 width="256"
                 height="384"
                 loading="eager"
-                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+                onError={handlePosterError}
+                className="w-full h-full object-cover transition-opacity duration-300"
               />
 
               {movie.yt_trailer_code && (
