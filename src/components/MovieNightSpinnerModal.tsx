@@ -16,6 +16,7 @@ import {
 import { Movie } from '../types';
 import { GENRES } from '../services/movieApi';
 import { CINEVAULT_POSTER_FALLBACK, getPrimaryMoviePoster } from '../utils/imageFallback';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 interface MovieNightSpinnerModalProps {
   isOpen: boolean;
@@ -36,6 +37,7 @@ export const MovieNightSpinnerModal: React.FC<MovieNightSpinnerModalProps> = ({
   watchlist = [],
   onToggleWatchlist,
 }) => {
+  useBodyScrollLock(isOpen);
   const [selectedGenre, setSelectedGenre] = useState<string>('All');
   const [minRating, setMinRating] = useState<number>(7.0);
   const [isSpinning, setIsSpinning] = useState<boolean>(false);

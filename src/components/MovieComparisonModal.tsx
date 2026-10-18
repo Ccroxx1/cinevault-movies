@@ -23,6 +23,7 @@ import { buildMagnetLink, Movie, Torrent } from '../types';
 import { TorrentSwarmHealthBadge } from './TorrentSwarmHealthBadge';
 import { DownloadSpeedEstimator } from './DownloadSpeedEstimator';
 import { CINEVAULT_POSTER_FALLBACK, getPrimaryMoviePoster } from '../utils/imageFallback';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 interface MovieComparisonModalProps {
   onSelectMovie?: (movie: Movie) => void;
@@ -37,6 +38,8 @@ export const MovieComparisonModal: React.FC<MovieComparisonModalProps> = ({
 }) => {
   const { comparisonList, addToComparison, removeFromComparison, clearComparison, isOpen, setIsOpen } =
     useMovieComparison();
+
+  useBodyScrollLock(isOpen);
 
   const [addSearchTerm, setAddSearchTerm] = useState('');
   const [showAddPicker, setShowAddPicker] = useState(false);

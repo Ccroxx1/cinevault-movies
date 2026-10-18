@@ -3,6 +3,7 @@ import { X, User, Film, Star, Calendar, Clock, Loader2 } from 'lucide-react';
 import { Movie } from '../types';
 import { fetchFilmography } from '../services/movieApi';
 import { CINEVAULT_POSTER_FALLBACK, getPrimaryMoviePoster } from '../utils/imageFallback';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 interface FilmographyModalProps {
   personName: string | null;
@@ -17,6 +18,7 @@ export const FilmographyModal: React.FC<FilmographyModalProps> = ({
   onClose,
   onSelectMovie,
 }) => {
+  useBodyScrollLock(Boolean(personName));
   const [movies, setMovies] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
 import { ExternalLink, X } from 'lucide-react';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
+
 interface TrailerModalProps {
   ytTrailerCode: string;
   movieTitle: string;
@@ -11,6 +13,7 @@ export const TrailerModal: React.FC<TrailerModalProps> = ({
   movieTitle,
   onClose
 }) => {
+  useBodyScrollLock(Boolean(ytTrailerCode || movieTitle));
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();

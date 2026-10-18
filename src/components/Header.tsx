@@ -54,12 +54,29 @@ export const Header: React.FC<HeaderProps> = ({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isGenreDropdownOpen, setIsGenreDropdownOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   
   const searchInputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const genreMenuRef = useRef<HTMLDivElement>(null);
   const moreMenuRef = useRef<HTMLDivElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let ticking = false;
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setIsScrolled(window.scrollY > 12);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Global keyboard shortcuts: Space or '/' to take user to search, Escape to close
   useEffect(() => {
@@ -173,8 +190,8 @@ export const Header: React.FC<HeaderProps> = ({
       try {
         // Parallel fetch movies and TV shows
         const [moviesPromise, tvPromise] = await Promise.allSettled([
-          fetch(`/api/movies/list?query_term=${encodeURIComponent(trimmed)}&limit=5`).then((r) => r.ok ? r.json() : null),
-          fetch(`/api/tv/shows?q=${encodeURIComponent(trimmed)}`).then((r) => r.ok ? r.json() : null)
+          fetch(`/api/movies/list?query_term=${encodeURIComponent(trimmed)}&limit=5`).then((r) => r.ok ? r.json() : null).catch(() => null),
+          fetch(`/api/tv/shows?q=${encodeURIComponent(trimmed)}`).then((r) => r.ok ? r.json() : null).catch(() => null)
         ]);
 
         if (moviesPromise.status === 'fulfilled' && moviesPromise.value) {
@@ -246,7 +263,19 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full bg-[#0a0a0a]/95 backdrop-blur-xl border-b border-white/10 transition-all">
+      <header className={`sticky top-0 z-40 w-full backdrop-blur-xl border-b transition-all duration-200 ${
+        isScrolled
+          ? isWhite
+            ? 'bg-white/95 border-slate-200/90 shadow-md shadow-slate-900/5'
+            : isBlueBlack
+            ? 'bg-[#080e1e]/95 border-sky-400/20 shadow-lg shadow-black/60'
+            : 'bg-[#0a0a0a]/95 border-white/15 shadow-lg shadow-black/70'
+          : isWhite
+          ? 'bg-white/90 border-slate-200/60 shadow-none'
+          : isBlueBlack
+          ? 'bg-[#080e1e]/85 border-sky-400/10 shadow-none'
+          : 'bg-[#0a0a0a]/85 border-white/10 shadow-none'
+      }`}>
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14 sm:h-16 md:h-20 gap-2 sm:gap-4">
             

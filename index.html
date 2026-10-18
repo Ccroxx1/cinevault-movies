@@ -243,7 +243,14 @@
               lower.indexOf('bad response') !== -1 ||
               lower.indexOf('[vite]') !== -1 ||
               lower.indexOf('failed to connect to websocket') !== -1 ||
-              lower.indexOf('vite-plugin-pwa') !== -1
+              lower.indexOf('vite-plugin-pwa') !== -1 ||
+              lower.indexOf('chrome-extension') !== -1 ||
+              lower.indexOf('moz-extension') !== -1 ||
+              lower.indexOf('safari-web-extension') !== -1 ||
+              lower.indexOf('chrome: call method') !== -1 ||
+              lower.indexOf('window message') !== -1 ||
+              lower.indexOf('ff-content') !== -1 ||
+              lower.indexOf('cldmemdnllncchfahbcnjijheaolemfk') !== -1
             );
           };
 
@@ -270,22 +277,27 @@
           window.addEventListener('error', function(event) {
             var msg = ((event && event.message) || '').toLowerCase();
             var file = ((event && event.filename) || '').toLowerCase();
+            var stack = ((event && event.error && event.error.stack) || '').toLowerCase();
+            var combined = msg + ' ' + file + ' ' + stack;
             if (
-              msg.indexOf('country consent') !== -1 ||
-              msg.indexOf('sacountry') !== -1 ||
-              msg.indexOf('ezoic') !== -1 ||
-              msg.indexOf('profitableratecpmnetwork') !== -1 ||
-              msg.indexOf('adsterra') !== -1 ||
-              msg.indexOf('eagerdazzle') !== -1 ||
-              msg.indexOf('monetization not allowed') !== -1 ||
-              msg.indexOf('bad response') !== -1 ||
-              file.indexOf('sa.min.js') !== -1 ||
-              file.indexOf('ezojs') !== -1 ||
-              file.indexOf('ezoic') !== -1 ||
-              file.indexOf('profitableratecpmnetwork') !== -1 ||
-              file.indexOf('adsterra') !== -1 ||
-              file.indexOf('eagerdazzle') !== -1 ||
-              file.indexOf('gatekeeperconsent') !== -1
+              combined.indexOf('country consent') !== -1 ||
+              combined.indexOf('sacountry') !== -1 ||
+              combined.indexOf('ezoic') !== -1 ||
+              combined.indexOf('profitableratecpmnetwork') !== -1 ||
+              combined.indexOf('adsterra') !== -1 ||
+              combined.indexOf('eagerdazzle') !== -1 ||
+              combined.indexOf('monetization not allowed') !== -1 ||
+              combined.indexOf('bad response') !== -1 ||
+              combined.indexOf('sa.min.js') !== -1 ||
+              combined.indexOf('ezojs') !== -1 ||
+              combined.indexOf('gatekeeperconsent') !== -1 ||
+              combined.indexOf('chrome-extension') !== -1 ||
+              combined.indexOf('moz-extension') !== -1 ||
+              combined.indexOf('safari-web-extension') !== -1 ||
+              combined.indexOf('chrome: call method') !== -1 ||
+              combined.indexOf('window message') !== -1 ||
+              combined.indexOf('ff-content') !== -1 ||
+              combined.indexOf('cldmemdnllncchfahbcnjijheaolemfk') !== -1
             ) {
               event.preventDefault();
               event.stopPropagation();
@@ -295,7 +307,7 @@
 
           window.addEventListener('unhandledrejection', function(event) {
             var reason = (event && event.reason) || '';
-            var str = (typeof reason === 'string' ? reason : (reason && reason.message ? reason.message : '')).toLowerCase();
+            var str = (typeof reason === 'string' ? reason : ((reason && reason.message ? reason.message : '') + ' ' + (reason && reason.stack ? reason.stack : ''))).toLowerCase();
             if (
               str.indexOf('country consent') !== -1 ||
               str.indexOf('sacountry') !== -1 ||
@@ -306,7 +318,14 @@
               str.indexOf('monetization not allowed') !== -1 ||
               str.indexOf('bad response') !== -1 ||
               str.indexOf('ezojs') !== -1 ||
-              str.indexOf('gatekeeperconsent') !== -1
+              str.indexOf('gatekeeperconsent') !== -1 ||
+              str.indexOf('chrome-extension') !== -1 ||
+              str.indexOf('moz-extension') !== -1 ||
+              str.indexOf('safari-web-extension') !== -1 ||
+              str.indexOf('chrome: call method') !== -1 ||
+              str.indexOf('window message') !== -1 ||
+              str.indexOf('ff-content') !== -1 ||
+              str.indexOf('cldmemdnllncchfahbcnjijheaolemfk') !== -1
             ) {
               event.preventDefault();
               event.stopPropagation();

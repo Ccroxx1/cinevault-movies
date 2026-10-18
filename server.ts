@@ -942,8 +942,10 @@ async function resolveTvShowByTitle(rawTitle: string): Promise<ShowSearchResult 
         }
       }
     }
-  } catch (err) {
-    console.warn('TVmaze resolution error:', err);
+  } catch (err: any) {
+    if (err?.name !== 'TimeoutError' && err?.name !== 'AbortError') {
+      console.warn('TVmaze resolution notice:', err?.message || err);
+    }
   }
 
   // 2. Fallback to Wikidata
@@ -1294,7 +1296,7 @@ app.get(['/api/tv/shows', '/api/tv/search'], async (req, res) => {
     const tvmazeUrl = `https://api.tvmaze.com/search/shows?q=${encodeURIComponent(cleanedTitle)}`;
     const tvRes = await fetch(tvmazeUrl, {
       headers: { 'Accept': 'application/json' },
-      signal: AbortSignal.timeout(4000)
+      signal: AbortSignal.timeout(6000)
     });
     if (tvRes.ok) {
       const data: any[] = await tvRes.json();
@@ -1325,7 +1327,17 @@ app.get(['/api/tv/shows', '/api/tv/search'], async (req, res) => {
       return res.json({ status: 'ok', shows });
     }
   } catch (err: any) {
-    console.warn('TV autocomplete error:', err);
+    if (cached?.data) {
+      return res.json({ status: 'ok', shows: cached.data });
+    }
+    const isTimeout = err?.name === 'TimeoutError' || err?.name === 'AbortError' || String(err?.message || '').includes('timeout');
+    if (!isTimeout) {
+      console.warn('TV autocomplete notice:', err?.message || err);
+    }
+  }
+
+  if (cached?.data) {
+    return res.json({ status: 'ok', shows: cached.data });
   }
 
   return res.json({ status: 'ok', shows: [] });

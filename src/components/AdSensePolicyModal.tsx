@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 interface AdSensePolicyModalProps {
   initialTab?: 'privacy' | 'terms' | 'about' | 'contact' | 'dmca' | 'agreement';
@@ -9,6 +10,7 @@ export const AdSensePolicyModal: React.FC<AdSensePolicyModalProps> = ({
   initialTab = 'privacy',
   onClose
 }) => {
+  useBodyScrollLock(true);
   const [activeTab, setActiveTab] = useState<'privacy' | 'terms' | 'about' | 'contact' | 'dmca' | 'agreement'>(initialTab);
 
   return (

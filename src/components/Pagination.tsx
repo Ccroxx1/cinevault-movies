@@ -50,7 +50,12 @@ export const Pagination: React.FC<PaginationProps> = ({
   const handlePageClick = (page: number) => {
     if (page >= 1 && page <= totalPages && page !== currentPage) {
       onPageChange(page);
-      window.scrollTo({ top: 400, behavior: 'smooth' });
+      const target = document.getElementById('movie-search-filters') || document.querySelector('main');
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        window.scrollTo({ top: 380, behavior: 'smooth' });
+      }
     }
   };
 

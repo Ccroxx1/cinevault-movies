@@ -3,6 +3,7 @@ import { Archive, Magnet, Check, Copy, X } from 'lucide-react';
 import { CopyIcon } from './ActionIcons';
 import { Movie, Torrent, buildMagnetLink } from '../types';
 import { downloadMoviePackage, handleBrandedMagnetDownload } from '../utils/downloadPack';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 interface BatchQualityModalProps {
   movie: Movie | null;
@@ -17,6 +18,7 @@ export const BatchQualityModal: React.FC<BatchQualityModalProps> = ({
   onClose,
   onCopyMagnet
 }) => {
+  useBodyScrollLock(isOpen && Boolean(movie && movie.torrents && movie.torrents.length > 0));
   const [copiedHash, setCopiedHash] = useState<string | null>(null);
   const [copiedAll, setCopiedAll] = useState(false);
   const [packagingHash, setPackagingHash] = useState<string | null>(null);

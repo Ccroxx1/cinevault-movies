@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Globe, X, ExternalLink } from 'lucide-react';
 import { Movie } from '../types';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 interface SubtitlesModalProps {
   movie: Movie | null;
@@ -13,6 +14,7 @@ export const SubtitlesModal: React.FC<SubtitlesModalProps> = ({
   isOpen,
   onClose
 }) => {
+  useBodyScrollLock(isOpen && Boolean(movie));
   const [selectedLang, setSelectedLang] = useState<string>('all');
 
   if (!isOpen || !movie) return null;

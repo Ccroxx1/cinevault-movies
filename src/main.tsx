@@ -8,44 +8,43 @@ import './index.css';
 
 // Filter out unhandled errors originating from third-party browser extensions (e.g., MetaMask, crypto wallets, ad blockers)
 if (typeof window !== 'undefined') {
-  const isExtensionError = (message: string, filename?: string) => {
-    const lowerMsg = (message || '').toLowerCase();
-    const lowerFile = (filename || '').toLowerCase();
+  const isExtensionError = (message: string, context?: string) => {
+    const combined = `${message || ''} ${context || ''}`.toLowerCase();
     return (
-      lowerMsg.includes('metamask') ||
-      lowerMsg.includes('ethereum') ||
-      lowerMsg.includes('solana') ||
-      lowerMsg.includes('phantom') ||
-      lowerMsg.includes('coinbase') ||
-      lowerMsg.includes('failed to connect') ||
-      lowerMsg.includes('websocket') ||
-      lowerMsg.includes('[vite]') ||
-      lowerMsg.includes('country consent') ||
-      lowerMsg.includes('sacountry') ||
-      lowerMsg.includes('gatekeeper') ||
-      lowerMsg.includes('ezoic') ||
-      lowerMsg.includes('ezojs') ||
-      lowerMsg.includes('profitableratecpmnetwork') ||
-      lowerMsg.includes('adsterra') ||
-      lowerMsg.includes('eagerdazzle') ||
-      lowerMsg.includes('monetization not allowed') ||
-      lowerMsg.includes('bad response') ||
-      lowerFile.includes('chrome-extension') ||
-      lowerFile.includes('moz-extension') ||
-      lowerFile.includes('safari-web-extension') ||
-      lowerFile.includes('sa.min.js') ||
-      lowerFile.includes('sacountry') ||
-      lowerFile.includes('gatekeeperconsent') ||
-      lowerFile.includes('ezoic') ||
-      lowerFile.includes('profitableratecpmnetwork') ||
-      lowerFile.includes('adsterra') ||
-      lowerFile.includes('eagerdazzle') ||
-      lowerFile.includes('ezojs')
+      combined.includes('metamask') ||
+      combined.includes('ethereum') ||
+      combined.includes('solana') ||
+      combined.includes('phantom') ||
+      combined.includes('coinbase') ||
+      combined.includes('failed to connect') ||
+      combined.includes('websocket') ||
+      combined.includes('[vite]') ||
+      combined.includes('country consent') ||
+      combined.includes('sacountry') ||
+      combined.includes('gatekeeper') ||
+      combined.includes('ezoic') ||
+      combined.includes('ezojs') ||
+      combined.includes('profitableratecpmnetwork') ||
+      combined.includes('adsterra') ||
+      combined.includes('eagerdazzle') ||
+      combined.includes('monetization not allowed') ||
+      combined.includes('bad response') ||
+      combined.includes('chrome-extension') ||
+      combined.includes('moz-extension') ||
+      combined.includes('safari-web-extension') ||
+      combined.includes('sa.min.js') ||
+      combined.includes('gatekeeperconsent') ||
+      combined.includes('chrome: call method') ||
+      combined.includes('window message') ||
+      combined.includes('ff-content') ||
+      combined.includes('cldmemdnllncchfahbcnjijheaolemfk')
     );
   };
 
   window.addEventListener('error', (event) => {
-    if (isExtensionError(event.message || '', event.filename || '')) {
+    const stack = (event.error && event.error.stack) ? String(event.error.stack) : '';
+    const file = event.filename || '';
+    if (isExtensionError(event.message || '', `${file} ${stack}`)) {
       event.preventDefault();
       event.stopPropagation();
       return false;

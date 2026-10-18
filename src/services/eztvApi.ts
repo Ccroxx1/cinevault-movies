@@ -22,8 +22,10 @@ export async function searchTvShows(query: string): Promise<TvShowInfo[]> {
         return data.shows;
       }
     }
-  } catch (err) {
-    console.warn('Failed to query /api/tv/shows, trying direct TVmaze:', err);
+  } catch (err: any) {
+    if (err?.name !== 'AbortError' && err?.name !== 'TimeoutError') {
+      console.debug('Query /api/tv/shows notice, trying direct fallback:', err?.message || err);
+    }
   }
 
   // Direct client fallback to TVmaze in case proxy is slow or down
@@ -54,8 +56,10 @@ export async function searchTvShows(query: string): Promise<TvShowInfo[]> {
         })
         .slice(0, 8);
     }
-  } catch (err) {
-    console.warn('Direct TVmaze query also failed:', err);
+  } catch (err: any) {
+    if (err?.name !== 'AbortError' && err?.name !== 'TimeoutError') {
+      console.debug('Direct TVmaze query notice:', err?.message || err);
+    }
   }
 
   return [];

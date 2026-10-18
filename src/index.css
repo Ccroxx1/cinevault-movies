@@ -1,8 +1,25 @@
 @import "tailwindcss";
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+    scrollbar-gutter: stable;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto !important;
+    }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
   body {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: none;
   }
   h1, h2, h3, h4, h5, h6, .font-display {
     font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -12,23 +29,77 @@
   }
 }
 
-/* Custom sleek scrollbar */
+/* ==========================================================================
+   CROSS-BROWSER SLEEK CINEMA SCROLLBARS (WebKit + Firefox + Chromium Standard)
+   ========================================================================== */
+:root {
+  scrollbar-width: thin;
+  scrollbar-color: #262626 #080808;
+}
+
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #050505;
+  background: #080808;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #222222;
+  background: #262626;
   border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #333333;
+  background: #383838;
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: #4a4a4a;
+}
+
+/* Scrollbar utilities for horizontal carousels, chips, and tight containers */
+.scrollbar-none,
+.no-scrollbar,
+.scrollbar-hide {
+  -ms-overflow-style: none !important; /* IE and Edge */
+  scrollbar-width: none !important; /* Firefox */
+}
+
+.scrollbar-none::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar,
+.scrollbar-hide::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+/* Smooth Horizontal Snap Rails */
+.snap-x-mandatory {
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 1rem;
+}
+
+.snap-start {
+  scroll-snap-align: start;
+}
+
+/* Overscroll containment for dialogs and modals to stop background page bounce */
+.modal-dialog-surface,
+[role="dialog"],
+.overscroll-contain {
+  overscroll-behavior: contain;
 }
 
 /* Animations for hero slideshow */
@@ -299,16 +370,27 @@
 }
 
 /* Scrollbars in Blue-Black */
+[data-theme="blue-black"] {
+  scrollbar-width: thin;
+  scrollbar-color: #1e293b #060b17;
+}
+
 [data-theme="blue-black"] ::-webkit-scrollbar-track {
   background: #060b17;
 }
 
 [data-theme="blue-black"] ::-webkit-scrollbar-thumb {
   background: #1e293b;
+  border-radius: 9999px;
+  border: 1px solid rgba(56, 189, 248, 0.08);
 }
 
 [data-theme="blue-black"] ::-webkit-scrollbar-thumb:hover {
   background: #334155;
+}
+
+[data-theme="blue-black"] ::-webkit-scrollbar-thumb:active {
+  background: #475569;
 }
 
 /* --------------------------------------------------------------------------
@@ -923,16 +1005,27 @@
 }
 
 /* Scrollbars in Light Mode */
+[data-theme="white"] {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
 [data-theme="white"] ::-webkit-scrollbar-track {
   background: #f1f5f9;
 }
 
 [data-theme="white"] ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
+  border-radius: 9999px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 [data-theme="white"] ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+[data-theme="white"] ::-webkit-scrollbar-thumb:active {
+  background: #64748b;
 }
 
 [data-theme="white"] .hero-cinema-container {

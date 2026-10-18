@@ -355,7 +355,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
       {/* Quick Filter Pills */}
       <nav className="space-y-2" aria-label="Quick filters">
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar scroll-smooth">
           <span className="text-[11px] font-bold text-neutral-500 uppercase shrink-0 mr-1">Genre:</span>
           {GENRES.map((g) => (
             <button
@@ -372,7 +372,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           ))}
         </div>
 
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar scroll-smooth">
           <span className="text-[11px] font-bold text-neutral-500 uppercase shrink-0 mr-1">Era:</span>
           {[
             { label: 'All', value: 'All' },

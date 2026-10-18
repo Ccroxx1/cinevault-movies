@@ -21,6 +21,7 @@ import { Movie, CineBotMessage, FilterParams, CineBotShowSuggestion, TvShowInfo 
 import { sendCineBotMessage, CINEBOT_QUICK_PROMPTS } from '../services/cinebotService';
 import { CINEVAULT_POSTER_FALLBACK, normalizeImageUrl, getPrimaryMoviePoster, getPrimarySeriesPoster } from '../utils/imageFallback';
 import { useTheme } from '../context/ThemeContext';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 interface CineBotModalProps {
   isOpen: boolean;
@@ -79,6 +80,8 @@ export const CineBotModal: React.FC<CineBotModalProps> = ({
   const [inputVal, setInputVal] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+  useBodyScrollLock(isOpen && !isMinimized && isMobile);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -523,7 +526,7 @@ export const CineBotModal: React.FC<CineBotModalProps> = ({
       )}
 
       {/* Messages Scroll Area */}
-      <div className={`flex-1 overflow-y-auto px-4 py-4 space-y-4 scrollbar-thin cinebot-messages-area ${
+      <div className={`flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-4 scrollbar-thin cinebot-messages-area ${
         isWhite ? 'bg-[#f8fafc] scrollbar-thumb-slate-300' : isBlueBlack ? 'bg-[#060b17] scrollbar-thumb-sky-900' : 'bg-[#0b0b0e] scrollbar-thumb-white/10'
       }`}>
         {messages.map((msg) => {

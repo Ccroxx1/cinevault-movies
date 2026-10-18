@@ -38,7 +38,7 @@ const RecentlyViewedCard: React.FC<{
 
   return (
     <article
-      className="group shrink-0 w-36 sm:w-44 bg-[#141414] hover:bg-[#1a1a1a] border border-white/10 hover:border-rose-500/40 rounded-xl overflow-hidden transition-all duration-200 cursor-pointer flex flex-col justify-between"
+      className="group shrink-0 w-36 sm:w-44 snap-start bg-[#141414] hover:bg-[#1a1a1a] border border-white/10 hover:border-rose-500/40 rounded-xl overflow-hidden transition-all duration-200 cursor-pointer flex flex-col justify-between"
       onClick={() => onSelectMovie(movie)}
     >
       <div className="relative aspect-[2/3] w-full overflow-hidden bg-neutral-900">
@@ -130,7 +130,7 @@ export const RecentlyViewedStrip: React.FC<RecentlyViewedStripProps> = ({
         </button>
       </div>
 
-      <div className="flex items-center gap-3 overflow-x-auto pb-2 pt-1 scrollbar-thin no-scrollbar">
+      <div className="flex items-center gap-3 overflow-x-auto pb-2 pt-1 scrollbar-none snap-x snap-mandatory scroll-smooth">
         {recentMovies.map((movie) => (
           <RecentlyViewedCard
             key={`recent-${movie.id}`}

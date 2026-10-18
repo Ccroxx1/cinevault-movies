@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Server, Check, Copy } from 'lucide-react';
 import { RECOMMENDED_TRACKERS } from '../types';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 interface DownloadGuideModalProps {
   onClose: () => void;
@@ -11,6 +12,7 @@ export const DownloadGuideModal: React.FC<DownloadGuideModalProps> = ({
   onClose,
   onCopyAllTrackers
 }) => {
+  useBodyScrollLock(true);
   const [copiedTrackers, setCopiedTrackers] = useState(false);
 
   const handleCopyTrackers = () => {

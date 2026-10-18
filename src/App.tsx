@@ -28,6 +28,7 @@ import { FilmographyModal } from './components/FilmographyModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { CineBotModal } from './components/CineBotModal';
 import { CineBotLauncher } from './components/CineBotLauncher';
+import { ScrollToTopButton } from './components/ScrollToTopButton';
 import { EztvView } from './components/EztvView';
 import { SeriesDetailPage } from './components/SeriesDetailPage';
 import { TvShowDetails, TvShowInfo, EztvTorrent } from './types';
@@ -1200,6 +1201,9 @@ export default function App() {
         isOpen={isCineBotOpen}
         onOpen={() => setIsCineBotOpen(true)}
       />
+
+      {/* Floating Smooth Scroll to Top Button */}
+      <ScrollToTopButton />
 
       <CineBotModal
         isOpen={isCineBotOpen}

@@ -1,4 +1,5 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Movie, buildMagnetLink } from '../types';
 import { getMoviePath } from '../utils/seo';
 import { getPosterCandidates, CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
@@ -291,12 +292,35 @@ export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
   onViewAll
 }) => {
   const rowRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const checkScrollBounds = useCallback(() => {
+    if (rowRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = rowRef.current;
+      setCanScrollLeft(scrollLeft > 8);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 8);
+    }
+  }, []);
+
+  useEffect(() => {
+    const el = rowRef.current;
+    if (!el) return;
+    checkScrollBounds();
+    el.addEventListener('scroll', checkScrollBounds, { passive: true });
+    window.addEventListener('resize', checkScrollBounds, { passive: true });
+    return () => {
+      el.removeEventListener('scroll', checkScrollBounds);
+      window.removeEventListener('resize', checkScrollBounds);
+    };
+  }, [movies, checkScrollBounds]);
 
   if (!isLoading && (!movies || movies.length === 0)) return null;
 
   const scroll = (direction: 'left' | 'right') => {
     if (rowRef.current) {
-      const scrollAmount = direction === 'left' ? -600 : 600;
+      const step = Math.max(280, rowRef.current.clientWidth * 0.75);
+      const scrollAmount = direction === 'left' ? -step : step;
       rowRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
   };
@@ -317,31 +341,35 @@ export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
           {onViewAll && (
             <button
               onClick={onViewAll}
-              className="text-xs font-semibold text-neutral-400 hover:text-white px-2.5 py-1 rounded-lg hover:bg-white/5 transition-colors cursor-pointer mr-1"
+              className="text-xs font-semibold text-neutral-400 hover:text-white px-2.5 py-1.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer mr-1"
             >
               Explore All
             </button>
           )}
           <button
             onClick={() => scroll('left')}
-            className="px-2.5 py-1 text-xs font-semibold text-neutral-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+            disabled={!canScrollLeft}
+            className="p-1.5 text-neutral-400 hover:text-white disabled:opacity-25 disabled:cursor-not-allowed rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
             aria-label="Scroll left"
+            title="Scroll left"
           >
-            Prev
+            <ChevronLeft className="w-4 h-4" />
           </button>
           <button
             onClick={() => scroll('right')}
-            className="px-2.5 py-1 text-xs font-semibold text-neutral-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+            disabled={!canScrollRight}
+            className="p-1.5 text-neutral-400 hover:text-white disabled:opacity-25 disabled:cursor-not-allowed rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
             aria-label="Scroll right"
+            title="Scroll right"
           >
-            Next
+            <ChevronRight className="w-4 h-4" />
           </button>
         </nav>
       </div>
 
       <div
         ref={rowRef}
-        className="flex items-stretch gap-3.5 sm:gap-4 overflow-x-auto pb-3 pt-1 scrollbar-none snap-x scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0"
+        className="flex items-stretch gap-3.5 sm:gap-4 overflow-x-auto pb-3 pt-1 scrollbar-none snap-x snap-mandatory scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {isLoading ? (
