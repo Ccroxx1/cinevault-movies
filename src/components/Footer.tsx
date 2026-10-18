@@ -6,12 +6,14 @@ interface FooterProps {
   onNavigateHome?: () => void;
   onOpenPolicy?: (tab: 'privacy' | 'terms' | 'about' | 'contact' | 'dmca' | 'agreement') => void;
   onOpenGuide?: () => void;
+  onOpenShortcuts?: () => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({
   onNavigateHome,
   onOpenPolicy,
-  onOpenGuide
+  onOpenGuide,
+  onOpenShortcuts
 }) => {
   return (
     <footer id="cinevault-footer" className="w-full border-t border-white/10 bg-[#050505] mt-16 py-10 text-xs text-neutral-500" role="contentinfo">
@@ -84,6 +86,20 @@ export const Footer: React.FC<FooterProps> = ({
             >
               Guides
             </button>
+            {onOpenShortcuts && (
+              <>
+                <span className="text-neutral-700" aria-hidden="true">•</span>
+                <button
+                  id="footer-link-shortcuts"
+                  onClick={onOpenShortcuts}
+                  className="hover:text-white transition-colors cursor-pointer flex items-center gap-1 text-neutral-400"
+                  title="Keyboard Shortcuts (?)"
+                >
+                  <span>Shortcuts</span>
+                  <kbd className="px-1 text-[9px] font-mono text-neutral-400 bg-white/5 border border-white/10 rounded">?</kbd>
+                </button>
+              </>
+            )}
           </nav>
 
         </div>

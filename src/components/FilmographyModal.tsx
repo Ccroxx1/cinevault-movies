@@ -26,6 +26,15 @@ export const FilmographyModal: React.FC<FilmographyModalProps> = ({
 
   useEffect(() => {
     if (!personName) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [personName, onClose]);
+
+  useEffect(() => {
+    if (!personName) return;
 
     let isMounted = true;
     setIsLoading(true);

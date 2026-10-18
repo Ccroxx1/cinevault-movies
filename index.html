@@ -4,45 +4,139 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
 
-    <!-- CookieHub CMP (Must load first in <head> for automatic cookie blocking) -->
-    <script src="https://cdn.cookiehub.eu/c2/b3cbcdd6.js"></script>
-    <script type="text/javascript">
+    <!-- 1. Universal Error Trapper & Extension Shield (MUST execute first in <head>) -->
+    <script>
       (function() {
-        var cpm = {};
-        var initialized = false;
-        function initCookieHub() {
-          if (initialized) return;
-          if (typeof window !== 'undefined' && window.cookiehub && typeof window.cookiehub.load === 'function') {
-            initialized = true;
-            try {
-              window.cookiehub.load(cpm);
-            } catch (e) {
-              console.warn('CookieHub init error:', e);
+        var isExtensionOrExternalError = function(msg, file, stack) {
+          var combined = (String(msg || '') + ' ' + String(file || '') + ' ' + String(stack || '')).toLowerCase();
+          return (
+            combined.indexOf('chrome-extension') !== -1 ||
+            combined.indexOf('moz-extension') !== -1 ||
+            combined.indexOf('safari-web-extension') !== -1 ||
+            combined.indexOf('chrome: call method') !== -1 ||
+            combined.indexOf('window message') !== -1 ||
+            combined.indexOf('ff-content') !== -1 ||
+            combined.indexOf('cldmemdnllncchfahbcnjijheaolemfk') !== -1 ||
+            combined.indexOf('foxified') !== -1 ||
+            combined.indexOf('metamask') !== -1 ||
+            combined.indexOf('ethereum') !== -1 ||
+            combined.indexOf('solana') !== -1 ||
+            combined.indexOf('phantom') !== -1 ||
+            combined.indexOf('coinbase') !== -1 ||
+            combined.indexOf('country consent') !== -1 ||
+            combined.indexOf('sacountry') !== -1 ||
+            combined.indexOf('gatekeeper') !== -1 ||
+            combined.indexOf('ezoic') !== -1 ||
+            combined.indexOf('ezojs') !== -1 ||
+            combined.indexOf('ezstandalone') !== -1 ||
+            combined.indexOf('profitableratecpmnetwork') !== -1 ||
+            combined.indexOf('adsterra') !== -1 ||
+            combined.indexOf('eagerdazzle') !== -1 ||
+            combined.indexOf('monetization not allowed') !== -1 ||
+            combined.indexOf('bad response') !== -1 ||
+            combined.indexOf('sa.min.js') !== -1 ||
+            combined.indexOf('[vite]') !== -1 ||
+            combined.indexOf('failed to connect to websocket') !== -1 ||
+            combined.indexOf('vite-plugin-pwa') !== -1
+          );
+        };
+
+        // Window.onerror (returns true to suppress default browser error reporting)
+        window.onerror = function(message, source, lineno, colno, error) {
+          var stack = error && error.stack ? error.stack : '';
+          if (isExtensionOrExternalError(message, source, stack)) {
+            return true;
+          }
+        };
+
+        // Window.onunhandledrejection
+        window.onunhandledrejection = function(event) {
+          var reason = (event && event.reason) || '';
+          var msg = typeof reason === 'string' ? reason : ((reason && reason.message) || '');
+          var stack = (reason && reason.stack) || '';
+          if (isExtensionOrExternalError(msg, '', stack)) {
+            if (event.preventDefault) event.preventDefault();
+            if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+            return true;
+          }
+        };
+
+        // Capture-phase error listener (runs before other script listeners)
+        window.addEventListener('error', function(event) {
+          var msg = (event && event.message) || '';
+          var file = (event && event.filename) || '';
+          var stack = (event && event.error && event.error.stack) || '';
+          if (isExtensionOrExternalError(msg, file, stack)) {
+            if (event.preventDefault) event.preventDefault();
+            if (event.stopPropagation) event.stopPropagation();
+            if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+            return true;
+          }
+        }, true);
+
+        // Capture-phase unhandledrejection listener
+        window.addEventListener('unhandledrejection', function(event) {
+          var reason = (event && event.reason) || '';
+          var msg = typeof reason === 'string' ? reason : ((reason && reason.message) || '');
+          var stack = (reason && reason.stack) || '';
+          if (isExtensionOrExternalError(msg, '', stack)) {
+            if (event.preventDefault) event.preventDefault();
+            if (event.stopPropagation) event.stopPropagation();
+            if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+          }
+        }, true);
+
+        // Capture-phase window message filter (prevents extension timeout messages from bubbling unhandled)
+        window.addEventListener('message', function(event) {
+          try {
+            var data = event && event.data;
+            if (!data) return;
+            var str = typeof data === 'string' ? data : JSON.stringify(data);
+            var lower = str.toLowerCase();
+            if (
+              lower.indexOf('chrome: call method') !== -1 ||
+              lower.indexOf('cldmemdnllncchfahbcnjijheaolemfk') !== -1 ||
+              lower.indexOf('foxified') !== -1
+            ) {
+              if (event.stopImmediatePropagation) event.stopImmediatePropagation();
             }
-          }
-        }
+          } catch(e) {}
+        }, true);
 
-        initCookieHub();
+        // Console error & warn silence for external noise
+        try {
+          var origError = console.error;
+          var origWarn = console.warn;
+          console.error = function() {
+            var str = '';
+            for (var i = 0; i < arguments.length; i++) {
+              var a = arguments[i];
+              str += ' ' + (typeof a === 'string' ? a : ((a && (a.message || a.stack)) ? (a.message + ' ' + a.stack) : ''));
+            }
+            if (isExtensionOrExternalError(str)) {
+              if (typeof console.debug === 'function') console.debug.apply(console, arguments);
+              return;
+            }
+            origError.apply(console, arguments);
+          };
 
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', initCookieHub);
-        }
-
-        window.addEventListener('load', initCookieHub);
-
-        var attempts = 0;
-        var interval = setInterval(function() {
-          attempts++;
-          if (initialized || attempts > 25) {
-            clearInterval(interval);
-            return;
-          }
-          initCookieHub();
-        }, 200);
+          console.warn = function() {
+            var str = '';
+            for (var i = 0; i < arguments.length; i++) {
+              var a = arguments[i];
+              str += ' ' + (typeof a === 'string' ? a : ((a && (a.message || a.stack)) ? (a.message + ' ' + a.stack) : ''));
+            }
+            if (isExtensionOrExternalError(str)) {
+              if (typeof console.debug === 'function') console.debug.apply(console, arguments);
+              return;
+            }
+            origWarn.apply(console, arguments);
+          };
+        } catch(e) {}
       })();
     </script>
 
-    <!-- Ezoic Header Script & Command Queue (Conditional on Production/Debug) -->
+    <!-- 2. Conditional CookieHub & Ad Networks (Only on Production or Debug) -->
     <script>
       window.ezstandalone = window.ezstandalone || {};
       ezstandalone.cmd = ezstandalone.cmd || [];
@@ -52,10 +146,24 @@
         var isProd = host === 'cinevaultmovies.online' || host.endsWith('.cinevaultmovies.online');
         var isDebug = window.location.search.indexOf('ez_js_debugger=1') !== -1 || window.location.search.indexOf('force_ezoic=1') !== -1;
 
+        // Initialize CookieHub CMP only on production domain
+        if (isProd) {
+          try {
+            var ch = document.createElement('script');
+            ch.src = 'https://cdn.cookiehub.eu/c2/b3cbcdd6.js';
+            ch.onload = function() {
+              if (window.cookiehub && typeof window.cookiehub.load === 'function') {
+                window.cookiehub.load({});
+              }
+            };
+            document.head.appendChild(ch);
+          } catch(e) {}
+        }
+
         // Conditionally load ad network tags only in production or explicit debug mode
         try {
           if (isProd || isDebug) {
-            // 1. Adsterra SocialBar (High CTR In-Page Push Notification Bar)
+            // 1. Adsterra SocialBar
             if (!document.querySelector('script[src*="0626bb7ebab6d2671706e9b94ba2b96f.js"]')) {
               var sb = document.createElement('script');
               sb.async = true;
@@ -63,7 +171,7 @@
               document.head.appendChild(sb);
             }
 
-            // 2. Adsterra Popunder (Background Monetization)
+            // 2. Adsterra Popunder
             if (!document.querySelector('script[src*="145a579d83e9caaf18d1d1f81ab75ab8.js"]')) {
               var pu = document.createElement('script');
               pu.async = true;
@@ -71,7 +179,7 @@
               document.head.appendChild(pu);
             }
 
-            // 3. Ezoic Header Scripts (if configured)
+            // 3. Ezoic Header Scripts
             if (!document.querySelector('script[src*="sa.min.js"]')) {
               var s1 = document.createElement('script');
               s1.setAttribute('data-cfasync', 'false');
@@ -91,34 +199,26 @@
           }
         } catch(e) {}
 
-        // 1. Clear any legacy Service Workers or stale precached shells in preview/sandbox environments
+        // Clear legacy Service Workers or stale precached shells in preview/sandbox environments
         try {
-          if ('serviceWorker' in navigator) {
-            if (!isProd) {
-              navigator.serviceWorker.getRegistrations().then(function(regs) {
-                for (var i = 0; i < regs.length; i++) {
-                  regs[i].unregister();
-                }
+          if ('serviceWorker' in navigator && !isProd) {
+            navigator.serviceWorker.getRegistrations().then(function(regs) {
+              for (var i = 0; i < regs.length; i++) regs[i].unregister();
+            });
+            if ('caches' in window) {
+              caches.keys().then(function(keys) {
+                for (var j = 0; j < keys.length; j++) caches.delete(keys[j]);
               });
-              if ('caches' in window) {
-                caches.keys().then(function(keys) {
-                  for (var j = 0; j < keys.length; j++) {
-                    caches.delete(keys[j]);
-                  }
-                });
-              }
             }
           }
         } catch(e) {}
 
-        // 2. Intercept XMLHttpRequest to handle pending 403 or blocked responses from ad/consent servers gracefully
+        // Intercept XMLHttpRequest to handle pending 403 or blocked responses from ad/consent servers gracefully
         try {
           var origXhrOpen = XMLHttpRequest.prototype.open;
           var origXhrSend = XMLHttpRequest.prototype.send;
           XMLHttpRequest.prototype.open = function(method, url) {
-            try {
-              this._ezUrl = url ? String(url) : '';
-            } catch(e) {}
+            try { this._ezUrl = url ? String(url) : ''; } catch(e) {}
             return origXhrOpen.apply(this, arguments);
           };
           XMLHttpRequest.prototype.send = function() {
@@ -156,24 +256,18 @@
               };
 
               self.onload = function() {
-                if (self.status >= 400 || self.status === 0) {
-                  mockSuccess();
-                }
-                if (origOnload) {
-                  return origOnload.apply(this, arguments);
-                }
+                if (self.status >= 400 || self.status === 0) mockSuccess();
+                if (origOnload) return origOnload.apply(this, arguments);
               };
               self.addEventListener('load', function() {
-                if (self.status >= 400 || self.status === 0) {
-                  mockSuccess();
-                }
+                if (self.status >= 400 || self.status === 0) mockSuccess();
               }, true);
             }
             return origXhrSend.apply(this, arguments);
           };
         } catch(e) {}
 
-        // 2b. Intercept fetch for ad and consent network endpoints
+        // Intercept fetch for ad and consent network endpoints
         try {
           var origFetch = window.fetch;
           if (origFetch) {
@@ -209,130 +303,7 @@
           }
         } catch(e) {}
 
-        // 3. Bulletproof console.error & console.warn filter
-        try {
-          var origError = console.error;
-          var origWarn = console.warn;
-          var isSuppressedNotice = function(args) {
-            if (!args || !args.length) return false;
-            var combined = '';
-            for (var i = 0; i < args.length; i++) {
-              var a = args[i];
-              if (typeof a === 'string') {
-                combined += ' ' + a;
-              } else if (a && typeof a.message === 'string') {
-                combined += ' ' + a.message;
-              } else if (a && typeof a.stack === 'string') {
-                combined += ' ' + a.stack;
-              } else {
-                try { combined += ' ' + JSON.stringify(a); } catch(e) { combined += ' ' + String(a); }
-              }
-            }
-            var lower = combined.toLowerCase();
-            return (
-              lower.indexOf('country consent') !== -1 ||
-              lower.indexOf('sacountry') !== -1 ||
-              lower.indexOf('gatekeeper') !== -1 ||
-              lower.indexOf('ezoic') !== -1 ||
-              lower.indexOf('ezojs') !== -1 ||
-              lower.indexOf('ezstandalone') !== -1 ||
-              lower.indexOf('profitableratecpmnetwork') !== -1 ||
-              lower.indexOf('adsterra') !== -1 ||
-              lower.indexOf('eagerdazzle') !== -1 ||
-              lower.indexOf('monetization not allowed') !== -1 ||
-              lower.indexOf('bad response') !== -1 ||
-              lower.indexOf('[vite]') !== -1 ||
-              lower.indexOf('failed to connect to websocket') !== -1 ||
-              lower.indexOf('vite-plugin-pwa') !== -1 ||
-              lower.indexOf('chrome-extension') !== -1 ||
-              lower.indexOf('moz-extension') !== -1 ||
-              lower.indexOf('safari-web-extension') !== -1 ||
-              lower.indexOf('chrome: call method') !== -1 ||
-              lower.indexOf('window message') !== -1 ||
-              lower.indexOf('ff-content') !== -1 ||
-              lower.indexOf('cldmemdnllncchfahbcnjijheaolemfk') !== -1
-            );
-          };
-
-          console.error = function() {
-            if (isSuppressedNotice(arguments)) {
-              if (typeof console.debug === 'function') {
-                console.debug.apply(console, arguments);
-              }
-              return;
-            }
-            origError.apply(console, arguments);
-          };
-
-          console.warn = function() {
-            if (isSuppressedNotice(arguments)) {
-              if (typeof console.debug === 'function') {
-                console.debug.apply(console, arguments);
-              }
-              return;
-            }
-            origWarn.apply(console, arguments);
-          };
-
-          window.addEventListener('error', function(event) {
-            var msg = ((event && event.message) || '').toLowerCase();
-            var file = ((event && event.filename) || '').toLowerCase();
-            var stack = ((event && event.error && event.error.stack) || '').toLowerCase();
-            var combined = msg + ' ' + file + ' ' + stack;
-            if (
-              combined.indexOf('country consent') !== -1 ||
-              combined.indexOf('sacountry') !== -1 ||
-              combined.indexOf('ezoic') !== -1 ||
-              combined.indexOf('profitableratecpmnetwork') !== -1 ||
-              combined.indexOf('adsterra') !== -1 ||
-              combined.indexOf('eagerdazzle') !== -1 ||
-              combined.indexOf('monetization not allowed') !== -1 ||
-              combined.indexOf('bad response') !== -1 ||
-              combined.indexOf('sa.min.js') !== -1 ||
-              combined.indexOf('ezojs') !== -1 ||
-              combined.indexOf('gatekeeperconsent') !== -1 ||
-              combined.indexOf('chrome-extension') !== -1 ||
-              combined.indexOf('moz-extension') !== -1 ||
-              combined.indexOf('safari-web-extension') !== -1 ||
-              combined.indexOf('chrome: call method') !== -1 ||
-              combined.indexOf('window message') !== -1 ||
-              combined.indexOf('ff-content') !== -1 ||
-              combined.indexOf('cldmemdnllncchfahbcnjijheaolemfk') !== -1
-            ) {
-              event.preventDefault();
-              event.stopPropagation();
-              return true;
-            }
-          }, true);
-
-          window.addEventListener('unhandledrejection', function(event) {
-            var reason = (event && event.reason) || '';
-            var str = (typeof reason === 'string' ? reason : ((reason && reason.message ? reason.message : '') + ' ' + (reason && reason.stack ? reason.stack : ''))).toLowerCase();
-            if (
-              str.indexOf('country consent') !== -1 ||
-              str.indexOf('sacountry') !== -1 ||
-              str.indexOf('ezoic') !== -1 ||
-              str.indexOf('profitableratecpmnetwork') !== -1 ||
-              str.indexOf('adsterra') !== -1 ||
-              str.indexOf('eagerdazzle') !== -1 ||
-              str.indexOf('monetization not allowed') !== -1 ||
-              str.indexOf('bad response') !== -1 ||
-              str.indexOf('ezojs') !== -1 ||
-              str.indexOf('gatekeeperconsent') !== -1 ||
-              str.indexOf('chrome-extension') !== -1 ||
-              str.indexOf('moz-extension') !== -1 ||
-              str.indexOf('safari-web-extension') !== -1 ||
-              str.indexOf('chrome: call method') !== -1 ||
-              str.indexOf('window message') !== -1 ||
-              str.indexOf('ff-content') !== -1 ||
-              str.indexOf('cldmemdnllncchfahbcnjijheaolemfk') !== -1
-            ) {
-              event.preventDefault();
-              event.stopPropagation();
-            }
-          }, true);
-        } catch (e) {}
-
+        // Theme Initialization
         try {
           var mode = localStorage.getItem('cinevault_color_mode') || 'black';
           document.documentElement.setAttribute('data-theme', mode);
@@ -391,7 +362,6 @@
         y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
       })(window, document, "clarity", "script", "y6rnjex7gw");
     </script>
-    <script src="https://eagerdazzle.com/14/5a/57/145a579d83e9caaf18d1d1f81ab75ab8.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />

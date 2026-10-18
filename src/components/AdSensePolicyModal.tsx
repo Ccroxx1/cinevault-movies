@@ -13,6 +13,14 @@ export const AdSensePolicyModal: React.FC<AdSensePolicyModalProps> = ({
   useBodyScrollLock(true);
   const [activeTab, setActiveTab] = useState<'privacy' | 'terms' | 'about' | 'contact' | 'dmca' | 'agreement'>(initialTab);
 
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-fadeIn" role="dialog" aria-modal="true" aria-labelledby="modal-heading">
       <div className="modal-dialog-surface relative w-full max-w-3xl max-h-[90vh] bg-[#101010] border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden">

@@ -100,6 +100,21 @@ export const MovieNightSpinnerModal: React.FC<MovieNightSpinnerModalProps> = ({
     }
   }, [isOpen, poolToUse]);
 
+  // Keyboard shortcut listener within spinner modal: 'Esc' to close, 'R' to spin
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      } else if ((e.key === 'r' || e.key === 'R') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        handleSpin();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, poolToUse, isSpinning]);
+
   if (!isOpen) return null;
 
   const displayMovie = selectedMovie || poolToUse[currentIndex] || poolToUse[0];
@@ -298,6 +313,9 @@ export const MovieNightSpinnerModal: React.FC<MovieNightSpinnerModalProps> = ({
             >
               <RotateCcw className={`w-4 h-4 ${isSpinning ? 'animate-spin' : ''}`} />
               <span>{isSpinning ? 'SPINNING REEL...' : 'SPIN AGAIN'}</span>
+              <kbd className="hidden sm:inline-flex items-center justify-center min-w-[20px] px-1.5 py-0.5 text-[10px] font-mono bg-black/40 border border-white/20 rounded font-bold text-white/90">
+                R
+              </kbd>
             </button>
           </div>
         </div>

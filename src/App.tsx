@@ -35,6 +35,8 @@ import { TvShowDetails, TvShowInfo, EztvTorrent } from './types';
 import { getSeriesSlug, extractShowTitleFromRelease } from './services/eztvApi';
 import { getMoviePath, getMovieSlug, updateDocumentSeo } from './utils/seo';
 import { refreshEzoicAds } from './utils/ezoic';
+import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
+import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 
 const DEFAULT_FILTERS: FilterParams = {
   query_term: '',
@@ -176,6 +178,7 @@ export default function App() {
   const [filmographyPerson, setFilmographyPerson] = useState<{ name: string; role?: 'director' | 'actor' | 'cast' } | null>(null);
   const [isCineBotOpen, setIsCineBotOpen] = useState<boolean>(false);
   const [cineBotInitialPrompt, setCineBotInitialPrompt] = useState<string | null>(null);
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState<boolean>(false);
 
   const handleOpenCineBotWithPrompt = (prompt: string) => {
     setCineBotInitialPrompt(prompt);
@@ -479,6 +482,45 @@ export default function App() {
     }
   };
 
+  // Global Keyboard Shortcuts Handlers
+  const handleCloseAllModals = useCallback(() => {
+    setIsSpinnerOpen(false);
+    setTrailerData(null);
+    setIsGuideOpen(false);
+    setIsCineBotOpen(false);
+    setFilmographyPerson(null);
+    setPolicyModalTab(null);
+    setIsShortcutsOpen(false);
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+  }, []);
+
+  const handleFocusSearch = useCallback(() => {
+    if (route.type !== 'browse' && route.type !== 'series') {
+      handleNavigateHome();
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => {
+      const input = document.getElementById('movie-search-input') as HTMLInputElement | null;
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    }, 50);
+  }, [route.type, handleNavigateHome]);
+
+  useGlobalShortcuts({
+    onSearchFocus: handleFocusSearch,
+    onOpenSpinner: () => setIsSpinnerOpen(true),
+    onCloseModals: handleCloseAllModals,
+    onNavigateBrowse: handleNavigateHome,
+    onNavigateWatchlist: handleNavigateWatchlist,
+    onNavigateSeries: () => handleNavigateSeries(),
+    onOpenCineBot: () => setIsCineBotOpen(true),
+    onToggleShortcutsModal: () => setIsShortcutsOpen((prev) => !prev),
+  });
+
   // Fetch a rich, diverse pool of Featured Movies from multiple streams
   const loadFeatured = useCallback(async () => {
     if (route.type !== 'browse') return;
@@ -758,11 +800,12 @@ export default function App() {
             genre: genre,
             page: 1
           }));
-          document.getElementById('movie-catalog-section')?.scrollIntoView({ behavior: 'smooth' });
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
         onOpenPolicy={(tab) => setPolicyModalTab(tab)}
         onOpenSpinner={() => setIsSpinnerOpen(true)}
         onOpenCineBot={() => setIsCineBotOpen(true)}
+        onOpenShortcuts={() => setIsShortcutsOpen(true)}
         onRequestSearch={() => {
           if (route.type !== 'browse') {
             setRoute({ type: 'browse' });
@@ -929,9 +972,18 @@ export default function App() {
           />
         ) : (
           <>
-            {currentNav === 'browse' && !filters.query_term && filters.page === 1 && filters.genre === 'All' && filters.quality === 'All' && (
+            {currentNav === 'browse' && !filters.query_term && filters.page === 1 && filters.quality === 'All' && (
               <FeaturedHero
                 movies={featuredMovies}
+                genreMovies={movies}
+                selectedGenre={filters.genre}
+                onSelectGenre={(genre) => {
+                  setFilters((prev) => ({
+                    ...prev,
+                    genre,
+                    page: 1
+                  }));
+                }}
                 onSelectMovie={handleSelectMovie}
                 onPlayTrailer={handlePlayTrailer}
                 onCopyMagnet={handleCopyMagnet}
@@ -1132,6 +1184,7 @@ export default function App() {
         onNavigateHome={handleNavigateHome}
         onOpenPolicy={(tab) => setPolicyModalTab(tab)}
         onOpenGuide={() => setIsGuideOpen(true)}
+        onOpenShortcuts={() => setIsShortcutsOpen(true)}
       />
 
       {policyModalTab && (
@@ -1234,6 +1287,13 @@ export default function App() {
         activeSeriesImdb={route.type === 'series_detail' ? route.seriesImdb : undefined}
         onSelectSeries={handleSelectSeries}
         onNavigateToSeries={handleNavigateSeries}
+      />
+
+      <KeyboardShortcutsModal
+        isOpen={isShortcutsOpen}
+        onClose={() => setIsShortcutsOpen(false)}
+        onTriggerSearch={handleFocusSearch}
+        onTriggerSpinner={() => setIsSpinnerOpen(true)}
       />
 
       <ToastContainer toasts={toasts} onDismiss={removeToast} />

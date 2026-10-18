@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Dices, Search, HelpCircle, X, Sparkles, ChevronDown, Palette, Tv, Star } from 'lucide-react';
+import { Dices, Search, HelpCircle, X, Sparkles, ChevronDown, Palette, Tv, Star, Command } from 'lucide-react';
 import { Movie, TvShowInfo } from '../types';
 import { GENRES } from '../services/movieApi';
 import { CineVaultLogo } from './CineVaultLogo';
@@ -25,6 +25,7 @@ interface HeaderProps {
   onOpenSpinner?: () => void;
   onRequestSearch?: () => void;
   onOpenCineBot?: () => void;
+  onOpenShortcuts?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -41,7 +42,8 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenPolicy,
   onOpenSpinner,
   onRequestSearch,
-  onOpenCineBot
+  onOpenCineBot,
+  onOpenShortcuts
 }) => {
   const { colorMode, setColorMode } = useTheme();
   const isWhite = colorMode === 'white';
@@ -129,8 +131,9 @@ export const Header: React.FC<HeaderProps> = ({
 
       const isSpace = e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space' || e.keyCode === 32;
       const isSlash = e.key === '/';
+      const isSKey = e.key === 's' || e.key === 'S';
 
-      if (isSpace || isSlash) {
+      if (isSpace || isSlash || isSKey) {
         // Prevent default browser scrolling down when pressing Space
         e.preventDefault();
 
@@ -338,8 +341,8 @@ export const Header: React.FC<HeaderProps> = ({
                     </div>
                   ) : (
                     <div className="absolute right-2 sm:right-2.5 hidden sm:flex items-center pointer-events-none select-none">
-                      <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-medium text-neutral-400 bg-white/5 border border-white/10 rounded shadow-xs" title="Press Space to search">
-                        Space
+                      <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-medium text-neutral-400 bg-white/5 border border-white/10 rounded shadow-xs" title="Press 'S' or '/' to search">
+                        S
                       </kbd>
                     </div>
                   )}
@@ -606,10 +609,13 @@ export const Header: React.FC<HeaderProps> = ({
                   id="header-roulette-btn"
                   onClick={onOpenSpinner}
                   className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-amber-300 hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-all cursor-pointer shadow-sm"
-                  title="Surprise Me - Movie Night Roulette"
+                  title="Surprise Me - Movie Night Roulette (Hot key: R)"
                 >
                   <Dices className="w-3.5 h-3.5" />
                   <span>Roulette</span>
+                  <kbd className="hidden sm:inline-flex items-center justify-center px-1 text-[9px] font-mono text-amber-400/90 bg-amber-400/10 border border-amber-400/20 rounded font-bold">
+                    R
+                  </kbd>
                 </button>
               )}
 
@@ -714,6 +720,41 @@ export const Header: React.FC<HeaderProps> = ({
                           </div>
                         </div>
                       </button>
+
+                      {/* Keyboard Shortcuts */}
+                      {onOpenShortcuts && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsMoreMenuOpen(false);
+                            onOpenShortcuts();
+                          }}
+                          className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs text-left transition-colors cursor-pointer group ${
+                            isWhite
+                              ? 'hover:bg-slate-100 text-slate-800 hover:text-slate-950'
+                              : 'hover:bg-white/5 text-neutral-200 hover:text-white'
+                          }`}
+                        >
+                          <div className={`w-7 h-7 rounded-lg border flex items-center justify-center transition-colors shrink-0 ${
+                            isWhite
+                              ? 'bg-slate-100 border-slate-200 text-slate-600 group-hover:bg-slate-200'
+                              : 'bg-white/5 border-white/10 text-neutral-400 group-hover:bg-white/10 group-hover:text-white'
+                          }`}>
+                            <Command className="w-3.5 h-3.5" />
+                          </div>
+                          <div className="flex-1 min-w-0 flex items-center justify-between">
+                            <div>
+                              <div className="font-bold">Keyboard Shortcuts</div>
+                              <div className={`text-[10px] truncate ${isWhite ? 'text-slate-500' : 'text-neutral-400'}`}>
+                                Quick hotkeys & navigation
+                              </div>
+                            </div>
+                            <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-bold bg-white/10 rounded border border-white/15">
+                              ?
+                            </kbd>
+                          </div>
+                        </button>
+                      )}
                     </div>
 
                     {/* Theme / Color Mode Selector */}
@@ -806,6 +847,17 @@ export const Header: React.FC<HeaderProps> = ({
               >
                 <HelpCircle className="w-[18px] h-[18px]" />
               </button>
+
+              {onOpenShortcuts && (
+                <button
+                  onClick={onOpenShortcuts}
+                  className="p-2 text-neutral-400 hover:text-white rounded-xl cursor-pointer hidden md:flex items-center justify-center"
+                  aria-label="Keyboard Shortcuts"
+                  title="Keyboard Shortcuts (?)"
+                >
+                  <Command className="w-[18px] h-[18px]" />
+                </button>
+              )}
             </div>
 
           </div>
@@ -896,6 +948,20 @@ export const Header: React.FC<HeaderProps> = ({
                   >
                     <Dices className="w-4 h-4 text-amber-400" />
                     <span>Movie Night Roulette</span>
+                  </button>
+                )}
+                {onOpenShortcuts && (
+                  <button
+                    onClick={() => { setIsMobileMenuOpen(false); onOpenShortcuts(); }}
+                    className="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between text-neutral-300 hover:bg-white/5 cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Command className="w-4 h-4 text-neutral-400" />
+                      <span>Keyboard Shortcuts</span>
+                    </div>
+                    <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-bold bg-white/10 rounded border border-white/15">
+                      ?
+                    </kbd>
                   </button>
                 )}
               </div>

@@ -44,6 +44,15 @@ export const MovieComparisonModal: React.FC<MovieComparisonModalProps> = ({
   const [addSearchTerm, setAddSearchTerm] = useState('');
   const [showAddPicker, setShowAddPicker] = useState(false);
 
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, setIsOpen]);
+
   if (!isOpen) return null;
 
   // Compute highest rated movie

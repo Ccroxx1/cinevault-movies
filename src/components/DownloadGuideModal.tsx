@@ -15,6 +15,14 @@ export const DownloadGuideModal: React.FC<DownloadGuideModalProps> = ({
   useBodyScrollLock(true);
   const [copiedTrackers, setCopiedTrackers] = useState(false);
 
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   const handleCopyTrackers = () => {
     const text = RECOMMENDED_TRACKERS.join('\n');
     navigator.clipboard.writeText(text);

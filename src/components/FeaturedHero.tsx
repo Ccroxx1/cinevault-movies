@@ -4,10 +4,15 @@ import { getMoviePath } from '../utils/seo';
 import { handleBrandedMagnetDownload } from '../utils/downloadPack';
 import { getBackdropCandidates, CINEVAULT_BACKDROP_FALLBACK } from '../utils/imageFallback';
 import { BookmarkPlusIcon, BookmarkIcon, PlayIcon, CopyIcon } from './ActionIcons';
-import { ChevronLeft, ChevronRight, Shuffle, Sparkles, Flame, Star, Rocket, Clapperboard, RefreshCw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Shuffle, Sparkles, Flame, Star, Rocket, Clapperboard, Film } from 'lucide-react';
+import { getGenreHeroConfig, getHeroMoviesForGenre } from '../data/genreBanners';
+import { GENRES } from '../services/movieApi';
 
 interface FeaturedHeroProps {
   movies: Movie[];
+  genreMovies?: Movie[];
+  selectedGenre?: string;
+  onSelectGenre?: (genre: string) => void;
   onSelectMovie: (movie: Movie) => void;
   onPlayTrailer: (ytCode: string, title: string) => void;
   onCopyMagnet: (magnetUrl: string, title: string) => void;
@@ -32,6 +37,23 @@ const CURATION_OPTIONS: CurationOption[] = [
   { id: 'action', label: 'Action & Thrillers', icon: Clapperboard }
 ];
 
+// Curated top genres to display in hero quick-switcher
+const HERO_FEATURED_GENRES = [
+  'All',
+  'Action',
+  'Sci-Fi',
+  'Animation',
+  'Horror',
+  'Comedy',
+  'Drama',
+  'Adventure',
+  'Crime',
+  'Mystery',
+  'Fantasy',
+  'Thriller',
+  'Romance'
+];
+
 function shuffleArray<T>(arr: T[]): T[] {
   const copy = [...arr];
   for (let i = copy.length - 1; i > 0; i--) {
@@ -43,6 +65,9 @@ function shuffleArray<T>(arr: T[]): T[] {
 
 export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
   movies,
+  genreMovies = [],
+  selectedGenre = 'All',
+  onSelectGenre,
   onSelectMovie,
   onPlayTrailer,
   onCopyMagnet,
@@ -60,39 +85,59 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
   const [feedbackToast, setFeedbackToast] = useState<string | null>(null);
   const touchStartXRef = useRef<number | null>(null);
 
-  // Filter and populate active queue whenever movies prop or curationMode changes
-  useEffect(() => {
-    if (!movies || movies.length === 0) return;
+  const activeGenre = selectedGenre || 'All';
+  const isSpecificGenre = activeGenre.toLowerCase() !== 'all';
+  const genreConfig = useMemo(() => getGenreHeroConfig(activeGenre), [activeGenre]);
 
-    let filtered: Movie[] = [];
-    if (curationMode === 'trending') {
-      filtered = [...movies].sort((a, b) => (b.download_count || 0) - (a.download_count || 0));
-    } else if (curationMode === 'topRated') {
-      filtered = movies.filter((m) => (m.rating || 0) >= 7.8);
-      if (filtered.length < 5) {
-        filtered = [...movies].sort((a, b) => (b.rating || 0) - (a.rating || 0));
-      }
-    } else if (curationMode === 'scifi') {
-      filtered = movies.filter((m) =>
-        m.genres?.some((g) => ['Sci-Fi', 'Fantasy', 'Adventure'].includes(g))
-      );
-      if (filtered.length < 5) filtered = movies;
-    } else if (curationMode === 'action') {
-      filtered = movies.filter((m) =>
-        m.genres?.some((g) => ['Action', 'Thriller', 'Crime'].includes(g))
-      );
-      if (filtered.length < 5) filtered = movies;
+  // Dynamically populate active queue whenever selectedGenre, movies, genreMovies, or curationMode changes
+  useEffect(() => {
+    let pool: Movie[] = [];
+
+    if (isSpecificGenre) {
+      // User has explicitly chosen a genre in browse mode
+      pool = getHeroMoviesForGenre(activeGenre, genreMovies, movies);
     } else {
-      // 'all': take the whole pool
-      filtered = movies;
+      // "All" genres mode: respect curationMode tab if user clicked one
+      const basePool = movies.length > 0 ? movies : genreMovies;
+      if (curationMode === 'trending') {
+        pool = [...basePool].sort((a, b) => (b.download_count || 0) - (a.download_count || 0));
+      } else if (curationMode === 'topRated') {
+        pool = basePool.filter((m) => (m.rating || 0) >= 7.8);
+        if (pool.length < 5) {
+          pool = [...basePool].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        }
+      } else if (curationMode === 'scifi') {
+        pool = basePool.filter((m) =>
+          m.genres?.some((g) => ['Sci-Fi', 'Fantasy', 'Adventure'].includes(g))
+        );
+        if (pool.length < 5) pool = basePool;
+      } else if (curationMode === 'action') {
+        pool = basePool.filter((m) =>
+          m.genres?.some((g) => ['Action', 'Thriller', 'Crime'].includes(g))
+        );
+        if (pool.length < 5) pool = basePool;
+      } else {
+        pool = basePool;
+      }
     }
 
-    // Always shuffle the pool initially so the user starts with fresh, non-repetitive movies
-    const randomized = shuffleArray(filtered);
-    setActiveQueue(randomized);
+    if (pool.length === 0) {
+      pool = getHeroMoviesForGenre(activeGenre, [], movies);
+    }
+
+    // Keep highest-rated/top blockbuster as first featured slide for newly selected genre, then shuffle remainder
+    if (pool.length > 2) {
+      const topTitle = pool[0];
+      const remainder = shuffleArray(pool.slice(1));
+      setActiveQueue([topTitle, ...remainder]);
+    } else {
+      setActiveQueue(pool);
+    }
+
     setCurrentIndex(0);
+    setBackdropIndex(0);
     setSlideKey((k) => k + 1);
-  }, [movies, curationMode]);
+  }, [activeGenre, isSpecificGenre, movies, genreMovies, curationMode]);
 
   const totalSlides = activeQueue.length;
 
@@ -101,11 +146,9 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
     if (totalSlides <= 1) return;
 
     setCurrentIndex((prev) => {
-      // If we are at the very last slide of the queue, reshuffle so we don't repeat in the same order
       if (prev >= totalSlides - 1) {
         setActiveQueue((current) => {
           const reshuffled = shuffleArray(current);
-          // Ensure first movie of new batch isn't the same as the last one displayed
           if (reshuffled[0]?.id === current[prev]?.id && reshuffled.length > 1) {
             [reshuffled[0], reshuffled[1]] = [reshuffled[1], reshuffled[0]];
           }
@@ -128,19 +171,18 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
 
   // Manual shuffle & refresh action
   const handleShuffle = useCallback(() => {
-    if (!movies || movies.length === 0) return;
-    const freshShuffled = shuffleArray(activeQueue.length > 0 ? activeQueue : movies);
+    if (activeQueue.length === 0) return;
+    const freshShuffled = shuffleArray(activeQueue);
     setActiveQueue(freshShuffled);
     setCurrentIndex(0);
     setSlideKey((k) => k + 1);
-    setFeedbackToast(`Shuffled ${freshShuffled.length} fresh blockbuster picks`);
+    setFeedbackToast(`Shuffled ${isSpecificGenre ? activeGenre : 'blockbuster'} picks`);
     setTimeout(() => setFeedbackToast(null), 2500);
 
-    // Call background refresh if available
     if (onRefreshHero) {
       onRefreshHero();
     }
-  }, [activeQueue, movies, onRefreshHero]);
+  }, [activeQueue, isSpecificGenre, activeGenre, onRefreshHero]);
 
   // Reset backdrop fallback counter when movie changes
   useEffect(() => {
@@ -204,8 +246,6 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
     touchStartXRef.current = null;
   };
 
-  if (!movies || movies.length === 0) return null;
-
   const currentMovie = activeQueue[currentIndex] || movies[0];
   if (!currentMovie) return null;
 
@@ -231,42 +271,42 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
     }
   };
 
+  const handleGenreTabClick = (genre: string) => {
+    if (onSelectGenre) {
+      onSelectGenre(genre);
+    }
+  };
+
   return (
     <section
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      className="hero-cinema-container relative w-full rounded-3xl overflow-hidden border border-white/10 shadow-2xl min-h-[500px] sm:min-h-[540px] md:min-h-[580px] lg:min-h-[620px] aspect-[16/11] sm:aspect-[16/10] md:aspect-[21/9] flex flex-col justify-between group transition-all select-none mb-10"
-      aria-label="Featured Movies Slideshow"
+      className={`hero-cinema-container relative w-full rounded-3xl overflow-hidden border ${genreConfig.themeColor.border} shadow-2xl min-h-[500px] sm:min-h-[540px] md:min-h-[580px] lg:min-h-[620px] aspect-[16/11] sm:aspect-[16/10] md:aspect-[21/9] flex flex-col justify-between group transition-all select-none mb-8`}
+      aria-label={`${isSpecificGenre ? activeGenre : 'Featured'} Movies Slideshow`}
     >
-      {/* Edge-to-Edge Cinematic Slide Artwork */}
+      {/* Edge-to-Edge Cinematic Slide Artwork with dynamic background image */}
       <div
-        key={`hero-slide-${currentMovie.id}-${slideKey}-${backdropIndex}`}
+        key={`hero-slide-${activeGenre}-${currentMovie.id}-${slideKey}-${backdropIndex}`}
         className="absolute inset-0 z-0 animate-heroFadeIn overflow-hidden"
       >
         <img
           src={currentBackdropSrc}
-          alt={`${currentMovie.title} Cinematic Artwork`}
+          alt={`${currentMovie.title} ${activeGenre} Cinematic Artwork`}
           width="1920"
           height="1080"
           loading="eager"
           referrerPolicy="no-referrer"
           onError={handleBackdropError}
           className="w-full h-full object-cover object-center sm:object-[center_20%] scale-100 group-hover:scale-[1.025] transition-transform duration-1000 ease-out select-none"
-          style={{
-            objectFit: 'cover',
-            imageRendering: 'auto',
-            filter: 'none',
-            WebkitFilter: 'none'
-          }}
         />
       </div>
 
-      {/* Dark Gradients for 100% Typography Contrast & Visual Depth */}
+      {/* Dark Cinematic Scrim Gradients for 100% Typography Contrast & Depth */}
       <div className="absolute inset-0 z-10 hero-gradient-overlay-x pointer-events-none" />
       <div className="absolute inset-0 z-10 hero-gradient-overlay-y pointer-events-none" />
-      <div className="absolute top-0 inset-x-0 h-28 z-10 bg-gradient-to-b from-black/70 via-black/30 to-transparent pointer-events-none" />
+      <div className="absolute top-0 inset-x-0 h-28 z-10 bg-gradient-to-b from-black/80 via-black/35 to-transparent pointer-events-none" />
 
       {/* Interactive Edge Navigation Arrows (Desktop Hover) */}
       {totalSlides > 1 && (
@@ -274,7 +314,7 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
           <button
             type="button"
             onClick={handlePrev}
-            className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-30 p-2 sm:p-2.5 rounded-full bg-black/50 hover:bg-black/80 border border-white/20 text-white/70 hover:text-white backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer shadow-xl hidden sm:flex items-center justify-center hover:scale-110 active:scale-95"
+            className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-30 p-2 sm:p-2.5 rounded-full bg-black/60 hover:bg-black/90 border border-white/20 text-white/80 hover:text-white backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer shadow-xl hidden sm:flex items-center justify-center hover:scale-110 active:scale-95"
             aria-label="Previous movie slide"
             title="Previous movie"
           >
@@ -284,7 +324,7 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
           <button
             type="button"
             onClick={handleNext}
-            className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-30 p-2 sm:p-2.5 rounded-full bg-black/50 hover:bg-black/80 border border-white/20 text-white/70 hover:text-white backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer shadow-xl hidden sm:flex items-center justify-center hover:scale-110 active:scale-95"
+            className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-30 p-2 sm:p-2.5 rounded-full bg-black/60 hover:bg-black/90 border border-white/20 text-white/80 hover:text-white backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer shadow-xl hidden sm:flex items-center justify-center hover:scale-110 active:scale-95"
             aria-label="Next movie slide"
             title="Next movie"
           >
@@ -293,96 +333,151 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
         </>
       )}
 
-      {/* TOP HEADER CONTROLS: Spotlight Badge, Curation Tabs, and Shuffle Button */}
-      <div className="relative z-20 p-4 sm:p-6 flex flex-wrap items-center justify-between gap-2.5">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/70 border border-white/20 backdrop-blur-md text-[11px] font-bold tracking-wider text-rose-400 uppercase shadow-lg">
-            <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-            <span>Spotlight</span>
+      {/* TOP HEADER CONTROLS: Dynamic Genre Indicator, Genre Quick Switcher, and Slide Tracker */}
+      <div className="relative z-20 p-4 sm:p-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          {/* Dynamic Genre Badge */}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/75 border border-white/15 backdrop-blur-md text-xs font-semibold shadow-lg">
+            <span className={`font-bold uppercase tracking-wider text-[11px] ${genreConfig.themeColor.primaryText}`}>
+              {genreConfig.badgeLabel}
+            </span>
           </div>
 
-          <div className="px-2.5 py-1 rounded-full bg-black/60 border border-white/15 backdrop-blur-md text-[11px] font-mono font-semibold text-neutral-300">
-            Slide {currentIndex + 1} of {totalSlides}
+          <div className="px-2.5 py-1.5 rounded-xl bg-black/60 border border-white/10 backdrop-blur-md text-[11px] font-mono font-semibold text-neutral-300">
+            {currentIndex + 1} of {totalSlides}
           </div>
 
           {feedbackToast && (
-            <div className="animate-fadeIn text-[11px] font-semibold text-emerald-300 bg-emerald-950/80 border border-emerald-500/40 px-2.5 py-0.5 rounded-full backdrop-blur-md shadow-md">
+            <div className="animate-fadeIn text-[11px] font-semibold text-emerald-300 bg-emerald-950/80 border border-emerald-500/40 px-2.5 py-1 rounded-xl backdrop-blur-md shadow-md">
               {feedbackToast}
             </div>
           )}
         </div>
 
-        {/* Dynamic Curation Category Filters & Quick Shuffle */}
+        {/* Dynamic Genre Quick-Switcher Ribbon */}
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 max-w-full">
-          {CURATION_OPTIONS.map((opt) => {
-            const Icon = opt.icon;
-            const isActive = curationMode === opt.id;
-            return (
+          {isSpecificGenre ? (
+            // Genre-Specific Mode: Show clear reset to "All Genres" + related genre siblings
+            <div className="flex items-center gap-1.5">
               <button
-                key={opt.id}
                 type="button"
-                onClick={() => setCurationMode(opt.id)}
-                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer backdrop-blur-md shadow-sm ${
-                  isActive
-                    ? 'bg-rose-600 text-white border border-rose-400/60 shadow-rose-950/40 scale-105'
-                    : 'bg-black/55 text-neutral-300 hover:text-white hover:bg-black/75 border border-white/15'
-                }`}
+                onClick={() => handleGenreTabClick('All')}
+                className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold text-neutral-300 hover:text-white bg-black/60 hover:bg-black/80 border border-white/15 transition-all cursor-pointer backdrop-blur-md"
+                title="View All Genres"
               >
-                <Icon size={12} className={isActive ? 'text-white' : 'text-neutral-400'} />
-                <span>{opt.label}</span>
+                <span>All Genres</span>
               </button>
-            );
-          })}
+
+              {/* Show top active genre pill as selected */}
+              <div
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-white ${genreConfig.themeColor.accentBg} border ${genreConfig.themeColor.border} shadow-md`}
+              >
+                <Film size={12} />
+                <span>{activeGenre}</span>
+              </div>
+
+              {/* Curated quick shortcuts to switch to another popular genre */}
+              {HERO_FEATURED_GENRES.filter((g) => g !== 'All' && g.toLowerCase() !== activeGenre.toLowerCase())
+                .slice(0, 4)
+                .map((g) => (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => handleGenreTabClick(g)}
+                    className="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium text-neutral-300 hover:text-white bg-black/50 hover:bg-black/75 border border-white/10 transition-all cursor-pointer backdrop-blur-md whitespace-nowrap"
+                  >
+                    <span>{g}</span>
+                  </button>
+                ))}
+            </div>
+          ) : (
+            // All-Genres Mode: Show curation tabs (Fresh Mix, Trending, 8.0+ Masterpieces, etc.)
+            <div className="flex items-center gap-1.5">
+              {CURATION_OPTIONS.map((opt) => {
+                const Icon = opt.icon;
+                const isActive = curationMode === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setCurationMode(opt.id)}
+                    className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer backdrop-blur-md shadow-sm ${
+                      isActive
+                        ? 'bg-rose-600 text-white border border-rose-400/60 shadow-rose-950/40 scale-105'
+                        : 'bg-black/55 text-neutral-300 hover:text-white hover:bg-black/75 border border-white/15'
+                    }`}
+                  >
+                    <Icon size={12} className={isActive ? 'text-white' : 'text-neutral-400'} />
+                    <span>{opt.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           <button
             type="button"
             onClick={handleShuffle}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 hover:bg-white/25 border border-white/25 text-white text-xs font-bold transition-all duration-200 cursor-pointer backdrop-blur-md shadow-md hover:scale-105 active:scale-95 ml-1"
-            title="Shuffle & Load Fresh Blockbusters"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 hover:bg-white/25 border border-white/20 text-white text-xs font-bold transition-all duration-200 cursor-pointer backdrop-blur-md shadow-md hover:scale-105 active:scale-95 ml-1 shrink-0"
+            title={`Shuffle & Load Fresh ${isSpecificGenre ? activeGenre : ''} Blockbusters`}
             aria-label="Shuffle slideshow"
           >
-            <Shuffle size={12} className="text-rose-300" />
-            <span>Shuffle</span>
+            <Shuffle size={12} className={genreConfig.themeColor.primaryText} />
+            <span className="hidden xs:inline">Shuffle</span>
           </button>
         </div>
       </div>
 
-      {/* FOREGROUND CONTENT LAYER: Metadata, Title, Genres, Synopsis, Action Buttons */}
+      {/* FOREGROUND HERO CONTENT: Dynamic Headline, Featured Title, Synopsis, and Actions */}
       <div
-        key={`content-${currentMovie.id}-${slideKey}`}
+        key={`content-${activeGenre}-${currentMovie.id}-${slideKey}`}
         className="relative z-20 p-5 sm:p-8 md:p-12 lg:p-14 w-full max-w-2xl lg:max-w-3xl flex flex-col justify-end gap-3 sm:gap-4 animate-heroFadeIn pb-16 sm:pb-16 md:pb-12 text-left"
       >
-        {/* Metadata Badges */}
-        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-          <div className="flex items-center gap-1 text-amber-400 bg-black/60 border border-white/15 px-2.5 py-1 rounded-lg text-xs font-bold backdrop-blur-md shadow-sm">
-            <span>★</span>
-            <span>IMDb {currentMovie.rating?.toFixed(1) || '8.0'}</span>
+        {/* Dynamic Genre Tagline / Vibe Kicker */}
+        {isSpecificGenre && (
+          <div className="space-y-0.5">
+            <span className={`text-xs sm:text-sm font-bold tracking-tight ${genreConfig.themeColor.primaryText}`}>
+              {genreConfig.headline}
+            </span>
+            <p className="text-neutral-400 text-[11px] sm:text-xs font-normal line-clamp-1">
+              {genreConfig.tagline}
+            </p>
           </div>
+        )}
 
-          <span className="text-xs font-semibold text-neutral-200 bg-black/60 border border-white/15 px-2.5 py-1 rounded-lg backdrop-blur-md shadow-sm">
-            {currentMovie.year}
+        {/* Clean Typographic Metadata (Zero-Pill Discipline) */}
+        <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-neutral-300">
+          <span className="flex items-center gap-1 text-amber-400 font-bold">
+            <span>★</span>
+            <span className="tabular-nums">IMDb {currentMovie.rating ? currentMovie.rating.toFixed(1) : '8.0'}</span>
           </span>
-
+          <span aria-hidden="true" className="text-neutral-600">·</span>
+          <span className="tabular-nums font-semibold text-white">{currentMovie.year}</span>
           {currentMovie.runtime > 0 && (
-            <span className="flex items-center gap-1 text-xs font-medium text-neutral-300 bg-black/60 border border-white/15 px-2.5 py-1 rounded-lg backdrop-blur-md shadow-sm">
-              <span>
+            <>
+              <span aria-hidden="true" className="text-neutral-600">·</span>
+              <span className="tabular-nums text-neutral-300">
                 {Math.floor(currentMovie.runtime / 60)}h {currentMovie.runtime % 60}m
               </span>
-            </span>
+            </>
           )}
-
           {primaryTorrent?.quality && (
-            <span className="text-xs font-bold text-rose-400 bg-rose-500/15 border border-rose-500/30 px-2.5 py-1 rounded-lg backdrop-blur-md shadow-sm uppercase tracking-wide">
-              {primaryTorrent.quality}
-            </span>
+            <>
+              <span aria-hidden="true" className="text-neutral-600">·</span>
+              <span className={`font-bold uppercase tracking-wider ${genreConfig.themeColor.primaryText}`}>
+                {primaryTorrent.quality}
+              </span>
+            </>
           )}
-
-          <span className="hidden sm:inline-block text-[11px] text-neutral-300 font-medium bg-black/50 border border-white/15 px-2.5 py-1 rounded-lg backdrop-blur-md">
-            Unseen in current session
-          </span>
+          {currentMovie.mpa_rating && (
+            <>
+              <span aria-hidden="true" className="text-neutral-600">·</span>
+              <span className="text-neutral-400 text-[11px]">{currentMovie.mpa_rating}</span>
+            </>
+          )}
         </div>
 
-        {/* Display Title */}
+        {/* Dynamic Featured Title */}
         <h2 className="font-display font-black text-2xl sm:text-4xl md:text-5xl lg:text-6xl text-white tracking-tight leading-[1.08] drop-shadow-md">
           <a
             href={getMoviePath(currentMovie)}
@@ -392,22 +487,32 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
                 onSelectMovie(currentMovie);
               }
             }}
-            className="hover:text-rose-400 transition-colors cursor-pointer"
+            className={`hover:${genreConfig.themeColor.primaryText} transition-colors cursor-pointer`}
           >
             {currentMovie.title}
           </a>
         </h2>
 
-        {/* Genre Tags */}
+        {/* Clean Genre Tags with interactive click to switch genres */}
         <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-          {currentMovie.genres?.map((g) => (
-            <span
-              key={g}
-              className="text-[11px] sm:text-xs font-semibold text-neutral-200 bg-white/10 hover:bg-white/15 border border-white/20 px-3 py-0.5 rounded-full backdrop-blur-md shadow-sm transition-colors"
-            >
-              {g}
-            </span>
-          ))}
+          {currentMovie.genres?.map((g) => {
+            const isThisGenre = g.toLowerCase() === activeGenre.toLowerCase();
+            return (
+              <button
+                key={g}
+                type="button"
+                onClick={() => handleGenreTabClick(g)}
+                className={`text-[11px] sm:text-xs font-medium px-2.5 py-0.5 rounded-md transition-colors cursor-pointer ${
+                  isThisGenre
+                    ? `${genreConfig.themeColor.accentBg} text-white font-semibold`
+                    : 'bg-white/10 text-neutral-300 hover:bg-white/20 hover:text-white'
+                }`}
+                title={`Filter by ${g}`}
+              >
+                {g}
+              </button>
+            );
+          })}
         </div>
 
         {/* Synopsis Paragraph */}
@@ -453,7 +558,7 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
                     }
                   });
                 }}
-                className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm rounded-full backdrop-blur-md shadow-lg shadow-emerald-950/40 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+                className={`flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2.5 ${genreConfig.themeColor.accentBg} ${genreConfig.themeColor.buttonHover} text-white font-bold text-xs sm:text-sm rounded-full backdrop-blur-md shadow-lg ${genreConfig.themeColor.glow} transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]`}
                 title={`Direct Magnet Download for ${primaryTorrent.quality}`}
               >
                 <span>Magnet ({primaryTorrent.quality})</span>
@@ -522,8 +627,8 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
             {/* Dynamic Progress Bar for active slide */}
             <div className="relative w-10 sm:w-14 h-1.5 bg-white/25 rounded-full overflow-hidden">
               <div
-                key={`progress-${currentIndex}-${slideKey}`}
-                className={`absolute inset-0 bg-rose-500 h-full ${
+                key={`progress-${activeGenre}-${currentIndex}-${slideKey}`}
+                className={`absolute inset-0 ${genreConfig.themeColor.accentBg} h-full ${
                   !isPaused ? 'animate-progressFill' : 'w-full'
                 }`}
                 style={{ animationDuration: '12s' }}
@@ -546,8 +651,8 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
           <button
             type="button"
             onClick={handleShuffle}
-            className="p-1 text-rose-400 hover:text-rose-300 rounded-full transition-colors cursor-pointer flex items-center gap-1"
-            title="Shuffle Slideshow"
+            className={`p-1 ${genreConfig.themeColor.primaryText} hover:opacity-80 rounded-full transition-colors cursor-pointer flex items-center gap-1`}
+            title={`Shuffle ${isSpecificGenre ? activeGenre : ''} Slideshow`}
             aria-label="Shuffle Slideshow"
           >
             <Shuffle size={13} />
