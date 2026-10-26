@@ -66,10 +66,15 @@ export const Header: React.FC<HeaderProps> = ({
 
   useEffect(() => {
     let ticking = false;
+    let lastScrolled = false;
     const handleScroll = () => {
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          setIsScrolled(window.scrollY > 12);
+          const next = window.scrollY > 20;
+          if (next !== lastScrolled) {
+            lastScrolled = next;
+            setIsScrolled(next);
+          }
           ticking = false;
         });
         ticking = true;
@@ -129,12 +134,11 @@ export const Header: React.FC<HeaderProps> = ({
         return;
       }
 
-      const isSpace = e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space' || e.keyCode === 32;
       const isSlash = e.key === '/';
       const isSKey = e.key === 's' || e.key === 'S';
 
-      if (isSpace || isSlash || isSKey) {
-        // Prevent default browser scrolling down when pressing Space
+      if (isSlash || isSKey) {
+        // Prevent default browser behavior
         e.preventDefault();
 
         // Switch to browse / main catalog view if on another route
@@ -266,7 +270,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <header className={`sticky top-0 z-40 w-full backdrop-blur-xl border-b transition-all duration-200 ${
+      <header className={`sticky top-0 z-40 w-full transform-gpu backdrop-blur-md border-b transition-[background-color,border-color,box-shadow] duration-200 ${
         isScrolled
           ? isWhite
             ? 'bg-white/95 border-slate-200/90 shadow-md shadow-slate-900/5'

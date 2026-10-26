@@ -174,7 +174,7 @@ const MovieSectionCard: React.FC<MovieSectionCardProps> = ({
           onSelectMovie(movie);
         }
       }}
-      className="group relative shrink-0 w-36 sm:w-44 md:w-48 snap-start rounded-2xl overflow-hidden bg-[#0e0e0e] border border-white/10 hover:border-white/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/80 flex flex-col cursor-pointer text-inherit select-none"
+      className="movie-card-contain group relative shrink-0 w-36 sm:w-44 md:w-48 snap-start rounded-2xl overflow-hidden bg-[#0e0e0e] border border-white/10 hover:border-white/25 transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/80 flex flex-col cursor-pointer text-inherit select-none"
     >
       <div className="relative aspect-[2/3] w-full overflow-hidden bg-neutral-900">
         {!hasAllFailed ? (
@@ -195,11 +195,11 @@ const MovieSectionCard: React.FC<MovieSectionCardProps> = ({
           </div>
         )}
 
-        <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/75 border border-white/15 backdrop-blur-md text-[11px] font-bold text-amber-400">
+        <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/85 border border-white/15 text-[11px] font-bold text-amber-400">
           <span>{movie.rating ? movie.rating.toFixed(1) : '7.5'}</span>
         </div>
 
-        <div className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-black/75 border border-white/15 backdrop-blur-md text-[10px] font-semibold text-neutral-300">
+        <div className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-black/85 border border-white/15 text-[10px] font-semibold text-neutral-300">
           {movie.year}
         </div>
 
@@ -326,7 +326,7 @@ export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
   };
 
   return (
-    <section className="space-y-3.5 my-8" aria-labelledby={`${section.id}-heading`}>
+    <section className="movie-section-contain space-y-3.5 my-8" aria-labelledby={`${section.id}-heading`}>
       <div className="flex items-center justify-between">
         <div>
           <h2 id={`${section.id}-heading`} className="text-lg sm:text-xl font-bold text-white tracking-tight">
@@ -369,7 +369,7 @@ export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
 
       <div
         ref={rowRef}
-        className="flex items-stretch gap-3.5 sm:gap-4 overflow-x-auto pb-3 pt-1 scrollbar-none snap-x snap-mandatory scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0"
+        className="flex items-stretch gap-3.5 sm:gap-4 overflow-x-auto pb-3 pt-1 scrollbar-none snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {isLoading ? (

@@ -2,13 +2,11 @@
 
 @layer base {
   html {
-    scroll-behavior: smooth;
+    scroll-behavior: auto;
     scrollbar-gutter: stable;
+    -webkit-text-size-adjust: 100%;
   }
   @media (prefers-reduced-motion: reduce) {
-    html {
-      scroll-behavior: auto !important;
-    }
     *, *::before, *::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
@@ -19,7 +17,7 @@
   body {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: none;
+    overscroll-behavior-y: auto;
   }
   h1, h2, h3, h4, h5, h6, .font-display {
     font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -100,6 +98,17 @@
 [role="dialog"],
 .overscroll-contain {
   overscroll-behavior: contain;
+}
+
+/* GPU-accelerated smooth scrolling & layout optimization */
+.movie-card-contain {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 340px;
+}
+
+.movie-section-contain {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 380px;
 }
 
 /* Animations for hero slideshow */

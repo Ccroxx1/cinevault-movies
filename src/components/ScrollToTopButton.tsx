@@ -11,11 +11,16 @@ export const ScrollToTopButton: React.FC = () => {
 
   useEffect(() => {
     let ticking = false;
+    let lastVisible = false;
 
     const handleScroll = () => {
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          setIsVisible(window.scrollY > 380);
+          const next = window.scrollY > 380;
+          if (next !== lastVisible) {
+            lastVisible = next;
+            setIsVisible(next);
+          }
           ticking = false;
         });
         ticking = true;

@@ -100,7 +100,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
   return (
     <article
       onClick={handleCardClick}
-      className="group relative bg-[#0a0a0a] hover:bg-[#111111] border border-white/5 hover:border-rose-500/50 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-2xl hover:shadow-rose-950/20 flex flex-col text-inherit select-none"
+      className="movie-card-contain group relative bg-[#0a0a0a] hover:bg-[#111111] border border-white/5 hover:border-rose-500/50 rounded-2xl overflow-hidden cursor-pointer transition-[border-color,background-color,box-shadow,transform] duration-200 hover:shadow-2xl hover:shadow-rose-950/20 flex flex-col text-inherit select-none"
     >
       <div className="relative aspect-[2/3] w-full overflow-hidden bg-[#050505]">
         {!hasAllFailed ? (
@@ -145,10 +145,10 @@ export const MovieCard: React.FC<MovieCardProps> = ({
             <button
               type="button"
               onClick={handleToggleComparisonClick}
-              className={`p-1.5 rounded-full backdrop-blur-md border transition-all shadow-md cursor-pointer ${
+              className={`p-1.5 rounded-full border transition-all shadow-md cursor-pointer ${
                 isCompared
                   ? 'bg-amber-500 text-black border-amber-400 shadow-amber-900/40'
-                  : 'bg-black/60 text-neutral-300 hover:text-white hover:bg-black/90 border-white/10'
+                  : 'bg-black/85 text-neutral-300 hover:text-white hover:bg-black border-white/15'
               }`}
               title={isCompared ? 'Remove from Versus' : 'Add to Versus Compare'}
               aria-label={isCompared ? 'Remove from Versus' : 'Add to Versus Compare'}
@@ -160,10 +160,10 @@ export const MovieCard: React.FC<MovieCardProps> = ({
             <button
               type="button"
               onClick={handleToggleWatchlistClick}
-              className={`p-1.5 rounded-full backdrop-blur-md border transition-all shadow-md cursor-pointer ${
+              className={`p-1.5 rounded-full border transition-all shadow-md cursor-pointer ${
                 isWatchlisted
                   ? 'bg-rose-600 text-white border-rose-500 shadow-rose-900/30'
-                  : 'bg-black/60 text-neutral-300 hover:text-white hover:bg-black/90 border-white/10'
+                  : 'bg-black/85 text-neutral-300 hover:text-white hover:bg-black border-white/15'
               }`}
               title={isWatchlisted ? 'Remove from Watchlist' : 'Add to Watchlist'}
               aria-label={isWatchlisted ? 'Remove from Watchlist' : 'Add to Watchlist'}
@@ -183,7 +183,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
               <button
                 type="button"
                 onClick={handleTrailerClick}
-                className="p-2 bg-white/10 hover:bg-white/20 text-rose-500 hover:text-rose-400 rounded-full border border-white/20 backdrop-blur-md shadow-lg transition-colors cursor-pointer"
+                className="p-2 bg-black/80 hover:bg-black text-rose-500 hover:text-rose-400 rounded-full border border-white/20 shadow-lg transition-colors cursor-pointer"
                 title="Watch Trailer"
                 aria-label="Watch Trailer"
               >
@@ -217,7 +217,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
               <button
                 type="button"
                 onClick={handleCopyPrimaryMagnet}
-                className="p-1.5 bg-white/10 hover:bg-white/20 text-neutral-200 rounded-full border border-white/10 backdrop-blur-md transition-colors cursor-pointer"
+                className="p-1.5 bg-black/80 hover:bg-black text-neutral-200 rounded-full border border-white/15 transition-colors cursor-pointer"
                 title="Copy Magnet URI"
                 aria-label="Copy Magnet URI"
               >
