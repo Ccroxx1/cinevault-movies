@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { Film } from 'lucide-react';
 import { Movie, buildMagnetLink } from '../types';
 import { PlayIcon } from './ActionIcons';
 import { CINEVAULT_POSTER_FALLBACK, getPosterCandidates } from '../utils/imageFallback';
+import { useIntersectionLazyLoad } from '../hooks/useIntersectionLazyLoad';
 
 interface RecentlyViewedStripProps {
   recentMovies: Movie[];
@@ -17,14 +19,20 @@ const RecentlyViewedCard: React.FC<{
   onPlayTrailer: (ytCode: string, title: string) => void;
   onCopyMagnet: (magnetUrl: string, title: string) => void;
 }> = ({ movie, onSelectMovie, onPlayTrailer, onCopyMagnet }) => {
+  const [cardRef, isVisible] = useIntersectionLazyLoad<HTMLElement>({
+    rootMargin: '250px 0px 250px 0px',
+  });
+  const [isLoaded, setIsLoaded] = useState(false);
   const posterCandidates = getPosterCandidates(movie);
   const [candidateIndex, setCandidateIndex] = useState(0);
 
   useEffect(() => {
     setCandidateIndex(0);
+    setIsLoaded(false);
   }, [movie.id]);
 
   const handleImageError = () => {
+    setIsLoaded(false);
     if (candidateIndex + 1 < posterCandidates.length) {
       setCandidateIndex((prev) => prev + 1);
     }
@@ -38,19 +46,42 @@ const RecentlyViewedCard: React.FC<{
 
   return (
     <article
+      ref={cardRef}
       className="group shrink-0 w-36 sm:w-44 snap-start bg-[#141414] hover:bg-[#1a1a1a] border border-white/10 hover:border-rose-500/40 rounded-xl overflow-hidden transition-all duration-200 cursor-pointer flex flex-col justify-between"
       onClick={() => onSelectMovie(movie)}
     >
       <div className="relative aspect-[2/3] w-full overflow-hidden bg-neutral-900">
-        <img
-          src={currentPosterSrc}
-          alt={`${movie.title} Poster`}
-          loading="lazy"
-          width="176"
-          height="264"
-          onError={handleImageError}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-        />
+        {!isLoaded && (
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 skeleton-shimmer z-0 flex items-center justify-center pointer-events-none"
+          >
+            <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-neutral-500/40">
+              <Film className="w-4 h-4" />
+            </div>
+          </div>
+        )}
+
+        {isVisible ? (
+          <img
+            ref={(imgEl) => {
+              if (imgEl && imgEl.complete && imgEl.naturalWidth > 0 && !isLoaded) {
+                setIsLoaded(true);
+              }
+            }}
+            src={currentPosterSrc}
+            alt={`${movie.title} Poster`}
+            loading="lazy"
+            decoding="async"
+            width="176"
+            height="264"
+            onLoad={() => setIsLoaded(true)}
+            onError={handleImageError}
+            className={`w-full h-full object-cover transition-opacity duration-300 group-hover:scale-105 group-hover:transition-transform group-hover:duration-300 ${
+              isLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
+        ) : null}
         
         <div className="absolute top-2 left-2 bg-black/80 backdrop-blur-md px-1.5 py-0.5 rounded text-[10px] font-bold text-amber-400 border border-white/10">
           {movie.rating?.toFixed(1) || 'N/A'}

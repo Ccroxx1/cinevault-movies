@@ -162,6 +162,285 @@ const POPULAR_RECOMMENDED_SHOWS = [
   { name: 'The Bear', imdb: 'tt14452776', year: '2022', genre: 'Comedy', rating: 8.6, image: 'https://static.tvmaze.com/uploads/images/medium_portrait/629/1574642.jpg' }
 ];
 
+export const SeriesDetailTorrentsSkeleton: React.FC<{
+  isWhite?: boolean;
+  isBlueBlack?: boolean;
+  hideToolbar?: boolean;
+}> = ({
+  isWhite,
+  isBlueBlack,
+  hideToolbar = false
+}) => {
+  return (
+    <div
+      aria-label="Loading torrent releases..."
+      className="space-y-4 animate-in fade-in duration-200"
+    >
+      {/* Filter Toolbar Skeleton */}
+      {!hideToolbar && (
+        <div className={`p-4 rounded-2xl border space-y-3 ${
+          isWhite ? 'bg-white border-slate-200' : isBlueBlack ? 'bg-[#091124] border-sky-900/40' : 'bg-[#0e0e0e] border-white/10'
+        }`}>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <div className="h-6 w-6 rounded-lg skeleton-shimmer" />
+              <div className="h-4 w-32 rounded skeleton-shimmer" />
+            </div>
+            <div className="h-8 w-56 rounded-xl skeleton-shimmer" />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <div className="h-4 w-14 rounded skeleton-shimmer mr-2" />
+            <div className="h-7 w-24 rounded-xl skeleton-shimmer" />
+            <div className="h-7 w-20 rounded-xl skeleton-shimmer" />
+            <div className="h-7 w-20 rounded-xl skeleton-shimmer" />
+            <div className="h-7 w-28 rounded-xl skeleton-shimmer" />
+          </div>
+        </div>
+      )}
+
+      {/* Releases List Skeleton Items */}
+      <div className="space-y-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div
+            key={`series-torrent-skel-${i}`}
+            className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 shadow-xs ${
+              isWhite
+                ? 'bg-white border-slate-200'
+                : isBlueBlack
+                ? 'bg-[#0b1329] border-sky-900/30'
+                : 'bg-[#0e0e0e] border-white/10'
+            }`}
+          >
+            <div className="space-y-2 flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="h-5 w-16 rounded-md skeleton-shimmer" />
+                <div className="h-5 w-14 rounded-md skeleton-shimmer" />
+                <div className="h-5 w-14 rounded-md skeleton-shimmer" />
+                <div className="h-5 w-20 rounded-md skeleton-shimmer" />
+                <div className="h-4 w-24 rounded skeleton-shimmer" />
+              </div>
+
+              <div className="h-5 w-4/5 sm:w-2/3 rounded-lg skeleton-shimmer" />
+
+              <div className="flex items-center gap-2 pt-0.5">
+                <div className="h-4 w-24 rounded-full skeleton-shimmer" />
+                <div className="h-3.5 w-32 rounded skeleton-shimmer" />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0 self-start sm:self-center">
+              <div className="h-9 w-24 rounded-xl skeleton-shimmer" />
+              <div className="h-9 w-16 rounded-xl skeleton-shimmer" />
+              <div className="h-9 w-9 rounded-xl skeleton-shimmer" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export const SeriesDetailEpisodesSkeleton: React.FC<{ isWhite?: boolean; isBlueBlack?: boolean }> = ({
+  isWhite,
+  isBlueBlack
+}) => {
+  return (
+    <div
+      aria-label="Loading episodes..."
+      className="space-y-4 animate-in fade-in duration-200"
+    >
+      <div className="flex items-center gap-2 pb-3 border-b border-white/10">
+        <div className="h-4 w-16 rounded skeleton-shimmer" />
+        <div className="h-8 w-24 rounded-xl skeleton-shimmer" />
+        <div className="h-8 w-24 rounded-xl skeleton-shimmer" />
+        <div className="h-8 w-24 rounded-xl skeleton-shimmer" />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div
+            key={`ep-skel-${i}`}
+            className={`p-4 rounded-2xl border flex flex-col sm:flex-row gap-4 ${
+              isWhite ? 'bg-white border-slate-200' : isBlueBlack ? 'bg-[#0b1329] border-sky-900/40' : 'bg-[#0e0e0e] border-white/10'
+            }`}
+          >
+            <div className="sm:w-36 aspect-video rounded-xl skeleton-shimmer shrink-0" />
+            <div className="flex-1 space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="h-4.5 w-16 rounded-md skeleton-shimmer" />
+                <div className="h-4 w-24 rounded skeleton-shimmer" />
+              </div>
+              <div className="h-5 w-4/5 rounded-lg skeleton-shimmer" />
+              <div className="h-3.5 w-full rounded skeleton-shimmer" />
+              <div className="h-3.5 w-2/3 rounded skeleton-shimmer" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export const SeriesDetailCastSkeleton: React.FC<{ isWhite?: boolean; isBlueBlack?: boolean }> = ({
+  isWhite,
+  isBlueBlack
+}) => {
+  return (
+    <div
+      aria-label="Loading cast members..."
+      className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4 animate-in fade-in duration-200"
+    >
+      {Array.from({ length: 12 }).map((_, i) => (
+        <div
+          key={`cast-skel-${i}`}
+          className={`p-3 rounded-2xl border text-center space-y-2.5 ${
+            isWhite ? 'bg-white border-slate-200' : isBlueBlack ? 'bg-[#0b1329] border-sky-900/40' : 'bg-[#0e0e0e] border-white/10'
+          }`}
+        >
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full mx-auto skeleton-shimmer border border-white/10" />
+          <div className="space-y-1">
+            <div className="h-4 w-20 mx-auto rounded skeleton-shimmer" />
+            <div className="h-3 w-16 mx-auto rounded skeleton-shimmer" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export const SeriesDetailHeroSkeleton: React.FC<{
+  isWhite?: boolean;
+  isBlueBlack?: boolean;
+  onBack?: () => void;
+  onNavigateHome: () => void;
+  onNavigateToSeries: () => void;
+}> = ({
+  isWhite,
+  isBlueBlack,
+  onBack,
+  onNavigateHome,
+  onNavigateToSeries
+}) => {
+  return (
+    <article className="w-full space-y-8 animate-in fade-in duration-300" aria-label="Loading television series details...">
+      {/* Top Breadcrumb Navigation Skeleton */}
+      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-neutral-400 py-2 border-b border-white/5 overflow-x-auto whitespace-nowrap">
+        <a
+          href="/"
+          onClick={(e) => {
+            e.preventDefault();
+            onNavigateHome();
+          }}
+          className="flex items-center gap-1 hover:text-white transition-colors"
+        >
+          <span>Home</span>
+        </a>
+        <span aria-hidden="true">/</span>
+        <a
+          href="/series"
+          onClick={(e) => {
+            e.preventDefault();
+            onNavigateToSeries();
+          }}
+          className="hover:text-white transition-colors"
+        >
+          TV Series
+        </a>
+        <span aria-hidden="true">/</span>
+        <div className="h-4 w-32 rounded-md skeleton-shimmer inline-block" />
+      </nav>
+
+      {/* Hero Series Presentation Header Skeleton */}
+      <header className={`movie-detail-hero hero-cinema-container relative rounded-3xl overflow-hidden border shadow-2xl ${
+        isWhite ? 'border-slate-200 bg-white' : isBlueBlack ? 'border-sky-900/40 bg-[#070d1e]' : 'border-white/10 bg-[#0a0a0a]'
+      }`}>
+        <div className="relative h-72 sm:h-96 md:h-[420px] w-full overflow-hidden bg-[#050505]">
+          <div className="w-full h-full skeleton-shimmer opacity-25" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/70 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0a] via-transparent to-[#0a0a0a]/80" />
+
+          {/* Top Quick Actions Bar */}
+          <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-20">
+            <button
+              onClick={onBack}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-black/60 text-neutral-200 rounded-full border border-white/10 text-xs font-semibold shadow-lg cursor-pointer"
+            >
+              <ArrowLeft size={15} />
+              <span>Back</span>
+            </button>
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-20 rounded-full skeleton-shimmer" />
+            </div>
+          </div>
+        </div>
+
+        {/* Hero Content Section */}
+        <div className="relative px-4 sm:px-8 md:px-10 pb-8 sm:pb-10 -mt-36 sm:-mt-52 md:-mt-64 z-20">
+          <div className="flex flex-col md:flex-row gap-6 md:gap-10 items-start">
+            
+            {/* Poster Card */}
+            <div className="w-40 sm:w-56 md:w-64 aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl border border-white/15 shrink-0 bg-neutral-900 skeleton-shimmer" />
+
+            {/* Title, Badges, CTAs, and Overview */}
+            <div className="flex-1 min-w-0 w-full space-y-5 pt-2 sm:pt-4">
+              <div className="space-y-3">
+                <div className="h-8 sm:h-11 w-3/4 max-w-lg rounded-2xl skeleton-shimmer" />
+                <div className="h-4 w-44 rounded-md skeleton-shimmer" />
+
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <div className="h-6 w-20 rounded-md skeleton-shimmer" />
+                  <div className="h-6 w-24 rounded-md skeleton-shimmer" />
+                  <div className="h-6 w-28 rounded-md skeleton-shimmer" />
+                  <div className="h-6 w-16 rounded-md skeleton-shimmer" />
+                  <div className="h-6 w-20 rounded-md skeleton-shimmer" />
+                </div>
+              </div>
+
+              {/* Action Buttons Skeleton */}
+              <div className="flex flex-wrap items-center gap-3 pt-2">
+                <div className="h-11 w-36 rounded-full skeleton-shimmer" />
+                <div className="h-11 w-44 rounded-full skeleton-shimmer" />
+                <div className="h-11 w-11 rounded-full skeleton-shimmer" />
+                <div className="h-11 w-11 rounded-full skeleton-shimmer" />
+              </div>
+
+              {/* Plot Summary Lines */}
+              <div className="space-y-2.5 max-w-3xl pt-2">
+                <div className="h-3.5 w-full rounded-md skeleton-shimmer" />
+                <div className="h-3.5 w-11/12 rounded-md skeleton-shimmer" />
+                <div className="h-3.5 w-4/5 rounded-md skeleton-shimmer" />
+              </div>
+
+              {/* Tech Specs Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-white/10 max-w-3xl">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="space-y-1.5 p-2.5 rounded-xl bg-white/5 border border-white/5">
+                    <div className="h-3 w-14 rounded skeleton-shimmer" />
+                    <div className="h-4 w-20 rounded-md skeleton-shimmer" />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </header>
+
+      {/* Tabs Row Skeleton */}
+      <div className="flex items-center gap-2 border-b border-white/10 pb-3">
+        <div className="h-10 w-36 rounded-xl skeleton-shimmer" />
+        <div className="h-10 w-32 rounded-xl skeleton-shimmer" />
+        <div className="h-10 w-28 rounded-xl skeleton-shimmer" />
+        <div className="h-10 w-24 rounded-xl skeleton-shimmer" />
+      </div>
+
+      {/* Release List Content Skeleton */}
+      <SeriesDetailTorrentsSkeleton isWhite={isWhite} isBlueBlack={isBlueBlack} />
+    </article>
+  );
+};
+
 export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
   seriesId,
   seriesTitle,
@@ -686,6 +965,18 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
 
   const currentPosterSrc = seriesPosterCandidates[posterIndex] || CINEVAULT_POSTER_FALLBACK;
   const backdropImage = show?.backdropImage || show?.image || currentPosterSrc || null;
+
+  if (isLoadingDetails && !show) {
+    return (
+      <SeriesDetailHeroSkeleton
+        isWhite={isWhite}
+        isBlueBlack={isBlueBlack}
+        onBack={onBack}
+        onNavigateHome={onNavigateHome}
+        onNavigateToSeries={onNavigateToSeries}
+      />
+    );
+  }
 
   return (
     <article className="w-full space-y-8 animate-in fade-in duration-300">
@@ -1392,19 +1683,8 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
 
               {/* Releases List */}
               {isLoadingTorrents ? (
-                <div className="space-y-3 py-4">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className={`h-22 rounded-2xl animate-pulse ${
-                        isWhite
-                          ? 'bg-slate-100 border border-slate-200'
-                          : isBlueBlack
-                          ? 'bg-[#0b1329] border border-sky-900/30'
-                          : 'bg-[#0e0e0e] border border-white/5'
-                      }`}
-                    />
-                  ))}
+                <div className="py-2">
+                  <SeriesDetailTorrentsSkeleton isWhite={isWhite} isBlueBlack={isBlueBlack} hideToolbar={true} />
                 </div>
               ) : filteredTorrents.length > 0 ? (
                 viewMode === 'grouped' ? (
@@ -1877,176 +2157,204 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
         )}
 
         {/* Tab 2: Episode Guide */}
-        {activeTab === 'episodes' && show?.episodes && (
-          <div className="space-y-4">
-            
-            {/* Season Filter for Guide (Wrap smoothly - NO ugly horizontal scrollbar) */}
-            <div className={`flex flex-wrap items-center gap-2 pb-3 border-b ${
-              isWhite ? 'border-slate-200' : 'border-white/10'
-            }`}>
-              <span className={`text-xs font-bold uppercase tracking-wider mr-1 ${
-                isWhite ? 'text-slate-600' : 'text-neutral-400'
+        {activeTab === 'episodes' && (
+          isLoadingDetails && (!show?.episodes || show.episodes.length === 0) ? (
+            <SeriesDetailEpisodesSkeleton isWhite={isWhite} isBlueBlack={isBlueBlack} />
+          ) : show?.episodes && show.episodes.length > 0 ? (
+            <div className="space-y-4">
+              
+              {/* Season Filter for Guide (Wrap smoothly - NO ugly horizontal scrollbar) */}
+              <div className={`flex flex-wrap items-center gap-2 pb-3 border-b ${
+                isWhite ? 'border-slate-200' : 'border-white/10'
               }`}>
-                Season:
-              </span>
-              {(seasonStats.allKnownSeasons.length > 0 ? seasonStats.allKnownSeasons : [1]).map((sNum) => {
-                const epCount = show.episodes?.filter(e => e.season === sNum).length || 0;
-                const isSelected = guideSeason === sNum;
-                return (
-                  <button
-                    key={`guide-season-tab-${sNum}`}
-                    onClick={() => setGuideSeason(sNum)}
-                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
-                      isSelected
-                        ? 'bg-rose-600 text-white shadow-md shadow-rose-950/40 ring-1 ring-rose-500'
-                        : isWhite
-                        ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
-                        : isBlueBlack
-                        ? 'bg-[#0b1329] hover:bg-sky-900/40 text-sky-200 border border-sky-900/40'
-                        : 'bg-[#0e0e0e] text-neutral-300 hover:bg-white/10 border border-white/10'
-                    }`}
-                  >
-                    <span>Season {sNum}</span>
-                    <span className={`text-[10px] px-1.5 py-0.2 rounded-md font-mono ${
-                      isSelected
-                        ? 'bg-black/30 text-white'
-                        : isWhite
-                        ? 'bg-slate-200 text-slate-700'
-                        : 'bg-white/10 text-neutral-400'
-                    }`}>
-                      {epCount} eps
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Episodes Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {show.episodes
-                .filter((ep) => ep.season === guideSeason)
-                .map((ep) => {
-                  const epTag = `S${String(ep.season).padStart(2, '0')}E${String(ep.number).padStart(2, '0')}`;
-                  
+                <span className={`text-xs font-bold uppercase tracking-wider mr-1 ${
+                  isWhite ? 'text-slate-600' : 'text-neutral-400'
+                }`}>
+                  Season:
+                </span>
+                {(seasonStats.allKnownSeasons.length > 0 ? seasonStats.allKnownSeasons : [1]).map((sNum) => {
+                  const epCount = show.episodes?.filter(e => e.season === sNum).length || 0;
+                  const isSelected = guideSeason === sNum;
                   return (
-                    <div
-                      key={ep.id}
-                      className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row gap-4 ${
-                        isWhite
-                          ? 'bg-white border-slate-200 shadow-xs hover:border-slate-300'
+                    <button
+                      key={`guide-season-tab-${sNum}`}
+                      onClick={() => setGuideSeason(sNum)}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
+                        isSelected
+                          ? 'bg-rose-600 text-white shadow-md shadow-rose-950/40 ring-1 ring-rose-500'
+                          : isWhite
+                          ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
                           : isBlueBlack
-                          ? 'bg-[#0b1329] border-sky-900/40 hover:border-sky-800/60'
-                          : 'bg-[#0e0e0e] border-white/10 hover:border-white/20'
+                          ? 'bg-[#0b1329] hover:bg-sky-900/40 text-sky-200 border border-sky-900/40'
+                          : 'bg-[#0e0e0e] text-neutral-300 hover:bg-white/10 border border-white/10'
                       }`}
                     >
-                      {/* Thumbnail Still */}
-                      <div className="sm:w-36 aspect-video rounded-xl overflow-hidden bg-black/40 shrink-0 relative">
-                        {ep.image?.medium || ep.image?.original ? (
-                          <img
-                            src={ep.image.medium || ep.image.original!}
-                            alt={`${ep.name} still`}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className={`w-full h-full flex items-center justify-center ${
-                            isWhite ? 'bg-slate-100 text-slate-400' : 'bg-white/5 text-neutral-600'
-                          }`}>
-                            <Tv size={24} />
-                          </div>
-                        )}
-                        <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/80 backdrop-blur-xs text-[10px] font-mono font-bold text-white border border-white/10">
-                          {epTag}
-                        </span>
-                      </div>
-
-                      {/* Episode Content */}
-                      <div className="flex-1 min-w-0 space-y-1.5">
-                        <div className="flex items-center justify-between gap-2">
-                          <h4 className={`text-sm font-bold truncate ${
-                            isWhite ? 'text-slate-900' : 'text-white'
-                          }`}>
-                            {ep.number}. {ep.name}
-                          </h4>
-                          {ep.runtime && (
-                            <span className={`text-[11px] font-mono shrink-0 ${
-                              isWhite ? 'text-slate-500' : 'text-neutral-400'
-                            }`}>
-                              {ep.runtime} min
-                            </span>
-                          )}
-                        </div>
-
-                        {ep.airdate && (
-                          <p className={`text-[11px] ${isWhite ? 'text-slate-500' : 'text-neutral-400'}`}>
-                            Aired: {ep.airdate}
-                          </p>
-                        )}
-
-                        <p className={`text-xs line-clamp-3 leading-relaxed ${
-                          isWhite ? 'text-slate-600' : 'text-neutral-300'
-                        }`}>
-                          {ep.summary || 'No detailed episode synopsis available.'}
-                        </p>
-
-                        <div className="pt-2">
-                          <button
-                            onClick={() => {
-                              setSelectedSeason(String(ep.season));
-                              setReleaseSearch(epTag);
-                              setActiveTab('torrents');
-                            }}
-                            className="text-xs text-rose-500 hover:text-rose-400 font-bold inline-flex items-center gap-1 cursor-pointer transition-colors"
-                          >
-                            <span>Find Torrents for {epTag}</span>
-                            <ChevronRight size={13} />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                      <span>Season {sNum}</span>
+                      <span className={`text-[10px] px-1.5 py-0.2 rounded-md font-mono ${
+                        isSelected
+                          ? 'bg-black/30 text-white'
+                          : isWhite
+                          ? 'bg-slate-200 text-slate-700'
+                          : 'bg-white/10 text-neutral-400'
+                      }`}>
+                        {epCount} eps
+                      </span>
+                    </button>
                   );
                 })}
+              </div>
+
+              {/* Episodes Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {show.episodes
+                  .filter((ep) => ep.season === guideSeason)
+                  .map((ep) => {
+                    const epTag = `S${String(ep.season).padStart(2, '0')}E${String(ep.number).padStart(2, '0')}`;
+                    
+                    return (
+                      <div
+                        key={ep.id}
+                        className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row gap-4 ${
+                          isWhite
+                            ? 'bg-white border-slate-200 shadow-xs hover:border-slate-300'
+                            : isBlueBlack
+                            ? 'bg-[#0b1329] border-sky-900/40 hover:border-sky-800/60'
+                            : 'bg-[#0e0e0e] border-white/10 hover:border-white/20'
+                        }`}
+                      >
+                        {/* Thumbnail Still */}
+                        <div className="sm:w-36 aspect-video rounded-xl overflow-hidden bg-black/40 shrink-0 relative">
+                          {ep.image?.medium || ep.image?.original ? (
+                            <img
+                              src={ep.image.medium || ep.image.original!}
+                              alt={`${ep.name} still`}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className={`w-full h-full flex items-center justify-center ${
+                              isWhite ? 'bg-slate-100 text-slate-400' : 'bg-white/5 text-neutral-600'
+                            }`}>
+                              <Tv size={24} />
+                            </div>
+                          )}
+                          <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/80 backdrop-blur-xs text-[10px] font-mono font-bold text-white border border-white/10">
+                            {epTag}
+                          </span>
+                        </div>
+
+                        {/* Episode Content */}
+                        <div className="flex-1 min-w-0 space-y-1.5">
+                          <div className="flex items-center justify-between gap-2">
+                            <h4 className={`text-sm font-bold truncate ${
+                              isWhite ? 'text-slate-900' : 'text-white'
+                            }`}>
+                              {ep.number}. {ep.name}
+                            </h4>
+                            {ep.runtime && (
+                              <span className={`text-[11px] font-mono shrink-0 ${
+                                isWhite ? 'text-slate-500' : 'text-neutral-400'
+                              }`}>
+                                {ep.runtime} min
+                              </span>
+                            )}
+                          </div>
+
+                          {ep.airdate && (
+                            <p className={`text-[11px] ${isWhite ? 'text-slate-500' : 'text-neutral-400'}`}>
+                              Aired: {ep.airdate}
+                            </p>
+                          )}
+
+                          <p className={`text-xs line-clamp-3 leading-relaxed ${
+                            isWhite ? 'text-slate-600' : 'text-neutral-300'
+                          }`}>
+                            {ep.summary || 'No detailed episode synopsis available.'}
+                          </p>
+
+                          <div className="pt-2">
+                            <button
+                              onClick={() => {
+                                setSelectedSeason(String(ep.season));
+                                setReleaseSearch(epTag);
+                                setActiveTab('torrents');
+                              }}
+                              className="text-xs text-rose-500 hover:text-rose-400 font-bold inline-flex items-center gap-1 cursor-pointer transition-colors"
+                            >
+                              <span>Find Torrents for {epTag}</span>
+                              <ChevronRight size={13} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className={`p-12 text-center rounded-2xl border ${
+              isWhite ? 'bg-white border-slate-200' : isBlueBlack ? 'bg-[#091124] border-sky-900/40' : 'bg-[#0e0e0e] border-white/10'
+            }`}>
+              <p className="text-sm text-neutral-400">No episode guide details available for this series.</p>
+            </div>
+          )
         )}
 
         {/* Tab 3: Cast & Characters */}
-        {activeTab === 'cast' && show?.cast && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {show.cast.map((c) => (
-              <div
-                key={c.person.id}
-                onClick={() => onOpenFilmography && onOpenFilmography(c.person.name, 'actor')}
-                className="group p-3 rounded-2xl bg-[#0e0e0e] border border-white/10 hover:border-rose-500/40 transition-all text-center space-y-2.5 cursor-pointer"
-              >
-                <div className="aspect-[3/4] rounded-xl overflow-hidden bg-black/40 relative">
-                  {c.person.image?.medium || c.person.image?.original ? (
-                    <img
-                      src={c.person.image.medium || c.person.image.original!}
-                      alt={c.person.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-white/5 text-neutral-600">
-                      <User size={32} />
-                    </div>
-                  )}
-                </div>
+        {activeTab === 'cast' && (
+          isLoadingDetails && (!show?.cast || show.cast.length === 0) ? (
+            <SeriesDetailCastSkeleton isWhite={isWhite} isBlueBlack={isBlueBlack} />
+          ) : show?.cast && show.cast.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {show.cast.map((c) => (
+                <div
+                  key={c.person.id}
+                  onClick={() => onOpenFilmography && onOpenFilmography(c.person.name, 'actor')}
+                  className={`group p-3 rounded-2xl border transition-all text-center space-y-2.5 cursor-pointer ${
+                    isWhite
+                      ? 'bg-white border-slate-200 hover:border-rose-500/40'
+                      : isBlueBlack
+                      ? 'bg-[#0b1329] border-sky-900/40 hover:border-sky-500/50'
+                      : 'bg-[#0e0e0e] border-white/10 hover:border-rose-500/40'
+                  }`}
+                >
+                  <div className="aspect-[3/4] rounded-xl overflow-hidden bg-black/40 relative">
+                    {c.person.image?.medium || c.person.image?.original ? (
+                      <img
+                        src={c.person.image.medium || c.person.image.original!}
+                        alt={c.person.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-white/5 text-neutral-600">
+                        <User size={32} />
+                      </div>
+                    )}
+                  </div>
 
-                <div>
-                  <h4 className="text-xs font-bold text-white group-hover:text-rose-400 transition-colors truncate">
-                    {c.person.name}
-                  </h4>
-                  {c.character?.name && (
-                    <p className="text-[11px] text-neutral-400 truncate">
-                      as {c.character.name}
-                    </p>
-                  )}
+                  <div>
+                    <h4 className={`text-xs font-bold transition-colors truncate ${
+                      isWhite ? 'text-slate-900 group-hover:text-rose-600' : 'text-white group-hover:text-rose-400'
+                    }`}>
+                      {c.person.name}
+                    </h4>
+                    {c.character?.name && (
+                      <p className={`text-[11px] truncate ${isWhite ? 'text-slate-500' : 'text-neutral-400'}`}>
+                        as {c.character.name}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className={`p-12 text-center rounded-2xl border ${
+              isWhite ? 'bg-white border-slate-200' : isBlueBlack ? 'bg-[#091124] border-sky-900/40' : 'bg-[#0e0e0e] border-white/10'
+            }`}>
+              <p className="text-sm text-neutral-400">No cast information available for this series.</p>
+            </div>
+          )
         )}
 
         {/* Tab 4: Overview */}

@@ -118,18 +118,130 @@ export const LANGUAGE_OPTIONS = [
   { label: 'Swedish', value: 'sv' }
 ] as const;
 
-export const SORT_OPTIONS = [
-  { label: 'Latest', value: 'date_added', order: 'desc' },
-  { label: 'Oldest', value: 'date_added', order: 'asc' },
-  { label: 'Featured', value: 'like_count', order: 'desc' },
-  { label: 'Seeds', value: 'seeds', order: 'desc' },
-  { label: 'Peers', value: 'peers', order: 'desc' },
-  { label: 'Year', value: 'year', order: 'desc' },
-  { label: 'Rating', value: 'rating', order: 'desc' },
-  { label: 'Likes', value: 'like_count', order: 'desc' },
-  { label: 'Alphabetical', value: 'title', order: 'asc' },
-  { label: 'Downloads', value: 'download_count', order: 'desc' }
-] as const;
+export interface SortOptionItem {
+  key: string;
+  label: string;
+  shortLabel: string;
+  sortBy: string;
+  orderBy: 'desc' | 'asc';
+  badge?: string;
+  description?: string;
+}
+
+export const MOVIE_SORT_OPTIONS: SortOptionItem[] = [
+  {
+    key: 'date_added_desc',
+    label: 'Recently Added (Latest)',
+    shortLabel: 'Recently Added',
+    sortBy: 'date_added',
+    orderBy: 'desc',
+    badge: 'Latest',
+    description: 'Films most recently uploaded to CineVault'
+  },
+  {
+    key: 'year_desc',
+    label: 'Release Date (Newest first)',
+    shortLabel: 'Release Date ↓',
+    sortBy: 'year',
+    orderBy: 'desc',
+    badge: '2026→1900',
+    description: 'Latest theatrical and cinematic releases'
+  },
+  {
+    key: 'year_asc',
+    label: 'Release Date (Oldest first)',
+    shortLabel: 'Release Date ↑',
+    sortBy: 'year',
+    orderBy: 'asc',
+    badge: '1900→2026',
+    description: 'Vintage and golden era classic cinema'
+  },
+  {
+    key: 'rating_desc',
+    label: 'IMDb Rating (Highest first)',
+    shortLabel: 'IMDb Rating',
+    sortBy: 'rating',
+    orderBy: 'desc',
+    badge: '★ 10→1',
+    description: 'Top critic and audience rated masterpieces'
+  },
+  {
+    key: 'title_asc',
+    label: 'Alphabetical (A to Z)',
+    shortLabel: 'Alphabetical A-Z',
+    sortBy: 'title',
+    orderBy: 'asc',
+    badge: 'A → Z',
+    description: 'Sorted from A to Z alphabetically'
+  },
+  {
+    key: 'title_desc',
+    label: 'Alphabetical (Z to A)',
+    shortLabel: 'Alphabetical Z-A',
+    sortBy: 'title',
+    orderBy: 'desc',
+    badge: 'Z → A',
+    description: 'Sorted in reverse alphabetical order'
+  },
+  {
+    key: 'download_count_desc',
+    label: 'Most Popular (Downloads)',
+    shortLabel: 'Most Popular',
+    sortBy: 'download_count',
+    orderBy: 'desc',
+    badge: 'Trending',
+    description: 'Highest total downloads across swarms'
+  },
+  {
+    key: 'like_count_desc',
+    label: 'Most Liked (User Favorites)',
+    shortLabel: 'Most Liked',
+    sortBy: 'like_count',
+    orderBy: 'desc',
+    badge: '♥ Liked',
+    description: 'Highest user bookmarks and favorites'
+  },
+  {
+    key: 'seeds_desc',
+    label: 'Most Seeders (Fastest Swarm)',
+    shortLabel: 'Fastest Swarm',
+    sortBy: 'seeds',
+    orderBy: 'desc',
+    badge: '⚡ Fast',
+    description: 'Highest number of active seeders'
+  },
+  {
+    key: 'date_added_asc',
+    label: 'Oldest Additions',
+    shortLabel: 'Oldest Added',
+    sortBy: 'date_added',
+    orderBy: 'asc',
+    badge: 'Archives',
+    description: 'Earliest catalog additions and uploads'
+  }
+];
+
+export function getSortOptionKey(sortBy?: string, orderBy?: string): string {
+  const safeSort = sortBy || 'date_added';
+  const safeOrder = orderBy === 'asc' ? 'asc' : 'desc';
+  const match = MOVIE_SORT_OPTIONS.find(
+    (opt) => opt.sortBy === safeSort && opt.orderBy === safeOrder
+  );
+  if (match) return match.key;
+  const partial = MOVIE_SORT_OPTIONS.find((opt) => opt.sortBy === safeSort);
+  return partial ? partial.key : 'date_added_desc';
+}
+
+export function getSortOptionByKey(key: string): SortOptionItem {
+  return MOVIE_SORT_OPTIONS.find((opt) => opt.key === key) || MOVIE_SORT_OPTIONS[0];
+}
+
+export const SORT_OPTIONS = MOVIE_SORT_OPTIONS.map((opt) => ({
+  label: opt.label,
+  value: opt.key,
+  sortBy: opt.sortBy,
+  order: opt.orderBy
+}));
 
 // API mirror candidates prioritizing yts.gg for superior reliability and image delivery
 const PUBLIC_MIRRORS = [
@@ -437,6 +549,9 @@ export function filterMoviesByParams(movies: Movie[], params: Partial<FilterPara
     } else if (sortField === 'like_count') {
       valA = a.like_count || 0;
       valB = b.like_count || 0;
+    } else if (sortField === 'seeds') {
+      valA = Math.max(0, ...(a.torrents?.map(t => Number(t.seeds) || 0) || [0]));
+      valB = Math.max(0, ...(b.torrents?.map(t => Number(t.seeds) || 0) || [0]));
     } else {
       valA = a.date_uploaded_unix || a.id || 0;
       valB = b.date_uploaded_unix || b.id || 0;

@@ -30,6 +30,7 @@ import {
   extractShowTitleAndYear
 } from '../services/eztvApi';
 import { CopyIcon } from './ActionIcons';
+import { useTheme } from '../context/ThemeContext';
 import { getSeriesPosterCandidates, getPrimarySeriesPoster, CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
 
 interface EztvViewProps {
@@ -216,6 +217,110 @@ const EztvReleaseRow: React.FC<EztvReleaseRowProps> = ({
           {isCopied ? <Check className="w-4 h-4 text-white" /> : <CopyIcon size={16} />}
         </button>
       </div>
+    </div>
+  );
+};
+
+export const EztvShowcaseSkeleton: React.FC = () => {
+  const { colorMode } = useTheme();
+  const isWhite = colorMode === 'white';
+  const isBlueBlack = colorMode === 'blue-black';
+
+  return (
+    <div
+      aria-label="Loading series information..."
+      className={`relative overflow-hidden rounded-3xl p-5 sm:p-7 border shadow-xl flex flex-col md:flex-row gap-6 items-start animate-in fade-in duration-200 ${
+        isWhite
+          ? 'border-slate-200 bg-white'
+          : isBlueBlack
+          ? 'border-sky-900/40 bg-[#091124]'
+          : 'border-white/10 bg-[#0c0c12]/80'
+      }`}
+    >
+      <div className="w-28 sm:w-36 aspect-[2/3] rounded-2xl overflow-hidden border border-white/10 shrink-0 skeleton-shimmer" />
+
+      <div className="flex-1 min-w-0 w-full space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-2.5">
+            <div className="h-7 sm:h-8 w-48 sm:w-64 rounded-xl skeleton-shimmer" />
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="h-6 w-20 rounded-md skeleton-shimmer" />
+              <div className="h-6 w-24 rounded-md skeleton-shimmer" />
+              <div className="h-6 w-16 rounded-md skeleton-shimmer" />
+              <div className="h-6 w-20 rounded-md skeleton-shimmer" />
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-36 rounded-lg skeleton-shimmer" />
+          </div>
+        </div>
+
+        <div className="space-y-2 max-w-3xl">
+          <div className="h-3.5 w-full rounded-md skeleton-shimmer" />
+          <div className="h-3.5 w-11/12 rounded-md skeleton-shimmer" />
+          <div className="h-3.5 w-4/5 rounded-md skeleton-shimmer" />
+        </div>
+
+        <div className="pt-2 flex flex-wrap items-center gap-2">
+          <div className="h-5 w-20 rounded-md skeleton-shimmer" />
+          <div className="h-7 w-20 rounded-lg skeleton-shimmer" />
+          <div className="h-7 w-24 rounded-lg skeleton-shimmer" />
+          <div className="h-7 w-24 rounded-lg skeleton-shimmer" />
+          <div className="h-7 w-24 rounded-lg skeleton-shimmer" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const EztvReleasesSkeleton: React.FC = () => {
+  const { colorMode } = useTheme();
+  const isWhite = colorMode === 'white';
+  const isBlueBlack = colorMode === 'blue-black';
+
+  return (
+    <div
+      aria-label="Loading TV torrent releases..."
+      className="space-y-2.5 animate-in fade-in duration-200"
+    >
+      {Array.from({ length: 7 }).map((_, i) => (
+        <div
+          key={`eztv-release-skel-${i}`}
+          className={`p-3.5 sm:p-4 rounded-2xl border flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3.5 shadow-xs ${
+            isWhite
+              ? 'border-slate-200 bg-white'
+              : isBlueBlack
+              ? 'border-sky-900/30 bg-[#0b1329]'
+              : 'border-white/10 bg-[#0d0d12]/70'
+          }`}
+        >
+          <div className="flex items-start sm:items-center gap-3.5 flex-1 min-w-0 w-full">
+            <div className="w-10 h-14 sm:w-12 sm:h-16 rounded-xl shrink-0 border border-white/10 skeleton-shimmer" />
+
+            <div className="space-y-2 flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="h-5 w-16 rounded-md skeleton-shimmer" />
+                <div className="h-5 w-12 rounded-md skeleton-shimmer" />
+                <div className="h-5 w-24 rounded-md skeleton-shimmer" />
+                <div className="h-4 w-16 rounded-md skeleton-shimmer hidden sm:block" />
+              </div>
+
+              <div className="h-4.5 w-4/5 sm:w-3/5 rounded-lg skeleton-shimmer" />
+
+              <div className="flex items-center gap-2">
+                <div className="h-3.5 w-20 rounded skeleton-shimmer" />
+                <div className="h-3.5 w-24 rounded skeleton-shimmer" />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0 self-end lg:self-center">
+            <div className="h-9 w-20 rounded-xl skeleton-shimmer" />
+            <div className="h-9 w-36 rounded-xl skeleton-shimmer" />
+            <div className="h-9 w-9 rounded-xl skeleton-shimmer" />
+          </div>
+        </div>
+      ))}
     </div>
   );
 };
@@ -665,7 +770,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
       </div>
 
       {/* TV Show Metadata Card (When a show is active and resolved) */}
-      {showMeta && (
+      {showMeta ? (
         <div className="relative overflow-hidden rounded-3xl p-5 sm:p-7 border eztv-showcase-card shadow-xl flex flex-col md:flex-row gap-6 items-start">
           <div className="w-28 sm:w-36 aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl border border-white/10 shrink-0 bg-neutral-900">
             <img
@@ -790,7 +895,9 @@ export const EztvView: React.FC<EztvViewProps> = ({
             )}
           </div>
         </div>
-      )}
+      ) : (isLoading && (activeShowName || activeImdbId || initialQuery || initialImdb)) ? (
+        <EztvShowcaseSkeleton />
+      ) : null}
 
       {/* Filter & Sort Controls Bar */}
       <div className="p-4 rounded-2xl bg-[#0f0f13] border border-white/10 flex flex-wrap items-center justify-between gap-4 backdrop-blur-sm">
@@ -901,16 +1008,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
       )}
 
       {/* Loading Skeleton Grid */}
-      {isLoading && (
-        <div className="space-y-3">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div
-              key={`skeleton-${i}`}
-              className="h-20 rounded-2xl bg-neutral-900/40 border border-white/5 animate-pulse"
-            />
-          ))}
-        </div>
-      )}
+      {isLoading && <EztvReleasesSkeleton />}
 
       {/* Torrents Release List */}
       {!isLoading && !error && filteredTorrents.length > 0 && (

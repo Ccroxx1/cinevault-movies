@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeftRight } from 'lucide-react';
+import { ArrowLeftRight, Film } from 'lucide-react';
 import { Movie, buildMagnetLink } from '../types';
 import { getMoviePath } from '../utils/seo';
 import { handleBrandedMagnetDownload } from '../utils/downloadPack';
@@ -7,6 +7,7 @@ import { getPosterCandidates, CINEVAULT_POSTER_FALLBACK } from '../utils/imageFa
 import { BookmarkPlusIcon, BookmarkIcon, PlayIcon, CopyIcon } from './ActionIcons';
 import { useMovieComparison } from '../context/MovieComparisonContext';
 import { TorrentSwarmHealthBadge } from './TorrentSwarmHealthBadge';
+import { useIntersectionLazyLoad } from '../hooks/useIntersectionLazyLoad';
 
 interface MovieCardProps {
   movie: Movie;
@@ -25,6 +26,10 @@ export const MovieCard: React.FC<MovieCardProps> = ({
   isWatchlisted,
   onToggleWatchlist,
 }) => {
+  const [cardRef, isVisible] = useIntersectionLazyLoad<HTMLElement>({
+    rootMargin: '250px 0px 250px 0px',
+  });
+  const [isLoaded, setIsLoaded] = useState(false);
   const posterCandidates = getPosterCandidates(movie);
   const [candidateIndex, setCandidateIndex] = useState(0);
   const [hasAllFailed, setHasAllFailed] = useState(false);
@@ -36,9 +41,11 @@ export const MovieCard: React.FC<MovieCardProps> = ({
   useEffect(() => {
     setCandidateIndex(0);
     setHasAllFailed(false);
+    setIsLoaded(false);
   }, [movie.id]);
 
   const handleImageError = () => {
+    setIsLoaded(false);
     if (candidateIndex + 1 < posterCandidates.length) {
       setCandidateIndex((prev) => prev + 1);
     } else {
@@ -99,22 +106,46 @@ export const MovieCard: React.FC<MovieCardProps> = ({
 
   return (
     <article
+      ref={cardRef}
       onClick={handleCardClick}
       className="movie-card-contain group relative bg-[#0a0a0a] hover:bg-[#111111] border border-white/5 hover:border-rose-500/50 rounded-2xl overflow-hidden cursor-pointer transition-[border-color,background-color,box-shadow,transform] duration-200 hover:shadow-2xl hover:shadow-rose-950/20 flex flex-col text-inherit select-none"
     >
       <div className="relative aspect-[2/3] w-full overflow-hidden bg-[#050505]">
+        {/* Cinema shimmer skeleton placeholder while deferred or loading */}
+        {!isLoaded && !hasAllFailed && (
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 skeleton-shimmer z-0 flex items-center justify-center pointer-events-none"
+          >
+            <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-neutral-500/40">
+              <Film className="w-5 h-5" />
+            </div>
+          </div>
+        )}
+
         {!hasAllFailed ? (
-          <img
-            key={`poster-${movie.id}-${candidateIndex}`}
-            src={currentPosterSrc}
-            alt={`${movie.title} (${movie.year}) Poster`}
-            loading="lazy"
-            width="240"
-            height="360"
-            referrerPolicy="no-referrer"
-            onError={handleImageError}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
+          isVisible ? (
+            <img
+              key={`poster-${movie.id}-${candidateIndex}`}
+              ref={(imgEl) => {
+                if (imgEl && imgEl.complete && imgEl.naturalWidth > 0 && !isLoaded) {
+                  setIsLoaded(true);
+                }
+              }}
+              src={currentPosterSrc}
+              alt={`${movie.title} (${movie.year}) Poster`}
+              loading="lazy"
+              decoding="async"
+              width="240"
+              height="360"
+              referrerPolicy="no-referrer"
+              onLoad={() => setIsLoaded(true)}
+              onError={handleImageError}
+              className={`w-full h-full object-cover transition-opacity duration-300 group-hover:scale-105 group-hover:transition-transform group-hover:duration-500 ${
+                isLoaded ? 'opacity-100' : 'opacity-0'
+              }`}
+            />
+          ) : null
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center bg-neutral-900 text-neutral-500">
             <span className="text-xs font-semibold text-neutral-400">{movie.title}</span>

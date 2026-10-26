@@ -37,6 +37,8 @@ import { getMoviePath, getMovieSlug, updateDocumentSeo } from './utils/seo';
 import { refreshEzoicAds } from './utils/ezoic';
 import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
+import { MovieSortDropdown } from './components/MovieSortDropdown';
+import { useTheme } from './context/ThemeContext';
 
 const DEFAULT_FILTERS: FilterParams = {
   query_term: '',
@@ -137,6 +139,8 @@ function parseCurrentUrl(): {
 }
 
 export default function App() {
+  const { colorMode } = useTheme();
+  const isWhite = colorMode === 'white';
   const [initialUrlState] = useState(() => parseCurrentUrl());
   const [filters, setFilters] = useState<FilterParams>(() => ({
     ...DEFAULT_FILTERS,
@@ -1014,7 +1018,9 @@ export default function App() {
             <div id="movie-catalog-section" className="space-y-4 my-8">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <h1 className="text-xl sm:text-2xl font-black font-display text-white flex items-center gap-2.5">
+                  <h1 className={`text-xl sm:text-2xl font-black font-display flex items-center gap-2.5 ${
+                    isWhite ? 'text-slate-900' : 'text-white'
+                  }`}>
                     <span>
                       {filters.query_term
                         ? `Search: "${filters.query_term}"`
@@ -1029,9 +1035,22 @@ export default function App() {
                         : 'Explore Films'}
                     </span>
                   </h1>
-                  <p className="text-xs sm:text-sm text-neutral-400 mt-0.5">
+                  <p className={`text-xs sm:text-sm mt-0.5 ${isWhite ? 'text-slate-600' : 'text-neutral-400'}`}>
                     Stream trailers, view metadata, and download high-quality files with magnet links
                   </p>
+                </div>
+
+                {/* Header Sort Dropdown */}
+                <div className="flex items-center gap-2">
+                  <MovieSortDropdown
+                    sortBy={filters.sort_by}
+                    orderBy={filters.order_by}
+                    totalResults={totalCount}
+                    isLoading={isLoading}
+                    onSortChange={(sort_by, order_by) => {
+                      handleFilterChange({ sort_by, order_by, page: 1 });
+                    }}
+                  />
                 </div>
               </div>
 
@@ -1042,6 +1061,49 @@ export default function App() {
                 isLoading={isLoading}
                 onReset={handleResetFilters}
               />
+
+              {/* Results Count & Quick Sort Status Toolbar */}
+              <div className={`p-3.5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 transition-colors shadow-xs ${
+                isWhite
+                  ? 'bg-white border-slate-200'
+                  : colorMode === 'blue-black'
+                  ? 'bg-[#091124] border-sky-900/40'
+                  : 'bg-[#101010] border-white/10'
+              }`}>
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <span className={isWhite ? 'text-slate-700' : 'text-neutral-300'}>
+                    Showing <strong className={isWhite ? 'text-slate-900 font-black' : 'text-white font-bold'}>{movies.length}</strong> of{' '}
+                    <strong className={isWhite ? 'text-slate-900 font-black' : 'text-white font-bold'}>{totalCount.toLocaleString()}</strong> titles
+                  </span>
+                  {filters.genre && filters.genre !== 'All' && (
+                    <span className="px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-400 border border-rose-500/30 text-[11px] font-bold">
+                      {filters.genre}
+                    </span>
+                  )}
+                  {filters.quality && filters.quality !== 'All' && (
+                    <span className="px-2 py-0.5 rounded-md bg-sky-500/15 text-sky-400 border border-sky-500/30 text-[11px] font-bold">
+                      {filters.quality}
+                    </span>
+                  )}
+                  {filters.minimum_rating > 0 && (
+                    <span className="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400 border border-amber-500/30 text-[11px] font-bold">
+                      ★ {filters.minimum_rating}+
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 self-start sm:self-center">
+                  <MovieSortDropdown
+                    sortBy={filters.sort_by}
+                    orderBy={filters.order_by}
+                    totalResults={totalCount}
+                    isLoading={isLoading}
+                    onSortChange={(sort_by, order_by) => {
+                      handleFilterChange({ sort_by, order_by, page: 1 });
+                    }}
+                  />
+                </div>
+              </div>
             </div>
 
             {error && (
@@ -1063,10 +1125,13 @@ export default function App() {
                 {Array.from({ length: 15 }).map((_, i) => (
                   <div
                     key={`skeleton-${i}`}
-                    className="aspect-[2/3] rounded-2xl bg-[#0a0a0a] border border-white/5 animate-pulse flex flex-col justify-end p-4 space-y-2"
+                    className="movie-card-contain aspect-[2/3] rounded-2xl bg-[#0a0a0a] border border-white/5 overflow-hidden relative flex flex-col justify-end p-4 space-y-2 select-none"
                   >
-                    <div className="h-4 bg-[#151515] rounded-lg w-3/4" />
-                    <div className="h-3 bg-[#151515]/60 rounded-lg w-1/2" />
+                    <div className="absolute inset-0 skeleton-shimmer pointer-events-none" />
+                    <div className="relative z-10 space-y-2">
+                      <div className="h-4 bg-white/10 rounded-md w-3/4 skeleton-shimmer" />
+                      <div className="h-3 bg-white/5 rounded-md w-1/2 skeleton-shimmer" />
+                    </div>
                   </div>
                 ))}
               </div>

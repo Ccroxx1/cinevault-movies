@@ -9,7 +9,9 @@ import {
   RUNTIME_OPTIONS,
   CODEC_AUDIO_OPTIONS,
   LANGUAGE_OPTIONS,
-  SORT_OPTIONS,
+  MOVIE_SORT_OPTIONS,
+  getSortOptionKey,
+  getSortOptionByKey
 } from '../services/movieApi';
 import { SlidersHorizontal, RotateCcw, Search, Clock, Film, Sparkles, Volume2, CalendarRange } from 'lucide-react';
 
@@ -40,14 +42,16 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     onFilterChange({ query_term: searchTerm.trim(), page: 1 });
   };
 
+  const currentSortKey = getSortOptionKey(filters.sort_by, filters.order_by);
+
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedSortValue = e.target.value;
-    const sortOption = SORT_OPTIONS.find((s) => s.value === selectedSortValue);
-    if (sortOption) {
-      onFilterChange({ sort_by: sortOption.value, order_by: sortOption.order as 'desc' | 'asc', page: 1 });
-    } else {
-      onFilterChange({ sort_by: selectedSortValue, page: 1 });
-    }
+    const selectedKey = e.target.value;
+    const sortOption = getSortOptionByKey(selectedKey);
+    onFilterChange({
+      sort_by: sortOption.sortBy,
+      order_by: sortOption.orderBy,
+      page: 1
+    });
   };
 
   const activeFilterCount = [
@@ -61,7 +65,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     filters.runtime_bracket && filters.runtime_bracket !== 'all',
     filters.codec && filters.codec !== 'all',
     filters.language && filters.language !== 'All',
-    filters.sort_by !== 'date_added',
+    filters.sort_by !== 'date_added' || filters.order_by === 'asc',
   ].filter(Boolean).length;
 
   return (
@@ -159,12 +163,12 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold text-neutral-400">Order By:</label>
             <select
-              value={filters.sort_by}
+              value={currentSortKey}
               onChange={handleSortChange}
               className="w-full bg-[#1c1c1c] border border-neutral-700/60 rounded-lg px-3 py-2 text-xs text-neutral-200 focus:border-rose-500 cursor-pointer"
             >
-              {SORT_OPTIONS.map((s) => (
-                <option key={s.label} value={s.value}>
+              {MOVIE_SORT_OPTIONS.map((s) => (
+                <option key={s.key} value={s.key}>
                   {s.label}
                 </option>
               ))}
