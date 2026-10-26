@@ -704,8 +704,66 @@
 [data-theme="white"] .bg-rose-600.text-white,
 [data-theme="white"] [class*="bg-rose-600"].text-white,
 [data-theme="white"] [class*="bg-rose-500"].text-white,
-[data-theme="white"] [class*="from-rose-600"].text-white {
+[data-theme="white"] [class*="from-rose-600"].text-white,
+[data-theme="white"] .bg-\[\#1877F2\],
+[data-theme="white"] .bg-\[\#1877F2\] *,
+[data-theme="white"] .bg-\[\#25D366\],
+[data-theme="white"] .bg-\[\#25D366\] * {
   color: #ffffff !important;
+}
+
+/* 2c. 9:16 Vertical Story & Status Surface (Always Dark Cinematic Canvas) */
+.story-9x16-surface {
+  background-color: #0a0d18 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="white"] .story-9x16-surface {
+  background-color: #0a0d18 !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8) !important;
+}
+
+[data-theme="white"] .story-9x16-surface .text-white,
+[data-theme="white"] .story-9x16-surface .story-title,
+[data-theme="white"] .story-9x16-surface .story-header-text,
+[data-theme="white"] .story-9x16-surface .story-branding-title,
+[data-theme="white"] .story-9x16-surface h3 {
+  color: #ffffff !important;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8) !important;
+}
+
+[data-theme="white"] .story-9x16-surface .story-synopsis,
+[data-theme="white"] .story-9x16-surface .text-neutral-200,
+[data-theme="white"] .story-9x16-surface .text-neutral-300,
+[data-theme="white"] .story-9x16-surface p {
+  color: #e2e8f0 !important;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8) !important;
+}
+
+[data-theme="white"] .story-9x16-surface .text-neutral-100 {
+  color: #f8fafc !important;
+}
+
+[data-theme="white"] .story-9x16-surface .text-neutral-400 {
+  color: #94a3b8 !important;
+}
+
+[data-theme="white"] .story-9x16-surface .bg-black\/60 {
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+[data-theme="white"] .story-9x16-surface .bg-white\/10 {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme="white"] .story-9x16-surface .border-white\/20,
+[data-theme="white"] .story-9x16-surface .border-white\/15,
+[data-theme="white"] .story-9x16-surface .border-white\/10 {
+  border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
 /* 2b. EZTV Television Suite Theming */

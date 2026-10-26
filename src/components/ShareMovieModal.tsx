@@ -13,9 +13,7 @@ import {
   Sparkles,
   Mail,
   ImageIcon,
-  RefreshCw,
-  Eye,
-  SlidersHorizontal
+  RefreshCw
 } from 'lucide-react';
 import { Movie } from '../types';
 import { getMovieCanonicalUrl, SITE_BASE_URL } from '../utils/seo';
@@ -753,7 +751,7 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
         onClick={(e) => e.stopPropagation()}
         className={`relative w-full max-w-2xl rounded-3xl overflow-hidden border shadow-2xl transition-all duration-200 my-auto ${
           isWhite
-            ? 'bg-white border-slate-200 text-slate-900 shadow-slate-400/20'
+            ? 'bg-white border-slate-200 text-slate-900 shadow-slate-400/30'
             : isBlueBlack
             ? 'bg-[#080e1e] border-sky-500/20 text-neutral-100 shadow-sky-950/40'
             : 'bg-[#0c0c0e] border-white/10 text-neutral-100 shadow-black/80'
@@ -762,7 +760,7 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
         {/* Modal Top Header */}
         <div
           className={`px-5 py-3.5 flex items-center justify-between border-b ${
-            isWhite ? 'border-slate-100 bg-slate-50/80' : 'border-white/5 bg-white/[0.02]'
+            isWhite ? 'border-slate-200 bg-slate-50' : 'border-white/5 bg-white/[0.02]'
           }`}
         >
           <div className="flex items-center gap-2.5">
@@ -770,11 +768,16 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
               <Share2 size={16} />
             </div>
             <div>
-              <h2 id="share-movie-title" className="text-sm sm:text-base font-bold tracking-tight">
-                Share Poster & Movie Details
+              <h2
+                id="share-movie-title"
+                className={`text-sm sm:text-base font-bold tracking-tight ${
+                  isWhite ? 'text-slate-900' : 'text-white'
+                }`}
+              >
+                Share Poster &amp; Movie Details
               </h2>
-              <p className="text-[11px] text-neutral-400">
-                Optimized 9:16 layout for Stories, Status updates & Social feeds
+              <p className={`text-[11px] ${isWhite ? 'text-slate-600' : 'text-neutral-400'}`}>
+                Optimized 9:16 layout for Stories, Status updates &amp; Social feeds
               </p>
             </div>
           </div>
@@ -783,7 +786,7 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
             onClick={onClose}
             className={`p-1.5 rounded-full transition-colors cursor-pointer ${
               isWhite
-                ? 'hover:bg-slate-200 text-slate-500 hover:text-slate-800'
+                ? 'hover:bg-slate-200 text-slate-600 hover:text-slate-900'
                 : 'hover:bg-white/10 text-neutral-400 hover:text-white'
             }`}
             aria-label="Close share dialog"
@@ -793,21 +796,33 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
         </div>
 
         {/* Tab Switcher: 9:16 Story vs Feed Links */}
-        <div className={`p-2.5 px-5 border-b flex gap-2 ${isWhite ? 'border-slate-100 bg-slate-100/50' : 'border-white/5 bg-black/30'}`}>
+        <div
+          className={`p-2.5 px-5 border-b flex gap-2 ${
+            isWhite ? 'border-slate-200 bg-slate-100' : 'border-white/5 bg-black/30'
+          }`}
+        >
           <button
             type="button"
             onClick={() => setActiveTab('story')}
             className={`flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
               activeTab === 'story'
-                ? 'bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-md shadow-rose-950/30'
+                ? 'bg-gradient-to-r from-rose-600 via-rose-500 to-amber-500 text-white shadow-md shadow-rose-950/30'
                 : isWhite
-                ? 'text-slate-600 hover:bg-slate-200/60'
+                ? 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/80'
                 : 'text-neutral-400 hover:text-neutral-200 hover:bg-white/5'
             }`}
           >
             <Smartphone size={16} />
-            <span>9:16 Story & Status</span>
-            <span className="hidden sm:inline-block text-[10px] font-normal px-1.5 py-0.2 rounded-full bg-white/20">
+            <span>9:16 Story &amp; Status</span>
+            <span
+              className={`hidden sm:inline-block text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
+                activeTab === 'story'
+                  ? 'bg-white/20 text-white'
+                  : isWhite
+                  ? 'bg-slate-200 text-slate-700'
+                  : 'bg-white/10 text-neutral-300'
+              }`}
+            >
               Facebook / Instagram / WhatsApp
             </span>
           </button>
@@ -817,15 +832,23 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
             onClick={() => setActiveTab('feed')}
             className={`flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
               activeTab === 'feed'
-                ? 'bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-md shadow-rose-950/30'
+                ? 'bg-gradient-to-r from-rose-600 via-rose-500 to-amber-500 text-white shadow-md shadow-rose-950/30'
                 : isWhite
-                ? 'text-slate-600 hover:bg-slate-200/60'
+                ? 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/80'
                 : 'text-neutral-400 hover:text-neutral-200 hover:bg-white/5'
             }`}
           >
             <ExternalLink size={16} />
-            <span>Feed Post & Links</span>
-            <span className="hidden sm:inline-block text-[10px] font-normal px-1.5 py-0.2 rounded-full bg-white/20">
+            <span>Feed Post &amp; Links</span>
+            <span
+              className={`hidden sm:inline-block text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
+                activeTab === 'feed'
+                  ? 'bg-white/20 text-white'
+                  : isWhite
+                  ? 'bg-slate-200 text-slate-700'
+                  : 'bg-white/10 text-neutral-300'
+              }`}
+            >
               Direct Social Share
             </span>
           </button>
@@ -839,7 +862,7 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
               <div className="flex flex-col md:flex-row gap-5 items-center md:items-start">
                 {/* Visual 9:16 Story Card Preview */}
                 <div className="shrink-0 w-64 sm:w-72">
-                  <div className="relative aspect-[9/16] w-full rounded-3xl overflow-hidden border border-white/20 shadow-2xl shadow-black/80 flex flex-col justify-between p-3.5 sm:p-4 bg-[#0a0d18] text-white select-none ring-1 ring-white/10">
+                  <div className="story-9x16-surface relative aspect-[9/16] w-full rounded-3xl overflow-hidden border border-white/20 shadow-2xl shadow-black/80 flex flex-col justify-between p-3.5 sm:p-4 bg-[#0a0d18] text-white select-none ring-1 ring-white/10">
                     {/* Blurred Backdrop Image */}
                     <img
                       src={currentPoster}
@@ -854,9 +877,9 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
                     {/* TOP SAFE HEADER */}
                     <div className="relative z-10 flex flex-col items-center gap-1.5 pt-1">
                       {/* Story Pill */}
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[10px] font-bold tracking-wider uppercase text-neutral-100 shadow-sm">
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[10px] font-bold tracking-wider uppercase text-white shadow-sm">
                         <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-                        <span>Stories & Status • 9:16</span>
+                        <span className="story-header-text text-white">Stories &amp; Status • 9:16</span>
                       </div>
 
                       {/* Metadata Badges */}
@@ -872,7 +895,7 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
                             {year}
                           </span>
                         )}
-                        <span className="px-1.5 py-0.5 rounded-md bg-white/10 border border-white/20 text-neutral-300">
+                        <span className="px-1.5 py-0.5 rounded-md bg-white/10 border border-white/20 text-white font-medium">
                           4K UHD
                         </span>
                       </div>
@@ -904,40 +927,44 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
                       )}
 
                       {/* Movie Title */}
-                      <h3 className="font-display font-extrabold text-sm sm:text-base leading-snug text-center text-white line-clamp-2 drop-shadow-md">
+                      <h3 className="story-title font-display font-black text-sm sm:text-base leading-snug text-center text-white line-clamp-2 drop-shadow-md">
                         {title}
                       </h3>
 
                       {/* Concise Description / Synopsis */}
-                      <p className="text-[10px] sm:text-[11px] text-neutral-300 text-center leading-relaxed italic line-clamp-3 px-1 drop-shadow">
+                      <p className="story-synopsis text-[10px] sm:text-[11px] text-neutral-200 text-center leading-relaxed italic line-clamp-3 px-1 drop-shadow">
                         "{shortSynopsis}"
                       </p>
 
                       {/* THE REQUESTED BRANDING AT THE BOTTOM: "CineVault By Sasuu" */}
                       <div className="pt-2 border-t border-rose-500/30">
-                        <div className="p-1.5 rounded-xl bg-black/60 backdrop-blur-md border border-white/15 flex items-center justify-between gap-2 shadow-lg">
+                        <div className="p-1.5 rounded-xl bg-black/75 backdrop-blur-md border border-white/20 flex items-center justify-between gap-2 shadow-lg">
                           <div className="flex items-center gap-1.5 min-w-0">
                             <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-rose-600 to-amber-500 flex items-center justify-center font-black text-[10px] text-white shrink-0 shadow-sm">
                               CV
                             </div>
                             <div className="min-w-0 leading-none">
                               <div className="flex items-center gap-1 font-black text-[11px] tracking-tight">
-                                <span className="text-white">CineVault</span>
+                                <span className="story-branding-title text-white">CineVault</span>
                                 <span className="text-rose-400 font-bold">By Sasuu</span>
                               </div>
-                              <div className="text-[8px] text-neutral-400 font-mono truncate mt-0.5">
+                              <div className="text-[8px] text-neutral-300 font-mono truncate mt-0.5">
                                 cinevaultmovies.online
                               </div>
                             </div>
                           </div>
-                          <span className="shrink-0 text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-rose-600/30 text-rose-300 border border-rose-500/30">
+                          <span className="shrink-0 text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-rose-600/40 text-rose-300 border border-rose-500/40">
                             Stream HD
                           </span>
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div className="text-center mt-2 text-[11px] text-neutral-400 font-medium">
+                  <div
+                    className={`text-center mt-2 text-[11px] font-medium ${
+                      isWhite ? 'text-slate-600' : 'text-neutral-400'
+                    }`}
+                  >
                     9:16 Vertical Story Layout Preview
                   </div>
                 </div>
@@ -949,10 +976,14 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
                       <Sparkles size={14} />
                       <span>Optimized Vertical Sharing</span>
                     </div>
-                    <h4 className="text-base sm:text-lg font-bold">
-                      Post to Facebook, Instagram & WhatsApp Status
+                    <h4
+                      className={`text-base sm:text-lg font-extrabold ${
+                        isWhite ? 'text-slate-900' : 'text-white'
+                      }`}
+                    >
+                      Post to Facebook, Instagram &amp; WhatsApp Status
                     </h4>
-                    <p className="text-xs text-neutral-400 leading-relaxed">
+                    <p className={`text-xs leading-relaxed ${isWhite ? 'text-slate-600' : 'text-neutral-400'}`}>
                       Download this high-resolution 9:16 card or share it straight to your device's story editor with the movie title, description, and CineVault By Sasuu branding.
                     </p>
                   </div>
@@ -968,18 +999,18 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
                     >
                       {isGeneratingStory ? (
                         <>
-                          <RefreshCw size={16} className="animate-spin" />
-                          <span>Rendering 9:16 Story Card (1080x1920)...</span>
+                          <RefreshCw size={16} className="animate-spin text-white" />
+                          <span className="text-white">Rendering 9:16 Story Card (1080x1920)...</span>
                         </>
                       ) : copiedType === 'storyImage' ? (
                         <>
                           <Check size={16} className="text-white" />
-                          <span>Story Image Downloaded (.PNG)!</span>
+                          <span className="text-white">Story Image Downloaded (.PNG)!</span>
                         </>
                       ) : (
                         <>
-                          <Download size={16} />
-                          <span>Download 9:16 Story Image (HD .PNG)</span>
+                          <Download size={16} className="text-white" />
+                          <span className="text-white">Download 9:16 Story Image (HD .PNG)</span>
                         </>
                       )}
                     </button>
@@ -989,10 +1020,14 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
                       type="button"
                       disabled={isGeneratingStory}
                       onClick={handleShareToStories}
-                      className="w-full py-2.5 px-4 bg-white/10 hover:bg-white/15 border border-white/20 text-white font-bold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.99]"
+                      className={`w-full py-2.5 px-4 font-bold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.99] ${
+                        isWhite
+                          ? 'bg-slate-900 hover:bg-black text-white shadow-md shadow-slate-900/20'
+                          : 'bg-white/10 hover:bg-white/15 border border-white/20 text-white'
+                      }`}
                     >
                       <Smartphone size={16} className="text-rose-400" />
-                      <span>Share to Stories (Device Sheet)</span>
+                      <span className="text-white">Share to Stories (Device Sheet)</span>
                     </button>
 
                     {/* 3. Copy Tools: Copy Image & Copy Caption */}
@@ -1000,17 +1035,21 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
                       <button
                         type="button"
                         onClick={handleCopyStoryImage}
-                        className="py-2 px-3 rounded-xl border border-white/15 hover:border-rose-500/50 bg-white/5 hover:bg-white/10 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                        className={`py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                          isWhite
+                            ? 'border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-800'
+                            : 'border-white/15 bg-white/5 hover:bg-white/10 text-neutral-200'
+                        }`}
                         title="Copy image blob to clipboard to paste directly in Facebook or WhatsApp Web"
                       >
                         {copiedType === 'storyImage' ? (
                           <>
-                            <Check size={13} className="text-emerald-400" />
-                            <span className="text-emerald-400">Image Copied!</span>
+                            <Check size={13} className="text-emerald-500" />
+                            <span className="text-emerald-500 font-bold">Image Copied!</span>
                           </>
                         ) : (
                           <>
-                            <ImageIcon size={13} className="text-neutral-400" />
+                            <ImageIcon size={13} className={isWhite ? 'text-slate-600' : 'text-neutral-400'} />
                             <span>Copy Image</span>
                           </>
                         )}
@@ -1019,17 +1058,21 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
                       <button
                         type="button"
                         onClick={handleCopyStoryCaption}
-                        className="py-2 px-3 rounded-xl border border-white/15 hover:border-rose-500/50 bg-white/5 hover:bg-white/10 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                        className={`py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                          isWhite
+                            ? 'border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-800'
+                            : 'border-white/15 bg-white/5 hover:bg-white/10 text-neutral-200'
+                        }`}
                         title="Copy formatted text caption with title, rating and site link"
                       >
                         {copiedType === 'storyCaption' ? (
                           <>
-                            <Check size={13} className="text-emerald-400" />
-                            <span className="text-emerald-400">Caption Copied!</span>
+                            <Check size={13} className="text-emerald-500" />
+                            <span className="text-emerald-500 font-bold">Caption Copied!</span>
                           </>
                         ) : (
                           <>
-                            <FileText size={13} className="text-neutral-400" />
+                            <FileText size={13} className={isWhite ? 'text-slate-600' : 'text-neutral-400'} />
                             <span>Copy Caption</span>
                           </>
                         )}
@@ -1037,49 +1080,77 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
                     </div>
 
                     {deviceShareStatus && (
-                      <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-[11px] text-rose-300 leading-normal flex items-start gap-2">
-                        <Sparkles size={14} className="shrink-0 mt-0.5 text-rose-400" />
+                      <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-[11px] text-rose-500 font-medium leading-normal flex items-start gap-2">
+                        <Sparkles size={14} className="shrink-0 mt-0.5 text-rose-500" />
                         <span>{deviceShareStatus}</span>
                       </div>
                     )}
                   </div>
 
                   {/* Direct Launch Buttons for Facebook Stories & WhatsApp */}
-                  <div className="pt-2 border-t border-white/10 space-y-2">
-                    <div className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
+                  <div
+                    className={`pt-2 border-t space-y-2 ${
+                      isWhite ? 'border-slate-200' : 'border-white/10'
+                    }`}
+                  >
+                    <div
+                      className={`text-[11px] font-bold uppercase tracking-wider ${
+                        isWhite ? 'text-slate-600' : 'text-neutral-400'
+                      }`}
+                    >
                       Quick Launch Platforms
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         type="button"
                         onClick={handleFacebookShare}
-                        className="p-2.5 rounded-xl border border-[#1877F2]/40 bg-[#1877F2]/15 hover:bg-[#1877F2] text-[#1877F2] hover:text-white transition-all text-xs font-bold flex items-center justify-center gap-2 cursor-pointer"
+                        className="p-2.5 rounded-xl bg-[#1877F2] hover:bg-[#166fe5] text-white transition-all text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-[#1877F2]/25"
                       >
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 fill-white shrink-0" viewBox="0 0 24 24">
                           <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                         </svg>
-                        <span>Facebook</span>
+                        <span className="text-white font-bold">Facebook</span>
                       </button>
 
                       <button
                         type="button"
                         onClick={handleWhatsAppShare}
-                        className="p-2.5 rounded-xl border border-[#25D366]/40 bg-[#25D366]/15 hover:bg-[#25D366] text-[#25D366] hover:text-white transition-all text-xs font-bold flex items-center justify-center gap-2 cursor-pointer"
+                        className="p-2.5 rounded-xl bg-[#25D366] hover:bg-[#20ba5a] text-white transition-all text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-[#25D366]/25"
                       >
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 fill-white shrink-0" viewBox="0 0 24 24">
                           <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" />
                         </svg>
-                        <span>WhatsApp</span>
+                        <span className="text-white font-bold">WhatsApp</span>
                       </button>
                     </div>
                   </div>
 
                   {/* 3-Step Guide for Posting to Stories */}
-                  <div className={`p-3 rounded-2xl border text-[11px] space-y-1 ${isWhite ? 'bg-slate-50 border-slate-200' : 'bg-black/40 border-white/10'}`}>
-                    <div className="font-bold text-neutral-300">How to post to Story / Status:</div>
-                    <ol className="list-decimal list-inside space-y-0.5 text-neutral-400">
-                      <li>Tap <b>Download 9:16 Story Image</b> to save the high-res card.</li>
-                      <li>Open Facebook, Instagram, or WhatsApp and tap <b>Add to Story / Status</b>.</li>
+                  <div
+                    className={`p-3 rounded-2xl border text-[11px] space-y-1 ${
+                      isWhite
+                        ? 'bg-slate-100 border-slate-200 text-slate-700'
+                        : 'bg-black/40 border-white/10 text-neutral-400'
+                    }`}
+                  >
+                    <div className={`font-bold ${isWhite ? 'text-slate-900' : 'text-neutral-200'}`}>
+                      How to post to Story / Status:
+                    </div>
+                    <ol className="list-decimal list-inside space-y-0.5">
+                      <li>
+                        Tap{' '}
+                        <b className={isWhite ? 'text-slate-900 font-extrabold' : 'text-white font-bold'}>
+                          Download 9:16 Story Image
+                        </b>{' '}
+                        to save the high-res card.
+                      </li>
+                      <li>
+                        Open Facebook, Instagram, or WhatsApp and tap{' '}
+                        <b className={isWhite ? 'text-slate-900 font-extrabold' : 'text-white font-bold'}>
+                          Add to Story / Status
+                        </b>
+                        .
+                      </li>
                       <li>Select the 9:16 card from your photos &amp; post!</li>
                     </ol>
                   </div>
@@ -1093,10 +1164,10 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
               <div
                 className={`p-3.5 sm:p-4 rounded-2xl border transition-all ${
                   isWhite
-                    ? 'bg-slate-50 border-slate-200'
+                    ? 'bg-slate-50 border-slate-200 text-slate-900'
                     : isBlueBlack
-                    ? 'bg-[#0e1834] border-sky-500/20'
-                    : 'bg-[#121215] border-white/10'
+                    ? 'bg-[#0e1834] border-sky-500/20 text-neutral-100'
+                    : 'bg-[#121215] border-white/10 text-neutral-100'
                 }`}
               >
                 <div className="flex gap-3.5 sm:gap-4 items-start">
@@ -1119,36 +1190,48 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
                   <div className="flex-1 min-w-0 space-y-1.5">
                     <div className="flex flex-wrap items-center gap-1.5">
                       {year && (
-                        <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-rose-600/20 text-rose-400 border border-rose-500/30">
+                        <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-rose-600/20 text-rose-500 border border-rose-500/30">
                           {year}
                         </span>
                       )}
                       {rating && (
-                        <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center gap-0.5">
-                          <Star size={10} className="fill-amber-400" />
+                        <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-500/20 text-amber-500 border border-amber-500/30 flex items-center gap-0.5">
+                          <Star size={10} className="fill-amber-500" />
                           {rating}
                         </span>
                       )}
                       {genres.slice(0, 2).map((g) => (
                         <span
                           key={g}
-                          className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-white/5 text-neutral-400 border border-white/10"
+                          className={`px-1.5 py-0.5 text-[10px] font-medium rounded border ${
+                            isWhite
+                              ? 'bg-slate-200/80 text-slate-700 border-slate-300'
+                              : 'bg-white/5 text-neutral-400 border-white/10'
+                          }`}
                         >
                           {g}
                         </span>
                       ))}
                     </div>
 
-                    <h3 className="font-display font-bold text-base sm:text-lg leading-tight line-clamp-1">
+                    <h3
+                      className={`font-display font-bold text-base sm:text-lg leading-tight line-clamp-1 ${
+                        isWhite ? 'text-slate-900' : 'text-white'
+                      }`}
+                    >
                       {title}
                     </h3>
 
-                    <p className="text-xs text-neutral-400 line-clamp-3 leading-relaxed italic">
+                    <p
+                      className={`text-xs line-clamp-3 leading-relaxed italic ${
+                        isWhite ? 'text-slate-600' : 'text-neutral-400'
+                      }`}
+                    >
                       "{shortSynopsis}"
                     </p>
 
                     <div className="pt-1 flex items-center gap-2">
-                      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
                         <Sparkles size={10} />
                         CineVault By Sasuu Official Link
                       </span>
@@ -1159,9 +1242,15 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
 
               {/* Social Platforms Grid */}
               <div>
-                <div className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 mb-2.5 flex items-center justify-between">
+                <div
+                  className={`text-[11px] font-bold uppercase tracking-wider mb-2.5 flex items-center justify-between ${
+                    isWhite ? 'text-slate-600' : 'text-neutral-400'
+                  }`}
+                >
                   <span>Select Social Network</span>
-                  <span className="text-[10px] font-normal text-neutral-500">Opens official dialog</span>
+                  <span className={`text-[10px] font-normal ${isWhite ? 'text-slate-500' : 'text-neutral-500'}`}>
+                    Opens official dialog
+                  </span>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
@@ -1180,7 +1269,11 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
                   {/* X / Twitter */}
                   <button
                     onClick={handleTwitterShare}
-                    className="group flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl border transition-all duration-150 cursor-pointer bg-neutral-800/60 hover:bg-black text-neutral-100 border-white/10 hover:border-white/30 hover:shadow-lg hover:shadow-white/5"
+                    className={`group flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl border transition-all duration-150 cursor-pointer ${
+                      isWhite
+                        ? 'bg-slate-100 hover:bg-slate-900 text-slate-800 hover:text-white border-slate-300 hover:border-slate-900'
+                        : 'bg-neutral-800/60 hover:bg-black text-neutral-100 border-white/10 hover:border-white/30'
+                    }`}
                     title="Share to X (Twitter) with title & synopsis"
                   >
                     <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
@@ -1252,7 +1345,11 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
                   {/* Email */}
                   <button
                     onClick={handleEmailShare}
-                    className="group flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl border transition-all duration-150 cursor-pointer bg-neutral-800/60 hover:bg-neutral-700 text-neutral-200 hover:text-white border-white/10 hover:border-white/25 hover:shadow-lg"
+                    className={`group flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl border transition-all duration-150 cursor-pointer ${
+                      isWhite
+                        ? 'bg-slate-100 hover:bg-slate-800 text-slate-800 hover:text-white border-slate-300 hover:border-slate-800'
+                        : 'bg-neutral-800/60 hover:bg-neutral-700 text-neutral-200 hover:text-white border-white/10'
+                    }`}
                     title="Send via Email"
                   >
                     <Mail size={20} />
@@ -1262,9 +1359,17 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
               </div>
 
               {/* Quick Copy & Clipboard Tools */}
-              <div className="space-y-2 pt-2 border-t border-white/5">
-                <div className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 mb-2">
-                  Copy & Attach Assets
+              <div
+                className={`space-y-2 pt-2 border-t ${
+                  isWhite ? 'border-slate-200' : 'border-white/5'
+                }`}
+              >
+                <div
+                  className={`text-[11px] font-bold uppercase tracking-wider mb-2 ${
+                    isWhite ? 'text-slate-600' : 'text-neutral-400'
+                  }`}
+                >
+                  Copy &amp; Attach Assets
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-2">
@@ -1272,17 +1377,21 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
                   <button
                     type="button"
                     onClick={handleCopyCard}
-                    className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl border border-white/10 hover:border-rose-500/40 bg-white/5 hover:bg-white/10 text-xs font-semibold transition-all cursor-pointer"
+                    className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                      isWhite
+                        ? 'border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-800'
+                        : 'border-white/10 hover:border-rose-500/40 bg-white/5 hover:bg-white/10 text-neutral-200'
+                    }`}
                     title="Copy Title, Rating, Synopsis & Links formatted for Facebook/Discord/Forums"
                   >
                     {copiedType === 'card' ? (
                       <>
-                        <Check size={14} className="text-emerald-400" />
-                        <span className="text-emerald-400">Synopsis Card Copied!</span>
+                        <Check size={14} className="text-emerald-500" />
+                        <span className="text-emerald-500 font-bold">Synopsis Card Copied!</span>
                       </>
                     ) : (
                       <>
-                        <FileText size={14} className="text-neutral-400" />
+                        <FileText size={14} className={isWhite ? 'text-slate-600' : 'text-neutral-400'} />
                         <span>Copy Formatted Synopsis</span>
                       </>
                     )}
@@ -1292,17 +1401,21 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
                   <button
                     type="button"
                     onClick={handleCopyPosterUrl}
-                    className="flex items-center justify-center gap-2 py-2 px-3 rounded-xl border border-white/10 hover:border-rose-500/40 bg-white/5 hover:bg-white/10 text-xs font-semibold transition-all cursor-pointer"
+                    className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                      isWhite
+                        ? 'border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-800'
+                        : 'border-white/10 hover:border-rose-500/40 bg-white/5 hover:bg-white/10 text-neutral-200'
+                    }`}
                     title="Copy direct link to high-res poster image"
                   >
                     {copiedType === 'poster' ? (
                       <>
-                        <Check size={14} className="text-emerald-400" />
-                        <span className="text-emerald-400">Poster URL Copied!</span>
+                        <Check size={14} className="text-emerald-500" />
+                        <span className="text-emerald-500 font-bold">Poster URL Copied!</span>
                       </>
                     ) : (
                       <>
-                        <ImageIcon size={14} className="text-neutral-400" />
+                        <ImageIcon size={14} className={isWhite ? 'text-slate-600' : 'text-neutral-400'} />
                         <span>Copy Poster URL</span>
                       </>
                     )}
@@ -1312,10 +1425,14 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
                 {/* Direct Link Input Box */}
                 <div
                   className={`flex items-center gap-2 p-1.5 pl-3 rounded-xl border ${
-                    isWhite ? 'bg-slate-100 border-slate-200' : 'bg-black/50 border-white/10'
+                    isWhite ? 'bg-slate-100 border-slate-300' : 'bg-black/50 border-white/10'
                   }`}
                 >
-                  <span className="text-xs text-neutral-400 truncate flex-1 font-mono">
+                  <span
+                    className={`text-xs truncate flex-1 font-mono ${
+                      isWhite ? 'text-slate-700' : 'text-neutral-400'
+                    }`}
+                  >
                     {shareUrl}
                   </span>
                   <button
@@ -1325,13 +1442,13 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
                   >
                     {copiedType === 'link' ? (
                       <>
-                        <Check size={13} />
-                        <span>Copied!</span>
+                        <Check size={13} className="text-white" />
+                        <span className="text-white">Copied!</span>
                       </>
                     ) : (
                       <>
-                        <Copy size={13} />
-                        <span>Copy Link</span>
+                        <Copy size={13} className="text-white" />
+                        <span className="text-white">Copy Link</span>
                       </>
                     )}
                   </button>
@@ -1345,17 +1462,23 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
         <div
           className={`px-5 py-3 border-t flex items-center justify-between text-[11px] ${
             isWhite
-              ? 'border-slate-100 bg-slate-50 text-slate-500'
-              : 'border-white/5 bg-white/[0.02] text-neutral-500'
+              ? 'border-slate-200 bg-slate-50 text-slate-600'
+              : 'border-white/5 bg-white/[0.02] text-neutral-400'
           }`}
         >
           <div className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-            <span>CineVault By Sasuu • 9:16 Stories &amp; Social Engine</span>
+            <span className={isWhite ? 'text-slate-700 font-semibold' : 'text-neutral-300 font-semibold'}>
+              CineVault By Sasuu • 9:16 Stories &amp; Social Engine
+            </span>
           </div>
           <button
             onClick={onClose}
-            className="hover:underline font-semibold text-neutral-400 hover:text-neutral-200 cursor-pointer"
+            className={`font-bold transition-colors cursor-pointer ${
+              isWhite
+                ? 'text-slate-700 hover:text-slate-950 underline'
+                : 'text-neutral-400 hover:text-neutral-200 underline'
+            }`}
           >
             Done
           </button>
