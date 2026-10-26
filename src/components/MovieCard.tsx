@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeftRight, Film } from 'lucide-react';
+import { ArrowLeftRight, Film, Download } from 'lucide-react';
 import { Movie, buildMagnetLink } from '../types';
 import { getMoviePath } from '../utils/seo';
 import { handleBrandedMagnetDownload } from '../utils/downloadPack';
@@ -55,12 +55,14 @@ export const MovieCard: React.FC<MovieCardProps> = ({
 
   const currentPosterSrc = posterCandidates[candidateIndex] || CINEVAULT_POSTER_FALLBACK;
 
-  const qualities: string[] = Array.from(new Set(movie.torrents?.map((t) => t.quality) || []));
+  const torrents = movie.torrents || [];
+  const torrentCount = torrents.length;
+  const qualities: string[] = Array.from(new Set(torrents.map((t) => t.quality).filter(Boolean)));
   const has4k = qualities.some((q) => typeof q === 'string' && q.includes('2160p'));
   const has1080 = qualities.some((q) => typeof q === 'string' && q.includes('1080p'));
   const has3d = qualities.some((q) => typeof q === 'string' && q.includes('3D'));
 
-  const primaryTorrent = movie.torrents?.[0];
+  const primaryTorrent = torrents[0];
   const moviePath = getMoviePath(movie);
 
   const handleCopyPrimaryMagnet = (e: React.MouseEvent) => {
@@ -204,6 +206,31 @@ export const MovieCard: React.FC<MovieCardProps> = ({
           </div>
         </div>
 
+        {/* Prominent 'Download' Badge indicating available torrent options at a glance */}
+        {torrentCount > 0 ? (
+          <div className="absolute bottom-2.5 inset-x-2.5 z-10 pointer-events-none group-hover:opacity-0 transition-opacity duration-200">
+            <div className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-xl bg-black/85 backdrop-blur-md border border-emerald-500/40 text-emerald-400 font-bold text-[10px] shadow-lg shadow-black/80 max-w-full">
+              <span className="flex items-center justify-center w-3.5 h-3.5 rounded-full bg-emerald-500/20 text-emerald-400 shrink-0">
+                <Download className="w-2.5 h-2.5" />
+              </span>
+              <span className="uppercase tracking-wider font-extrabold text-emerald-400 shrink-0">
+                Download
+              </span>
+              <span className="w-1 h-1 rounded-full bg-emerald-400/50 shrink-0" />
+              <span className="text-neutral-200 font-semibold truncate">
+                {torrentCount} {torrentCount === 1 ? 'Option' : 'Options'}
+                {qualities.length > 0 && ` • ${qualities.join(', ')}`}
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div className="absolute bottom-2.5 inset-x-2.5 z-10 pointer-events-none group-hover:opacity-0 transition-opacity duration-200">
+            <div className="inline-flex items-center gap-1 py-1 px-2.5 rounded-xl bg-black/80 backdrop-blur-md border border-white/10 text-neutral-400 font-medium text-[10px] shadow-md">
+              <span>Streaming Only</span>
+            </div>
+          </div>
+        )}
+
         <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3.5 gap-2 z-10">
           <div className="flex items-center gap-1.5">
             <div className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-white text-black font-bold text-xs rounded-full hover:bg-neutral-200 shadow-lg transition-all">
@@ -295,15 +322,24 @@ export const MovieCard: React.FC<MovieCardProps> = ({
           </div>
         </div>
 
-        <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[11px] text-neutral-500 font-mono">
-          <div className="flex items-center gap-1">
-            <span>{primaryTorrent?.size || 'Multi-size'}</span>
+        <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[11px] text-neutral-500">
+          <div className="flex items-center gap-1.5 min-w-0">
+            {torrentCount > 0 && (
+              <span
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 text-[10px] font-sans font-bold shrink-0 tracking-tight transition-colors"
+                title={`${torrentCount} available download torrent options: ${qualities.join(', ')} (${primaryTorrent?.size || 'Multi-size'})`}
+              >
+                <Download className="w-2.5 h-2.5" />
+                <span>{torrentCount} {torrentCount === 1 ? 'Format' : 'Formats'}</span>
+              </span>
+            )}
+            <span className="font-mono text-[10px] text-neutral-400 truncate">{primaryTorrent?.size || 'Multi-size'}</span>
           </div>
 
           {primaryTorrent ? (
             <TorrentSwarmHealthBadge seeds={primaryTorrent.seeds} peers={primaryTorrent.peers} />
           ) : (
-            <div className="flex items-center gap-1 text-neutral-400">
+            <div className="flex items-center gap-1 text-neutral-400 text-[10px]">
               <span>{movie.torrents?.length || 0} files</span>
             </div>
           )}

@@ -14,6 +14,7 @@ import { BookmarkPlusIcon, BookmarkIcon, PlayIcon, CopyIcon } from './ActionIcon
 import { getPosterCandidates, CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
 import { EztvMovieSection } from './EztvMovieSection';
 import { useTheme } from '../context/ThemeContext';
+import { ShareMovieModal } from './ShareMovieModal';
 
 interface MovieDetailPageProps {
   movie: Movie;
@@ -58,6 +59,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
   const [parentalGuides, setParentalGuides] = useState<ParentalGuide[]>([]);
   const [copiedHash, setCopiedHash] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'torrents' | 'cast' | 'screenshots' | 'guides'>('torrents');
   const [selectedScreenshotIndex, setSelectedScreenshotIndex] = useState<number | null>(null);
   const [isSubtitlesOpen, setIsSubtitlesOpen] = useState(false);
@@ -141,10 +143,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
   };
 
   const handleSharePage = () => {
-    const url = window.location.href;
-    navigator.clipboard.writeText(url);
-    setCopiedLink(true);
-    setTimeout(() => setCopiedLink(false), 2500);
+    setIsShareModalOpen(true);
   };
 
   const handleDownloadMediaPack = async (torrent?: Torrent) => {
@@ -313,21 +312,12 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
             <div className="flex items-center gap-2">
               <button
                 onClick={handleSharePage}
-                className="flex items-center gap-1.5 px-3 py-2 bg-black/60 hover:bg-black/80 text-neutral-200 hover:text-white rounded-full border border-white/10 backdrop-blur-md text-xs font-semibold shadow-lg transition-all cursor-pointer"
-                title="Share this movie URL"
-                aria-label="Share movie link"
+                className="flex items-center gap-1.5 px-3.5 py-2 bg-black/60 hover:bg-black/80 text-neutral-200 hover:text-white rounded-full border border-white/10 backdrop-blur-md text-xs font-semibold shadow-lg transition-all cursor-pointer hover:border-rose-500/40"
+                title="Share movie poster, title & synopsis across Facebook, Twitter, WhatsApp & more"
+                aria-label="Share movie"
               >
-                {copiedLink ? (
-                  <>
-                    <Check size={14} className="text-emerald-400" />
-                    <span className="text-emerald-400 font-semibold">Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <Share2 size={14} />
-                    <span className="hidden sm:inline">Share</span>
-                  </>
-                )}
+                <Share2 size={14} className="text-rose-400" />
+                <span>Share</span>
               </button>
 
               <button
@@ -503,6 +493,15 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                   className="movie-action-pill px-4 py-2.5 bg-white/10 hover:bg-white/20 text-neutral-100 hover:text-white font-semibold text-xs sm:text-sm rounded-full border border-white/15 transition-colors flex items-center gap-1.5 cursor-pointer backdrop-blur-sm"
                 >
                   <span>How to Download</span>
+                </button>
+
+                <button
+                  onClick={() => setIsShareModalOpen(true)}
+                  className="movie-action-pill px-4 py-2.5 bg-white/10 hover:bg-white/20 text-neutral-100 hover:text-white font-semibold text-xs sm:text-sm rounded-full border border-white/15 transition-colors flex items-center gap-1.5 cursor-pointer backdrop-blur-sm"
+                  title="Share movie poster, title & synopsis across social platforms"
+                >
+                  <Share2 size={15} className="text-rose-400" />
+                  <span>Share</span>
                 </button>
 
                 {onAskCineBot && (
@@ -881,6 +880,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
 
       <SubtitlesModal movie={movie} isOpen={isSubtitlesOpen} onClose={() => setIsSubtitlesOpen(false)} />
       <BatchQualityModal movie={movie} isOpen={isBatchModalOpen} onClose={() => setIsBatchModalOpen(false)} onCopyMagnet={onCopyMagnet} />
+      <ShareMovieModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} movie={movie} />
 
     </article>
   );

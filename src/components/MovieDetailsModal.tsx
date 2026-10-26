@@ -23,7 +23,8 @@ import {
   Archive,
   Magnet,
   FileDown,
-  Check
+  Check,
+  Share2
 } from 'lucide-react';
 import { BookmarkPlusIcon, BookmarkIcon, PlayIcon, CopyIcon } from './ActionIcons';
 import { useMovieComparison } from '../context/MovieComparisonContext';
@@ -31,6 +32,7 @@ import { TorrentSwarmHealthBadge } from './TorrentSwarmHealthBadge';
 import { DownloadSpeedEstimator } from './DownloadSpeedEstimator';
 import { CINEVAULT_POSTER_FALLBACK, getPrimaryMoviePoster } from '../utils/imageFallback';
 import { EztvMovieSection } from './EztvMovieSection';
+import { ShareMovieModal } from './ShareMovieModal';
 
 interface MovieDetailsModalProps {
   movie: Movie;
@@ -68,6 +70,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
   const [packagingHash, setPackagingHash] = useState<string | null>(null);
   const [isSubtitlesOpen, setIsSubtitlesOpen] = useState(false);
   const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   // Fetch full details (cast, screenshots, etc.), suggestions, and parental guides
   useEffect(() => {
@@ -188,6 +191,15 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
           
           {/* Close & Action Buttons at top right */}
           <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+            <button
+              onClick={() => setIsShareModalOpen(true)}
+              className="p-2.5 rounded-full border bg-black/60 text-neutral-300 hover:text-white border-white/10 hover:bg-black/80 hover:border-rose-500/40 transition-all cursor-pointer"
+              title="Share movie poster, title & synopsis across social media"
+              aria-label="Share movie"
+            >
+              <Share2 size={17} className="text-rose-400" />
+            </button>
+
             <button
               onClick={() => onToggleWatchlist(movie)}
               className={`p-2.5 rounded-full border transition-all cursor-pointer ${
@@ -852,6 +864,13 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
         isOpen={isBatchModalOpen}
         onClose={() => setIsBatchModalOpen(false)}
         onCopyMagnet={onCopyMagnet}
+      />
+
+      {/* Social Media Share Modal */}
+      <ShareMovieModal
+        movie={movie}
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
       />
 
     </div>

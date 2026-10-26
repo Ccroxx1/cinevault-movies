@@ -47,6 +47,7 @@ import { TorrentSwarmHealthBadge } from './TorrentSwarmHealthBadge';
 import { DownloadSpeedEstimator } from './DownloadSpeedEstimator';
 import { BookmarkPlusIcon, BookmarkIcon, PlayIcon, CopyIcon } from './ActionIcons';
 import { getSeriesPosterCandidates, getPrimarySeriesPoster, CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
+import { ShareMovieModal } from './ShareMovieModal';
 
 /**
  * Robust parsing of season, episode, packs, and quality from EZTV release titles
@@ -546,6 +547,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
   const [showAllGuideSeasons, setShowAllGuideSeasons] = useState<boolean>(false);
   const [copiedHash, setCopiedHash] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
 
   // Selected episode filter for episode guide tab
   const [guideSeason, setGuideSeason] = useState<number>(1);
@@ -927,12 +929,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
   };
 
   const handleSharePage = () => {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(window.location.href);
-      setCopiedLink(true);
-      onShowToast('Page link copied to clipboard!', 'success');
-      setTimeout(() => setCopiedLink(false), 2500);
-    }
+    setIsShareModalOpen(true);
   };
 
   const isCurrentWatchlisted = useMemo(() => {
@@ -2445,6 +2442,18 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
           ))}
         </div>
       </section>
+
+      <ShareMovieModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        customTitle={show?.name || cleanInitialTitle}
+        customYear={show?.year}
+        customRating={show?.rating ? Number(show.rating) : undefined}
+        customGenres={show?.genres}
+        customSynopsis={show?.summary}
+        customPosterUrl={currentPosterSrc}
+        customShareUrl={typeof window !== 'undefined' ? (window.location.origin + getSeriesPath(show || { name: cleanInitialTitle })) : undefined}
+      />
 
     </article>
   );

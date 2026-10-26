@@ -1,0 +1,1366 @@
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  X,
+  Share2,
+  Copy,
+  Check,
+  Download,
+  ExternalLink,
+  FileText,
+  Smartphone,
+  Star,
+  Film,
+  Sparkles,
+  Mail,
+  ImageIcon,
+  RefreshCw,
+  Eye,
+  SlidersHorizontal
+} from 'lucide-react';
+import { Movie } from '../types';
+import { getMovieCanonicalUrl, SITE_BASE_URL } from '../utils/seo';
+import { getPosterCandidates, CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
+import { useTheme } from '../context/ThemeContext';
+
+interface ShareMovieModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  movie?: Movie | null;
+  // Optional custom overrides for series or generic media
+  customTitle?: string;
+  customYear?: number | string;
+  customRating?: number | string;
+  customGenres?: string[];
+  customSynopsis?: string;
+  customPosterUrl?: string;
+  customShareUrl?: string;
+}
+
+export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
+  isOpen,
+  onClose,
+  movie,
+  customTitle,
+  customYear,
+  customRating,
+  customGenres,
+  customSynopsis,
+  customPosterUrl,
+  customShareUrl
+}) => {
+  const { colorMode } = useTheme();
+  const isWhite = colorMode === 'white';
+  const isBlueBlack = colorMode === 'blue-black';
+
+  // Active view: 'story' (9:16 vertical layout) or 'feed' (horizontal feed & direct social links)
+  const [activeTab, setActiveTab] = useState<'story' | 'feed'>('story');
+  const [copiedType, setCopiedType] = useState<'link' | 'card' | 'poster' | 'storyImage' | 'storyCaption' | null>(null);
+  const [candidateIndex, setCandidateIndex] = useState(0);
+  const [isGeneratingStory, setIsGeneratingStory] = useState(false);
+  const [storyGeneratedBlob, setStoryGeneratedBlob] = useState<Blob | null>(null);
+  const [deviceShareStatus, setDeviceShareStatus] = useState<string | null>(null);
+
+  // Hidden canvas for 1080x1920 9:16 export
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  // Derived movie attributes
+  const title = movie?.title || customTitle || 'Movie';
+  const year = movie?.year || customYear || '';
+  const rating = movie?.rating ? movie.rating.toFixed(1) : customRating ? String(customRating) : null;
+  const genres = movie?.genres || customGenres || [];
+  const rawSynopsis =
+    movie?.description_full ||
+    movie?.description_intro ||
+    movie?.summary ||
+    movie?.synopsis ||
+    customSynopsis ||
+    'Download and stream in high-definition 720p, 1080p, and 4K Ultra HD on CineVault.';
+  
+  // Clean short synopsis (concise description for 9:16 story display)
+  const cleanSynopsis = rawSynopsis.replace(/\s+/g, ' ').trim();
+  const shortSynopsis =
+    cleanSynopsis.length > 175
+      ? cleanSynopsis.slice(0, 172).replace(/\s+\S*$/, '') + '...'
+      : cleanSynopsis;
+
+  // Posters
+  const posterCandidates = movie
+    ? getPosterCandidates(movie)
+    : customPosterUrl
+    ? [customPosterUrl, CINEVAULT_POSTER_FALLBACK]
+    : [CINEVAULT_POSTER_FALLBACK];
+
+  const currentPoster = posterCandidates[candidateIndex] || CINEVAULT_POSTER_FALLBACK;
+
+  // Absolute poster URL for social platforms
+  const absolutePosterUrl = currentPoster.startsWith('http')
+    ? currentPoster
+    : currentPoster.startsWith('/')
+    ? `${typeof window !== 'undefined' ? window.location.origin : SITE_BASE_URL}${currentPoster}`
+    : currentPoster;
+
+  // Share URL
+  const shareUrl = movie
+    ? getMovieCanonicalUrl(movie)
+    : customShareUrl || (typeof window !== 'undefined' ? window.location.href : SITE_BASE_URL);
+
+  // Clean filename slug for story download
+  const fileSlug = (title || 'cinevault-movie')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+
+  // Reset state on open/movie change
+  useEffect(() => {
+    if (isOpen) {
+      setCandidateIndex(0);
+      setCopiedType(null);
+      setDeviceShareStatus(null);
+      setStoryGeneratedBlob(null);
+    }
+  }, [isOpen, movie?.id, customTitle]);
+
+  // Keyboard shortcut to close (ESC)
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  // Helper: Wrap text on Canvas
+  const drawWrappedText = (
+    ctx: CanvasRenderingContext2D,
+    text: string,
+    x: number,
+    y: number,
+    maxWidth: number,
+    lineHeight: number,
+    maxLines: number = 3,
+    align: CanvasTextAlign = 'center'
+  ): number => {
+    ctx.textAlign = align;
+    const words = text.split(' ');
+    let line = '';
+    let currentY = y;
+    let linesDrawn = 0;
+
+    for (let n = 0; n < words.length; n++) {
+      const testLine = line + words[n] + ' ';
+      const metrics = ctx.measureText(testLine);
+      const testWidth = metrics.width;
+      if (testWidth > maxWidth && n > 0) {
+        if (linesDrawn >= maxLines - 1) {
+          ctx.fillText(line.trim() + '...', x, currentY);
+          return currentY + lineHeight;
+        }
+        ctx.fillText(line.trim(), x, currentY);
+        line = words[n] + ' ';
+        currentY += lineHeight;
+        linesDrawn++;
+      } else {
+        line = testLine;
+      }
+    }
+    if (line.trim().length > 0) {
+      ctx.fillText(line.trim(), x, currentY);
+      currentY += lineHeight;
+    }
+    return currentY;
+  };
+
+  // Helper: Draw rounded rectangle on Canvas
+  const drawRoundedRect = (
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    radius: number
+  ) => {
+    ctx.beginPath();
+    if (typeof (ctx as any).roundRect === 'function') {
+      (ctx as any).roundRect(x, y, width, height, radius);
+    } else {
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+    }
+    ctx.closePath();
+  };
+
+  /**
+   * Generates a 1080x1920 (9:16) high-resolution vertical story card on Canvas
+   * Includes: Movie Poster, Title, Concise Description, and "CineVault By Sasuu" branding
+   */
+  const generate9x16StoryBlob = async (): Promise<Blob | null> => {
+    const canvas = canvasRef.current || document.createElement('canvas');
+    canvas.width = 1080;
+    canvas.height = 1920;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    // 1. Draw Cinematic Background Gradient
+    const bgGradient = ctx.createLinearGradient(0, 0, 0, 1920);
+    bgGradient.addColorStop(0, '#0a0d16');
+    bgGradient.addColorStop(0.3, '#101426');
+    bgGradient.addColorStop(0.65, '#0c0e18');
+    bgGradient.addColorStop(1, '#05060a');
+    ctx.fillStyle = bgGradient;
+    ctx.fillRect(0, 0, 1080, 1920);
+
+    // 2. Ambient Color Glows
+    const topGlow = ctx.createRadialGradient(540, 560, 50, 540, 560, 750);
+    topGlow.addColorStop(0, 'rgba(225, 29, 72, 0.28)'); // Rose glow
+    topGlow.addColorStop(0.6, 'rgba(245, 158, 11, 0.12)'); // Amber glow
+    topGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = topGlow;
+    ctx.fillRect(0, 0, 1080, 1920);
+
+    const bottomGlow = ctx.createRadialGradient(540, 1750, 50, 540, 1750, 600);
+    bottomGlow.addColorStop(0, 'rgba(225, 29, 72, 0.22)');
+    bottomGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = bottomGlow;
+    ctx.fillRect(0, 1200, 1080, 720);
+
+    // 3. Load Poster Image (with robust fallback if CORS blocks canvas export)
+    let posterImgLoaded = false;
+    const posterImg = new Image();
+    posterImg.crossOrigin = 'anonymous';
+
+    const posterLoadPromise = new Promise<boolean>((resolve) => {
+      posterImg.onload = () => resolve(true);
+      posterImg.onerror = () => resolve(false);
+      posterImg.src = currentPoster;
+    });
+
+    try {
+      posterImgLoaded = await Promise.race([
+        posterLoadPromise,
+        new Promise<boolean>((res) => setTimeout(() => res(false), 2800))
+      ]);
+    } catch {
+      posterImgLoaded = false;
+    }
+
+    // 4. Background Backdrop Blur (if image loaded)
+    if (posterImgLoaded) {
+      try {
+        ctx.save();
+        ctx.globalAlpha = 0.18;
+        ctx.filter = 'blur(45px)';
+        ctx.drawImage(posterImg, -100, -100, 1280, 2120);
+        ctx.restore();
+      } catch (err) {
+        console.warn('Canvas backdrop draw restricted:', err);
+      }
+    }
+
+    // 5. Stories Safe Zone Top Header (y: 110 - 240)
+    // Story Badge Pill
+    const pillX = 540 - 250;
+    const pillY = 110;
+    const pillW = 500;
+    const pillH = 58;
+    ctx.save();
+    drawRoundedRect(ctx, pillX, pillY, pillW, pillH, 29);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+    ctx.stroke();
+
+    // Red pulsating dot in header
+    ctx.beginPath();
+    ctx.arc(540 - 180, pillY + pillH / 2, 7, 0, Math.PI * 2);
+    ctx.fillStyle = '#E11D48';
+    ctx.fill();
+
+    // Header Pill Text
+    ctx.font = 'bold 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.textAlign = 'center';
+    ctx.fillText('CINEVAULT • STORIES & STATUS', 540 + 10, pillY + 38);
+    ctx.restore();
+
+    // Badges Row (Year, Rating, Quality)
+    const badgeY = 205;
+    ctx.save();
+    // Rating Badge with Star
+    if (rating) {
+      drawRoundedRect(ctx, 360, badgeY, 160, 48, 12);
+      ctx.fillStyle = 'rgba(245, 158, 11, 0.2)';
+      ctx.fill();
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = 'rgba(245, 158, 11, 0.5)';
+      ctx.stroke();
+
+      ctx.font = 'bold 24px -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.fillStyle = '#FBBF24';
+      ctx.textAlign = 'center';
+      ctx.fillText(`★ ${rating} IMDb`, 440, badgeY + 33);
+    }
+
+    // Year Badge
+    if (year) {
+      drawRoundedRect(ctx, rating ? 540 : 450, badgeY, 100, 48, 12);
+      ctx.fillStyle = 'rgba(225, 29, 72, 0.2)';
+      ctx.fill();
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = 'rgba(225, 29, 72, 0.5)';
+      ctx.stroke();
+
+      ctx.font = 'bold 24px -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.fillStyle = '#FB7185';
+      ctx.textAlign = 'center';
+      ctx.fillText(String(year), (rating ? 540 : 450) + 50, badgeY + 33);
+    }
+
+    // HD Quality Badge
+    const qX = rating && year ? 660 : 570;
+    drawRoundedRect(ctx, qX, badgeY, 110, 48, 12);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.fill();
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+    ctx.stroke();
+
+    ctx.font = 'bold 22px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillStyle = '#E5E7EB';
+    ctx.textAlign = 'center';
+    ctx.fillText('4K UHD', qX + 55, badgeY + 33);
+    ctx.restore();
+
+    // 6. Central Movie Poster Frame (2:3 ratio inside 9:16 layout)
+    const posterW = 580;
+    const posterH = 870;
+    const posterX = (1080 - posterW) / 2; // 250
+    const posterY = 280;
+
+    ctx.save();
+    // Shadow under poster
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+    ctx.shadowBlur = 40;
+    ctx.shadowOffsetY = 15;
+
+    // Card background & clipping
+    drawRoundedRect(ctx, posterX, posterY, posterW, posterH, 32);
+    ctx.fillStyle = '#0f111a';
+    ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    drawRoundedRect(ctx, posterX, posterY, posterW, posterH, 32);
+    ctx.clip();
+
+    if (posterImgLoaded) {
+      try {
+        ctx.drawImage(posterImg, posterX, posterY, posterW, posterH);
+      } catch {
+        // Fallback plate if tainted
+        ctx.fillStyle = '#1e2337';
+        ctx.fillRect(posterX, posterY, posterW, posterH);
+      }
+    } else {
+      // Artistic Fallback Card
+      ctx.fillStyle = '#141829';
+      ctx.fillRect(posterX, posterY, posterW, posterH);
+      ctx.font = 'bold 44px sans-serif';
+      ctx.fillStyle = '#E11D48';
+      ctx.textAlign = 'center';
+      ctx.fillText('🎬', 540, posterY + posterH / 2 - 40);
+      ctx.font = 'bold 36px sans-serif';
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillText(title, 540, posterY + posterH / 2 + 30);
+    }
+    ctx.restore();
+
+    // Poster Outer Border
+    ctx.save();
+    drawRoundedRect(ctx, posterX, posterY, posterW, posterH, 32);
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+    ctx.stroke();
+    ctx.restore();
+
+    // 7. Genres Row
+    if (genres.length > 0) {
+      ctx.save();
+      ctx.font = 'bold 24px -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.fillStyle = '#FB7185'; // Rose-400
+      ctx.textAlign = 'center';
+      const genreString = genres.slice(0, 4).join('   •   ').toUpperCase();
+      ctx.fillText(genreString, 540, 1205);
+      ctx.restore();
+    }
+
+    // 8. Movie Title (Bold, High-Visibility)
+    ctx.save();
+    ctx.fillStyle = '#FFFFFF';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+    ctx.shadowBlur = 12;
+    ctx.shadowOffsetY = 3;
+    const titleFontSize = title.length > 30 ? 46 : 56;
+    ctx.font = `bold ${titleFontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    const nextY = drawWrappedText(ctx, title, 540, 1270, 920, titleFontSize + 12, 2, 'center');
+    ctx.restore();
+
+    // 9. Concise Description / Synopsis (Curated 2-3 lines)
+    ctx.save();
+    ctx.font = 'italic 29px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.fillStyle = '#D1D5DB'; // Slate-300
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+    ctx.shadowBlur = 8;
+    const synopsisStartY = Math.max(nextY + 15, 1370);
+    drawWrappedText(ctx, `"${shortSynopsis}"`, 540, synopsisStartY, 900, 42, 3, 'center');
+    ctx.restore();
+
+    // 10. The Requested "CineVault By Sasuu" Branding at the Bottom
+    const brandingDividerY = 1630;
+    // Gradient Divider Line
+    ctx.save();
+    const lineGrad = ctx.createLinearGradient(140, 0, 940, 0);
+    lineGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+    lineGrad.addColorStop(0.2, 'rgba(225, 29, 72, 0.7)');
+    lineGrad.addColorStop(0.5, 'rgba(245, 158, 11, 0.9)');
+    lineGrad.addColorStop(0.8, 'rgba(225, 29, 72, 0.7)');
+    lineGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    ctx.strokeStyle = lineGrad;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(140, brandingDividerY);
+    ctx.lineTo(940, brandingDividerY);
+    ctx.stroke();
+    ctx.restore();
+
+    // Branding Container Box
+    const brandBoxY = 1665;
+    ctx.save();
+    drawRoundedRect(ctx, 540 - 320, brandBoxY, 640, 130, 24);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+    ctx.fill();
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.stroke();
+
+    // CineVault Logo Emblem Badge
+    const emblemX = 540 - 275;
+    const emblemY = brandBoxY + 28;
+    drawRoundedRect(ctx, emblemX, emblemY, 74, 74, 18);
+    const emblemGrad = ctx.createLinearGradient(emblemX, emblemY, emblemX + 74, emblemY + 74);
+    emblemGrad.addColorStop(0, '#E11D48');
+    emblemGrad.addColorStop(1, '#9F1239');
+    ctx.fillStyle = emblemGrad;
+    ctx.fill();
+    ctx.font = 'bold 36px sans-serif';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.textAlign = 'center';
+    ctx.fillText('CV', emblemX + 37, emblemY + 50);
+
+    // Primary Brand Text: "CineVault By Sasuu"
+    ctx.textAlign = 'left';
+    ctx.font = '900 42px -apple-system, BlinkMacSystemFont, "Montserrat", sans-serif';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText('CineVault', emblemX + 96, brandBoxY + 58);
+
+    ctx.fillStyle = '#FB7185';
+    ctx.fillText('By Sasuu', emblemX + 310, brandBoxY + 58);
+
+    // Subtitle & Canonical Website
+    ctx.font = '600 22px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+    ctx.fillStyle = '#9CA3AF';
+    ctx.fillText('Watch Trailer & Stream HD • cinevaultmovies.online', emblemX + 98, brandBoxY + 98);
+    ctx.restore();
+
+    // Story Safe Zone Bottom Tip
+    ctx.save();
+    ctx.font = '500 20px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillStyle = 'rgba(156, 163, 175, 0.8)';
+    ctx.textAlign = 'center';
+    ctx.fillText('Optimized 9:16 Vertical Story • Tap to Stream in HD', 540, 1845);
+    ctx.restore();
+
+    // Convert Canvas to Blob (with try-catch if cross-origin tainted)
+    return new Promise<Blob | null>((resolve) => {
+      try {
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              setStoryGeneratedBlob(blob);
+              resolve(blob);
+            } else {
+              resolve(null);
+            }
+          },
+          'image/png',
+          0.95
+        );
+      } catch (err) {
+        console.error('Failed to export canvas toBlob (tainted by cross-origin):', err);
+        resolve(null);
+      }
+    });
+  };
+
+  /**
+   * Action 1: Download 9:16 Story Image (.PNG)
+   */
+  const handleDownloadStoryImage = async () => {
+    setIsGeneratingStory(true);
+    setDeviceShareStatus(null);
+    try {
+      let blob = storyGeneratedBlob;
+      if (!blob) {
+        blob = await generate9x16StoryBlob();
+      }
+
+      if (blob) {
+        const downloadUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = `${fileSlug}-story-9x16.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(downloadUrl), 4000);
+
+        setCopiedType('storyImage');
+        setTimeout(() => setCopiedType(null), 3000);
+      } else {
+        // Fallback: download direct poster
+        const link = document.createElement('a');
+        link.href = absolutePosterUrl;
+        link.download = `${fileSlug}-poster.jpg`;
+        link.target = '_blank';
+        link.click();
+      }
+    } catch (err) {
+      console.error('Error downloading story image:', err);
+    } finally {
+      setIsGeneratingStory(false);
+    }
+  };
+
+  /**
+   * Action 2: Share to Stories (Web Share API with 9:16 Image file)
+   */
+  const handleShareToStories = async () => {
+    setIsGeneratingStory(true);
+    setDeviceShareStatus(null);
+    try {
+      let blob = storyGeneratedBlob;
+      if (!blob) {
+        blob = await generate9x16StoryBlob();
+      }
+
+      const captionText = `🎬 ${title} (${year || 'Film'})${rating ? ` [★ ${rating}/10 IMDb]` : ''}\n\n"${shortSynopsis}"\n\nStream HD & Download on CineVault By Sasuu:\n${shareUrl}\n\n#CineVault #CineVaultBySasuu #Stories`;
+
+      if (blob && typeof navigator !== 'undefined' && navigator.canShare) {
+        const file = new File([blob], `${fileSlug}-story-9x16.png`, { type: 'image/png' });
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: `${title} — CineVault By Sasuu`,
+            text: captionText,
+            url: shareUrl
+          });
+          setDeviceShareStatus('Shared successfully!');
+          return;
+        }
+      }
+
+      // If file share is not supported, fallback to native text/url share
+      if (typeof navigator !== 'undefined' && navigator.share) {
+        await navigator.share({
+          title: `${title} — CineVault By Sasuu`,
+          text: captionText,
+          url: shareUrl
+        });
+        setDeviceShareStatus('Shared successfully!');
+        return;
+      }
+
+      // If browser doesn't support Web Share API, download the image and copy caption
+      await handleDownloadStoryImage();
+      await handleCopyStoryCaption();
+      setDeviceShareStatus('Saved to gallery & caption copied! Open Instagram or Facebook Stories to post.');
+    } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        console.error('Share to stories failed:', err);
+        setDeviceShareStatus('Share cancelled or not supported on this browser.');
+      }
+    } finally {
+      setIsGeneratingStory(false);
+    }
+  };
+
+  /**
+   * Action 3: Copy Story Image to Clipboard (for pasting into FB/WhatsApp/Discord)
+   */
+  const handleCopyStoryImage = async () => {
+    setIsGeneratingStory(true);
+    try {
+      let blob = storyGeneratedBlob;
+      if (!blob) {
+        blob = await generate9x16StoryBlob();
+      }
+
+      if (blob && navigator.clipboard && typeof ClipboardItem !== 'undefined') {
+        await navigator.clipboard.write([
+          new ClipboardItem({ 'image/png': blob })
+        ]);
+        setCopiedType('storyImage');
+        setTimeout(() => setCopiedType(null), 3000);
+      } else {
+        // Fallback: copy link
+        navigator.clipboard.writeText(shareUrl);
+        setCopiedType('link');
+        setTimeout(() => setCopiedType(null), 2500);
+      }
+    } catch (err) {
+      console.warn('Clipboard image write failed, downloading instead:', err);
+      handleDownloadStoryImage();
+    } finally {
+      setIsGeneratingStory(false);
+    }
+  };
+
+  /**
+   * Action 4: Copy Formatted Story Caption
+   */
+  const handleCopyStoryCaption = () => {
+    const caption = [
+      `🎬 ${title} (${year || 'Film'})`,
+      rating ? `★ ${rating}/10 IMDb${genres.length > 0 ? ` | ${genres.slice(0, 3).join(', ')}` : ''}` : '',
+      '',
+      `"${shortSynopsis}"`,
+      '',
+      `👉 Stream in 4K UHD & High-Speed Downloads:`,
+      `${shareUrl}`,
+      '',
+      `— CineVault By Sasuu`,
+      `#CineVault #CineVaultBySasuu #FacebookStories #InstagramStories #Movies`
+    ].filter(Boolean).join('\n');
+
+    navigator.clipboard.writeText(caption);
+    setCopiedType('storyCaption');
+    setTimeout(() => setCopiedType(null), 2500);
+  };
+
+  /**
+   * Feed Sharing Actions
+   */
+  const handleFacebookShare = () => {
+    const quote = `🎬 ${title} (${year || 'Film'})${rating ? ` — ★ ${rating}/10 IMDb` : ''}\n\n"${shortSynopsis}"\n\nWatch trailer, view poster & download on CineVault By Sasuu:`;
+    const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(quote)}`;
+    window.open(fbUrl, '_blank', 'noopener,noreferrer,width=650,height=550');
+  };
+
+  const handleTwitterShare = () => {
+    const text = `🎬 ${title} (${year || 'Film'})${rating ? ` [★ ${rating}/10]` : ''}\n\n"${shortSynopsis.slice(0, 130)}..."\n\n#CineVaultBySasuu #Movies`;
+    const twitterUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`;
+    window.open(twitterUrl, '_blank', 'noopener,noreferrer,width=650,height=550');
+  };
+
+  const handleWhatsAppShare = () => {
+    const text = `🎬 *${title}* (${year || 'Film'})\n⭐ Rating: ${rating ? `${rating}/10 IMDb` : 'N/A'}${genres.length > 0 ? `\n🎭 Genres: ${genres.slice(0, 3).join(', ')}` : ''}\n\n📝 _"${shortSynopsis}"_\n\n🖼 Poster: ${absolutePosterUrl}\n🔗 Stream & Download: ${shareUrl}\n\n— *CineVault By Sasuu*`;
+    const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+    window.open(waUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleTelegramShare = () => {
+    const text = `🎬 ${title} (${year || 'Film'})${rating ? ` [★ ${rating}/10 IMDb]` : ''}\n\n"${shortSynopsis}"\n\nCineVault By Sasuu:`;
+    const tgUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`;
+    window.open(tgUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleRedditShare = () => {
+    const redditTitle = `${title} (${year || 'Film'})${rating ? ` [★ ${rating}/10 IMDb]` : ''} — CineVault By Sasuu`;
+    const redditUrl = `https://reddit.com/submit?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(redditTitle)}`;
+    window.open(redditUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const handlePinterestShare = () => {
+    const desc = `${title} (${year || 'Film'})${rating ? ` — ★ ${rating}/10 IMDb` : ''}. ${shortSynopsis} | CineVault By Sasuu`;
+    const pinUrl = `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(shareUrl)}&media=${encodeURIComponent(absolutePosterUrl)}&description=${encodeURIComponent(desc)}`;
+    window.open(pinUrl, '_blank', 'noopener,noreferrer,width=750,height=600');
+  };
+
+  const handleLinkedInShare = () => {
+    const liUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
+    window.open(liUrl, '_blank', 'noopener,noreferrer,width=650,height=550');
+  };
+
+  const handleEmailShare = () => {
+    const subject = `Check out "${title}" (${year || 'Film'}) on CineVault By Sasuu`;
+    const body = `Hi,\n\nI thought you might enjoy this film:\n\n${title} (${year || 'Film'})\nIMDb Rating: ${rating ? `${rating}/10` : 'N/A'}\nGenres: ${genres.join(', ') || 'N/A'}\n\nSynopsis:\n"${cleanSynopsis}"\n\nPoster: ${absolutePosterUrl}\n\nWatch trailer and download high-speed torrents:\n${shareUrl}\n\nShared via CineVault By Sasuu`;
+    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(shareUrl);
+    setCopiedType('link');
+    setTimeout(() => setCopiedType(null), 2500);
+  };
+
+  const handleCopyCard = () => {
+    const cardText = [
+      `🎬 ${title} (${year || 'Film'})`,
+      rating ? `★ ${rating}/10 IMDb${genres.length > 0 ? ` | ${genres.slice(0, 3).join(', ')}` : ''}` : '',
+      '',
+      `"${cleanSynopsis}"`,
+      '',
+      `🖼 Poster: ${absolutePosterUrl}`,
+      `🔗 Watch & Download: ${shareUrl}`,
+      `— CineVault By Sasuu`
+    ].filter(Boolean).join('\n');
+
+    navigator.clipboard.writeText(cardText);
+    setCopiedType('card');
+    setTimeout(() => setCopiedType(null), 2500);
+  };
+
+  const handleCopyPosterUrl = () => {
+    navigator.clipboard.writeText(absolutePosterUrl);
+    setCopiedType('poster');
+    setTimeout(() => setCopiedType(null), 2500);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="share-movie-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-black/85 backdrop-blur-md overflow-y-auto overscroll-contain animate-in fade-in duration-200"
+      onClick={onClose}
+    >
+      {/* Hidden high-res canvas used for 1080x1920 export */}
+      <canvas ref={canvasRef} className="hidden" />
+
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className={`relative w-full max-w-2xl rounded-3xl overflow-hidden border shadow-2xl transition-all duration-200 my-auto ${
+          isWhite
+            ? 'bg-white border-slate-200 text-slate-900 shadow-slate-400/20'
+            : isBlueBlack
+            ? 'bg-[#080e1e] border-sky-500/20 text-neutral-100 shadow-sky-950/40'
+            : 'bg-[#0c0c0e] border-white/10 text-neutral-100 shadow-black/80'
+        }`}
+      >
+        {/* Modal Top Header */}
+        <div
+          className={`px-5 py-3.5 flex items-center justify-between border-b ${
+            isWhite ? 'border-slate-100 bg-slate-50/80' : 'border-white/5 bg-white/[0.02]'
+          }`}
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-rose-600/20 text-rose-500 border border-rose-500/30 flex items-center justify-center">
+              <Share2 size={16} />
+            </div>
+            <div>
+              <h2 id="share-movie-title" className="text-sm sm:text-base font-bold tracking-tight">
+                Share Poster & Movie Details
+              </h2>
+              <p className="text-[11px] text-neutral-400">
+                Optimized 9:16 layout for Stories, Status updates & Social feeds
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={onClose}
+            className={`p-1.5 rounded-full transition-colors cursor-pointer ${
+              isWhite
+                ? 'hover:bg-slate-200 text-slate-500 hover:text-slate-800'
+                : 'hover:bg-white/10 text-neutral-400 hover:text-white'
+            }`}
+            aria-label="Close share dialog"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Tab Switcher: 9:16 Story vs Feed Links */}
+        <div className={`p-2.5 px-5 border-b flex gap-2 ${isWhite ? 'border-slate-100 bg-slate-100/50' : 'border-white/5 bg-black/30'}`}>
+          <button
+            type="button"
+            onClick={() => setActiveTab('story')}
+            className={`flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+              activeTab === 'story'
+                ? 'bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-md shadow-rose-950/30'
+                : isWhite
+                ? 'text-slate-600 hover:bg-slate-200/60'
+                : 'text-neutral-400 hover:text-neutral-200 hover:bg-white/5'
+            }`}
+          >
+            <Smartphone size={16} />
+            <span>9:16 Story & Status</span>
+            <span className="hidden sm:inline-block text-[10px] font-normal px-1.5 py-0.2 rounded-full bg-white/20">
+              Facebook / Instagram / WhatsApp
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('feed')}
+            className={`flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+              activeTab === 'feed'
+                ? 'bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-md shadow-rose-950/30'
+                : isWhite
+                ? 'text-slate-600 hover:bg-slate-200/60'
+                : 'text-neutral-400 hover:text-neutral-200 hover:bg-white/5'
+            }`}
+          >
+            <ExternalLink size={16} />
+            <span>Feed Post & Links</span>
+            <span className="hidden sm:inline-block text-[10px] font-normal px-1.5 py-0.2 rounded-full bg-white/20">
+              Direct Social Share
+            </span>
+          </button>
+        </div>
+
+        {/* Main Content Area */}
+        <div className="p-4 sm:p-6 max-h-[calc(86vh-120px)] overflow-y-auto space-y-5">
+          {activeTab === 'story' ? (
+            /* TAB 1: 9:16 VERTICAL STORY & STATUS CARD GENERATOR */
+            <div className="space-y-4">
+              <div className="flex flex-col md:flex-row gap-5 items-center md:items-start">
+                {/* Visual 9:16 Story Card Preview */}
+                <div className="shrink-0 w-64 sm:w-72">
+                  <div className="relative aspect-[9/16] w-full rounded-3xl overflow-hidden border border-white/20 shadow-2xl shadow-black/80 flex flex-col justify-between p-3.5 sm:p-4 bg-[#0a0d18] text-white select-none ring-1 ring-white/10">
+                    {/* Blurred Backdrop Image */}
+                    <img
+                      src={currentPoster}
+                      alt=""
+                      aria-hidden="true"
+                      referrerPolicy="no-referrer"
+                      className="absolute inset-0 w-full h-full object-cover scale-125 blur-2xl opacity-35"
+                    />
+                    {/* Dark gradient overlay for extreme legibility */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-[#060810]/85 via-black/40 to-[#040508]/95 pointer-events-none" />
+
+                    {/* TOP SAFE HEADER */}
+                    <div className="relative z-10 flex flex-col items-center gap-1.5 pt-1">
+                      {/* Story Pill */}
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[10px] font-bold tracking-wider uppercase text-neutral-100 shadow-sm">
+                        <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                        <span>Stories & Status • 9:16</span>
+                      </div>
+
+                      {/* Metadata Badges */}
+                      <div className="flex items-center gap-1 text-[10px] font-bold">
+                        {rating && (
+                          <span className="px-2 py-0.5 rounded-md bg-amber-500/25 border border-amber-500/40 text-amber-300 flex items-center gap-0.5">
+                            <Star size={9} className="fill-amber-400" />
+                            {rating} IMDb
+                          </span>
+                        )}
+                        {year && (
+                          <span className="px-1.5 py-0.5 rounded-md bg-rose-500/20 border border-rose-500/40 text-rose-300">
+                            {year}
+                          </span>
+                        )}
+                        <span className="px-1.5 py-0.5 rounded-md bg-white/10 border border-white/20 text-neutral-300">
+                          4K UHD
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* CENTER POSTER SHOWCASE (Framed cleanly in 2:3 ratio) */}
+                    <div className="relative z-10 my-auto py-1">
+                      <div className="relative aspect-[2/3] w-36 sm:w-40 mx-auto rounded-2xl overflow-hidden shadow-2xl shadow-black border-2 border-white/20 ring-4 ring-rose-600/20 group">
+                        <img
+                          src={currentPoster}
+                          alt={`${title} poster`}
+                          referrerPolicy="no-referrer"
+                          onError={() => {
+                            if (candidateIndex + 1 < posterCandidates.length) {
+                              setCandidateIndex((prev) => prev + 1);
+                            }
+                          }}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                      </div>
+                    </div>
+
+                    {/* LOWER CONTENT SECTION (Title, Concise Description, and Branding) */}
+                    <div className="relative z-10 space-y-2 pb-1">
+                      {genres.length > 0 && (
+                        <div className="text-[9px] font-bold tracking-wider text-rose-400 uppercase text-center line-clamp-1">
+                          {genres.slice(0, 3).join(' • ')}
+                        </div>
+                      )}
+
+                      {/* Movie Title */}
+                      <h3 className="font-display font-extrabold text-sm sm:text-base leading-snug text-center text-white line-clamp-2 drop-shadow-md">
+                        {title}
+                      </h3>
+
+                      {/* Concise Description / Synopsis */}
+                      <p className="text-[10px] sm:text-[11px] text-neutral-300 text-center leading-relaxed italic line-clamp-3 px-1 drop-shadow">
+                        "{shortSynopsis}"
+                      </p>
+
+                      {/* THE REQUESTED BRANDING AT THE BOTTOM: "CineVault By Sasuu" */}
+                      <div className="pt-2 border-t border-rose-500/30">
+                        <div className="p-1.5 rounded-xl bg-black/60 backdrop-blur-md border border-white/15 flex items-center justify-between gap-2 shadow-lg">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-rose-600 to-amber-500 flex items-center justify-center font-black text-[10px] text-white shrink-0 shadow-sm">
+                              CV
+                            </div>
+                            <div className="min-w-0 leading-none">
+                              <div className="flex items-center gap-1 font-black text-[11px] tracking-tight">
+                                <span className="text-white">CineVault</span>
+                                <span className="text-rose-400 font-bold">By Sasuu</span>
+                              </div>
+                              <div className="text-[8px] text-neutral-400 font-mono truncate mt-0.5">
+                                cinevaultmovies.online
+                              </div>
+                            </div>
+                          </div>
+                          <span className="shrink-0 text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-rose-600/30 text-rose-300 border border-rose-500/30">
+                            Stream HD
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-center mt-2 text-[11px] text-neutral-400 font-medium">
+                    9:16 Vertical Story Layout Preview
+                  </div>
+                </div>
+
+                {/* Story Actions & Platform Guides */}
+                <div className="flex-1 space-y-4 w-full">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-rose-500 uppercase tracking-wider">
+                      <Sparkles size={14} />
+                      <span>Optimized Vertical Sharing</span>
+                    </div>
+                    <h4 className="text-base sm:text-lg font-bold">
+                      Post to Facebook, Instagram & WhatsApp Status
+                    </h4>
+                    <p className="text-xs text-neutral-400 leading-relaxed">
+                      Download this high-resolution 9:16 card or share it straight to your device's story editor with the movie title, description, and CineVault By Sasuu branding.
+                    </p>
+                  </div>
+
+                  {/* Primary Story Actions */}
+                  <div className="space-y-2.5 pt-1">
+                    {/* 1. Download 9:16 Story Image */}
+                    <button
+                      type="button"
+                      disabled={isGeneratingStory}
+                      onClick={handleDownloadStoryImage}
+                      className="w-full py-3 px-4 bg-gradient-to-r from-rose-600 via-rose-500 to-amber-500 hover:from-rose-500 hover:to-amber-400 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-rose-950/40 flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.99] disabled:opacity-50"
+                    >
+                      {isGeneratingStory ? (
+                        <>
+                          <RefreshCw size={16} className="animate-spin" />
+                          <span>Rendering 9:16 Story Card (1080x1920)...</span>
+                        </>
+                      ) : copiedType === 'storyImage' ? (
+                        <>
+                          <Check size={16} className="text-white" />
+                          <span>Story Image Downloaded (.PNG)!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Download size={16} />
+                          <span>Download 9:16 Story Image (HD .PNG)</span>
+                        </>
+                      )}
+                    </button>
+
+                    {/* 2. Share to Stories / Device */}
+                    <button
+                      type="button"
+                      disabled={isGeneratingStory}
+                      onClick={handleShareToStories}
+                      className="w-full py-2.5 px-4 bg-white/10 hover:bg-white/15 border border-white/20 text-white font-bold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.99]"
+                    >
+                      <Smartphone size={16} className="text-rose-400" />
+                      <span>Share to Stories (Device Sheet)</span>
+                    </button>
+
+                    {/* 3. Copy Tools: Copy Image & Copy Caption */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={handleCopyStoryImage}
+                        className="py-2 px-3 rounded-xl border border-white/15 hover:border-rose-500/50 bg-white/5 hover:bg-white/10 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                        title="Copy image blob to clipboard to paste directly in Facebook or WhatsApp Web"
+                      >
+                        {copiedType === 'storyImage' ? (
+                          <>
+                            <Check size={13} className="text-emerald-400" />
+                            <span className="text-emerald-400">Image Copied!</span>
+                          </>
+                        ) : (
+                          <>
+                            <ImageIcon size={13} className="text-neutral-400" />
+                            <span>Copy Image</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleCopyStoryCaption}
+                        className="py-2 px-3 rounded-xl border border-white/15 hover:border-rose-500/50 bg-white/5 hover:bg-white/10 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                        title="Copy formatted text caption with title, rating and site link"
+                      >
+                        {copiedType === 'storyCaption' ? (
+                          <>
+                            <Check size={13} className="text-emerald-400" />
+                            <span className="text-emerald-400">Caption Copied!</span>
+                          </>
+                        ) : (
+                          <>
+                            <FileText size={13} className="text-neutral-400" />
+                            <span>Copy Caption</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {deviceShareStatus && (
+                      <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-[11px] text-rose-300 leading-normal flex items-start gap-2">
+                        <Sparkles size={14} className="shrink-0 mt-0.5 text-rose-400" />
+                        <span>{deviceShareStatus}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Direct Launch Buttons for Facebook Stories & WhatsApp */}
+                  <div className="pt-2 border-t border-white/10 space-y-2">
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
+                      Quick Launch Platforms
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={handleFacebookShare}
+                        className="p-2.5 rounded-xl border border-[#1877F2]/40 bg-[#1877F2]/15 hover:bg-[#1877F2] text-[#1877F2] hover:text-white transition-all text-xs font-bold flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                        </svg>
+                        <span>Facebook</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleWhatsAppShare}
+                        className="p-2.5 rounded-xl border border-[#25D366]/40 bg-[#25D366]/15 hover:bg-[#25D366] text-[#25D366] hover:text-white transition-all text-xs font-bold flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                          <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" />
+                        </svg>
+                        <span>WhatsApp</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 3-Step Guide for Posting to Stories */}
+                  <div className={`p-3 rounded-2xl border text-[11px] space-y-1 ${isWhite ? 'bg-slate-50 border-slate-200' : 'bg-black/40 border-white/10'}`}>
+                    <div className="font-bold text-neutral-300">How to post to Story / Status:</div>
+                    <ol className="list-decimal list-inside space-y-0.5 text-neutral-400">
+                      <li>Tap <b>Download 9:16 Story Image</b> to save the high-res card.</li>
+                      <li>Open Facebook, Instagram, or WhatsApp and tap <b>Add to Story / Status</b>.</li>
+                      <li>Select the 9:16 card from your photos &amp; post!</li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* TAB 2: FEED POST & SOCIAL SHARING LINKS */
+            <div className="space-y-5">
+              {/* Facebook/Feed Preview Card */}
+              <div
+                className={`p-3.5 sm:p-4 rounded-2xl border transition-all ${
+                  isWhite
+                    ? 'bg-slate-50 border-slate-200'
+                    : isBlueBlack
+                    ? 'bg-[#0e1834] border-sky-500/20'
+                    : 'bg-[#121215] border-white/10'
+                }`}
+              >
+                <div className="flex gap-3.5 sm:gap-4 items-start">
+                  {/* Poster Thumbnail */}
+                  <div className="relative w-20 sm:w-24 shrink-0 aspect-[2/3] rounded-xl overflow-hidden bg-neutral-900 border border-white/10 shadow-md">
+                    <img
+                      src={currentPoster}
+                      alt={`${title} poster`}
+                      referrerPolicy="no-referrer"
+                      onError={() => {
+                        if (candidateIndex + 1 < posterCandidates.length) {
+                          setCandidateIndex((prev) => prev + 1);
+                        }
+                      }}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+
+                  {/* Title, Badges, and Synopsis */}
+                  <div className="flex-1 min-w-0 space-y-1.5">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {year && (
+                        <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-rose-600/20 text-rose-400 border border-rose-500/30">
+                          {year}
+                        </span>
+                      )}
+                      {rating && (
+                        <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center gap-0.5">
+                          <Star size={10} className="fill-amber-400" />
+                          {rating}
+                        </span>
+                      )}
+                      {genres.slice(0, 2).map((g) => (
+                        <span
+                          key={g}
+                          className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-white/5 text-neutral-400 border border-white/10"
+                        >
+                          {g}
+                        </span>
+                      ))}
+                    </div>
+
+                    <h3 className="font-display font-bold text-base sm:text-lg leading-tight line-clamp-1">
+                      {title}
+                    </h3>
+
+                    <p className="text-xs text-neutral-400 line-clamp-3 leading-relaxed italic">
+                      "{shortSynopsis}"
+                    </p>
+
+                    <div className="pt-1 flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                        <Sparkles size={10} />
+                        CineVault By Sasuu Official Link
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Social Platforms Grid */}
+              <div>
+                <div className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 mb-2.5 flex items-center justify-between">
+                  <span>Select Social Network</span>
+                  <span className="text-[10px] font-normal text-neutral-500">Opens official dialog</span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  {/* Facebook */}
+                  <button
+                    onClick={handleFacebookShare}
+                    className="group flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl border transition-all duration-150 cursor-pointer bg-[#1877F2]/10 hover:bg-[#1877F2] text-[#1877F2] hover:text-white border-[#1877F2]/30 hover:border-[#1877F2] hover:shadow-lg hover:shadow-[#1877F2]/25"
+                    title="Share to Facebook with poster, title & synopsis"
+                  >
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                    </svg>
+                    <span className="text-xs font-bold">Facebook</span>
+                  </button>
+
+                  {/* X / Twitter */}
+                  <button
+                    onClick={handleTwitterShare}
+                    className="group flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl border transition-all duration-150 cursor-pointer bg-neutral-800/60 hover:bg-black text-neutral-100 border-white/10 hover:border-white/30 hover:shadow-lg hover:shadow-white/5"
+                    title="Share to X (Twitter) with title & synopsis"
+                  >
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                    </svg>
+                    <span className="text-xs font-bold">X (Twitter)</span>
+                  </button>
+
+                  {/* WhatsApp */}
+                  <button
+                    onClick={handleWhatsAppShare}
+                    className="group flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl border transition-all duration-150 cursor-pointer bg-[#25D366]/10 hover:bg-[#25D366] text-[#25D366] hover:text-white border-[#25D366]/30 hover:border-[#25D366] hover:shadow-lg hover:shadow-[#25D366]/25"
+                    title="Share to WhatsApp with poster & synopsis"
+                  >
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" />
+                    </svg>
+                    <span className="text-xs font-bold">WhatsApp</span>
+                  </button>
+
+                  {/* Telegram */}
+                  <button
+                    onClick={handleTelegramShare}
+                    className="group flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl border transition-all duration-150 cursor-pointer bg-[#229ED9]/10 hover:bg-[#229ED9] text-[#229ED9] hover:text-white border-[#229ED9]/30 hover:border-[#229ED9] hover:shadow-lg hover:shadow-[#229ED9]/25"
+                    title="Share to Telegram"
+                  >
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.828.942z" />
+                    </svg>
+                    <span className="text-xs font-bold">Telegram</span>
+                  </button>
+
+                  {/* Pinterest (Poster Showcase) */}
+                  <button
+                    onClick={handlePinterestShare}
+                    className="group flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl border transition-all duration-150 cursor-pointer bg-[#BD081C]/10 hover:bg-[#BD081C] text-[#BD081C] hover:text-white border-[#BD081C]/30 hover:border-[#BD081C] hover:shadow-lg hover:shadow-[#BD081C]/25"
+                    title="Pin movie poster to Pinterest"
+                  >
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M12 0a12 12 0 0 0-4.37 23.18c-.06-.98-.12-2.48.02-3.55l.89-3.79s-.23-.46-.23-1.14c0-1.07.62-1.87 1.39-1.87.66 0 .97.49.97 1.08 0 .66-.42 1.65-.64 2.57-.18.77.38 1.39 1.13 1.39 1.36 0 2.4-1.44 2.4-3.51 0-1.83-1.32-3.11-3.2-3.11-2.34 0-3.71 1.76-3.71 3.57 0 .71.27 1.47.61 1.88.07.08.08.15.06.24l-.23.94c-.04.15-.13.18-.29.11-1.08-.5-1.75-2.07-1.75-3.33 0-2.71 1.97-5.2 5.68-5.2 2.98 0 5.3 2.12 5.3 4.96 0 2.96-1.86 5.34-4.45 5.34-.87 0-1.69-.45-1.97-.98l-.54 2.05c-.19.75-.72 1.68-1.07 2.25A12 12 0 1 0 12 0z" />
+                    </svg>
+                    <span className="text-xs font-bold">Pinterest</span>
+                  </button>
+
+                  {/* Reddit */}
+                  <button
+                    onClick={handleRedditShare}
+                    className="group flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl border transition-all duration-150 cursor-pointer bg-[#FF4500]/10 hover:bg-[#FF4500] text-[#FF4500] hover:text-white border-[#FF4500]/30 hover:border-[#FF4500] hover:shadow-lg hover:shadow-[#FF4500]/25"
+                    title="Submit to Reddit"
+                  >
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.702zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z" />
+                    </svg>
+                    <span className="text-xs font-bold">Reddit</span>
+                  </button>
+
+                  {/* LinkedIn */}
+                  <button
+                    onClick={handleLinkedInShare}
+                    className="group flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl border transition-all duration-150 cursor-pointer bg-[#0A66C2]/10 hover:bg-[#0A66C2] text-[#0A66C2] hover:text-white border-[#0A66C2]/30 hover:border-[#0A66C2] hover:shadow-lg hover:shadow-[#0A66C2]/25"
+                    title="Share to LinkedIn"
+                  >
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+                    </svg>
+                    <span className="text-xs font-bold">LinkedIn</span>
+                  </button>
+
+                  {/* Email */}
+                  <button
+                    onClick={handleEmailShare}
+                    className="group flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl border transition-all duration-150 cursor-pointer bg-neutral-800/60 hover:bg-neutral-700 text-neutral-200 hover:text-white border-white/10 hover:border-white/25 hover:shadow-lg"
+                    title="Send via Email"
+                  >
+                    <Mail size={20} />
+                    <span className="text-xs font-bold">Email</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Quick Copy & Clipboard Tools */}
+              <div className="space-y-2 pt-2 border-t border-white/5">
+                <div className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 mb-2">
+                  Copy & Attach Assets
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2">
+                  {/* Copy Full Formatted Synopsis Card */}
+                  <button
+                    type="button"
+                    onClick={handleCopyCard}
+                    className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl border border-white/10 hover:border-rose-500/40 bg-white/5 hover:bg-white/10 text-xs font-semibold transition-all cursor-pointer"
+                    title="Copy Title, Rating, Synopsis & Links formatted for Facebook/Discord/Forums"
+                  >
+                    {copiedType === 'card' ? (
+                      <>
+                        <Check size={14} className="text-emerald-400" />
+                        <span className="text-emerald-400">Synopsis Card Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <FileText size={14} className="text-neutral-400" />
+                        <span>Copy Formatted Synopsis</span>
+                      </>
+                    )}
+                  </button>
+
+                  {/* Copy Poster Image Link */}
+                  <button
+                    type="button"
+                    onClick={handleCopyPosterUrl}
+                    className="flex items-center justify-center gap-2 py-2 px-3 rounded-xl border border-white/10 hover:border-rose-500/40 bg-white/5 hover:bg-white/10 text-xs font-semibold transition-all cursor-pointer"
+                    title="Copy direct link to high-res poster image"
+                  >
+                    {copiedType === 'poster' ? (
+                      <>
+                        <Check size={14} className="text-emerald-400" />
+                        <span className="text-emerald-400">Poster URL Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <ImageIcon size={14} className="text-neutral-400" />
+                        <span>Copy Poster URL</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Direct Link Input Box */}
+                <div
+                  className={`flex items-center gap-2 p-1.5 pl-3 rounded-xl border ${
+                    isWhite ? 'bg-slate-100 border-slate-200' : 'bg-black/50 border-white/10'
+                  }`}
+                >
+                  <span className="text-xs text-neutral-400 truncate flex-1 font-mono">
+                    {shareUrl}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleCopyLink}
+                    className="shrink-0 flex items-center gap-1.5 py-1.5 px-3 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer shadow-md"
+                  >
+                    {copiedType === 'link' ? (
+                      <>
+                        <Check size={13} />
+                        <span>Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={13} />
+                        <span>Copy Link</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Modal Footer */}
+        <div
+          className={`px-5 py-3 border-t flex items-center justify-between text-[11px] ${
+            isWhite
+              ? 'border-slate-100 bg-slate-50 text-slate-500'
+              : 'border-white/5 bg-white/[0.02] text-neutral-500'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+            <span>CineVault By Sasuu • 9:16 Stories &amp; Social Engine</span>
+          </div>
+          <button
+            onClick={onClose}
+            className="hover:underline font-semibold text-neutral-400 hover:text-neutral-200 cursor-pointer"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
