@@ -265,11 +265,13 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
     }
 
     // 5. Stories Safe Zone Top Header (y: 110 - 240)
+    // 5. Stories Safe Zone Top Header (y: 110 - 240)
     // Story Badge Pill
-    const pillX = 540 - 250;
     const pillY = 110;
-    const pillW = 500;
     const pillH = 58;
+    const pillW = 480;
+    const pillX = (1080 - pillW) / 2;
+
     ctx.save();
     drawRoundedRect(ctx, pillX, pillY, pillW, pillH, 29);
     ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
@@ -278,72 +280,92 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
     ctx.stroke();
 
-    // Red pulsating dot in header
+    // Calculate exact header content layout so dot never overlaps text
+    const headerText = 'CINEVAULT • STORIES & STATUS';
+    ctx.font = 'bold 22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    const headerTextWidth = ctx.measureText(headerText).width;
+    const dotRadius = 6;
+    const dotSpacing = 16;
+    const totalPillContentW = dotRadius * 2 + dotSpacing + headerTextWidth;
+    const pillContentStartX = (1080 - totalPillContentW) / 2;
+
+    // Red pulsating dot in header (positioned safely before text)
     ctx.beginPath();
-    ctx.arc(540 - 180, pillY + pillH / 2, 7, 0, Math.PI * 2);
+    ctx.arc(pillContentStartX + dotRadius, pillY + pillH / 2, dotRadius, 0, Math.PI * 2);
     ctx.fillStyle = '#E11D48';
     ctx.fill();
 
     // Header Pill Text
-    ctx.font = 'bold 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.fillStyle = '#FFFFFF';
-    ctx.textAlign = 'center';
-    ctx.fillText('CINEVAULT • STORIES & STATUS', 540 + 10, pillY + 38);
+    ctx.textAlign = 'left';
+    ctx.fillText(headerText, pillContentStartX + dotRadius * 2 + dotSpacing, pillY + 37);
     ctx.restore();
 
-    // Badges Row (Year, Rating, Quality)
-    const badgeY = 205;
+    // Badges Row (Year, Rating, Quality) - Perfectly centered as a group
+    const badgeY = 195;
     ctx.save();
-    // Rating Badge with Star
+    
+    interface StoryBadgeItem {
+      text: string;
+      bg: string;
+      border: string;
+      color: string;
+      w: number;
+    }
+
+    const badgeList: StoryBadgeItem[] = [];
     if (rating) {
-      drawRoundedRect(ctx, 360, badgeY, 160, 48, 12);
-      ctx.fillStyle = 'rgba(245, 158, 11, 0.2)';
-      ctx.fill();
-      ctx.lineWidth = 1.5;
-      ctx.strokeStyle = 'rgba(245, 158, 11, 0.5)';
-      ctx.stroke();
-
-      ctx.font = 'bold 24px -apple-system, BlinkMacSystemFont, sans-serif';
-      ctx.fillStyle = '#FBBF24';
-      ctx.textAlign = 'center';
-      ctx.fillText(`★ ${rating} IMDb`, 440, badgeY + 33);
+      badgeList.push({
+        text: `★ ${rating} IMDb`,
+        bg: 'rgba(245, 158, 11, 0.22)',
+        border: 'rgba(245, 158, 11, 0.55)',
+        color: '#FBBF24',
+        w: 164
+      });
     }
-
-    // Year Badge
     if (year) {
-      drawRoundedRect(ctx, rating ? 540 : 450, badgeY, 100, 48, 12);
-      ctx.fillStyle = 'rgba(225, 29, 72, 0.2)';
+      badgeList.push({
+        text: String(year),
+        bg: 'rgba(225, 29, 72, 0.22)',
+        border: 'rgba(225, 29, 72, 0.55)',
+        color: '#FB7185',
+        w: 106
+      });
+    }
+    badgeList.push({
+      text: '4K UHD',
+      bg: 'rgba(255, 255, 255, 0.1)',
+      border: 'rgba(255, 255, 255, 0.25)',
+      color: '#F3F4F6',
+      w: 116
+    });
+
+    const bGap = 14;
+    const totalBadgesWidth = badgeList.reduce((sum, b) => sum + b.w, 0) + (badgeList.length - 1) * bGap;
+    let badgeCurrentX = (1080 - totalBadgesWidth) / 2;
+
+    badgeList.forEach((badge) => {
+      drawRoundedRect(ctx, badgeCurrentX, badgeY, badge.w, 48, 12);
+      ctx.fillStyle = badge.bg;
       ctx.fill();
       ctx.lineWidth = 1.5;
-      ctx.strokeStyle = 'rgba(225, 29, 72, 0.5)';
+      ctx.strokeStyle = badge.border;
       ctx.stroke();
 
-      ctx.font = 'bold 24px -apple-system, BlinkMacSystemFont, sans-serif';
-      ctx.fillStyle = '#FB7185';
+      ctx.font = 'bold 23px -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.fillStyle = badge.color;
       ctx.textAlign = 'center';
-      ctx.fillText(String(year), (rating ? 540 : 450) + 50, badgeY + 33);
-    }
+      ctx.fillText(badge.text, badgeCurrentX + badge.w / 2, badgeY + 33);
 
-    // HD Quality Badge
-    const qX = rating && year ? 660 : 570;
-    drawRoundedRect(ctx, qX, badgeY, 110, 48, 12);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-    ctx.fill();
-    ctx.lineWidth = 1.5;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
-    ctx.stroke();
-
-    ctx.font = 'bold 22px -apple-system, BlinkMacSystemFont, sans-serif';
-    ctx.fillStyle = '#E5E7EB';
-    ctx.textAlign = 'center';
-    ctx.fillText('4K UHD', qX + 55, badgeY + 33);
+      badgeCurrentX += badge.w + bGap;
+    });
     ctx.restore();
 
     // 6. Central Movie Poster Frame (2:3 ratio inside 9:16 layout)
-    const posterW = 580;
-    const posterH = 870;
-    const posterX = (1080 - posterW) / 2; // 250
-    const posterY = 280;
+    const posterW = 590;
+    const posterH = 885;
+    const posterX = (1080 - posterW) / 2;
+    const posterY = 270;
 
     ctx.save();
     // Shadow under poster
@@ -405,22 +427,22 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
     // 8. Movie Title (Bold, High-Visibility)
     ctx.save();
     ctx.fillStyle = '#FFFFFF';
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
-    ctx.shadowBlur = 12;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+    ctx.shadowBlur = 14;
     ctx.shadowOffsetY = 3;
     const titleFontSize = title.length > 30 ? 46 : 56;
     ctx.font = `bold ${titleFontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
-    const nextY = drawWrappedText(ctx, title, 540, 1270, 920, titleFontSize + 12, 2, 'center');
+    const nextY = drawWrappedText(ctx, title, 540, 1270, 940, titleFontSize + 12, 2, 'center');
     ctx.restore();
 
     // 9. Concise Description / Synopsis (Curated 2-3 lines)
     ctx.save();
     ctx.font = 'italic 29px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    ctx.fillStyle = '#D1D5DB'; // Slate-300
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+    ctx.fillStyle = '#E2E8F0'; // Slate-200 for clean high-contrast reading
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
     ctx.shadowBlur = 8;
     const synopsisStartY = Math.max(nextY + 15, 1370);
-    drawWrappedText(ctx, `"${shortSynopsis}"`, 540, synopsisStartY, 900, 42, 3, 'center');
+    drawWrappedText(ctx, `"${shortSynopsis}"`, 540, synopsisStartY, 920, 44, 3, 'center');
     ctx.restore();
 
     // 10. The Requested "CineVault By Sasuu" Branding at the Bottom
@@ -441,21 +463,25 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
     ctx.stroke();
     ctx.restore();
 
-    // Branding Container Box
+    // Branding Container Box - Generously sized (750px) so text never collides or overflows
+    const brandBoxW = 750;
+    const brandBoxH = 130;
+    const brandBoxX = (1080 - brandBoxW) / 2; // 165
     const brandBoxY = 1665;
     ctx.save();
-    drawRoundedRect(ctx, 540 - 320, brandBoxY, 640, 130, 24);
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+    drawRoundedRect(ctx, brandBoxX, brandBoxY, brandBoxW, brandBoxH, 24);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
     ctx.fill();
     ctx.lineWidth = 1.5;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.16)';
     ctx.stroke();
 
     // CineVault Logo Emblem Badge
-    const emblemX = 540 - 275;
-    const emblemY = brandBoxY + 28;
-    drawRoundedRect(ctx, emblemX, emblemY, 74, 74, 18);
-    const emblemGrad = ctx.createLinearGradient(emblemX, emblemY, emblemX + 74, emblemY + 74);
+    const emblemSize = 74;
+    const emblemX = brandBoxX + 28;
+    const emblemY = brandBoxY + (brandBoxH - emblemSize) / 2;
+    drawRoundedRect(ctx, emblemX, emblemY, emblemSize, emblemSize, 18);
+    const emblemGrad = ctx.createLinearGradient(emblemX, emblemY, emblemX + emblemSize, emblemY + emblemSize);
     emblemGrad.addColorStop(0, '#E11D48');
     emblemGrad.addColorStop(1, '#9F1239');
     ctx.fillStyle = emblemGrad;
@@ -463,27 +489,33 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
     ctx.font = 'bold 36px sans-serif';
     ctx.fillStyle = '#FFFFFF';
     ctx.textAlign = 'center';
-    ctx.fillText('CV', emblemX + 37, emblemY + 50);
+    ctx.fillText('CV', emblemX + emblemSize / 2, emblemY + 49);
 
-    // Primary Brand Text: "CineVault By Sasuu"
+    // Primary Brand Text: "CineVault By Sasuu" with measured kerning gap
+    const textStartX = emblemX + emblemSize + 22;
     ctx.textAlign = 'left';
-    ctx.font = '900 42px -apple-system, BlinkMacSystemFont, "Montserrat", sans-serif';
+    ctx.font = '900 40px -apple-system, BlinkMacSystemFont, "Montserrat", sans-serif';
+
+    const cineVaultWord = 'CineVault';
+    const cineVaultW = ctx.measureText(cineVaultWord).width;
+    const spaceW = ctx.measureText(' ').width + 8; // Proper distinct spacing
+
     ctx.fillStyle = '#FFFFFF';
-    ctx.fillText('CineVault', emblemX + 96, brandBoxY + 58);
+    ctx.fillText(cineVaultWord, textStartX, brandBoxY + 56);
 
     ctx.fillStyle = '#FB7185';
-    ctx.fillText('By Sasuu', emblemX + 310, brandBoxY + 58);
+    ctx.fillText('By Sasuu', textStartX + cineVaultW + spaceW, brandBoxY + 56);
 
-    // Subtitle & Canonical Website
-    ctx.font = '600 22px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+    // Subtitle & Canonical Website (fits comfortably inside the 750px box)
+    ctx.font = '600 20.5px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
     ctx.fillStyle = '#9CA3AF';
-    ctx.fillText('Watch Trailer & Stream HD • cinevaultmovies.online', emblemX + 98, brandBoxY + 98);
+    ctx.fillText('Watch Trailer & Stream HD • cinevaultmovies.online', textStartX, brandBoxY + 97);
     ctx.restore();
 
     // Story Safe Zone Bottom Tip
     ctx.save();
     ctx.font = '500 20px -apple-system, BlinkMacSystemFont, sans-serif';
-    ctx.fillStyle = 'rgba(156, 163, 175, 0.8)';
+    ctx.fillStyle = 'rgba(156, 163, 175, 0.85)';
     ctx.textAlign = 'center';
     ctx.fillText('Optimized 9:16 Vertical Story • Tap to Stream in HD', 540, 1845);
     ctx.restore();
@@ -944,9 +976,9 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
                               CV
                             </div>
                             <div className="min-w-0 leading-none">
-                              <div className="flex items-center gap-1 font-black text-[11px] tracking-tight">
+                              <div className="flex items-center gap-1.5 font-black text-[11px] tracking-tight">
                                 <span className="story-branding-title text-white">CineVault</span>
-                                <span className="text-rose-400 font-bold">By Sasuu</span>
+                                <span className="text-rose-400 font-bold ml-0.5">By Sasuu</span>
                               </div>
                               <div className="text-[8px] text-neutral-300 font-mono truncate mt-0.5">
                                 cinevaultmovies.online
