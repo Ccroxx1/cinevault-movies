@@ -399,7 +399,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  // Click outside suggestions to close dropdown
+  // Click outside suggestions or press Escape to close dropdown
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -411,9 +411,18 @@ export const EztvView: React.FC<EztvViewProps> = ({
         setIsSuggestionsOpen(false);
       }
     };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isSuggestionsOpen) {
+        setIsSuggestionsOpen(false);
+      }
+    };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isSuggestionsOpen]);
 
   // Fetch torrents from EZTV API
   const loadTorrents = async (page: number, imdbId?: string | null, search?: string | null) => {
@@ -603,7 +612,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8 animate-in fade-in duration-200">
       {/* Hero Header */}
-      <div className="relative overflow-hidden rounded-3xl p-6 sm:p-10 border eztv-hero-banner shadow-2xl">
+      <div className="relative z-20 rounded-3xl p-6 sm:p-10 border eztv-hero-banner shadow-2xl">
         <div className="relative z-10 space-y-4 max-w-3xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-bold uppercase tracking-wider eztv-hero-badge">
             <Tv className="w-3.5 h-3.5" />
@@ -649,6 +658,78 @@ export const EztvView: React.FC<EztvViewProps> = ({
                     <X className="w-3.5 h-3.5" />
                   </button>
                 )}
+
+                {/* Live Autocomplete Suggestions Dropdown - Cleanly anchored below the input */}
+                {isSuggestionsOpen && suggestions.length > 0 && (
+                  <div
+                    ref={suggestionsRef}
+                    className="absolute top-full left-0 right-0 mt-2 bg-[#0d0d12] border border-white/20 rounded-2xl shadow-2xl shadow-black overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150 eztv-suggestions-menu"
+                  >
+                    <div className="p-2.5 bg-neutral-900/90 border-b border-white/10 text-[11px] font-semibold text-neutral-400 flex items-center justify-between suggestion-header">
+                      <span className="flex items-center gap-1.5">
+                        <Tv className="w-3.5 h-3.5 text-rose-500" />
+                        Matching TV Series
+                      </span>
+                      {isSearchingSuggestions && <span className="text-rose-400 animate-pulse">Searching...</span>}
+                    </div>
+                    <div className="divide-y divide-white/5 max-h-80 overflow-y-auto">
+                      {suggestions.map((show) => (
+                        <button
+                          key={show.imdb_code || show.id}
+                          onClick={() => handleSelectSuggestion(show)}
+                          className="w-full text-left p-3 hover:bg-white/10 flex items-center gap-3 transition-colors cursor-pointer group"
+                        >
+                          <div className="w-10 h-14 bg-neutral-800 rounded-lg overflow-hidden shrink-0 border border-white/10 relative">
+                            <img
+                              src={show.image || `/api/poster?imdb=${show.imdb_code}&title=${encodeURIComponent(show.name)}&type=tv&size=small`}
+                              alt={show.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                              referrerPolicy="no-referrer"
+                              onError={(e) => {
+                                const target = e.currentTarget;
+                                const fallback = `/api/poster?imdb=${show.imdb_code}&title=${encodeURIComponent(show.name)}&type=tv&size=small`;
+                                if (target.src !== fallback) {
+                                  target.src = fallback;
+                                }
+                              }}
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <h4 className="text-sm font-bold text-white truncate group-hover:text-rose-400 transition-colors">
+                                {show.name}
+                              </h4>
+                              {show.year && (
+                                <span className="text-xs text-neutral-400 font-mono">({show.year})</span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 mt-1 text-[11px] text-neutral-400">
+                              {show.rating && (
+                                <span className="flex items-center gap-0.5 text-amber-400 font-semibold">
+                                  <Star className="w-3 h-3 fill-amber-400" />
+                                  {show.rating}
+                                </span>
+                              )}
+                              {show.network && (
+                                <span className="px-1.5 py-0.5 rounded bg-white/10 text-neutral-300 font-medium">
+                                  {show.network}
+                                </span>
+                              )}
+                              {show.genres && show.genres.length > 0 && (
+                                <span className="truncate hidden sm:inline text-neutral-500">
+                                  {show.genres.slice(0, 2).join(', ')}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-xs text-neutral-400 font-mono px-2 py-1 bg-white/5 rounded border border-white/10">
+                            {show.imdb_code}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
               <button
                 type="submit"
@@ -667,78 +748,6 @@ export const EztvView: React.FC<EztvViewProps> = ({
                 </button>
               )}
             </form>
-
-            {/* Live Autocomplete Suggestions Dropdown */}
-            {isSuggestionsOpen && suggestions.length > 0 && (
-              <div
-                ref={suggestionsRef}
-                className="absolute top-full left-0 right-0 sm:right-32 mt-2 bg-[#0d0d12] border border-white/20 rounded-2xl shadow-2xl shadow-black overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150 eztv-suggestions-menu"
-              >
-                <div className="p-2.5 bg-neutral-900/90 border-b border-white/10 text-[11px] font-semibold text-neutral-400 flex items-center justify-between suggestion-header">
-                  <span className="flex items-center gap-1.5">
-                    <Tv className="w-3.5 h-3.5 text-rose-500" />
-                    Matching TV Series
-                  </span>
-                  {isSearchingSuggestions && <span className="text-rose-400 animate-pulse">Searching...</span>}
-                </div>
-                <div className="divide-y divide-white/5 max-h-80 overflow-y-auto">
-                  {suggestions.map((show) => (
-                    <button
-                      key={show.imdb_code || show.id}
-                      onClick={() => handleSelectSuggestion(show)}
-                      className="w-full text-left p-3 hover:bg-white/10 flex items-center gap-3 transition-colors cursor-pointer group"
-                    >
-                      <div className="w-10 h-14 bg-neutral-800 rounded-lg overflow-hidden shrink-0 border border-white/10 relative">
-                        <img
-                          src={show.image || `/api/poster?imdb=${show.imdb_code}&title=${encodeURIComponent(show.name)}&type=tv&size=small`}
-                          alt={show.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                          referrerPolicy="no-referrer"
-                          onError={(e) => {
-                            const target = e.currentTarget;
-                            const fallback = `/api/poster?imdb=${show.imdb_code}&title=${encodeURIComponent(show.name)}&type=tv&size=small`;
-                            if (target.src !== fallback) {
-                              target.src = fallback;
-                            }
-                          }}
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-bold text-white truncate group-hover:text-rose-400 transition-colors">
-                            {show.name}
-                          </h4>
-                          {show.year && (
-                            <span className="text-xs text-neutral-400 font-mono">({show.year})</span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 mt-1 text-[11px] text-neutral-400">
-                          {show.rating && (
-                            <span className="flex items-center gap-0.5 text-amber-400 font-semibold">
-                              <Star className="w-3 h-3 fill-amber-400" />
-                              {show.rating}
-                            </span>
-                          )}
-                          {show.network && (
-                            <span className="px-1.5 py-0.5 rounded bg-white/10 text-neutral-300 font-medium">
-                              {show.network}
-                            </span>
-                          )}
-                          {show.genres && show.genres.length > 0 && (
-                            <span className="truncate hidden sm:inline text-neutral-500">
-                              {show.genres.slice(0, 2).join(', ')}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="text-xs text-neutral-400 font-mono px-2 py-1 bg-white/5 rounded border border-white/10">
-                        {show.imdb_code}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Popular Suggestions */}
@@ -764,8 +773,11 @@ export const EztvView: React.FC<EztvViewProps> = ({
           </div>
         </div>
 
-        <div className="absolute right-0 bottom-0 translate-x-12 translate-y-12 opacity-5 pointer-events-none">
-          <Tv className="w-96 h-96 text-white" />
+        {/* Decorative background TV icon safely contained inside clipped wrapper */}
+        <div className="absolute inset-0 overflow-hidden rounded-3xl pointer-events-none">
+          <div className="absolute right-0 bottom-0 translate-x-12 translate-y-12 opacity-5 pointer-events-none">
+            <Tv className="w-96 h-96 text-white" />
+          </div>
         </div>
       </div>
 
