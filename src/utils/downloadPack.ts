@@ -273,15 +273,37 @@ export function generateBrandedHtmlCompanion(movie: Movie, torrent?: Torrent): s
       gap: 16px;
     }
     .brand-logo-svg {
-      width: 52px;
-      height: 52px;
+      width: 54px;
+      height: 54px;
+      min-width: 54px;
+      min-height: 54px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
       filter: drop-shadow(0 4px 12px rgba(229, 9, 20, 0.5));
     }
+    .brand-logo-svg svg {
+      width: 100% !important;
+      height: 100% !important;
+      max-width: 54px !important;
+      max-height: 54px !important;
+      display: block;
+    }
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 0;
+    }
     .brand-title {
-      font-size: 24px;
+      font-size: 26px;
       font-weight: 900;
       color: #ffffff;
       letter-spacing: -0.5px;
+      line-height: 1.1;
+      margin-bottom: 2px;
     }
     .brand-title span {
       color: #e50914;
@@ -290,7 +312,8 @@ export function generateBrandedHtmlCompanion(movie: Movie, torrent?: Torrent): s
       font-size: 12px;
       color: #fda4af;
       font-weight: 500;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.4px;
+      line-height: 1.2;
     }
     .badge {
       display: inline-flex;
@@ -526,9 +549,9 @@ export function generateBrandedHtmlCompanion(movie: Movie, torrent?: Torrent): s
     <header class="header">
       <div class="brand">
         <div class="brand-logo-svg">
-          ${CINEVAULT_SVG_LOGO}
+          ${CINEVAULT_SVG_LOGO.replace(/width="120"\s+height="120"/i, 'width="54" height="54"')}
         </div>
-        <div>
+        <div class="brand-text">
           <div class="brand-title">Cine<span>Vault</span></div>
           <div class="brand-sub">By Sasuu — Cinema Vault & Discovery</div>
         </div>
