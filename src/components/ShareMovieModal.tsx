@@ -593,7 +593,27 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
         blob = await generate9x16StoryBlob();
       }
 
-      const captionText = `🎬 ${title} (${year || 'Film'})${rating ? ` [★ ${rating}/10 IMDb]` : ''}\n\n"${shortSynopsis}"\n\nStream HD & Download on CineVault By Sasuu:\n${shareUrl}\n\n#CineVault #CineVaultBySasuu #Stories`;
+      const metaLine = rating
+        ? `★ ${rating}/10 IMDb${genres.length > 0 ? ` | ${genres.slice(0, 3).join(', ')}` : ''}`
+        : (genres.length > 0 ? genres.slice(0, 3).join(', ') : '');
+
+      const headerBlock = [
+        `🎬 ${title} (${year || 'Film'})`,
+        metaLine,
+        `"${shortSynopsis}"`
+      ].filter(Boolean).join('\n');
+
+      const linkBlock = [
+        `🍿 Explore movies and TV series:`,
+        shareUrl
+      ].join('\n');
+
+      const captionText = [
+        headerBlock,
+        linkBlock,
+        `— CineVault By Sasuu`,
+        `#CineVault #CineVaultBySasuu #FacebookStories #TVShows #Movies`
+      ].join('\n\n');
 
       if (blob && typeof navigator !== 'undefined' && navigator.canShare) {
         const file = new File([blob], `${fileSlug}-story-9x16.png`, { type: 'image/png' });
@@ -669,18 +689,27 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
    * Action 4: Copy Formatted Story Caption
    */
   const handleCopyStoryCaption = () => {
-    const caption = [
+    const metaLine = rating
+      ? `★ ${rating}/10 IMDb${genres.length > 0 ? ` | ${genres.slice(0, 3).join(', ')}` : ''}`
+      : (genres.length > 0 ? genres.slice(0, 3).join(', ') : '');
+
+    const headerBlock = [
       `🎬 ${title} (${year || 'Film'})`,
-      rating ? `★ ${rating}/10 IMDb${genres.length > 0 ? ` | ${genres.slice(0, 3).join(', ')}` : ''}` : '',
-      '',
-      `"${shortSynopsis}"`,
-      '',
-      `👉 Stream in 4K UHD & High-Speed Downloads:`,
-      `${shareUrl}`,
-      '',
-      `— CineVault By Sasuu`,
-      `#CineVault #CineVaultBySasuu #FacebookStories #InstagramStories #Movies`
+      metaLine,
+      `"${shortSynopsis}"`
     ].filter(Boolean).join('\n');
+
+    const linkBlock = [
+      `🍿 Explore movies and TV series:`,
+      shareUrl
+    ].join('\n');
+
+    const caption = [
+      headerBlock,
+      linkBlock,
+      `— CineVault By Sasuu`,
+      `#CineVault #CineVaultBySasuu #FacebookStories #TVShows #Movies`
+    ].join('\n\n');
 
     navigator.clipboard.writeText(caption);
     setCopiedType('storyCaption');
