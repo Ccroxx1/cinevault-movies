@@ -224,12 +224,16 @@ export function generateBrandedHtmlCompanion(movie: Movie, torrent?: Torrent): s
   const quality = torrent?.quality || '1080p';
   const source = torrent?.type || 'BluRay / WEB-DL';
   const size = torrent?.size || 'Full HD';
+  const cleanTitle = sanitizeFileName(movie.title);
+  const year = movie.year || 'HD';
+  const localPosterFileName = `${cleanTitle}-${year}.jpg`;
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="no-referrer">
   <title>${escapeHtml(movie.title)} (${movie.year || 'HD'}) — Downloaded from CineVault By Sasuu</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -538,7 +542,7 @@ export function generateBrandedHtmlCompanion(movie: Movie, torrent?: Torrent): s
     <main class="content">
       <div class="movie-hero">
         <div class="poster-wrap">
-          <img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(movie.title)} Official Poster" onerror="this.src='https://yts.gg/assets/images/movies/cover.jpg'">
+          <img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(movie.title)} Official Poster" referrerpolicy="no-referrer" loading="eager" onerror="if(!this.dataset.triedLocal){this.dataset.triedLocal='1';this.src='${escapeHtml(localPosterFileName)}';}else if(!this.dataset.triedApi){this.dataset.triedApi='1';this.src='${SITE_URL}/api/poster?imdb=${encodeURIComponent(movie.imdb_code || '')}&title=${encodeURIComponent(movie.title)}';}else{this.src='https://yts.gg/assets/images/movies/cover.jpg';}">
         </div>
         <div>
           <h1 class="movie-title">${escapeHtml(movie.title)} (${movie.year || 'HD'})</h1>
@@ -667,29 +671,40 @@ export function downloadBrandedCompanionFile(movie: Movie, torrent?: Torrent): b
 async function fetchImageBytes(imageUrl: string): Promise<{ data: ArrayBuffer; ext: string } | null> {
   if (!imageUrl) return null;
 
-  // 1. Try direct fetch
-  try {
-    const res = await fetch(imageUrl, { mode: 'cors' });
-    if (res.ok) {
-      const buffer = await res.arrayBuffer();
-      const ext = imageUrl.includes('.png') ? 'png' : 'jpg';
-      return { data: buffer, ext };
+  // 1. Try backend image proxy first (bypasses browser CDN CORS restrictions)
+  const proxyEndpoints = [
+    `/api/image-proxy?url=${encodeURIComponent(imageUrl)}`,
+    `/api/download/proxy-image?url=${encodeURIComponent(imageUrl)}`
+  ];
+
+  for (const proxyUrl of proxyEndpoints) {
+    try {
+      const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(6000) });
+      if (res.ok) {
+        const buffer = await res.arrayBuffer();
+        if (buffer && buffer.byteLength > 600) {
+          const contentType = res.headers.get('content-type') || '';
+          const ext = contentType.includes('png') || imageUrl.includes('.png') ? 'png' : 'jpg';
+          return { data: buffer, ext };
+        }
+      }
+    } catch {
+      // try next
     }
-  } catch {
-    // CORS or network failure; continue to proxy
   }
 
-  // 2. Try through backend proxy
+  // 2. Direct fetch attempt
   try {
-    const proxyUrl = `/api/download/proxy-image?url=${encodeURIComponent(imageUrl)}`;
-    const res = await fetch(proxyUrl);
+    const res = await fetch(imageUrl, { mode: 'cors', signal: AbortSignal.timeout(4000) });
     if (res.ok) {
       const buffer = await res.arrayBuffer();
-      const ext = imageUrl.includes('.png') ? 'png' : 'jpg';
-      return { data: buffer, ext };
+      if (buffer && buffer.byteLength > 600) {
+        const ext = imageUrl.includes('.png') ? 'png' : 'jpg';
+        return { data: buffer, ext };
+      }
     }
   } catch {
-    // Proxy not reachable
+    // CORS or network failure; continue
   }
 
   return null;

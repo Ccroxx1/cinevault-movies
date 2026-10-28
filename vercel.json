@@ -48,6 +48,14 @@
       "destination": "/api/index"
     },
     {
+      "source": "/api/image-proxy",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/api/proxy/image",
+      "destination": "/api/index"
+    },
+    {
       "source": "/api/movies/poster",
       "destination": "/api/index"
     },

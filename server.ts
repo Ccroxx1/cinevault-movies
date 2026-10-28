@@ -1278,6 +1278,78 @@ app.get(['/api/poster', '/api/movies/poster', '/api/tv/poster'], async (req, res
   return res.redirect(302, finalPosterUrl);
 });
 
+// Dedicated Proxy for external images & files to guarantee CORS-safe downloads & canvas rendering
+const proxyFileCache = new Map<string, { buffer: Buffer; contentType: string; timestamp: number }>();
+
+app.get(['/api/image-proxy', '/api/proxy/image', '/api/download/proxy-image', '/api/download/proxy-file'], async (req, res) => {
+  const targetUrl = typeof req.query.url === 'string' ? req.query.url.trim() : '';
+  if (!targetUrl || !/^https?:\/\//i.test(targetUrl)) {
+    return res.status(400).json({ status: 'error', message: 'Valid url query parameter is required' });
+  }
+
+  // Check in-memory cache (24 hours)
+  const cached = proxyFileCache.get(targetUrl);
+  if (cached && Date.now() - cached.timestamp < 24 * 60 * 60 * 1000) {
+    res.set({
+      'Content-Type': cached.contentType,
+      'Cache-Control': 'public, max-age=2592000, immutable',
+      'Access-Control-Allow-Origin': '*'
+    });
+    return res.send(cached.buffer);
+  }
+
+  try {
+    const upstreamRes = await fetch(targetUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': '*/*',
+        'Referer': targetUrl.includes('yts') ? 'https://yts.gg/' : (targetUrl.includes('amazon') ? 'https://www.imdb.com/' : 'https://cinevaultmovies.online/')
+      },
+      signal: AbortSignal.timeout(10000)
+    });
+
+    if (upstreamRes.ok) {
+      const arrayBuf = await upstreamRes.arrayBuffer();
+      const buf = Buffer.from(arrayBuf);
+      let contentType = upstreamRes.headers.get('content-type') || '';
+      if (!contentType || contentType.includes('text/plain') || contentType.includes('application/octet-stream')) {
+        if (targetUrl.endsWith('.png')) contentType = 'image/png';
+        else if (targetUrl.endsWith('.webp')) contentType = 'image/webp';
+        else if (targetUrl.endsWith('.torrent')) contentType = 'application/x-bittorrent';
+        else contentType = 'image/jpeg';
+      }
+
+      if (proxyFileCache.size > 500) {
+        const oldestKey = proxyFileCache.keys().next().value;
+        if (oldestKey) proxyFileCache.delete(oldestKey);
+      }
+
+      proxyFileCache.set(targetUrl, { buffer: buf, contentType, timestamp: Date.now() });
+
+      res.set({
+        'Content-Type': contentType,
+        'Cache-Control': 'public, max-age=2592000, immutable',
+        'Access-Control-Allow-Origin': '*'
+      });
+      return res.send(buf);
+    }
+  } catch (err) {
+    console.warn(`[Proxy] Failed to fetch upstream url: ${targetUrl}`, err);
+  }
+
+  // If upstream is an image and failed, return fallback SVG
+  if (req.path.includes('image')) {
+    res.set({
+      'Content-Type': 'image/svg+xml',
+      'Cache-Control': 'no-cache',
+      'Access-Control-Allow-Origin': '*'
+    });
+    return res.send(CINEVAULT_FALLBACK_SVG);
+  }
+
+  return res.status(502).json({ status: 'error', message: 'Failed to retrieve upstream resource' });
+});
+
 // TV show search & autocomplete endpoint
 app.get(['/api/tv/shows', '/api/tv/search'], async (req, res) => {
   const rawQ = typeof req.query.q === 'string' ? req.query.q.trim() : (typeof req.query.query === 'string' ? req.query.query.trim() : '');

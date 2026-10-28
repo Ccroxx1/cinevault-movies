@@ -231,24 +231,82 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
     ctx.fillStyle = bottomGlow;
     ctx.fillRect(0, 1200, 1080, 720);
 
-    // 3. Load Poster Image (with robust fallback if CORS blocks canvas export)
+    // 3. Load Poster Image (with robust fallback and proxy routing to prevent canvas tainting)
     let posterImgLoaded = false;
+    let blobUrlToRevoke: string | null = null;
     const posterImg = new Image();
-    posterImg.crossOrigin = 'anonymous';
 
-    const posterLoadPromise = new Promise<boolean>((resolve) => {
-      posterImg.onload = () => resolve(true);
-      posterImg.onerror = () => resolve(false);
-      posterImg.src = currentPoster;
-    });
+    // Assemble prioritized candidates to resolve the highest quality available cover
+    const candidatesToTry: string[] = [];
+    if (currentPoster && !candidatesToTry.includes(currentPoster)) {
+      candidatesToTry.push(currentPoster);
+    }
+    for (const cand of posterCandidates) {
+      if (cand && !candidatesToTry.includes(cand)) {
+        candidatesToTry.push(cand);
+      }
+    }
+    if (movie?.large_cover_image && !candidatesToTry.includes(movie.large_cover_image)) {
+      candidatesToTry.push(movie.large_cover_image);
+    }
+    if (movie?.medium_cover_image && !candidatesToTry.includes(movie.medium_cover_image)) {
+      candidatesToTry.push(movie.medium_cover_image);
+    }
+    if (movie?.imdb_code) {
+      const apiImdb = `/api/poster?imdb=${encodeURIComponent(movie.imdb_code)}&size=large`;
+      if (!candidatesToTry.includes(apiImdb)) candidatesToTry.push(apiImdb);
+    }
+    if (title) {
+      const apiTitle = `/api/poster?title=${encodeURIComponent(title)}&size=large`;
+      if (!candidatesToTry.includes(apiTitle)) candidatesToTry.push(apiTitle);
+    }
 
-    try {
-      posterImgLoaded = await Promise.race([
-        posterLoadPromise,
-        new Promise<boolean>((res) => setTimeout(() => res(false), 2800))
-      ]);
-    } catch {
-      posterImgLoaded = false;
+    for (const candidate of candidatesToTry) {
+      try {
+        // External images (yts, amazon, etc.) lack Access-Control-Allow-Origin: * on raw CDNs.
+        // Route through /api/image-proxy which fetches server-side and serves with CORS headers.
+        const targetSrc = /^https?:\/\//i.test(candidate)
+          ? `/api/image-proxy?url=${encodeURIComponent(candidate)}`
+          : candidate;
+
+        const res = await fetch(targetSrc, { signal: AbortSignal.timeout(4500) });
+        if (res.ok) {
+          const blob = await res.blob();
+          if (blob && blob.size > 800) {
+            const objectUrl = URL.createObjectURL(blob);
+            const success = await new Promise<boolean>((resolve) => {
+              posterImg.onload = () => resolve(true);
+              posterImg.onerror = () => resolve(false);
+              posterImg.src = objectUrl;
+            });
+
+            if (success) {
+              posterImgLoaded = true;
+              blobUrlToRevoke = objectUrl;
+              break;
+            } else {
+              URL.revokeObjectURL(objectUrl);
+            }
+          }
+        }
+      } catch {
+        // Try next candidate
+      }
+    }
+
+    // Direct Image() attempt if network proxy attempts were skipped or blocked
+    if (!posterImgLoaded && currentPoster) {
+      try {
+        posterImg.crossOrigin = 'anonymous';
+        posterImgLoaded = await new Promise<boolean>((resolve) => {
+          posterImg.onload = () => resolve(true);
+          posterImg.onerror = () => resolve(false);
+          posterImg.src = currentPoster;
+          setTimeout(() => resolve(false), 2000);
+        });
+      } catch {
+        posterImgLoaded = false;
+      }
     }
 
     // 4. Background Backdrop Blur (if image loaded)
@@ -522,9 +580,19 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
 
     // Convert Canvas to Blob (with try-catch if cross-origin tainted)
     return new Promise<Blob | null>((resolve) => {
+      const cleanup = () => {
+        if (blobUrlToRevoke) {
+          try {
+            URL.revokeObjectURL(blobUrlToRevoke);
+          } catch {}
+          blobUrlToRevoke = null;
+        }
+      };
+
       try {
         canvas.toBlob(
           (blob) => {
+            cleanup();
             if (blob) {
               setStoryGeneratedBlob(blob);
               resolve(blob);
@@ -536,6 +604,7 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
           0.95
         );
       } catch (err) {
+        cleanup();
         console.error('Failed to export canvas toBlob (tainted by cross-origin):', err);
         resolve(null);
       }
