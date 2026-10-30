@@ -1,0 +1,27 @@
+# CineVault By Sasuu
+
+> CineVault is a high-definition movie and television series catalog and discovery platform providing verified BitTorrent metadata, magnet links, trailers, IMDb ratings, subtitles, and detailed film specifications in 720p, 1080p, and 4K Ultra HD.
+
+## Core Services & Capabilities
+
+- **Curated Movie Catalog**: Search and browse thousands of feature films with IMDb ratings, genres, release years, directors, cast members, and high-resolution artwork.
+- **TV Series & Episode Index**: Integrated television torrent index powered by the EZTV API and TVmaze for multi-season releases and verified episode downloads.
+- **BitTorrent & Magnet Direct Delivery**: Direct magnet URI launchers (`magnet:?xt=urn:btih:...`) compatible with BitTorrent clients such as qBittorrent, Transmission, and Deluge.
+- **Offline Download Packages**: One-click download bundles (.zip) with torrent metadata, high-resolution movie artwork, desktop internet shortcuts, and branded HTML companion documentation.
+- **Synchronized Subtitles**: Integrated multi-language SRT/VTT subtitle downloads.
+- **CineBot AI Concierge**: Built-in cinematic discovery assistant for contextual film and show recommendations.
+
+## Canonical URLs & Structure
+
+- Official Website: https://www.cinevaultmovies.online
+- Movie Detail Route: `https://www.cinevaultmovies.online/movies/{movie-slug}` (e.g., `/movies/inception-2010`)
+- TV Series Route: `https://www.cinevaultmovies.online/series/{imdb-id}-{series-slug}` (e.g., `/series/tt0903747-breaking-bad`)
+- Sitemaps: https://www.cinevaultmovies.online/sitemap.xml
+- Full LLM Specification: https://www.cinevaultmovies.online/llms-full.txt
+- Privacy Policy: https://www.cinevaultmovies.online/privacy-policy
+
+## Key Sections & Endpoints
+
+- [Browse Movies](https://www.cinevaultmovies.online/): Explore trending, top-rated, 4K UHD, and newly released films.
+- [TV Series Index](https://www.cinevaultmovies.online/?view=tv): Search full television seasons and individual episode torrents.
+- [Contact & Curator](mailto:prospersasuu808@gmail.com): Curator Sasuu (prospersasuu808@gmail.com).

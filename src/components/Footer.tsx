@@ -37,47 +37,98 @@ export const Footer: React.FC<FooterProps> = ({
             </a>
           </div>
 
-          {/* Compliance & Policy Links */}
-          <nav aria-label="Legal and Help Links" className="flex flex-wrap items-center justify-center md:justify-end gap-3 sm:gap-4 text-xs">
-            <button
+          {/* Compliance & Policy Links (Crawlable Anchor Links for Search Engines) */}
+          <nav aria-label="Legal and Navigation Links" className="flex flex-wrap items-center justify-center md:justify-end gap-3 sm:gap-4 text-xs">
+            <a
               id="footer-link-privacy"
-              onClick={() => onOpenPolicy && onOpenPolicy('privacy')}
+              href="/privacy-policy"
+              onClick={(e) => {
+                if (!e.ctrlKey && !e.metaKey && !e.shiftKey && e.button === 0) {
+                  e.preventDefault();
+                  onOpenPolicy && onOpenPolicy('privacy');
+                }
+              }}
               className="hover:text-rose-400 transition-colors cursor-pointer"
             >
               Privacy Policy
-            </button>
+            </a>
             <span className="text-neutral-700" aria-hidden="true">•</span>
-            <button
+            <a
               id="footer-link-terms"
-              onClick={() => onOpenPolicy && onOpenPolicy('terms')}
+              href="/privacy?tab=terms"
+              onClick={(e) => {
+                if (!e.ctrlKey && !e.metaKey && !e.shiftKey && e.button === 0) {
+                  e.preventDefault();
+                  onOpenPolicy && onOpenPolicy('terms');
+                }
+              }}
               className="hover:text-rose-400 transition-colors cursor-pointer"
             >
               Terms of Service
-            </button>
+            </a>
             <span className="text-neutral-700" aria-hidden="true">•</span>
-            <button
+            <a
               id="footer-link-dmca"
-              onClick={() => onOpenPolicy && onOpenPolicy('dmca')}
+              href="/privacy?tab=dmca"
+              onClick={(e) => {
+                if (!e.ctrlKey && !e.metaKey && !e.shiftKey && e.button === 0) {
+                  e.preventDefault();
+                  onOpenPolicy && onOpenPolicy('dmca');
+                }
+              }}
               className="hover:text-rose-400 transition-colors cursor-pointer"
             >
               DMCA
-            </button>
+            </a>
             <span className="text-neutral-700" aria-hidden="true">•</span>
-            <button
+            <a
               id="footer-link-about"
-              onClick={() => onOpenPolicy && onOpenPolicy('about')}
+              href="/privacy?tab=about"
+              onClick={(e) => {
+                if (!e.ctrlKey && !e.metaKey && !e.shiftKey && e.button === 0) {
+                  e.preventDefault();
+                  onOpenPolicy && onOpenPolicy('about');
+                }
+              }}
               className="hover:text-rose-400 transition-colors cursor-pointer"
             >
               About Us
-            </button>
+            </a>
             <span className="text-neutral-700" aria-hidden="true">•</span>
-            <button
+            <a
               id="footer-link-contact"
-              onClick={() => onOpenPolicy && onOpenPolicy('contact')}
+              href="/privacy?tab=contact"
+              onClick={(e) => {
+                if (!e.ctrlKey && !e.metaKey && !e.shiftKey && e.button === 0) {
+                  e.preventDefault();
+                  onOpenPolicy && onOpenPolicy('contact');
+                }
+              }}
               className="hover:text-rose-400 transition-colors cursor-pointer"
             >
               Contact
-            </button>
+            </a>
+            <span className="text-neutral-700" aria-hidden="true">•</span>
+            <a
+              id="footer-link-sitemap"
+              href="/sitemap.xml"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-rose-400 transition-colors"
+            >
+              Sitemap
+            </a>
+            <span className="text-neutral-700" aria-hidden="true">•</span>
+            <a
+              id="footer-link-llms"
+              href="/llms.txt"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-rose-400 transition-colors"
+              title="Machine-readable specification for AI crawlers"
+            >
+              llms.txt
+            </a>
             <span className="text-neutral-700" aria-hidden="true">•</span>
             <button
               id="footer-link-guides"

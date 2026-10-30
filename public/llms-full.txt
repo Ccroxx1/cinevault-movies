@@ -1,0 +1,100 @@
+# CineVault By Sasuu — Comprehensive LLM Specification & Catalog Architecture
+
+Welcome to CineVault's comprehensive machine-readable site index. This document provides language models, AI search engines, and web scrapers with deep architectural, taxonomical, and operational context for CineVault (https://www.cinevaultmovies.online).
+
+---
+
+## 1. System Overview
+
+- **Platform Name**: CineVault By Sasuu
+- **Primary Domain**: https://www.cinevaultmovies.online
+- **Purpose**: High-definition cinema and television discovery vault offering verified metadata, BitTorrent/magnet access, trailers, and subtitles.
+- **Curator**: Sasuu (prospersasuu808@gmail.com)
+- **Supported Video Qualities**: 720p (HD), 1080p (Full HD), 2160p (4K Ultra HD), 3D
+- **Supported Audio & Video Codecs**: x264, x265 (HEVC), AAC 2.0, AC3 5.1, DTS 7.1
+
+---
+
+## 2. URL Schema & Routing Rules
+
+| Resource Type | Canonical URL Pattern | Example |
+|---|---|---|
+| Homepage / Catalog | `https://www.cinevaultmovies.online/` | `https://www.cinevaultmovies.online/` |
+| Movie Detail | `https://www.cinevaultmovies.online/movies/{slug}` | `https://www.cinevaultmovies.online/movies/oppenheimer-2023` |
+| TV Series Releases | `https://www.cinevaultmovies.online/series/{imdb_id}-{slug}` | `https://www.cinevaultmovies.online/series/tt11126994-arcane-league-of-legends` |
+| TV Series Search View | `https://www.cinevaultmovies.online/?view=tv` | `https://www.cinevaultmovies.online/?view=tv` |
+| Dynamic Sitemap | `https://www.cinevaultmovies.online/sitemap.xml` | `https://www.cinevaultmovies.online/sitemap.xml` |
+| Privacy Policy | `https://www.cinevaultmovies.online/privacy-policy` | `https://www.cinevaultmovies.online/privacy-policy` |
+
+---
+
+## 3. Supported Film Taxonomy & Genres
+
+CineVault indexes feature films across the following primary genres:
+- Action
+- Adventure
+- Animation
+- Biography
+- Comedy
+- Crime
+- Documentary
+- Drama
+- Family
+- Fantasy
+- Film-Noir
+- History
+- Horror
+- Music / Musical
+- Mystery
+- Romance
+- Sci-Fi
+- Sport
+- Thriller
+- War
+- Western
+
+---
+
+## 4. API Endpoints for Search & Metadata
+
+### 4.1 Movie Catalog Queries
+- `GET /api/movies?query_term={term}&quality={quality}&genre={genre}&sort_by={sort}&page={page}&limit={limit}`
+  - Returns sanitized movie records including title, year, IMDb code, ratings, runtime, synopsis, and torrent hashes.
+
+### 4.2 TV Series Queries
+- `GET /api/tv/shows?q={query}`
+  - Resolves television shows with IMDb identifiers and network data via TVmaze and Wikidata.
+- `GET /api/tv/torrents?imdb_id={id}&page={page}&limit={limit}`
+  - Retrieves verified television season and episode releases.
+
+### 4.3 High-Resolution Artwork & Media Proxies
+- `GET /api/poster?imdb={imdb_id}&title={title}&size={small|medium|large}`
+  - Streams CORS-safe, high-resolution official posters.
+- `GET /api/image-proxy?url={target_url}`
+  - Server-side caching image proxy ensuring same-origin delivery without canvas tainting.
+
+---
+
+## 5. Structured Data & Machine Metadata
+
+CineVault publishes Schema.org JSON-LD structured data on all canonical routes:
+- **Homepage**: `https://schema.org/WebSite` with `potentialAction: SearchAction`.
+- **Movie Pages**: `https://schema.org/Movie` with `name`, `image`, `dateCreated`, `genre`, `aggregateRating`, `director`, `actor`, and `description`.
+- **TV Series Pages**: `https://schema.org/TVSeries` with episode and season references.
+- **Breadcrumbs**: `https://schema.org/BreadcrumbList` representing site hierarchy.
+
+---
+
+## 6. Social Share & OpenGraph Standards
+
+- **Static Social Banner**: `https://www.cinevaultmovies.online/og-image.jpg` (1200x630 branded card)
+- **Dynamic Social Cards**: Dynamic movie cover artwork delivered via `<meta property="og:image">` and `<meta name="twitter:image">`.
+- **Vertical 9:16 Social Stories**: In-app generated 1080x1920 PNG story graphics for mobile sharing to Instagram, Facebook Stories, WhatsApp, and Discord.
+
+---
+
+## 7. Compliance & Contact
+
+- **DMCA & Privacy Inquiries**: prospersasuu808@gmail.com
+- **Website**: https://www.cinevaultmovies.online
+- **Robots Policy**: Follows standard directives at `/robots.txt`.

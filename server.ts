@@ -2116,6 +2116,57 @@ app.post('/api/visitors/record', async (req, res) => {
   });
 });
 
+// SEO & Crawler Directives
+app.get('/robots.txt', (req, res) => {
+  const robotsPath = path.resolve(process.cwd(), 'public/robots.txt');
+  if (fs.existsSync(robotsPath)) {
+    res.set({
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'public, max-age=86400, immutable',
+    });
+    return res.sendFile(robotsPath);
+  }
+  res.status(404).end();
+});
+
+app.get(['/llms.txt', '/llms-full.txt'], (req, res) => {
+  const fileName = req.path.includes('llms-full') ? 'llms-full.txt' : 'llms.txt';
+  const filePath = path.resolve(process.cwd(), `public/${fileName}`);
+  if (fs.existsSync(filePath)) {
+    res.set({
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'public, max-age=86400, immutable',
+    });
+    return res.sendFile(filePath);
+  }
+  res.status(404).end();
+});
+
+app.get('/sitemap.xml', (req, res) => {
+  const sitemapPath = path.resolve(process.cwd(), 'public/sitemap.xml');
+  if (fs.existsSync(sitemapPath)) {
+    res.set({
+      'Content-Type': 'application/xml; charset=utf-8',
+      'Cache-Control': 'public, max-age=43200, must-revalidate',
+    });
+    return res.sendFile(sitemapPath);
+  }
+  res.status(404).end();
+});
+
+app.get('/og-image.jpg', (req, res) => {
+  const ogPath = path.resolve(process.cwd(), 'public/og-image.jpg');
+  if (fs.existsSync(ogPath)) {
+    res.set({
+      'Content-Type': 'image/jpeg',
+      'Cache-Control': 'public, max-age=2592000, immutable',
+      'Access-Control-Allow-Origin': '*'
+    });
+    return res.sendFile(ogPath);
+  }
+  res.status(404).end();
+});
+
 app.get('/ads.txt', (req, res) => {
   res.redirect(301, 'https://srv.adstxtmanager.com/85131/cinevaultmovies.online');
 });

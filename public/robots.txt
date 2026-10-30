@@ -1,6 +1,9 @@
 User-agent: *
 Allow: /
+Disallow: /api/download/
+Disallow: /api/admin/
 
+# Search Engine Crawlers
 User-agent: Googlebot
 Allow: /
 
@@ -8,6 +11,9 @@ User-agent: Googlebot-Image
 Allow: /
 
 User-agent: Bingbot
+Allow: /
+
+User-agent: Applebot
 Allow: /
 
 User-agent: Slurp
@@ -22,5 +28,19 @@ Allow: /
 User-agent: YandexBot
 Allow: /
 
-Sitemap: https://www.cinevaultmovies.online/sitemap.xml
+# AI Crawlers & LLM Agents
+User-agent: GPTBot
+Allow: /
 
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+# Sitemaps & AI Disclosures
+Sitemap: https://www.cinevaultmovies.online/sitemap.xml
+# LLM Site Specification: https://www.cinevaultmovies.online/llms.txt

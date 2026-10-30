@@ -89,7 +89,7 @@ export function updateDocumentSeo(options: SeoMetaOptions): void {
   const title = options.title || DEFAULT_TITLE;
   const description = (options.description || DEFAULT_DESCRIPTION).slice(0, 160);
   const canonicalUrl = options.canonicalUrl || SITE_BASE_URL;
-  const ogImage = options.ogImage || `${SITE_BASE_URL}/favicon-192.png`;
+  const ogImage = options.ogImage || `${SITE_BASE_URL}/og-image.jpg`;
   const ogType = options.ogType || 'website';
 
   // 1. Update Title

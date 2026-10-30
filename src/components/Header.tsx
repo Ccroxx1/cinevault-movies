@@ -389,7 +389,7 @@ export const Header: React.FC<HeaderProps> = ({
                               {tvShow.image ? (
                                 <img
                                   src={tvShow.image}
-                                  alt=""
+                                  alt={`${tvShow.name} Poster`}
                                   className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                                   referrerPolicy="no-referrer"
                                 />
@@ -443,7 +443,7 @@ export const Header: React.FC<HeaderProps> = ({
                           >
                             <img
                               src={getPrimaryMoviePoster(movie)}
-                              alt=""
+                              alt={`${movie.title} (${movie.year || 'Film'}) Poster`}
                               loading="lazy"
                               width="40"
                               height="56"

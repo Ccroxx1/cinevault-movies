@@ -22,7 +22,7 @@
       ]
     },
     {
-      "source": "/(robots.txt|sitemap.xml|ads.txt|google.*.html|BingSiteAuth.xml|.*.txt)",
+      "source": "/(robots.txt|sitemap.xml|ads.txt|google.*.html|BingSiteAuth.xml|og-image.jpg|.*.txt)",
       "headers": [
         {
           "key": "Cache-Control",
