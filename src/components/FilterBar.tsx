@@ -13,7 +13,7 @@ import {
   getSortOptionKey,
   getSortOptionByKey
 } from '../services/movieApi';
-import { SlidersHorizontal, RotateCcw, Search, Clock, Film, Sparkles, Volume2, CalendarRange } from 'lucide-react';
+import { SlidersHorizontal, RotateCcw, Search, Clock, Film, Sparkles, Volume2, CalendarRange, X, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface FilterBarProps {
   filters: FilterParams;
@@ -22,6 +22,19 @@ interface FilterBarProps {
   isLoading: boolean;
   onReset: () => void;
 }
+
+const POPULAR_QUICK_FILTERS = [
+  { label: 'All Movies', type: 'reset' },
+  { label: '4K Ultra HD', type: 'quality', value: '2160p' },
+  { label: '1080p BluRay', type: 'quality', value: '1080p' },
+  { label: '★ 8.0+ Masterpieces', type: 'rating', value: 8 },
+  { label: 'Action & Heroes', type: 'genre', value: 'Action' },
+  { label: 'Sci-Fi & Cyber', type: 'genre', value: 'Sci-Fi' },
+  { label: 'Top Dramas', type: 'genre', value: 'Drama' },
+  { label: 'Comedy', type: 'genre', value: 'Comedy' },
+  { label: 'Animation', type: 'genre', value: 'Animation' },
+  { label: 'Thrillers', type: 'genre', value: 'Thriller' }
+];
 
 export const FilterBar: React.FC<FilterBarProps> = ({
   filters,
@@ -65,44 +78,54 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     filters.runtime_bracket && filters.runtime_bracket !== 'all',
     filters.codec && filters.codec !== 'all',
     filters.language && filters.language !== 'All',
-    filters.sort_by !== 'date_added' || filters.order_by === 'asc',
+    filters.sort_by !== 'date_added' || filters.order_by === 'desc',
   ].filter(Boolean).length;
 
   return (
-    <div id="movie-search-filters" className="w-full space-y-4 mb-8">
-      <div className="bg-[#101010] border border-white/10 rounded-2xl p-4 sm:p-6 shadow-2xl backdrop-blur-xl">
+    <div id="movie-search-filters" className="w-full space-y-3 mb-8">
+      <div className="bg-[#101010] border border-white/10 rounded-2xl p-4 sm:p-5 shadow-2xl backdrop-blur-xl transition-all">
+        {/* Search Header Row */}
         <div className="flex items-center justify-between gap-2 mb-3">
-          <label htmlFor="main-search-input" className="text-base sm:text-lg font-bold text-neutral-300">
-            Search Term on <span className="text-white font-extrabold">CineVault</span>
+          <label htmlFor="main-search-input" className="text-sm sm:text-base font-bold text-neutral-300">
+            Search & Filter <span className="text-white font-extrabold">CineVault Catalog</span>
           </label>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-semibold transition cursor-pointer ${
-                showAdvanced || (filters.runtime_bracket && filters.runtime_bracket !== 'all') || (filters.codec && filters.codec !== 'all')
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition cursor-pointer ${
+                showAdvanced || activeFilterCount > 0
                   ? 'bg-rose-600/20 text-rose-300 border-rose-500/40'
-                  : 'bg-white/5 text-neutral-400 hover:text-white border-white/10'
+                  : 'bg-white/5 text-neutral-400 hover:text-white border-white/10 hover:bg-white/10'
               }`}
+              aria-expanded={showAdvanced}
+              aria-controls="advanced-filters-drawer"
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
-              <span>{showAdvanced ? 'Hide Advanced' : 'Advanced Filters'}</span>
+              <span>{showAdvanced ? 'Hide Filters' : 'Filters & Sorting'}</span>
+              {activeFilterCount > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full bg-rose-600 text-white font-bold text-[10px]">
+                  {activeFilterCount}
+                </span>
+              )}
+              {showAdvanced ? <ChevronUp className="w-3 h-3 text-neutral-400" /> : <ChevronDown className="w-3 h-3 text-neutral-400" />}
             </button>
 
             {activeFilterCount > 0 && (
               <button
                 onClick={onReset}
-                className="flex items-center gap-1 text-xs font-semibold text-rose-400 hover:text-rose-300 bg-rose-500/10 px-3 py-1.5 rounded-lg border border-rose-500/20 transition cursor-pointer"
+                className="flex items-center gap-1 text-xs font-semibold text-rose-400 hover:text-rose-300 bg-rose-500/10 px-2.5 py-1.5 rounded-lg border border-rose-500/20 transition cursor-pointer"
+                title="Reset all filters to default"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                <span>Reset ({activeFilterCount})</span>
+                <span>Reset</span>
               </button>
             )}
           </div>
         </div>
 
         {/* Search Input Bar */}
-        <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 mb-5" role="search">
+        <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-2.5 mb-3.5" role="search">
           <div className="relative flex-1">
             <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
             <input
@@ -111,74 +134,211 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search movie title, IMDb code, actor, director..."
-              className="w-full h-12 bg-[#1c1c1c] border border-neutral-700/60 focus:border-rose-500 rounded-xl pl-11 pr-4 text-sm sm:text-base text-neutral-100 transition-all outline-none"
+              className="w-full h-11 bg-[#1a1a1a] border border-neutral-700/60 focus:border-rose-500 rounded-xl pl-11 pr-4 text-xs sm:text-sm text-neutral-100 transition-all outline-none"
             />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchTerm('');
+                  onFilterChange({ query_term: '', page: 1 });
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white p-1 rounded-full hover:bg-neutral-800"
+                aria-label="Clear search term"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
           <button
             type="submit"
-            className="h-12 px-8 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl shadow-lg shadow-rose-950/40 transition cursor-pointer"
+            className="h-11 px-7 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-rose-950/40 transition cursor-pointer shrink-0"
           >
             Search
           </button>
         </form>
 
-        {/* Primary Filter Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          {[
-            { label: 'Quality', value: filters.quality, key: 'quality', options: QUALITIES },
-            {
-              label: 'Genre',
-              value: filters.genre,
-              key: 'genre',
-              options: GENRES.map((g) => ({ label: g, value: g })),
-            },
-            { label: 'Rating', value: filters.minimum_rating, key: 'minimum_rating', options: RATING_OPTIONS },
-            { label: 'Year', value: filters.year || 'All', key: 'year', options: YEAR_OPTIONS },
-            { label: 'Language', value: filters.language || 'All', key: 'language', options: LANGUAGE_OPTIONS },
-          ].map((field) => (
-            <div key={field.key} className="space-y-1.5">
-              <label className="block text-xs font-semibold text-neutral-400">{field.label}:</label>
-              <select
-                value={field.value}
-                onChange={(e) =>
-                  onFilterChange({
-                    [field.key]: field.key === 'minimum_rating' ? Number(e.target.value) : e.target.value,
-                    page: 1,
-                  })
-                }
-                className="w-full bg-[#1c1c1c] border border-neutral-700/60 rounded-lg px-3 py-2 text-xs text-neutral-200 focus:border-rose-500 cursor-pointer"
-              >
-                {field.options.map((opt: any) => (
-                  <option
-                    key={typeof opt === 'string' ? opt : opt.value}
-                    value={typeof opt === 'string' ? opt : opt.value}
-                  >
-                    {typeof opt === 'string' ? opt : opt.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ))}
+        {/* High-Frequency Quick Filter Chips */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
+          {POPULAR_QUICK_FILTERS.map((item) => {
+            let isSelected = false;
+            if (item.type === 'reset') {
+              isSelected = activeFilterCount === 0;
+            } else if (item.type === 'quality') {
+              isSelected = filters.quality === item.value;
+            } else if (item.type === 'rating') {
+              isSelected = filters.minimum_rating === item.value;
+            } else if (item.type === 'genre') {
+              isSelected = filters.genre === item.value;
+            }
 
-          <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-neutral-400">Order By:</label>
-            <select
-              value={currentSortKey}
-              onChange={handleSortChange}
-              className="w-full bg-[#1c1c1c] border border-neutral-700/60 rounded-lg px-3 py-2 text-xs text-neutral-200 focus:border-rose-500 cursor-pointer"
-            >
-              {MOVIE_SORT_OPTIONS.map((s) => (
-                <option key={s.key} value={s.key}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
-          </div>
+            return (
+              <button
+                key={item.label}
+                type="button"
+                onClick={() => {
+                  if (item.type === 'reset') {
+                    onReset();
+                  } else if (item.type === 'quality') {
+                    onFilterChange({ quality: filters.quality === item.value ? 'All' : (item.value as string), page: 1 });
+                  } else if (item.type === 'rating') {
+                    onFilterChange({ minimum_rating: filters.minimum_rating === item.value ? 0 : (item.value as number), page: 1 });
+                  } else if (item.type === 'genre') {
+                    onFilterChange({ genre: filters.genre === item.value ? 'All' : (item.value as string), page: 1 });
+                  }
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer shrink-0 border ${
+                  isSelected
+                    ? 'bg-rose-600 text-white border-rose-500 shadow-md shadow-rose-950/40'
+                    : 'bg-white/[0.04] text-neutral-300 hover:text-white border-white/10 hover:bg-white/10'
+                }`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Advanced Filters Expandable Drawer */}
+        {/* Active Filter Dismissal Bar (When filters are active) */}
+        {activeFilterCount > 0 && (
+          <div className="mt-3 pt-3 border-t border-white/5 flex flex-wrap items-center gap-1.5 text-xs">
+            <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider mr-1">Active:</span>
+
+            {filters.query_term && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchTerm('');
+                  onFilterChange({ query_term: '', page: 1 });
+                }}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/15 text-white text-xs border border-white/20 transition cursor-pointer"
+              >
+                <span>Query: "{filters.query_term}"</span>
+                <X className="w-3 h-3 text-neutral-400 hover:text-white" />
+              </button>
+            )}
+
+            {filters.genre && filters.genre !== 'All' && (
+              <button
+                type="button"
+                onClick={() => onFilterChange({ genre: 'All', page: 1 })}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 text-xs border border-rose-500/40 transition cursor-pointer"
+              >
+                <span>Genre: {filters.genre}</span>
+                <X className="w-3 h-3 text-rose-300" />
+              </button>
+            )}
+
+            {filters.quality && filters.quality !== 'All' && (
+              <button
+                type="button"
+                onClick={() => onFilterChange({ quality: 'All', page: 1 })}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 text-xs border border-sky-500/40 transition cursor-pointer"
+              >
+                <span>Quality: {filters.quality}</span>
+                <X className="w-3 h-3 text-sky-300" />
+              </button>
+            )}
+
+            {filters.minimum_rating > 0 && (
+              <button
+                type="button"
+                onClick={() => onFilterChange({ minimum_rating: 0, page: 1 })}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs border border-amber-500/40 transition cursor-pointer"
+              >
+                <span>Rating: ★ {filters.minimum_rating}+</span>
+                <X className="w-3 h-3 text-amber-300" />
+              </button>
+            )}
+
+            {filters.year && filters.year !== 'All' && (
+              <button
+                type="button"
+                onClick={() => onFilterChange({ year: 'All', page: 1 })}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/15 text-white text-xs border border-white/20 transition cursor-pointer"
+              >
+                <span>Year: {filters.year}</span>
+                <X className="w-3 h-3 text-neutral-400" />
+              </button>
+            )}
+
+            {filters.language && filters.language !== 'All' && (
+              <button
+                type="button"
+                onClick={() => onFilterChange({ language: 'All', page: 1 })}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/15 text-white text-xs border border-white/20 transition cursor-pointer"
+              >
+                <span>Language: {filters.language}</span>
+                <X className="w-3 h-3 text-neutral-400" />
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={onReset}
+              className="text-[11px] text-neutral-400 hover:text-white underline cursor-pointer ml-1"
+            >
+              Clear All
+            </button>
+          </div>
+        )}
+
+        {/* Collapsible Filters & Sorting Matrix Drawer */}
         {showAdvanced && (
-          <div className="mt-4 pt-4 border-t border-white/10 space-y-4 animate-in fade-in duration-200">
+          <div id="advanced-filters-drawer" className="mt-4 pt-4 border-t border-white/10 space-y-4 animate-in fade-in duration-200">
+            {/* Primary Dropdown Matrix */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              {[
+                { label: 'Quality', value: filters.quality, key: 'quality', options: QUALITIES },
+                {
+                  label: 'Genre',
+                  value: filters.genre,
+                  key: 'genre',
+                  options: GENRES.map((g) => ({ label: g, value: g })),
+                },
+                { label: 'Rating', value: filters.minimum_rating, key: 'minimum_rating', options: RATING_OPTIONS },
+                { label: 'Year', value: filters.year || 'All', key: 'year', options: YEAR_OPTIONS },
+                { label: 'Language', value: filters.language || 'All', key: 'language', options: LANGUAGE_OPTIONS },
+              ].map((field) => (
+                <div key={field.key} className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-neutral-400">{field.label}:</label>
+                  <select
+                    value={field.value}
+                    onChange={(e) =>
+                      onFilterChange({
+                        [field.key]: field.key === 'minimum_rating' ? Number(e.target.value) : e.target.value,
+                        page: 1,
+                      })
+                    }
+                    className="w-full bg-[#1c1c1c] border border-neutral-700/60 rounded-lg px-3 py-2 text-xs text-neutral-200 focus:border-rose-500 cursor-pointer"
+                  >
+                    {field.options.map((opt: any) => (
+                      <option
+                        key={typeof opt === 'string' ? opt : opt.value}
+                        value={typeof opt === 'string' ? opt : opt.value}
+                      >
+                        {typeof opt === 'string' ? opt : opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ))}
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-neutral-400">Order By:</label>
+                <select
+                  value={currentSortKey}
+                  onChange={handleSortChange}
+                  className="w-full bg-[#1c1c1c] border border-neutral-700/60 rounded-lg px-3 py-2 text-xs text-neutral-200 focus:border-rose-500 cursor-pointer"
+                >
+                  {MOVIE_SORT_OPTIONS.map((s) => (
+                    <option key={s.key} value={s.key}>
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
             {/* Decade & Year Range Dual Slider */}
             <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/5 space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2">

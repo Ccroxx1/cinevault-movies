@@ -4,7 +4,7 @@ import { getMoviePath } from '../utils/seo';
 import { handleBrandedMagnetDownload } from '../utils/downloadPack';
 import { getBackdropCandidates, CINEVAULT_BACKDROP_FALLBACK } from '../utils/imageFallback';
 import { BookmarkPlusIcon, BookmarkIcon, PlayIcon, CopyIcon } from './ActionIcons';
-import { ChevronLeft, ChevronRight, Shuffle, Sparkles, Flame, Star, Rocket, Clapperboard, Film } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Shuffle, Sparkles, Flame, Star, Rocket, Clapperboard, Film, Check, Download, Disc } from 'lucide-react';
 import { getGenreHeroConfig, getHeroMoviesForGenre } from '../data/genreBanners';
 import { GENRES } from '../services/movieApi';
 
@@ -431,164 +431,248 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
       {/* FOREGROUND HERO CONTENT: Dynamic Headline, Featured Title, Synopsis, and Actions */}
       <div
         key={`content-${activeGenre}-${currentMovie.id}-${slideKey}`}
-        className="relative z-20 p-5 sm:p-8 md:p-12 lg:p-14 w-full max-w-2xl lg:max-w-3xl flex flex-col justify-end gap-3 sm:gap-4 animate-heroFadeIn pb-16 sm:pb-16 md:pb-12 text-left"
+        className="relative z-20 p-5 sm:p-8 md:p-10 lg:p-12 xl:p-14 w-full flex flex-col lg:flex-row lg:items-end justify-between gap-6 lg:gap-8 animate-heroFadeIn pb-16 sm:pb-16 md:pb-12 text-left"
       >
-        {/* Dynamic Genre Tagline / Vibe Kicker */}
-        {isSpecificGenre && (
-          <div className="space-y-0.5">
-            <span className={`text-xs sm:text-sm font-bold tracking-tight ${genreConfig.themeColor.primaryText}`}>
-              {genreConfig.headline}
+        {/* Left Column: Title, Headline, Synopsis, and Primary Controls */}
+        <div className="w-full max-w-2xl lg:max-w-2xl xl:max-w-3xl flex flex-col justify-end gap-3 sm:gap-4">
+          {/* Dynamic Genre Tagline / Vibe Kicker */}
+          {isSpecificGenre && (
+            <div className="space-y-0.5">
+              <span className={`text-xs sm:text-sm font-bold tracking-tight ${genreConfig.themeColor.primaryText}`}>
+                {genreConfig.headline}
+              </span>
+              <p className="text-neutral-400 text-[11px] sm:text-xs font-normal line-clamp-1">
+                {genreConfig.tagline}
+              </p>
+            </div>
+          )}
+
+          {/* Clean Typographic Metadata (Zero-Pill Discipline) */}
+          <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-neutral-300">
+            <span className="flex items-center gap-1 text-amber-400 font-bold">
+              <span>★</span>
+              <span className="tabular-nums">IMDb {currentMovie.rating ? currentMovie.rating.toFixed(1) : '8.0'}</span>
             </span>
-            <p className="text-neutral-400 text-[11px] sm:text-xs font-normal line-clamp-1">
-              {genreConfig.tagline}
-            </p>
+            <span aria-hidden="true" className="text-neutral-600">·</span>
+            <span className="tabular-nums font-semibold text-white">{currentMovie.year}</span>
+            {currentMovie.runtime > 0 && (
+              <>
+                <span aria-hidden="true" className="text-neutral-600">·</span>
+                <span className="tabular-nums text-neutral-300">
+                  {Math.floor(currentMovie.runtime / 60)}h {currentMovie.runtime % 60}m
+                </span>
+              </>
+            )}
+            {primaryTorrent?.quality && (
+              <>
+                <span aria-hidden="true" className="text-neutral-600">·</span>
+                <span className={`font-bold uppercase tracking-wider ${genreConfig.themeColor.primaryText}`}>
+                  {primaryTorrent.quality}
+                </span>
+              </>
+            )}
+            {currentMovie.mpa_rating && (
+              <>
+                <span aria-hidden="true" className="text-neutral-600">·</span>
+                <span className="text-neutral-400 text-[11px]">{currentMovie.mpa_rating}</span>
+              </>
+            )}
           </div>
-        )}
 
-        {/* Clean Typographic Metadata (Zero-Pill Discipline) */}
-        <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-neutral-300">
-          <span className="flex items-center gap-1 text-amber-400 font-bold">
-            <span>★</span>
-            <span className="tabular-nums">IMDb {currentMovie.rating ? currentMovie.rating.toFixed(1) : '8.0'}</span>
-          </span>
-          <span aria-hidden="true" className="text-neutral-600">·</span>
-          <span className="tabular-nums font-semibold text-white">{currentMovie.year}</span>
-          {currentMovie.runtime > 0 && (
-            <>
-              <span aria-hidden="true" className="text-neutral-600">·</span>
-              <span className="tabular-nums text-neutral-300">
-                {Math.floor(currentMovie.runtime / 60)}h {currentMovie.runtime % 60}m
-              </span>
-            </>
-          )}
-          {primaryTorrent?.quality && (
-            <>
-              <span aria-hidden="true" className="text-neutral-600">·</span>
-              <span className={`font-bold uppercase tracking-wider ${genreConfig.themeColor.primaryText}`}>
-                {primaryTorrent.quality}
-              </span>
-            </>
-          )}
-          {currentMovie.mpa_rating && (
-            <>
-              <span aria-hidden="true" className="text-neutral-600">·</span>
-              <span className="text-neutral-400 text-[11px]">{currentMovie.mpa_rating}</span>
-            </>
-          )}
-        </div>
+          {/* Dynamic Featured Title */}
+          <h2 className="font-display font-black text-2xl sm:text-4xl md:text-5xl lg:text-6xl text-white tracking-tight leading-[1.08] drop-shadow-md">
+            <a
+              href={getMoviePath(currentMovie)}
+              onClick={(e) => {
+                if (!e.ctrlKey && !e.metaKey && !e.shiftKey && e.button === 0) {
+                  e.preventDefault();
+                  onSelectMovie(currentMovie);
+                }
+              }}
+              className={`hover:${genreConfig.themeColor.primaryText} transition-colors cursor-pointer`}
+            >
+              {currentMovie.title}
+            </a>
+          </h2>
 
-        {/* Dynamic Featured Title */}
-        <h2 className="font-display font-black text-2xl sm:text-4xl md:text-5xl lg:text-6xl text-white tracking-tight leading-[1.08] drop-shadow-md">
-          <a
-            href={getMoviePath(currentMovie)}
-            onClick={(e) => {
-              if (!e.ctrlKey && !e.metaKey && !e.shiftKey && e.button === 0) {
-                e.preventDefault();
-                onSelectMovie(currentMovie);
-              }
-            }}
-            className={`hover:${genreConfig.themeColor.primaryText} transition-colors cursor-pointer`}
-          >
-            {currentMovie.title}
-          </a>
-        </h2>
+          {/* Clean Genre Tags with interactive click to switch genres */}
+          <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+            {currentMovie.genres?.map((g) => {
+              const isThisGenre = g.toLowerCase() === activeGenre.toLowerCase();
+              return (
+                <button
+                  key={g}
+                  type="button"
+                  onClick={() => handleGenreTabClick(g)}
+                  className={`text-[11px] sm:text-xs font-medium px-2.5 py-0.5 rounded-md transition-colors cursor-pointer ${
+                    isThisGenre
+                      ? `${genreConfig.themeColor.accentBg} text-white font-semibold`
+                      : 'bg-white/10 text-neutral-300 hover:bg-white/20 hover:text-white'
+                  }`}
+                  title={`Filter by ${g}`}
+                >
+                  {g}
+                </button>
+              );
+            })}
+          </div>
 
-        {/* Clean Genre Tags with interactive click to switch genres */}
-        <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-          {currentMovie.genres?.map((g) => {
-            const isThisGenre = g.toLowerCase() === activeGenre.toLowerCase();
-            return (
-              <button
-                key={g}
-                type="button"
-                onClick={() => handleGenreTabClick(g)}
-                className={`text-[11px] sm:text-xs font-medium px-2.5 py-0.5 rounded-md transition-colors cursor-pointer ${
-                  isThisGenre
-                    ? `${genreConfig.themeColor.accentBg} text-white font-semibold`
-                    : 'bg-white/10 text-neutral-300 hover:bg-white/20 hover:text-white'
-                }`}
-                title={`Filter by ${g}`}
-              >
-                {g}
-              </button>
-            );
-          })}
-        </div>
+          {/* Synopsis Paragraph */}
+          <p className="text-neutral-200/90 text-xs sm:text-sm md:text-base line-clamp-3 md:line-clamp-4 leading-relaxed font-normal max-w-2xl drop-shadow-sm">
+            {currentMovie.description_full ||
+              currentMovie.summary ||
+              currentMovie.synopsis ||
+              'Explore full movie details, high-bitrate torrents, and magnet links.'}
+          </p>
 
-        {/* Synopsis Paragraph */}
-        <p className="text-neutral-200/90 text-xs sm:text-sm md:text-base line-clamp-3 md:line-clamp-4 leading-relaxed font-normal max-w-2xl drop-shadow-sm">
-          {currentMovie.description_full ||
-            currentMovie.summary ||
-            currentMovie.synopsis ||
-            'Explore full movie details, high-bitrate torrents, and magnet links.'}
-        </p>
-
-        {/* Primary Action Controls */}
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3 pt-2">
-          <button
-            type="button"
-            onClick={() => onSelectMovie(currentMovie)}
-            className="flex items-center gap-1.5 sm:gap-2 px-5 sm:px-7 py-2.5 bg-white text-black font-bold text-xs sm:text-sm rounded-full hover:bg-neutral-200 transition-all shadow-xl cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <span>View Details</span>
-          </button>
-
-          {currentMovie.yt_trailer_code && (
+          {/* Primary Action Controls */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 pt-2">
             <button
               type="button"
-              onClick={() => onPlayTrailer(currentMovie.yt_trailer_code, currentMovie.title)}
-              className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2.5 bg-black/50 hover:bg-black/70 backdrop-blur-md border border-white/25 text-white font-bold text-xs sm:text-sm rounded-full transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+              onClick={() => onSelectMovie(currentMovie)}
+              className="flex items-center gap-1.5 sm:gap-2 px-5 sm:px-7 py-2.5 bg-white text-black font-bold text-xs sm:text-sm rounded-full hover:bg-neutral-200 transition-all shadow-xl cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
             >
-              <PlayIcon size={16} />
-              <span>Trailer</span>
+              <span>View Details</span>
             </button>
-          )}
 
-          {primaryTorrent && (
-            <>
+            {currentMovie.yt_trailer_code && (
               <button
                 type="button"
-                onClick={() => {
-                  handleBrandedMagnetDownload(currentMovie, primaryTorrent, {
-                    onStart: () => {
-                      onCopyMagnet(
-                        buildMagnetLink(primaryTorrent.hash, currentMovie.title_long || currentMovie.title),
-                        `${currentMovie.title} (${primaryTorrent.quality}) — Starting Download`
-                      );
-                    }
-                  });
-                }}
-                className={`flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2.5 ${genreConfig.themeColor.accentBg} ${genreConfig.themeColor.buttonHover} text-white font-bold text-xs sm:text-sm rounded-full backdrop-blur-md shadow-lg ${genreConfig.themeColor.glow} transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]`}
-                title={`Direct Magnet Download for ${primaryTorrent.quality}`}
+                onClick={() => onPlayTrailer(currentMovie.yt_trailer_code, currentMovie.title)}
+                className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2.5 bg-black/50 hover:bg-black/70 backdrop-blur-md border border-white/25 text-white font-bold text-xs sm:text-sm rounded-full transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] shadow-lg"
               >
-                <span>Magnet ({primaryTorrent.quality})</span>
+                <PlayIcon size={16} />
+                <span>Trailer</span>
               </button>
+            )}
 
-              <button
-                type="button"
-                onClick={handleCopyMagnet}
-                className="p-2.5 sm:p-3 bg-black/50 hover:bg-black/70 text-neutral-200 hover:text-white rounded-full border border-white/20 backdrop-blur-md transition-all cursor-pointer shadow-lg"
-                title={copiedHash === primaryTorrent.hash ? 'Copied Magnet URI!' : 'Copy Magnet URI'}
-                aria-label="Copy Magnet URI"
-              >
-                <CopyIcon size={16} />
-              </button>
-            </>
+            {primaryTorrent && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleBrandedMagnetDownload(currentMovie, primaryTorrent, {
+                      onStart: () => {
+                        onCopyMagnet(
+                          buildMagnetLink(primaryTorrent.hash, currentMovie.title_long || currentMovie.title),
+                          `${currentMovie.title} (${primaryTorrent.quality}) — Starting Download`
+                        );
+                      }
+                    });
+                  }}
+                  className={`flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2.5 ${genreConfig.themeColor.accentBg} ${genreConfig.themeColor.buttonHover} text-white font-bold text-xs sm:text-sm rounded-full backdrop-blur-md shadow-lg ${genreConfig.themeColor.glow} transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]`}
+                  title={`Direct Magnet Download for ${primaryTorrent.quality}`}
+                >
+                  <span>Magnet ({primaryTorrent.quality})</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleCopyMagnet}
+                  className={`p-2.5 sm:p-3 rounded-full border backdrop-blur-md transition-all cursor-pointer shadow-lg ${
+                    copiedHash === primaryTorrent.hash
+                      ? 'bg-emerald-600 text-white border-emerald-400 scale-105 shadow-emerald-950/60'
+                      : 'bg-black/50 hover:bg-black/70 text-neutral-200 hover:text-white border-white/20'
+                  }`}
+                  title={copiedHash === primaryTorrent.hash ? 'Copied Magnet URI!' : 'Copy Magnet URI'}
+                  aria-label="Copy Magnet URI"
+                >
+                  {copiedHash === primaryTorrent.hash ? <Check size={16} /> : <CopyIcon size={16} />}
+                </button>
+              </>
+            )}
+
+            <button
+              type="button"
+              onClick={() => onToggleWatchlist(currentMovie)}
+              className={`p-2.5 sm:p-3 rounded-full border transition-all cursor-pointer backdrop-blur-md shadow-lg ${
+                isWatchlisted(currentMovie.id)
+                  ? 'bg-rose-600 text-white border-rose-500 shadow-rose-950/50'
+                  : 'bg-black/50 text-neutral-300 hover:text-white border-white/20 hover:bg-black/70'
+              }`}
+              title={isWatchlisted(currentMovie.id) ? 'Remove from Watchlist' : 'Add to Watchlist'}
+              aria-label={isWatchlisted(currentMovie.id) ? 'Remove from Watchlist' : 'Add to Watchlist'}
+            >
+              {isWatchlisted(currentMovie.id) ? <BookmarkIcon size={17} /> : <BookmarkPlusIcon size={17} />}
+            </button>
+          </div>
+        </div>
+
+        {/* Right Column: Floating Glass Cinema Quick-Specs Card (Desktop & Widescreen) */}
+        <div className="hidden lg:flex flex-col gap-3.5 p-4 xl:p-5 rounded-2xl bg-black/65 backdrop-blur-xl border border-white/15 w-72 xl:w-80 shadow-2xl shrink-0 self-end mb-6 z-20 text-left">
+          <div className="flex items-center justify-between pb-2 border-b border-white/10 text-xs">
+            <span className="font-bold text-white uppercase tracking-wider flex items-center gap-1.5 text-[11px]">
+              <Disc className="w-3.5 h-3.5 text-rose-500" />
+              <span>Cinema Quick Specs</span>
+            </span>
+            <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-300 border border-rose-500/30 font-bold">
+              {primaryTorrent?.quality || '1080p'}
+            </span>
+          </div>
+
+          {/* Quick Specs Grid */}
+          <div className="grid grid-cols-2 gap-2 text-[11px]">
+            <div className="p-2 rounded-xl bg-white/[0.04] border border-white/5 space-y-0.5">
+              <span className="text-neutral-400 block text-[10px] uppercase font-bold tracking-wider">IMDb Score</span>
+              <div className="flex items-center gap-1 text-amber-400 font-extrabold text-xs">
+                <span>★</span>
+                <span>{currentMovie.rating ? currentMovie.rating.toFixed(1) : '8.0'}/10</span>
+              </div>
+            </div>
+
+            <div className="p-2 rounded-xl bg-white/[0.04] border border-white/5 space-y-0.5">
+              <span className="text-neutral-400 block text-[10px] uppercase font-bold tracking-wider">Active Swarm</span>
+              <div className="flex items-center gap-1 text-emerald-400 font-bold text-xs">
+                <Flame className="w-3 h-3 text-emerald-400" />
+                <span>{primaryTorrent?.seeds ? primaryTorrent.seeds.toLocaleString() : '3,200'} seeds</span>
+              </div>
+            </div>
+
+            <div className="p-2 rounded-xl bg-white/[0.04] border border-white/5 space-y-0.5">
+              <span className="text-neutral-400 block text-[10px] uppercase font-bold tracking-wider">Audio / Codec</span>
+              <span className="text-neutral-200 font-semibold block truncate">
+                {primaryTorrent?.audio_channels || '5.1'} • {primaryTorrent?.video_codec || 'x264'}
+              </span>
+            </div>
+
+            <div className="p-2 rounded-xl bg-white/[0.04] border border-white/5 space-y-0.5">
+              <span className="text-neutral-400 block text-[10px] uppercase font-bold tracking-wider">File Size</span>
+              <span className="text-neutral-200 font-semibold block truncate">
+                {primaryTorrent?.size || '1.85 GB'}
+              </span>
+            </div>
+          </div>
+
+          {/* Available Encodes */}
+          {currentMovie.torrents && currentMovie.torrents.length > 0 && (
+            <div className="space-y-1.5 pt-0.5">
+              <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">Available Encodes</span>
+              <div className="flex flex-wrap gap-1.5">
+                {currentMovie.torrents.map((t, idx) => (
+                  <button
+                    key={`${t.quality}-${idx}`}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const magnetUrl = buildMagnetLink(t.hash, currentMovie.title_long || currentMovie.title);
+                      onCopyMagnet(magnetUrl, `${currentMovie.title} (${t.quality})`);
+                      setCopiedHash(t.hash);
+                      setTimeout(() => setCopiedHash(null), 2000);
+                    }}
+                    className={`px-2 py-1 rounded-md text-[10px] font-bold border transition-colors cursor-pointer flex items-center gap-1 ${
+                      copiedHash === t.hash
+                        ? 'bg-emerald-500 text-white border-emerald-400 shadow-md shadow-emerald-950/50'
+                        : 'bg-white/5 text-neutral-300 hover:text-white border-white/10 hover:bg-white/10'
+                    }`}
+                    title={`Copy ${t.quality} Magnet`}
+                  >
+                    {copiedHash === t.hash ? <Check size={10} /> : <Download size={10} />}
+                    <span>{t.quality}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
-
-          <button
-            type="button"
-            onClick={() => onToggleWatchlist(currentMovie)}
-            className={`p-2.5 sm:p-3 rounded-full border transition-all cursor-pointer backdrop-blur-md shadow-lg ${
-              isWatchlisted(currentMovie.id)
-                ? 'bg-rose-600 text-white border-rose-500 shadow-rose-950/50'
-                : 'bg-black/50 text-neutral-300 hover:text-white border-white/20 hover:bg-black/70'
-            }`}
-            title={isWatchlisted(currentMovie.id) ? 'Remove from Watchlist' : 'Add to Watchlist'}
-            aria-label={isWatchlisted(currentMovie.id) ? 'Remove from Watchlist' : 'Add to Watchlist'}
-          >
-            {isWatchlisted(currentMovie.id) ? <BookmarkIcon size={17} /> : <BookmarkPlusIcon size={17} />}
-          </button>
         </div>
       </div>
 

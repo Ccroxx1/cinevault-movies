@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeftRight, Film, Download } from 'lucide-react';
+import { ArrowLeftRight, Film, Download, Check } from 'lucide-react';
 import { Movie, buildMagnetLink } from '../types';
 import { getMoviePath } from '../utils/seo';
 import { handleBrandedMagnetDownload } from '../utils/downloadPack';
@@ -275,11 +275,20 @@ export const MovieCard: React.FC<MovieCardProps> = ({
               <button
                 type="button"
                 onClick={handleCopyPrimaryMagnet}
-                className="p-1.5 bg-black/80 hover:bg-black text-neutral-200 rounded-full border border-white/15 transition-colors cursor-pointer"
-                title="Copy Magnet URI"
-                aria-label="Copy Magnet URI"
+                className={`p-1.5 rounded-full border transition-all cursor-pointer relative ${
+                  copiedHash === primaryTorrent.hash
+                    ? 'bg-emerald-600 text-white border-emerald-400 scale-105 shadow-md shadow-emerald-950/60'
+                    : 'bg-black/80 hover:bg-black text-neutral-200 border-white/15'
+                }`}
+                title={copiedHash === primaryTorrent.hash ? 'Copied Magnet Link!' : 'Copy Magnet URI'}
+                aria-label={copiedHash === primaryTorrent.hash ? 'Copied Magnet Link!' : 'Copy Magnet URI'}
               >
-                <CopyIcon size={16} />
+                {copiedHash === primaryTorrent.hash ? <Check size={16} /> : <CopyIcon size={16} />}
+                {copiedHash === primaryTorrent.hash && (
+                  <span className="absolute -top-7 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[9px] font-bold shadow-lg whitespace-nowrap pointer-events-none animate-fadeIn">
+                    Copied!
+                  </span>
+                )}
               </button>
             </div>
           )}

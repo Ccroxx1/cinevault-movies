@@ -33,73 +33,65 @@ export const CURATED_SECTIONS: CuratedSectionConfig[] = [
   },
   {
     id: 'top-imdb',
-    title: 'Top IMDb',
+    title: 'Top IMDb Masterpieces',
     subtitle: 'Highest critically acclaimed cinema (Rating 8.0+)',
     badge: 'Critically Acclaimed',
     accentColor: 'from-amber-500/20 text-amber-400 border-amber-500/30',
     filterParams: { minimum_rating: 8, sort_by: 'rating', order_by: 'desc' }
   },
   {
-    id: 'highest-grossing',
-    title: 'Most Popular Movies',
-    subtitle: 'All-time fan favorites & most liked cinema worldwide',
-    badge: 'Fan Favorites',
-    accentColor: 'from-emerald-500/20 text-emerald-400 border-emerald-500/30',
-    filterParams: { sort_by: 'like_count', order_by: 'desc' }
+    id: 'sci-fi',
+    title: 'Science Fiction & Mind-Benders',
+    subtitle: 'Interstellar voyages, dystopian futures & paradoxes',
+    badge: 'Futuristic',
+    accentColor: 'from-cyan-500/20 text-cyan-400 border-cyan-500/30',
+    filterParams: { genre: 'Sci-Fi', sort_by: 'rating', order_by: 'desc', minimum_rating: 7 }
   },
   {
     id: 'superhero',
-    title: 'Superhero Universe',
-    subtitle: 'Marvel, DC, and epic comic book multiverse sagas',
+    title: 'Superhero Universe & Action Sagas',
+    subtitle: 'Marvel, DC, and high-octane multiverse action',
     badge: 'Epic Heroes',
     accentColor: 'from-blue-500/20 text-blue-400 border-blue-500/30',
-    filterParams: { genre: 'Action', sort_by: 'download_count', order_by: 'desc' }
+    filterParams: { genre: 'Action', sort_by: 'like_count', order_by: 'desc', minimum_rating: 7 }
   },
   {
-    id: 'sci-fi',
-    title: 'Science Fiction',
-    subtitle: 'Interstellar voyages & mind-bending paradoxes',
-    badge: 'Futuristic',
-    accentColor: 'from-cyan-500/20 text-cyan-400 border-cyan-500/30',
-    filterParams: { genre: 'Sci-Fi', sort_by: 'download_count', order_by: 'desc', minimum_rating: 6.5 }
+    id: 'crime-thriller',
+    title: 'Crime & Mystery Thrillers',
+    subtitle: 'Gripping whodunits, noir investigations & psychological tension',
+    badge: 'High Suspense',
+    accentColor: 'from-violet-500/20 text-violet-400 border-violet-500/30',
+    filterParams: { genre: 'Thriller', minimum_rating: 7.2, sort_by: 'rating', order_by: 'desc' }
   },
   {
     id: 'best-drama',
     title: 'Best Drama Movies',
-    subtitle: 'Emotionally gripping stories & character studies',
+    subtitle: 'Emotionally gripping stories & legendary character studies',
     badge: 'Deep & Moving',
     accentColor: 'from-rose-500/20 text-rose-400 border-rose-500/30',
-    filterParams: { genre: 'Drama', minimum_rating: 7.5, sort_by: 'rating', order_by: 'desc' }
+    filterParams: { genre: 'Drama', minimum_rating: 7.8, sort_by: 'rating', order_by: 'desc' }
   },
   {
     id: 'best-comedy',
-    title: 'Best Comedy Movies',
-    subtitle: 'Laugh-out-loud favorites & feel-good adventures',
+    title: 'Top Comedy & Feel-Good Cinema',
+    subtitle: 'Laugh-out-loud favorites & witty adventures',
     badge: 'Non-stop Laughs',
     accentColor: 'from-lime-500/20 text-lime-400 border-lime-500/30',
-    filterParams: { genre: 'Comedy', sort_by: 'download_count', order_by: 'desc', minimum_rating: 6 }
+    filterParams: { genre: 'Comedy', sort_by: 'download_count', order_by: 'desc', minimum_rating: 6.8 }
   },
   {
-    id: 'horror-collection',
-    title: 'Horror Collection',
-    subtitle: 'Chilling psychological thrillers & jump scares',
-    badge: 'Night Terrors',
-    accentColor: 'from-purple-500/20 text-purple-400 border-purple-500/30',
-    filterParams: { genre: 'Horror', sort_by: 'download_count', order_by: 'desc' }
-  },
-  {
-    id: 'family-favorites',
-    title: 'Family Favorites',
-    subtitle: 'Wholesome entertainment for all generations',
-    badge: 'All Ages',
+    id: 'family-animation',
+    title: 'Animation & Family Gems',
+    subtitle: 'Timeless studio animation and heartwarming journeys',
+    badge: 'Universal Appeal',
     accentColor: 'from-teal-500/20 text-teal-400 border-teal-500/30',
-    filterParams: { genre: 'Family', sort_by: 'download_count', order_by: 'desc', minimum_rating: 6.5 }
+    filterParams: { genre: 'Animation', sort_by: 'rating', order_by: 'desc', minimum_rating: 7.5 }
   },
   {
     id: 'upcoming',
-    title: 'Latest Releases',
-    subtitle: 'Brand new additions & freshest encodes',
-    badge: 'Latest Added',
+    title: 'Latest High-Bitrate Releases',
+    subtitle: 'Brand new 2024–2026 additions & freshest encodes',
+    badge: 'Fresh Encodes',
     accentColor: 'from-indigo-500/20 text-indigo-400 border-indigo-500/30',
     filterParams: { sort_by: 'date_added', order_by: 'desc' }
   }
@@ -255,9 +247,13 @@ const MovieSectionCard: React.FC<MovieSectionCardProps> = ({
               <button
                 type="button"
                 onClick={handleCopy}
-                className="p-1.5 bg-[#6ac045]/20 hover:bg-[#6ac045]/30 border border-[#6ac045]/40 text-[#6ac045] rounded-lg transition-colors cursor-pointer"
-                title="Copy Magnet Link"
-                aria-label="Copy Magnet Link"
+                className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                  copiedHash === torrent.hash
+                    ? 'bg-emerald-500 text-white border-emerald-400 scale-105 shadow-md shadow-emerald-950/60'
+                    : 'bg-[#6ac045]/20 hover:bg-[#6ac045]/30 border border-[#6ac045]/40 text-[#6ac045]'
+                }`}
+                title={copiedHash === torrent.hash ? 'Copied Magnet Link!' : 'Copy Magnet Link'}
+                aria-label={copiedHash === torrent.hash ? 'Copied Magnet Link!' : 'Copy Magnet Link'}
               >
                 <CopyIcon size={15} />
               </button>

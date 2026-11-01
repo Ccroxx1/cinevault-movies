@@ -571,54 +571,65 @@ export default function App() {
     loadFeatured();
   }, [loadFeatured]);
 
-  // Fetch all Curated Homepage Sections
+  // Fetch all Curated Homepage Sections with cross-shelf deduplication
   useEffect(() => {
     if (route.type !== 'browse') return;
     const loadCuratedSections = async () => {
       setIsSectionsLoading(true);
       try {
-        const results = await Promise.allSettled(
+        const seenMovieIds = new Set<number>();
+        featuredMovies.slice(0, 5).forEach((m) => {
+          if (m?.id) seenMovieIds.add(m.id);
+        });
+
+        const rawResults = await Promise.allSettled(
           CURATED_SECTIONS.map(async (sec) => {
             const filterParams = {
               ...DEFAULT_FILTERS,
               ...sec.filterParams,
-              limit: 12
+              limit: 20
             };
-
-            let validMovies: Movie[] = [];
 
             try {
               const data = await fetchMovies(filterParams);
               const cleaned = validateAndCleanMovies(data.movies || []);
-              validMovies = filterMoviesByParams(cleaned, sec.filterParams);
+              return {
+                id: sec.id,
+                movies: filterMoviesByParams(cleaned, sec.filterParams)
+              };
             } catch {
-              validMovies = [];
+              return { id: sec.id, movies: [] };
             }
-
-            if (validMovies.length < 4) {
-              const matchingFallbacks = filterMoviesByParams(FALLBACK_FEATURED_MOVIES, sec.filterParams);
-              const additional = matchingFallbacks.filter(
-                fm => !validMovies.some(vm => vm.id === fm.id)
-              );
-              validMovies = [...validMovies, ...additional];
-            }
-
-            validMovies = filterMoviesByParams(validMovies, sec.filterParams);
-
-            return {
-              id: sec.id,
-              movies: validMovies.slice(0, 12)
-            };
           })
         );
 
         const newMap: Record<string, Movie[]> = {};
-        results.forEach((res, index) => {
-          const sectionId = CURATED_SECTIONS[index].id;
-          if (res.status === 'fulfilled' && res.value.movies.length > 0) {
-            newMap[sectionId] = res.value.movies;
+
+        CURATED_SECTIONS.forEach((sec, index) => {
+          const res = rawResults[index];
+          const fetched = res.status === 'fulfilled' ? res.value.movies : [];
+
+          // Keep only movies not already claimed by a preceding shelf or hero
+          const uniqueMovies = fetched.filter(m => !seenMovieIds.has(m.id));
+
+          let combined = [...uniqueMovies];
+          if (combined.length < 8) {
+            const matchingFallbacks = filterMoviesByParams(FALLBACK_FEATURED_MOVIES, sec.filterParams);
+            for (const fm of matchingFallbacks) {
+              if (!seenMovieIds.has(fm.id) && !combined.some(c => c.id === fm.id)) {
+                combined.push(fm);
+              }
+            }
+          }
+
+          const finalShelf = combined.slice(0, 12);
+          finalShelf.forEach(m => seenMovieIds.add(m.id));
+
+          if (finalShelf.length > 0) {
+            newMap[sec.id] = finalShelf;
           }
         });
+
         setSectionMovies(newMap);
       } catch (err) {
         console.error('Error loading curated movie sections:', err);
@@ -628,7 +639,7 @@ export default function App() {
     };
 
     loadCuratedSections();
-  }, []);
+  }, [featuredMovies, route.type]);
 
   // Fetch Main Movies Catalog
   const loadMovies = useCallback(async () => {
@@ -1013,7 +1024,6 @@ export default function App() {
             )}
 
             <AdSenseSlot format="auto" responsive={true} className="my-6" />
-            <AdsterraBanner />
 
             <div id="movie-catalog-section" className="space-y-4 my-8">
               <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1178,6 +1188,11 @@ export default function App() {
                 onPageChange={(p) => handleFilterChange({ page: p })}
               />
             )}
+
+            {/* Well-spaced Adsterra banner below main catalog */}
+            <div className="my-10 py-3 border-y border-white/5 flex justify-center overflow-hidden">
+              <AdsterraBanner />
+            </div>
 
             {currentNav === 'browse' && !filters.query_term && (watchlist.length > 0 || recentlyViewed.length > 0) && (
               <div className="my-10 pt-8 border-t border-white/5">
