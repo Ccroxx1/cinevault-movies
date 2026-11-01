@@ -46,7 +46,8 @@ async function submitToIndexNow() {
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json; charset=utf-8'
+          'Content-Type': 'application/json; charset=utf-8',
+          'User-Agent': 'Mozilla/5.0 (compatible; CineVault/1.0; +https://www.cinevaultmovies.online)'
         },
         body: JSON.stringify(payload)
       });
