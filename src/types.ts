@@ -99,36 +99,36 @@ export function getSwarmHealth(seeds: number, peers: number): SwarmHealth {
   const safePeers = Number(peers) || 0;
   const ratio = safePeers > 0 ? Number((safeSeeds / safePeers).toFixed(2)) : safeSeeds > 0 ? safeSeeds : 0;
 
-  if (safeSeeds >= 100 || (safeSeeds >= 30 && safePeers > 0 && ratio >= 1.5)) {
+  if (safeSeeds >= 50 || (safeSeeds >= 20 && safePeers > 0 && ratio >= 1.2)) {
     return {
       status: 'blazing',
       label: 'Blazing Fast',
       badgeClass: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
-      description: 'Extremely fast throughput with 100+ active seeders or superior S/L swarm ratio',
+      description: 'High-speed throughput with robust active swarm',
       ratio,
     };
-  } else if (safeSeeds >= 25 || ratio >= 1.0) {
+  } else if (safeSeeds >= 15 || ratio >= 0.8) {
     return {
       status: 'healthy',
       label: 'Healthy Swarm',
-      badgeClass: 'bg-green-500/15 text-green-300 border-green-500/30',
-      description: 'Strong swarm with good sustained download speed',
+      badgeClass: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20',
+      description: 'Strong swarm with steady sustained download speed',
       ratio,
     };
-  } else if (safeSeeds >= 8) {
+  } else if (safeSeeds >= 4) {
     return {
       status: 'moderate',
-      label: 'Fair / Moderate',
-      badgeClass: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
-      description: 'Average speed; availability is stable',
+      label: 'Active Swarm',
+      badgeClass: 'bg-cyan-500/10 text-cyan-300 border-cyan-500/20',
+      description: 'Active swarm with stable availability',
       ratio,
     };
   } else {
     return {
       status: 'low',
-      label: 'Stale / Low Seeds',
-      badgeClass: 'bg-rose-500/15 text-rose-300 border-rose-500/30',
-      description: 'Fewer than 8 seeders; download speed may fluctuate or take longer',
+      label: 'DHT Available',
+      badgeClass: 'bg-white/[0.04] text-neutral-300 border-white/10',
+      description: 'Distributed DHT swarm; connects to seeders upon client start',
       ratio,
     };
   }
