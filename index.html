@@ -7,17 +7,24 @@
     <!-- 1. Universal Error Trapper & Extension Shield (MUST execute first in <head>) -->
     <script>
       (function() {
-        var isExtensionOrExternalError = function(msg, file, stack) {
-          var combined = (String(msg || '') + ' ' + String(file || '') + ' ' + String(stack || '')).toLowerCase();
+        var isExtensionOrExternalError = function(msg, file, stack, extra) {
+          var combined = (
+            String(msg || '') + ' ' +
+            String(file || '') + ' ' +
+            String(stack || '') + ' ' +
+            String(extra || '')
+          ).toLowerCase();
+
           return (
             combined.indexOf('chrome-extension') !== -1 ||
             combined.indexOf('moz-extension') !== -1 ||
             combined.indexOf('safari-web-extension') !== -1 ||
-            combined.indexOf('chrome: call method') !== -1 ||
-            combined.indexOf('window message') !== -1 ||
-            combined.indexOf('ff-content') !== -1 ||
             combined.indexOf('cldmemdnllncchfahbcnjijheaolemfk') !== -1 ||
+            combined.indexOf('ff-content') !== -1 ||
             combined.indexOf('foxified') !== -1 ||
+            combined.indexOf('call method') !== -1 ||
+            combined.indexOf('window message') !== -1 ||
+            combined.indexOf('timed out') !== -1 && combined.indexOf('window message') !== -1 ||
             combined.indexOf('metamask') !== -1 ||
             combined.indexOf('ethereum') !== -1 ||
             combined.indexOf('solana') !== -1 ||
@@ -44,7 +51,8 @@
         // Window.onerror (returns true to suppress default browser error reporting)
         window.onerror = function(message, source, lineno, colno, error) {
           var stack = error && error.stack ? error.stack : '';
-          if (isExtensionOrExternalError(message, source, stack)) {
+          var msgStr = typeof message === 'string' ? message : ((message && message.message) || String(message || ''));
+          if (isExtensionOrExternalError(msgStr, source, stack, String(error || ''))) {
             return true;
           }
         };
@@ -52,9 +60,9 @@
         // Window.onunhandledrejection
         window.onunhandledrejection = function(event) {
           var reason = (event && event.reason) || '';
-          var msg = typeof reason === 'string' ? reason : ((reason && reason.message) || '');
+          var msg = typeof reason === 'string' ? reason : ((reason && reason.message) || String(reason || ''));
           var stack = (reason && reason.stack) || '';
-          if (isExtensionOrExternalError(msg, '', stack)) {
+          if (isExtensionOrExternalError(msg, '', stack, String(reason || ''))) {
             if (event.preventDefault) event.preventDefault();
             if (event.stopImmediatePropagation) event.stopImmediatePropagation();
             return true;
@@ -66,7 +74,7 @@
           var msg = (event && event.message) || '';
           var file = (event && event.filename) || '';
           var stack = (event && event.error && event.error.stack) || '';
-          if (isExtensionOrExternalError(msg, file, stack)) {
+          if (isExtensionOrExternalError(msg, file, stack, String(event && event.error))) {
             if (event.preventDefault) event.preventDefault();
             if (event.stopPropagation) event.stopPropagation();
             if (event.stopImmediatePropagation) event.stopImmediatePropagation();
@@ -77,12 +85,13 @@
         // Capture-phase unhandledrejection listener
         window.addEventListener('unhandledrejection', function(event) {
           var reason = (event && event.reason) || '';
-          var msg = typeof reason === 'string' ? reason : ((reason && reason.message) || '');
+          var msg = typeof reason === 'string' ? reason : ((reason && reason.message) || String(reason || ''));
           var stack = (reason && reason.stack) || '';
-          if (isExtensionOrExternalError(msg, '', stack)) {
+          if (isExtensionOrExternalError(msg, '', stack, String(reason || ''))) {
             if (event.preventDefault) event.preventDefault();
             if (event.stopPropagation) event.stopPropagation();
             if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+            return true;
           }
         }, true);
 
@@ -96,9 +105,12 @@
             if (
               lower.indexOf('chrome: call method') !== -1 ||
               lower.indexOf('cldmemdnllncchfahbcnjijheaolemfk') !== -1 ||
-              lower.indexOf('foxified') !== -1
+              lower.indexOf('foxified') !== -1 ||
+              lower.indexOf('ff-content') !== -1 ||
+              lower.indexOf('window message') !== -1
             ) {
               if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+              if (event.stopPropagation) event.stopPropagation();
             }
           } catch(e) {}
         }, true);
@@ -111,7 +123,7 @@
             var str = '';
             for (var i = 0; i < arguments.length; i++) {
               var a = arguments[i];
-              str += ' ' + (typeof a === 'string' ? a : ((a && (a.message || a.stack)) ? (a.message + ' ' + a.stack) : ''));
+              str += ' ' + (typeof a === 'string' ? a : ((a && (a.message || a.stack)) ? (a.message + ' ' + a.stack) : String(a)));
             }
             if (isExtensionOrExternalError(str)) {
               if (typeof console.debug === 'function') console.debug.apply(console, arguments);
@@ -124,7 +136,7 @@
             var str = '';
             for (var i = 0; i < arguments.length; i++) {
               var a = arguments[i];
-              str += ' ' + (typeof a === 'string' ? a : ((a && (a.message || a.stack)) ? (a.message + ' ' + a.stack) : ''));
+              str += ' ' + (typeof a === 'string' ? a : ((a && (a.message || a.stack)) ? (a.message + ' ' + a.stack) : String(a)));
             }
             if (isExtensionOrExternalError(str)) {
               if (typeof console.debug === 'function') console.debug.apply(console, arguments);
