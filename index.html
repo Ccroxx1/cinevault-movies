@@ -145,6 +145,21 @@
             origWarn.apply(console, arguments);
           };
         } catch(e) {}
+
+        // 1.1 Outdated Chunk Recovery & Deployment Auto-Reload (Vite official vite:preloadError event)
+        window.addEventListener('vite:preloadError', function(event) {
+          console.warn('[CineVault] New deployment detected or dynamic chunk load error. Refreshing to load latest version...');
+          try {
+            var lastReload = sessionStorage.getItem('cinevault_chunk_reload');
+            var now = Date.now();
+            if (!lastReload || (now - parseInt(lastReload, 10)) > 15000) {
+              sessionStorage.setItem('cinevault_chunk_reload', String(now));
+              window.location.reload();
+            }
+          } catch(e) {
+            window.location.reload();
+          }
+        });
       })();
     </script>
 

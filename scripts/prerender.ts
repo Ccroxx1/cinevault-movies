@@ -11,12 +11,11 @@ const SITE_NAME = 'CineVault By Sasuu';
 const DEFAULT_DESCRIPTION = 'Explore, search, and download high-quality curated films with rich metadata, trailers, IMDb ratings, torrents, and magnet links.';
 
 const MIRRORS = [
-  'https://yts.gg/api/v2/list_movies.json',
-  'https://movies-api.accel.li/api/v2/list_movies.json',
   'https://yts.am/api/v2/list_movies.json',
-  'https://yts.lt/api/v2/list_movies.json',
   'https://yts.bz/api/v2/list_movies.json',
-  'https://yts.ag/api/v2/list_movies.json'
+  'https://yts.lt/api/v2/list_movies.json',
+  'https://yts.ag/api/v2/list_movies.json',
+  'https://yts.gg/api/v2/list_movies.json'
 ];
 
 const FETCH_HEADERS = {

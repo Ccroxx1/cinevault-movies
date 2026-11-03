@@ -8,12 +8,11 @@ const __dirname = path.dirname(__filename);
 const SITE_BASE_URL = 'https://www.cinevaultmovies.online';
 
 const MIRRORS = [
-  'https://yts.gg/api/v2/list_movies.json',
-  'https://movies-api.accel.li/api/v2/list_movies.json',
   'https://yts.am/api/v2/list_movies.json',
-  'https://yts.lt/api/v2/list_movies.json',
   'https://yts.bz/api/v2/list_movies.json',
-  'https://yts.ag/api/v2/list_movies.json'
+  'https://yts.lt/api/v2/list_movies.json',
+  'https://yts.ag/api/v2/list_movies.json',
+  'https://yts.gg/api/v2/list_movies.json'
 ];
 
 const FETCH_HEADERS = {

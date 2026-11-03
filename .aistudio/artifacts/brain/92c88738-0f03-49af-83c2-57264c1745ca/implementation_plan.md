@@ -120,3 +120,38 @@ Comprehensive architectural and technical blueprint to execute all 20 SEO checkl
 3. **Verification**:
    - Verify all endpoints via curl (`/sitemap.xml`, `/robots.txt`, `/llms.txt`, `/og-image.jpg`).
    - Run `lint_applet` and `compile_applet`.
+
+---
+
+## 5. Live Catalog & Recent Movies Bug Fix (Completed)
+- **Problem**: Live production site `https://www.cinevaultmovies.online/` was displaying only 18 fallback movies (*Dune 2*, *Oppenheimer*, etc.) because `vercel.json` rewrote `/api/movies/*` requests to `https://movies-api.accel.li/` which was permanently down with Cloudflare Error 521.
+- **Root Cause & Resolution**:
+  1. Updated `vercel.json` to route `/api/movies`, `/api/movies/:path*`, and `/api/v2/:path*` directly to `/api/index` (`server.ts`).
+  2. Removed dead mirror `https://movies-api.accel.li/api/v2` from `API_BASE_URLS` in `server.ts`, `PUBLIC_MIRRORS` in `src/services/movieApi.ts`, `scripts/generateSitemap.ts`, and `scripts/prerender.ts`.
+  3. Reordered `PUBLIC_MIRRORS` in `src/services/movieApi.ts` to query the local proxy `/api/movies` first to prevent browser adblocker or ISP DNS interference.
+  4. Added `/api/v2/*` route aliases to `server.ts` for backward compatibility.
+  5. Fixed active filter count logic in `src/components/FilterBar.tsx` where default `order_by === 'desc'` erroneously caused `1 active filter` badge on clean loads.
+- **Verification**: Verified via curl that `http://localhost:3000/api/movies/list?limit=5` successfully fetches the live 78,214+ catalog with recent additions (*Prorok*, *Model Citizen*, *Your Mother Your Mother Your Mother*, *The History of Concrete*, *Charlie Harper*). Both `lint_applet` and `compile_applet` passed cleanly.
+
+---
+
+## 6. Real-Time Catalog Freshness & Deployment Auto-Update (Completed)
+- **Problem**: 
+  - Service worker retained 7-day cached movie lists with a 3-second network timeout, which could serve an outdated catalogue on slow connections or re-visits.
+  - No background auto-refresh or browser-tab focus detection in `App.tsx`.
+  - Stale JavaScript chunks following new deployments required manual Ctrl+F5 refreshes.
+- **Root Cause & Resolution**:
+  1. **Workbox Caching in `vite.config.ts`**: Replaced 7-day API caching with `NetworkOnly` for catalog lists (`/api/movies/list`) so live releases always bypass the service worker cache. Movie details retain `NetworkFirst` (1 day max) for offline viewing, and posters retain `StaleWhileRevalidate` (30 days).
+  2. **Vercel Caching Headers (`vercel.json`)**: Configured `Cache-Control: public, max-age=0, must-revalidate` on HTML, `sw.js`, and `manifest.webmanifest`, while retaining `max-age=31536000, immutable` on hashed `/assets/*` and `s-maxage=120, stale-while-revalidate=300` on API routes.
+  3. **Auto-Refresh & Tab Return in `src/App.tsx`**:
+     - Added silent background catalog refresh `loadMovies(isSilent = true)` that seamlessly updates movies without showing full-page skeleton loaders.
+     - Implemented periodic 5-minute auto-refresh interval when on page 1 of the catalog.
+     - Implemented `visibilitychange` and window `focus` event listeners to refresh the catalog automatically whenever a visitor switches back to the CineVault tab.
+     - Added a "Live Catalog" status badge and one-click instant refresh button in the results toolbar.
+  4. **Deployment Recovery (`vite:preloadError`)**:
+     - Added official `vite:preloadError` listener in both `index.html` and `src/main.tsx` to automatically reload and recover from outdated chunk hashes without requiring Ctrl+F5.
+     - Added PWA auto-update registration with hourly background checks via `virtual:pwa-register`.
+  5. **Server Cache Tuning (`server.ts`)**: Reduced server in-memory list cache TTL to 2 minutes so fresh releases appear immediately.
+- **Verification**: `lint_applet` passed (`tsc --noEmit`), `compile_applet` succeeded, and server responded with live catalog and valid headers.
+
+

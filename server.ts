@@ -41,11 +41,11 @@ const detectedIndexHtmlPath = path.resolve(detectedDistPath, 'index.html');
 
 // API Proxy Configuration - ordered by stability and latency
 const API_BASE_URLS = [
-  'https://yts.gg/api/v2',
-  'https://movies-api.accel.li/api/v2',
   'https://yts.am/api/v2',
+  'https://yts.bz/api/v2',
   'https://yts.lt/api/v2',
-  'https://yts.bz/api/v2'
+  'https://yts.ag/api/v2',
+  'https://yts.gg/api/v2'
 ];
 
 function sanitizeMovieImages(obj: any): any {
@@ -67,7 +67,8 @@ function sanitizeMovieImages(obj: any): any {
 }
 
 const cache = new Map<string, { timestamp: number; data: any }>();
-const CACHE_TTL_MS = 10 * 60 * 1000;
+const LIST_CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes for live movie lists
+const DETAILS_CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes for static details
 
 async function fetchFromApi(endpoint: string, queryParams: Record<string, any>): Promise<any> {
   const normalizedParams = Object.entries(queryParams).reduce<Record<string, string>>((acc, [key, value]) => {
@@ -79,7 +80,8 @@ async function fetchFromApi(endpoint: string, queryParams: Record<string, any>):
   const cacheKey = `${endpoint}?${queryString}`;
   const cached = cache.get(cacheKey);
 
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+  const ttl = endpoint === 'list_movies.json' ? LIST_CACHE_TTL_MS : DETAILS_CACHE_TTL_MS;
+  if (cached && Date.now() - cached.timestamp < ttl) {
     return cached.data;
   }
 
@@ -707,7 +709,7 @@ Your core objectives:
   }
 });
 
-app.get(['/api/movies', '/api/movies/list'], async (req, res) => {
+app.get(['/api/movies', '/api/movies/list', '/api/v2/list_movies.json'], async (req, res) => {
   try {
     const data = await fetchFromApi('list_movies.json', req.query as any);
     res.json(data);
@@ -716,7 +718,7 @@ app.get(['/api/movies', '/api/movies/list'], async (req, res) => {
   }
 });
 
-app.get(['/api/movie_details', '/api/movies/details'], async (req, res) => {
+app.get(['/api/movie_details', '/api/movies/details', '/api/v2/movie_details.json'], async (req, res) => {
   try {
     const data = await fetchFromApi('movie_details.json', { ...req.query, with_images: 'true', with_cast: 'true' } as any);
     res.json(data);
@@ -725,7 +727,7 @@ app.get(['/api/movie_details', '/api/movies/details'], async (req, res) => {
   }
 });
 
-app.get(['/api/movie_suggestions', '/api/movies/suggestions'], async (req, res) => {
+app.get(['/api/movie_suggestions', '/api/movies/suggestions', '/api/v2/movie_suggestions.json'], async (req, res) => {
   try {
     const data = await fetchFromApi('movie_suggestions.json', req.query as any);
     res.json(data);
@@ -734,7 +736,7 @@ app.get(['/api/movie_suggestions', '/api/movies/suggestions'], async (req, res) 
   }
 });
 
-app.get(['/api/movie_parental_guides', '/api/movies/parental_guides'], async (req, res) => {
+app.get(['/api/movie_parental_guides', '/api/movies/parental_guides', '/api/v2/movie_parental_guides.json'], async (req, res) => {
   try {
     const data = await fetchFromApi('movie_parental_guides.json', req.query as any);
     res.json(data);

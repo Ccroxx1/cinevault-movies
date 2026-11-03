@@ -9,6 +9,42 @@
   },
   "headers": [
     {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(index.html)?",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/(sw.js|registerSW.js|manifest.webmanifest)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/api/movies/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, s-maxage=120, stale-while-revalidate=300"
+        }
+      ]
+    },
+    {
       "source": "/(.*)",
       "headers": [
         {
@@ -100,24 +136,16 @@
       "destination": "/api/index"
     },
     {
-      "source": "/api/movies/list",
-      "destination": "https://movies-api.accel.li/api/v2/list_movies.json"
+      "source": "/api/movies",
+      "destination": "/api/index"
     },
     {
-      "source": "/api/movies/details",
-      "destination": "https://movies-api.accel.li/api/v2/movie_details.json"
-    },
-    {
-      "source": "/api/movies/suggestions",
-      "destination": "https://movies-api.accel.li/api/v2/movie_suggestions.json"
-    },
-    {
-      "source": "/api/movies/parental_guides",
-      "destination": "https://movies-api.accel.li/api/v2/movie_parental_guides.json"
+      "source": "/api/movies/:path*",
+      "destination": "/api/index"
     },
     {
       "source": "/api/v2/:path*",
-      "destination": "https://movies-api.accel.li/api/v2/:path*"
+      "destination": "/api/index"
     },
     {
       "source": "/api/download/:path*",

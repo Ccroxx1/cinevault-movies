@@ -78,7 +78,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     filters.runtime_bracket && filters.runtime_bracket !== 'all',
     filters.codec && filters.codec !== 'all',
     filters.language && filters.language !== 'All',
-    filters.sort_by !== 'date_added' || filters.order_by === 'desc',
+    filters.sort_by !== 'date_added' || filters.order_by !== 'desc',
   ].filter(Boolean).length;
 
   return (

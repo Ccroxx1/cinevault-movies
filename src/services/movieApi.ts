@@ -243,15 +243,14 @@ export const SORT_OPTIONS = MOVIE_SORT_OPTIONS.map((opt) => ({
   order: opt.orderBy
 }));
 
-// API mirror candidates prioritizing yts.gg for superior reliability and image delivery
+// API mirror candidates prioritizing same-origin proxy and fastest healthy mirrors
 const PUBLIC_MIRRORS = [
-  'https://yts.gg/api/v2',
-  'https://movies-api.accel.li/api/v2',
   '/api/movies',
   'https://yts.am/api/v2',
-  'https://yts.lt/api/v2',
   'https://yts.bz/api/v2',
-  'https://yts.ag/api/v2'
+  'https://yts.lt/api/v2',
+  'https://yts.ag/api/v2',
+  'https://yts.gg/api/v2'
 ];
 
 async function fetchFromMirrors(
@@ -284,10 +283,16 @@ async function fetchFromMirrors(
       const timeoutMs = mirror.startsWith('/api') ? 12000 : 5000;
       const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
+      const headers: Record<string, string> = {
+        'Accept': 'application/json, text/plain, */*'
+      };
+      if (endpointName === 'list') {
+        headers['Cache-Control'] = 'no-cache';
+        headers['Pragma'] = 'no-cache';
+      }
+
       const response = await fetch(targetUrl, {
-        headers: {
-          'Accept': 'application/json, text/plain, */*'
-        },
+        headers,
         signal: controller.signal,
         redirect: 'follow'
       });
@@ -310,7 +315,10 @@ async function fetchFromMirrors(
             if (Array.isArray(movies) && movies.length > 0) {
               return parsed;
             }
-            // If empty array for list query, try next mirror
+            if (parsed?.data && parsed?.data?.movie_count === 0) {
+              return parsed;
+            }
+            // If empty array for list query without valid 0 count, try next mirror
             continue;
           } else if (parsed && (parsed.status === 'ok' || parsed.data || parsed.movie)) {
             return parsed;

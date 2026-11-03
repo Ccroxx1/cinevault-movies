@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { RefreshCw } from 'lucide-react';
 import { Movie, FilterParams } from './types';
 import { fetchMovies, fetchMovieBySlug, validateAndCleanMovies, filterMoviesByParams } from './services/movieApi';
 import { FALLBACK_FEATURED_MOVIES } from './data/fallbackMovies';
@@ -151,7 +152,10 @@ export default function App() {
   const [isFeaturedLoading, setIsFeaturedLoading] = useState<boolean>(() => initialUrlState.route.type === 'browse');
   const [totalCount, setTotalCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(() => initialUrlState.route.type === 'browse');
+  const [isRefreshingSilently, setIsRefreshingSilently] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const lastCatalogUpdateRef = useRef<number>(Date.now());
+  const previousFirstMovieIdRef = useRef<number | null>(null);
 
   // Router State
   const [route, setRoute] = useState<AppRoute>(() => initialUrlState.route);
@@ -642,28 +646,103 @@ export default function App() {
   }, [featuredMovies, route.type]);
 
   // Fetch Main Movies Catalog
-  const loadMovies = useCallback(async () => {
+  const loadMovies = useCallback(async (isSilent = false) => {
     if (route.type !== 'browse') return;
 
-    setIsLoading(true);
-    setError(null);
+    if (!isSilent) {
+      setIsLoading(true);
+      setError(null);
+    } else {
+      setIsRefreshingSilently(true);
+    }
 
     try {
       const data = await fetchMovies(filters);
-      setMovies(data.movies || []);
-      setTotalCount(data.totalCount || 0);
+      const newMovies = data.movies || [];
+      const newTotal = data.totalCount || 0;
+
+      // If new movies arrived while browsing page 1 of recently added catalog
+      if (
+        isSilent &&
+        filters.page === 1 &&
+        filters.sort_by === 'date_added' &&
+        newMovies.length > 0 &&
+        previousFirstMovieIdRef.current &&
+        newMovies[0].id !== previousFirstMovieIdRef.current
+      ) {
+        addToast('info', 'Catalog Updated', `New release added: "${newMovies[0].title}"`);
+      }
+
+      if (newMovies.length > 0) {
+        previousFirstMovieIdRef.current = newMovies[0].id;
+      }
+
+      setMovies(newMovies);
+      setTotalCount(newTotal);
+      lastCatalogUpdateRef.current = Date.now();
     } catch (err: any) {
-      setError(err?.message || 'Failed to connect to movie library. Please try again.');
-      setMovies([]);
-      setTotalCount(0);
+      if (!isSilent) {
+        setError(err?.message || 'Failed to connect to movie library. Please try again.');
+        setMovies([]);
+        setTotalCount(0);
+      } else {
+        console.debug('[CineVault] Silent catalog refresh skipped due to network:', err?.message);
+      }
     } finally {
-      setIsLoading(false);
+      if (!isSilent) {
+        setIsLoading(false);
+      } else {
+        setIsRefreshingSilently(false);
+      }
     }
   }, [filters, route.type]);
 
   useEffect(() => {
     loadMovies();
   }, [loadMovies]);
+
+  // Periodic automatic refresh every 5 minutes for newly added movies
+  useEffect(() => {
+    if (route.type !== 'browse') return;
+
+    const intervalId = setInterval(() => {
+      // Refresh silently only when tab is active and viewing page 1
+      if (typeof document !== 'undefined' && !document.hidden && filters.page === 1) {
+        loadMovies(true);
+      }
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return () => clearInterval(intervalId);
+  }, [route.type, filters.page, loadMovies]);
+
+  // Automatic silent catalog refresh when visitor returns to CineVault browser tab
+  useEffect(() => {
+    const checkAndRefresh = () => {
+      const elapsedSinceUpdate = Date.now() - lastCatalogUpdateRef.current;
+      // Refresh silently if tab is active, browsing page 1, and > 90 seconds have passed since last update
+      if (
+        route.type === 'browse' &&
+        filters.page === 1 &&
+        elapsedSinceUpdate > 90 * 1000
+      ) {
+        loadMovies(true);
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        checkAndRefresh();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', checkAndRefresh);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', checkAndRefresh);
+    };
+  }, [route.type, filters.page, loadMovies]);
 
   // Handle Navigation Category switching
   const handleNavSelect = (nav: string) => {
@@ -1100,6 +1179,26 @@ export default function App() {
                       ★ {filters.minimum_rating}+
                     </span>
                   )}
+
+                  {/* Live Catalog Status & Instant Refresh */}
+                  <div className="flex items-center gap-1.5 ml-auto sm:ml-1">
+                    <button
+                      type="button"
+                      onClick={() => loadMovies(true)}
+                      disabled={isRefreshingSilently || isLoading}
+                      title="Auto-refreshes every 5 minutes or on tab return. Click to check for new movies now."
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-semibold transition cursor-pointer select-none ${
+                        isRefreshingSilently
+                          ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 shadow-xs'
+                          : isWhite
+                          ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
+                          : 'bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border-white/10'
+                      }`}
+                    >
+                      <RefreshCw className={`w-3 h-3 ${isRefreshingSilently ? 'animate-spin text-emerald-400' : 'text-emerald-500'}`} />
+                      <span>{isRefreshingSilently ? 'Updating...' : 'Live Catalog'}</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-2 self-start sm:self-center">
@@ -1122,7 +1221,7 @@ export default function App() {
                   <span className="text-sm font-medium">{error}</span>
                 </div>
                 <button
-                  onClick={loadMovies}
+                  onClick={() => loadMovies()}
                   className="px-3.5 py-1.5 bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 text-xs font-semibold rounded-full border border-rose-500/30 transition-colors flex items-center gap-1.5 cursor-pointer"
                 >
                   <span>Retry</span>

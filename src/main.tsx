@@ -98,6 +98,45 @@ if (typeof window !== 'undefined') {
     },
     true,
   );
+
+  // Outdated chunk recovery and automatic reload
+  window.addEventListener('vite:preloadError', () => {
+    console.warn('[CineVault] New deployment detected or dynamic chunk load error. Refreshing to load latest version...');
+    try {
+      const lastReload = sessionStorage.getItem('cinevault_chunk_reload');
+      const now = Date.now();
+      if (!lastReload || now - parseInt(lastReload, 10) > 15000) {
+        sessionStorage.setItem('cinevault_chunk_reload', String(now));
+        window.location.reload();
+      }
+    } catch {
+      window.location.reload();
+    }
+  });
+
+  // Automatic PWA service worker registration and periodic update checks
+  if ('serviceWorker' in navigator) {
+    import('virtual:pwa-register')
+      .then(({ registerSW }) => {
+        const updateSW = registerSW({
+          onNeedRefresh() {
+            console.info('[CineVault PWA] New version detected, updating service worker...');
+            updateSW(true);
+          },
+          onOfflineReady() {
+            console.info('[CineVault PWA] Offline cache initialized');
+          },
+        });
+
+        // Check for updates periodically every 60 minutes
+        setInterval(() => {
+          updateSW();
+        }, 60 * 60 * 1000);
+      })
+      .catch((err) => {
+        console.debug('[CineVault PWA] Service worker registration note:', err);
+      });
+  }
 }
 
 createRoot(document.getElementById('root')!).render(

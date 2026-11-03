@@ -77,12 +77,12 @@ export default defineConfig(() => {
               },
             },
             {
-              urlPattern: /^https:\/\/(.*yts\.mx|.*cloudfront\.net|.*images\.unsplash\.com)\/.*\.(jpg|jpeg|png|webp|svg)/i,
+              urlPattern: /^https:\/\/(.*yts\.(mx|gg|am|lt|bz|ag)|.*img\.yts\.gg|.*cloudfront\.net|.*images\.unsplash\.com)\/.*\.(jpg|jpeg|png|webp|svg)/i,
               handler: 'StaleWhileRevalidate',
               options: {
                 cacheName: 'movie-posters-cache',
                 expiration: {
-                  maxEntries: 120,
+                  maxEntries: 150,
                   maxAgeSeconds: 60 * 60 * 24 * 30, // 30 Days
                 },
                 cacheableResponse: {
@@ -91,19 +91,25 @@ export default defineConfig(() => {
               },
             },
             {
-              urlPattern: /\/api\/movies\/(list|details).*/i,
+              // Movie details cached for offline resilience (1 day max, 5s network timeout)
+              urlPattern: /\/api\/(movies\/details|movie_details).*/i,
               handler: 'NetworkFirst',
               options: {
-                cacheName: 'movies-api-cache',
-                networkTimeoutSeconds: 3,
+                cacheName: 'movie-details-cache',
+                networkTimeoutSeconds: 5,
                 expiration: {
-                  maxEntries: 50,
-                  maxAgeSeconds: 60 * 60 * 24 * 7, // 7 Days
+                  maxEntries: 60,
+                  maxAgeSeconds: 60 * 60 * 24, // 1 Day
                 },
                 cacheableResponse: {
                   statuses: [0, 200],
                 },
               },
+            },
+            {
+              // Movie catalog list: NetworkOnly so visitors ALWAYS receive the live, newest movie releases
+              urlPattern: /\/api\/(movies(\/list)?|v2\/list_movies).*/i,
+              handler: 'NetworkOnly',
             },
           ],
         },
