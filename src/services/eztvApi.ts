@@ -78,7 +78,7 @@ const CLIENT_EZTV_MIRRORS = [
 
 /**
  * Fetch torrents from the EZTV API (proxied via /api/eztv with direct client-side fallback)
- * Automatically filters latest episode releases exclusively for Action, Crime, Adventure, Thriller, and Mystery series!
+ * The server provides the latest eligible episode releases with genre and date filtering.
  * Documentation: https://eztvx.to/api/get-torrents
  */
 export async function fetchEztvTorrents(params: EztvFetchParams = {}): Promise<EztvApiResponse> {
@@ -99,7 +99,7 @@ export async function fetchEztvTorrents(params: EztvFetchParams = {}): Promise<E
   }
 
   if (params.page && params.page > 0) {
-    query.set('page', String(Math.min(100, Math.max(1, params.page))));
+    query.set('page', String(Math.max(1, Math.floor(params.page))));
   }
 
   if (params.limit && params.limit > 0) {
@@ -149,6 +149,10 @@ export async function fetchEztvTorrents(params: EztvFetchParams = {}): Promise<E
   let targetImdbId = params.imdb_id ? params.imdb_id.replace(/^tt/i, '').trim() : '';
   let resolvedTitle: string | undefined = undefined;
   let showMeta: TvShowInfo | null = null;
+
+  if (!targetImdbId && !params.search?.trim()) {
+    throw backendError || new Error('The seven-day TV release feed is unavailable. Please try again.');
+  }
 
   if (!targetImdbId && params.search && params.search.trim()) {
     try {
