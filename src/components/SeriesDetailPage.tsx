@@ -27,7 +27,14 @@ import {
   RefreshCw,
   FolderArchive,
   ListFilter,
-  Layers2
+  Layers2,
+  CheckCircle2,
+  Circle,
+  Eye,
+  EyeOff,
+  Bot,
+  Radio,
+  FileText
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { TvShowDetails, TvShowInfo, EztvTorrent, EztvApiResponse, Movie } from '../types';
@@ -551,6 +558,131 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
 
   // Selected episode filter for episode guide tab
   const [guideSeason, setGuideSeason] = useState<number>(1);
+
+  // Persistent episode watch tracking
+  const storageKey = useMemo(() => {
+    const identifier = show?.imdb_code || effectiveImdb || (show?.id ? `show_${show.id}` : cleanInitialTitle.toLowerCase().replace(/[^a-z0-9]/g, '_'));
+    return `cv_watched_episodes_${identifier}`;
+  }, [show?.imdb_code, effectiveImdb, show?.id, cleanInitialTitle]);
+
+  const [watchedEpisodes, setWatchedEpisodes] = useState<Record<string, boolean>>(() => {
+    if (typeof window === 'undefined') return {};
+    try {
+      const raw = localStorage.getItem(storageKey);
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = localStorage.getItem(storageKey);
+      setWatchedEpisodes(raw ? JSON.parse(raw) : {});
+    } catch {
+      setWatchedEpisodes({});
+    }
+  }, [storageKey]);
+
+  const toggleEpisodeWatched = (epTag: string) => {
+    setWatchedEpisodes((prev) => {
+      const isNowWatched = !prev[epTag];
+      const next = { ...prev };
+      if (isNowWatched) {
+        next[epTag] = true;
+      } else {
+        delete next[epTag];
+      }
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  const markSeasonWatched = (seasonNum: number, markAsWatched: boolean) => {
+    if (!show?.episodes) return;
+    setWatchedEpisodes((prev) => {
+      const next = { ...prev };
+      show.episodes?.forEach((ep) => {
+        if (ep.season === seasonNum) {
+          const epTag = `S${String(ep.season).padStart(2, '0')}E${String(ep.number).padStart(2, '0')}`;
+          if (markAsWatched) {
+            next[epTag] = true;
+          } else {
+            delete next[epTag];
+          }
+        }
+      });
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  // Next up to watch episode detection
+  const nextUpEpisode = useMemo(() => {
+    if (!show?.episodes || show.episodes.length === 0) return null;
+    const sorted = [...show.episodes].sort((a, b) => {
+      if (a.season !== b.season) return a.season - b.season;
+      return a.number - b.number;
+    });
+    for (const ep of sorted) {
+      const epTag = `S${String(ep.season).padStart(2, '0')}E${String(ep.number).padStart(2, '0')}`;
+      if (!watchedEpisodes[epTag]) {
+        // Find best seeder torrent for this episode
+        const matchingTorrents = torrents.filter((t) => {
+          const meta = parseReleaseMeta(t);
+          return meta.season === ep.season && meta.episode === ep.number;
+        }).sort((a, b) => (b.seeds || 0) - (a.seeds || 0));
+        return {
+          ep,
+          tag: epTag,
+          matchingTorrent: matchingTorrents[0] || null,
+          allTorrents: matchingTorrents
+        };
+      }
+    }
+    return null;
+  }, [show?.episodes, watchedEpisodes, torrents]);
+
+  // Overall watch stats
+  const totalWatchedCount = useMemo(() => {
+    if (!show?.episodes || show.episodes.length === 0) return 0;
+    return show.episodes.filter(ep => {
+      const tag = `S${String(ep.season).padStart(2, '0')}E${String(ep.number).padStart(2, '0')}`;
+      return Boolean(watchedEpisodes[tag]);
+    }).length;
+  }, [show?.episodes, watchedEpisodes]);
+
+  const overallWatchPercent = useMemo(() => {
+    if (!show?.episodes || show.episodes.length === 0) return 0;
+    return Math.round((totalWatchedCount / show.episodes.length) * 100);
+  }, [totalWatchedCount, show?.episodes]);
+
+  // Copy all season magnets helper
+  const handleCopySeasonMagnets = (seasonNum: number) => {
+    const seasonTorrents = torrents.filter(t => {
+      const meta = parseReleaseMeta(t);
+      return meta.season === seasonNum;
+    });
+
+    const magnetUrls = seasonTorrents
+      .map(t => t.magnet_url)
+      .filter((url): url is string => Boolean(url));
+
+    if (magnetUrls.length === 0) {
+      onShowToast(`No magnet links available for Season ${seasonNum}`, 'info');
+      return;
+    }
+
+    const uniqueMagnets = Array.from(new Set(magnetUrls));
+    const textToCopy = uniqueMagnets.join('\n');
+    navigator.clipboard.writeText(textToCopy);
+    onShowToast(`Copied ${uniqueMagnets.length} magnet links for Season ${seasonNum} to clipboard!`, 'success');
+  };
 
   // Load TV show details and episodes
   useEffect(() => {
@@ -1127,12 +1259,29 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                 )}
 
                 {show?.status && (
-                  <span className={`movie-hero-badge px-2.5 py-1 text-xs font-bold tracking-wider rounded-lg border ${
+                  <span className={`movie-hero-badge px-2.5 py-1 text-xs font-bold tracking-wider rounded-lg border inline-flex items-center gap-1.5 ${
                     show.status.toLowerCase() === 'running'
                       ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
-                      : 'bg-neutral-800 text-neutral-300 border-white/10'
+                      : show.status.toLowerCase() === 'ended'
+                      ? 'bg-neutral-800/90 text-neutral-300 border-white/10'
+                      : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
                   }`}>
-                    {show.status}
+                    <span className={`w-1.5 h-1.5 rounded-full ${
+                      show.status.toLowerCase() === 'running'
+                        ? 'bg-emerald-400 animate-pulse'
+                        : show.status.toLowerCase() === 'ended'
+                        ? 'bg-neutral-500'
+                        : 'bg-amber-400'
+                    }`} />
+                    <span>
+                      {show.status.toLowerCase() === 'running'
+                        ? (show.schedule?.days && show.schedule.days.length > 0
+                            ? `Currently Airing (${show.schedule.days.join(', ')}${show.schedule.time ? ` • ${show.schedule.time}` : ''})`
+                            : 'Currently Airing')
+                        : show.status.toLowerCase() === 'ended'
+                        ? 'Series Complete'
+                        : show.status}
+                    </span>
                   </span>
                 )}
 
@@ -1316,7 +1465,147 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
           </button>
         </nav>
 
-        {/* Tab 1: Torrents & Magnets */}
+        {/* Watch Progress & Next Up Queue Card */}
+        {show?.episodes && show.episodes.length > 0 && (
+          <div className="space-y-3.5">
+            {/* Overall Progress Bar */}
+            <div className={`p-3.5 sm:px-5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+              isWhite ? 'bg-white border-slate-200 shadow-xs' : 'bg-[#0e0e12] border-white/10'
+            }`}>
+              <div className="space-y-1.5 flex-1 min-w-0">
+                <div className="flex items-center justify-between text-xs">
+                  <span className={`font-bold ${isWhite ? 'text-slate-800' : 'text-neutral-200'}`}>
+                    Series Watch Progress: {totalWatchedCount} of {show.episodes.length} episodes watched
+                  </span>
+                  <span className="font-mono font-bold text-rose-500">{overallWatchPercent}%</span>
+                </div>
+                <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-rose-500 to-amber-500 rounded-full transition-all duration-300"
+                    style={{ width: `${overallWatchPercent}%` }}
+                  />
+                </div>
+              </div>
+
+              {totalWatchedCount > 0 && (
+                <button
+                  onClick={() => {
+                    if (confirm('Reset your watch progress for this series?')) {
+                      setWatchedEpisodes({});
+                      try {
+                        localStorage.removeItem(storageKey);
+                      } catch {}
+                    }
+                  }}
+                  className="text-[11px] text-neutral-400 hover:text-rose-400 underline cursor-pointer shrink-0"
+                >
+                  Reset Progress
+                </button>
+              )}
+            </div>
+
+            {/* Next Up to Watch Card */}
+            {nextUpEpisode ? (
+              <div className="p-4 sm:p-5 rounded-2xl border border-rose-500/30 bg-gradient-to-r from-rose-950/20 via-black/40 to-black/30 backdrop-blur-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-lg shadow-rose-950/20">
+                <div className="flex items-start sm:items-center gap-4 flex-1 min-w-0">
+                  <div className="w-20 h-14 sm:w-28 sm:h-18 rounded-xl overflow-hidden bg-black/50 shrink-0 border border-white/10 relative">
+                    <img
+                      src={nextUpEpisode.ep.image?.medium || currentPosterSrc}
+                      alt={nextUpEpisode.ep.name}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                    <span className="absolute bottom-1 left-1 px-1.5 py-0.2 rounded bg-black/80 font-mono font-bold text-[10px] text-rose-400">
+                      {nextUpEpisode.tag}
+                    </span>
+                  </div>
+
+                  <div className="space-y-1 min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-bold uppercase tracking-wider">
+                        Next Up
+                      </span>
+                      {nextUpEpisode.ep.airdate && (
+                        <span className="text-[11px] text-neutral-400">
+                          Aired: {nextUpEpisode.ep.airdate}
+                        </span>
+                      )}
+                      {nextUpEpisode.ep.runtime && (
+                        <span className="text-[11px] text-neutral-400 font-mono">
+                          • {nextUpEpisode.ep.runtime} min
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="text-sm sm:text-base font-bold text-white truncate">
+                      {nextUpEpisode.ep.number}. {nextUpEpisode.ep.name}
+                    </h3>
+                    {nextUpEpisode.ep.summary && (
+                      <p className="text-xs text-neutral-300 line-clamp-1 max-w-2xl">
+                        {nextUpEpisode.ep.summary.replace(/<[^>]*>?/gm, '')}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 w-full md:w-auto shrink-0 justify-end">
+                  {nextUpEpisode.matchingTorrent ? (
+                    <button
+                      onClick={() => {
+                        if (nextUpEpisode.matchingTorrent?.magnet_url) {
+                          onCopyMagnet(nextUpEpisode.matchingTorrent.magnet_url, nextUpEpisode.matchingTorrent.title);
+                          window.location.href = nextUpEpisode.matchingTorrent.magnet_url;
+                        }
+                      }}
+                      className="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-rose-950/40 cursor-pointer transition-colors"
+                      title="Launch magnet in torrent client"
+                    >
+                      <Magnet size={14} />
+                      <span>Play / Magnet</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setSelectedSeason(String(nextUpEpisode.ep.season));
+                        setReleaseSearch(nextUpEpisode.tag);
+                        setActiveTab('torrents');
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-xs flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Search size={13} />
+                      <span>Find Torrents</span>
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => toggleEpisodeWatched(nextUpEpisode.tag)}
+                    className="px-3 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
+                    title="Mark this episode as watched"
+                  >
+                    <CheckCircle2 size={14} />
+                    <span>Mark Watched</span>
+                  </button>
+
+                  {onAskCineBot && (
+                    <button
+                      onClick={() => onAskCineBot(`Tell me about episode ${nextUpEpisode.tag} of "${show.name}" titled "${nextUpEpisode.ep.name}". Give me a spoiler-free vibe check and themes!`)}
+                      className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 text-xs cursor-pointer"
+                      title="Ask CineBot about this episode"
+                    >
+                      <Bot size={15} />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : totalWatchedCount > 0 && totalWatchedCount === show.episodes.length ? (
+              <div className="p-4 rounded-2xl border border-emerald-500/30 bg-emerald-950/20 text-emerald-300 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 text-xs sm:text-sm font-bold">
+                  <CheckCircle2 size={18} className="text-emerald-400 shrink-0" />
+                  <span>You're all caught up! You've watched every episode of {show.name}.</span>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        )}
         {activeTab === 'torrents' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
             
@@ -1729,8 +2018,21 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                               </span>
                             </div>
 
-                            <div className="flex items-center gap-3">
-                              <span className={`text-xs font-mono hidden sm:inline-block ${
+                            <div className="flex items-center gap-2.5">
+                              {group.seasonNum && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCopySeasonMagnets(group.seasonNum!);
+                                  }}
+                                  className="px-2.5 py-1 rounded-lg bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/30 text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-xs"
+                                  title={`Copy all magnet links for ${group.seasonLabel}`}
+                                >
+                                  <Magnet size={13} />
+                                  <span className="hidden sm:inline">Copy All Magnets</span>
+                                </button>
+                              )}
+                              <span className={`text-xs font-mono hidden md:inline-block ${
                                 isWhite ? 'text-slate-500' : 'text-neutral-400'
                               }`}>
                                 Total: {formatEztvBytes(group.totalBytes)} • Peak Seeds: <span className="text-emerald-500 font-bold">{group.maxSeeds}</span>
@@ -2201,75 +2503,200 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                 })}
               </div>
 
+              {/* Season Progress & Action Toolbar */}
+              {(() => {
+                const seasonEps = show.episodes?.filter((ep) => ep.season === guideSeason) || [];
+                const watchedInSeason = seasonEps.filter(ep => {
+                  const tag = `S${String(ep.season).padStart(2, '0')}E${String(ep.number).padStart(2, '0')}`;
+                  return Boolean(watchedEpisodes[tag]);
+                }).length;
+                const seasonPercent = seasonEps.length > 0 ? Math.round((watchedInSeason / seasonEps.length) * 100) : 0;
+
+                return (
+                  <div className={`p-3.5 sm:px-4.5 rounded-2xl border flex flex-col md:flex-row md:items-center justify-between gap-3 ${
+                    isWhite ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'
+                  }`}>
+                    {/* Season Progress */}
+                    <div className="space-y-1 flex-1 min-w-0">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className={`font-bold ${isWhite ? 'text-slate-800' : 'text-neutral-200'}`}>
+                          Season {guideSeason}: {watchedInSeason} of {seasonEps.length} watched
+                        </span>
+                        <span className="font-mono font-bold text-rose-500">{seasonPercent}%</span>
+                      </div>
+                      <div className="w-full h-1.5 rounded-full bg-white/10 overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-rose-500 to-emerald-500 rounded-full transition-all duration-300"
+                          style={{ width: `${seasonPercent}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Season Action Buttons */}
+                    <div className="flex flex-wrap items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => markSeasonWatched(guideSeason, watchedInSeason < seasonEps.length)}
+                        className="px-2.5 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
+                        title={watchedInSeason < seasonEps.length ? `Mark all ${seasonEps.length} episodes in Season ${guideSeason} as watched` : `Reset watch status for Season ${guideSeason}`}
+                      >
+                        <CheckCircle2 size={13} />
+                        <span>{watchedInSeason < seasonEps.length ? 'Mark All Watched' : 'Reset Season'}</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleCopySeasonMagnets(guideSeason)}
+                        className="px-2.5 py-1.5 rounded-lg bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/30 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
+                        title={`Copy all magnet links for Season ${guideSeason}`}
+                      >
+                        <Magnet size={13} />
+                        <span>Copy Season Magnets</span>
+                      </button>
+
+                      {guideSeason > 1 && onAskCineBot && (
+                        <button
+                          onClick={() => onAskCineBot(`Can you give me a punchy, spoiler-free recap of Season ${guideSeason - 1} of "${show.name}" so I am caught up for Season ${guideSeason}?`)}
+                          className="px-2.5 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
+                          title={`Spoiler-free recap of previous seasons before watching Season ${guideSeason}`}
+                        >
+                          <Bot size={13} />
+                          <span>Recap S{guideSeason - 1}</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* Episodes Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {show.episodes
                   .filter((ep) => ep.season === guideSeason)
                   .map((ep) => {
                     const epTag = `S${String(ep.season).padStart(2, '0')}E${String(ep.number).padStart(2, '0')}`;
-                    
+                    const isEpWatched = Boolean(watchedEpisodes[epTag]);
+
+                    // Find all torrents matching this episode
+                    const matchingTorrents = torrents.filter((t) => {
+                      const meta = parseReleaseMeta(t);
+                      return meta.season === ep.season && meta.episode === ep.number;
+                    });
+
+                    // Deduplicate by quality
+                    const qualityMap = new Map<string, EztvTorrent>();
+                    for (const t of matchingTorrents) {
+                      const q = parseQualityFromEztv(t.title, t.filename);
+                      const qKey = q.is4k ? '4K UHD' : q.isHevc ? '1080p x265' : q.quality;
+                      if (!qualityMap.has(qKey) || (t.seeds || 0) > (qualityMap.get(qKey)?.seeds || 0)) {
+                        qualityMap.set(qKey, t);
+                      }
+                    }
+                    const qualityOptions = Array.from(qualityMap.entries());
+
                     return (
                       <div
                         key={ep.id}
-                        className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row gap-4 ${
-                          isWhite
+                        className={`p-4 rounded-2xl border transition-all flex flex-col gap-3.5 ${
+                          isEpWatched
+                            ? isWhite
+                              ? 'bg-emerald-50/50 border-emerald-300 shadow-xs'
+                              : 'bg-emerald-950/15 border-emerald-500/40 shadow-xs'
+                            : isWhite
                             ? 'bg-white border-slate-200 shadow-xs hover:border-slate-300'
                             : isBlueBlack
                             ? 'bg-[#0b1329] border-sky-900/40 hover:border-sky-800/60'
                             : 'bg-[#0e0e0e] border-white/10 hover:border-white/20'
                         }`}
                       >
-                        {/* Thumbnail Still */}
-                        <div className="sm:w-36 aspect-video rounded-xl overflow-hidden bg-black/40 shrink-0 relative">
-                          {ep.image?.medium || ep.image?.original ? (
-                            <img
-                              src={ep.image.medium || ep.image.original!}
-                              alt={`${ep.name} still`}
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                            />
-                          ) : (
-                            <div className={`w-full h-full flex items-center justify-center ${
-                              isWhite ? 'bg-slate-100 text-slate-400' : 'bg-white/5 text-neutral-600'
-                            }`}>
-                              <Tv size={24} />
-                            </div>
-                          )}
-                          <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/80 backdrop-blur-xs text-[10px] font-mono font-bold text-white border border-white/10">
-                            {epTag}
-                          </span>
-                        </div>
-
-                        {/* Episode Content */}
-                        <div className="flex-1 min-w-0 space-y-1.5">
-                          <div className="flex items-center justify-between gap-2">
-                            <h4 className={`text-sm font-bold truncate ${
-                              isWhite ? 'text-slate-900' : 'text-white'
-                            }`}>
-                              {ep.number}. {ep.name}
-                            </h4>
-                            {ep.runtime && (
-                              <span className={`text-[11px] font-mono shrink-0 ${
-                                isWhite ? 'text-slate-500' : 'text-neutral-400'
+                        <div className="flex flex-col sm:flex-row gap-4">
+                          {/* Thumbnail Still */}
+                          <div className="sm:w-36 aspect-video rounded-xl overflow-hidden bg-black/40 shrink-0 relative">
+                            {ep.image?.medium || ep.image?.original ? (
+                              <img
+                                src={ep.image.medium || ep.image.original!}
+                                alt={`${ep.name} still`}
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className={`w-full h-full flex items-center justify-center ${
+                                isWhite ? 'bg-slate-100 text-slate-400' : 'bg-white/5 text-neutral-600'
                               }`}>
-                                {ep.runtime} min
+                                <Tv size={24} />
+                              </div>
+                            )}
+                            <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/80 backdrop-blur-xs text-[10px] font-mono font-bold text-white border border-white/10">
+                              {epTag}
+                            </span>
+                            {isEpWatched && (
+                              <span className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-emerald-500 text-black font-bold text-[10px] flex items-center gap-0.5 shadow-md">
+                                <Check size={11} className="stroke-[3]" />
+                                <span>Watched</span>
                               </span>
                             )}
                           </div>
 
-                          {ep.airdate && (
-                            <p className={`text-[11px] ${isWhite ? 'text-slate-500' : 'text-neutral-400'}`}>
-                              Aired: {ep.airdate}
+                          {/* Episode Content */}
+                          <div className="flex-1 min-w-0 space-y-1.5">
+                            <div className="flex items-start justify-between gap-2">
+                              <h4 className={`text-sm font-bold truncate flex-1 ${
+                                isWhite ? 'text-slate-900' : 'text-white'
+                              }`}>
+                                {ep.number}. {ep.name}
+                              </h4>
+
+                              {/* Toggle Watched Button */}
+                              <button
+                                onClick={() => toggleEpisodeWatched(epTag)}
+                                className={`p-1.5 rounded-lg border transition-all cursor-pointer shrink-0 ${
+                                  isEpWatched
+                                    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40 hover:bg-emerald-500/30'
+                                    : 'bg-white/5 text-neutral-400 border-white/10 hover:text-white hover:bg-white/10'
+                                }`}
+                                title={isEpWatched ? 'Mark as unwatched' : 'Mark as watched'}
+                              >
+                                {isEpWatched ? <CheckCircle2 size={15} /> : <Circle size={15} />}
+                              </button>
+                            </div>
+
+                            <div className="flex items-center gap-2 text-[11px] text-neutral-400">
+                              {ep.airdate && <span>Aired: {ep.airdate}</span>}
+                              {ep.runtime && <span>• {ep.runtime} min</span>}
+                            </div>
+
+                            <p className={`text-xs line-clamp-2 leading-relaxed ${
+                              isWhite ? 'text-slate-600' : 'text-neutral-300'
+                            }`}>
+                              {ep.summary ? ep.summary.replace(/<[^>]*>?/gm, '') : 'No detailed episode synopsis available.'}
                             </p>
-                          )}
+                          </div>
+                        </div>
 
-                          <p className={`text-xs line-clamp-3 leading-relaxed ${
-                            isWhite ? 'text-slate-600' : 'text-neutral-300'
-                          }`}>
-                            {ep.summary || 'No detailed episode synopsis available.'}
-                          </p>
-
-                          <div className="pt-2">
+                        {/* Multi-Quality Downloads & Action Strip */}
+                        <div className="pt-2 border-t border-white/5 flex flex-wrap items-center justify-between gap-2">
+                          {qualityOptions.length > 0 ? (
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mr-0.5">
+                                Torrents:
+                              </span>
+                              {qualityOptions.map(([label, t]) => (
+                                <button
+                                  key={label}
+                                  onClick={() => {
+                                    if (t.magnet_url) {
+                                      onCopyMagnet(t.magnet_url, t.title);
+                                      window.location.href = t.magnet_url;
+                                    }
+                                  }}
+                                  className="px-2 py-0.5 rounded-md bg-white/10 hover:bg-rose-600 text-neutral-200 hover:text-white border border-white/10 text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer"
+                                  title={`Download ${label} (${formatEztvBytes(t.size_bytes)} • ${t.seeds || 0} seeds)`}
+                                >
+                                  <Magnet size={11} className="text-rose-400" />
+                                  <span>{label}</span>
+                                  <span className="text-[10px] text-neutral-400 font-mono">({formatEztvBytes(t.size_bytes)})</span>
+                                </button>
+                              ))}
+                            </div>
+                          ) : (
                             <button
                               onClick={() => {
                                 setSelectedSeason(String(ep.season));
@@ -2278,9 +2705,35 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                               }}
                               className="text-xs text-rose-500 hover:text-rose-400 font-bold inline-flex items-center gap-1 cursor-pointer transition-colors"
                             >
-                              <span>Find Torrents for {epTag}</span>
+                              <span>Search Torrents for {epTag}</span>
                               <ChevronRight size={13} />
                             </button>
+                          )}
+
+                          {/* Quick Tools: Subtitles & CineBot */}
+                          <div className="flex items-center gap-1.5 ml-auto">
+                            <button
+                              onClick={() => {
+                                const subQuery = `${show.name} ${epTag} subtitles`;
+                                navigator.clipboard.writeText(subQuery);
+                                onShowToast(`Copied subtitle search query: "${subQuery}"`, 'info');
+                              }}
+                              className="px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 text-[10px] font-semibold flex items-center gap-1 cursor-pointer"
+                              title="Copy subtitle search term"
+                            >
+                              <FileText size={11} />
+                              <span>Subtitles</span>
+                            </button>
+
+                            {onAskCineBot && (
+                              <button
+                                onClick={() => onAskCineBot(`Tell me about episode ${epTag} of "${show.name}" titled "${ep.name}". Give me a spoiler-free review and what to look out for!`)}
+                                className="p-1 rounded-md bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 text-xs cursor-pointer"
+                                title="Ask CineBot about this episode"
+                              >
+                                <Bot size={13} />
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>

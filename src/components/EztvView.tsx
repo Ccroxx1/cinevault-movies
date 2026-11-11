@@ -17,7 +17,9 @@ import {
   Film,
   Info,
   Calendar,
-  ExternalLink
+  ExternalLink,
+  LayoutGrid,
+  List
 } from 'lucide-react';
 import { EztvTorrent, TvShowInfo } from '../types';
 import {
@@ -59,6 +61,154 @@ const POPULAR_SHOWS = [
 export const GENRE_FILTERS = ['Action', 'All', 'Crime', 'Adventure', 'Thriller', 'Mystery'];
 const APPROVED_GENRES_SET = new Set(['action', 'crime', 'adventure', 'thriller', 'mystery']);
 const QUALITY_FILTERS = ['All', '1080p', '720p', '4K UHD', 'x265 / HEVC', '480p'];
+
+export interface SeriesCardData {
+  title: string;
+  year?: string;
+  imdbId?: string;
+  torrents: EztvTorrent[];
+  maxSeeds: number;
+  qualities: string[];
+  latestSeason?: number;
+  latestEpisode?: number;
+  latestReleaseDate: number;
+  sampleTorrent: EztvTorrent;
+}
+
+interface SeriesGridCardProps {
+  series: SeriesCardData;
+  isCopied: boolean;
+  onSelectSeries: (torrent: EztvTorrent) => void;
+  onLaunchMagnet: (torrent: EztvTorrent) => void;
+  onCopyMagnet: (torrent: EztvTorrent) => void;
+}
+
+const SeriesGridCard: React.FC<SeriesGridCardProps> = ({
+  series,
+  isCopied,
+  onSelectSeries,
+  onLaunchMagnet,
+  onCopyMagnet
+}) => {
+  const imdbParam = series.imdbId || (series.sampleTorrent.imdb_id && series.sampleTorrent.imdb_id !== '0' ? `tt${series.sampleTorrent.imdb_id}` : '');
+  const posterCandidates = useMemo(() => {
+    return getSeriesPosterCandidates({
+      name: series.title,
+      imdb_code: imdbParam,
+      imdb_id: series.sampleTorrent.imdb_id,
+      year: series.year,
+      poster_url: series.sampleTorrent.poster_url
+    });
+  }, [series.title, imdbParam, series.sampleTorrent.imdb_id, series.year, series.sampleTorrent.poster_url]);
+
+  const [candidateIndex, setCandidateIndex] = useState(0);
+
+  useEffect(() => {
+    setCandidateIndex(0);
+  }, [series.title, series.imdbId]);
+
+  const handleImageError = () => {
+    if (candidateIndex + 1 < posterCandidates.length) {
+      setCandidateIndex((prev) => prev + 1);
+    }
+  };
+
+  const currentPosterSrc = posterCandidates[candidateIndex] || CINEVAULT_POSTER_FALLBACK;
+
+  const episodeBadge = series.latestSeason && series.latestEpisode
+    ? `S${String(series.latestSeason).padStart(2, '0')}E${String(series.latestEpisode).padStart(2, '0')}`
+    : series.latestSeason
+    ? `Season ${series.latestSeason}`
+    : 'Series';
+
+  return (
+    <div
+      onClick={() => onSelectSeries(series.sampleTorrent)}
+      className="group rounded-2xl border border-white/10 bg-[#0f0f13] hover:border-rose-500/50 hover:bg-white/[0.04] transition-all duration-300 flex flex-col overflow-hidden cursor-pointer shadow-md hover:shadow-xl hover:shadow-rose-950/20 relative"
+    >
+      {/* Poster */}
+      <div className="aspect-[2/3] w-full bg-neutral-900 relative overflow-hidden">
+        <img
+          src={currentPosterSrc}
+          alt={series.title}
+          loading="lazy"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          referrerPolicy="no-referrer"
+          onError={handleImageError}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
+
+        {/* Top Badges */}
+        <div className="absolute top-2 left-2 right-2 flex items-center justify-between pointer-events-none">
+          <span className="px-2 py-0.5 rounded-md bg-black/75 backdrop-blur-xs text-rose-400 font-mono font-bold text-[10px] border border-rose-500/30">
+            {episodeBadge}
+          </span>
+          {series.maxSeeds > 0 && (
+            <span className="px-1.5 py-0.5 rounded-md bg-emerald-950/80 backdrop-blur-xs text-emerald-400 font-mono font-bold text-[10px] border border-emerald-500/30 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              {series.maxSeeds}
+            </span>
+          )}
+        </div>
+
+        {/* Bottom Poster Info */}
+        <div className="absolute bottom-2 left-2 right-2 flex flex-wrap items-center gap-1">
+          {series.qualities.slice(0, 2).map((q) => (
+            <span key={q} className="px-1.5 py-0.2 rounded bg-white/15 backdrop-blur-xs text-[10px] font-semibold text-neutral-200 border border-white/10">
+              {q}
+            </span>
+          ))}
+          <span className="ml-auto text-[10px] font-mono text-neutral-300 bg-black/60 px-1.5 py-0.2 rounded">
+            {series.torrents.length} {series.torrents.length === 1 ? 'file' : 'files'}
+          </span>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="p-3 flex-1 flex flex-col justify-between gap-2">
+        <div>
+          <h3 className="text-sm font-bold text-white group-hover:text-rose-400 transition-colors line-clamp-1 leading-snug">
+            {series.title}
+          </h3>
+          <div className="flex items-center gap-2 text-xs text-neutral-400 mt-0.5">
+            {series.year && <span>{series.year}</span>}
+            {series.year && <span>•</span>}
+            <span className="text-rose-400/90 font-medium text-[11px] group-hover:underline">Explore Series →</span>
+          </div>
+        </div>
+
+        {/* Quick Magnet Action */}
+        <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-1.5">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onLaunchMagnet(series.sampleTorrent);
+            }}
+            className="flex-1 py-1.5 px-2.5 rounded-lg bg-rose-600/90 hover:bg-rose-500 text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+            title="Get Fast Magnet"
+          >
+            <Magnet size={13} />
+            <span>Magnet</span>
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onCopyMagnet(series.sampleTorrent);
+            }}
+            className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
+              isCopied
+                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+                : 'bg-white/5 hover:bg-white/10 text-neutral-300 border-white/10'
+            }`}
+            title="Copy magnet URL"
+          >
+            {isCopied ? <Check size={14} /> : <CopyIcon className="w-3.5 h-3.5" />}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 interface EztvReleaseRowProps {
   torrent: EztvTorrent;
@@ -381,6 +531,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
   const [selectedQuality, setSelectedQuality] = useState<string>('All');
   const [selectedSeason, setSelectedSeason] = useState<string>('All');
   const [sortBy, setSortBy] = useState<'date' | 'seeds' | 'size'>('date');
+  const [viewMode, setViewMode] = useState<'grid' | 'feed'>('grid');
   const [copiedHash, setCopiedHash] = useState<string | null>(null);
 
   // Sync props changes (e.g. from Header or URL updates)
@@ -655,6 +806,70 @@ export const EztvView: React.FC<EztvViewProps> = ({
         return (b.date_released_unix || 0) - (a.date_released_unix || 0);
       });
   }, [torrents, selectedSeason, selectedQuality, selectedGenre, sortBy, activeImdbId, activeQuery]);
+
+  // Group filtered torrents by TV series for the visual Series Grid mode
+  const groupedSeries = useMemo(() => {
+    const map = new Map<string, {
+      title: string;
+      year?: string;
+      imdbId?: string;
+      torrents: EztvTorrent[];
+      maxSeeds: number;
+      qualities: Set<string>;
+      latestSeason?: number;
+      latestEpisode?: number;
+      latestReleaseDate: number;
+      sampleTorrent: EztvTorrent;
+    }>();
+
+    for (const t of filteredTorrents) {
+      const { title: showTitle, year: showYear } = extractShowTitleAndYear(t.title);
+      const cleanTitle = (showTitle || t.title).trim();
+      const imdbKey = (t.imdb_id && t.imdb_id !== '0') ? `tt${t.imdb_id}` : cleanTitle.toLowerCase();
+      
+      const { quality } = parseQualityFromEztv(t.title, t.filename);
+      const seeds = t.seeds || 0;
+      const releaseDate = t.date_released_unix || 0;
+      const sNum = t.season ? parseInt(t.season, 10) : undefined;
+      const eNum = t.episode ? parseInt(t.episode, 10) : undefined;
+
+      if (!map.has(imdbKey)) {
+        map.set(imdbKey, {
+          title: cleanTitle,
+          year: showYear,
+          imdbId: (t.imdb_id && t.imdb_id !== '0') ? `tt${t.imdb_id}` : undefined,
+          torrents: [t],
+          maxSeeds: seeds,
+          qualities: new Set([quality]),
+          latestSeason: sNum,
+          latestEpisode: eNum,
+          latestReleaseDate: releaseDate,
+          sampleTorrent: t
+        });
+      } else {
+        const item = map.get(imdbKey)!;
+        item.torrents.push(t);
+        if (seeds > item.maxSeeds) {
+          item.maxSeeds = seeds;
+          item.sampleTorrent = t;
+        }
+        item.qualities.add(quality);
+        if (releaseDate > item.latestReleaseDate) {
+          item.latestReleaseDate = releaseDate;
+          if (sNum) item.latestSeason = sNum;
+          if (eNum) item.latestEpisode = eNum;
+        }
+      }
+    }
+
+    return Array.from(map.values()).map(item => ({
+      ...item,
+      qualities: Array.from(item.qualities)
+    })).sort((a, b) => {
+      if (sortBy === 'seeds') return b.maxSeeds - a.maxSeeds;
+      return b.latestReleaseDate - a.latestReleaseDate;
+    });
+  }, [filteredTorrents, sortBy]);
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8 animate-in fade-in duration-200">
@@ -1028,13 +1243,40 @@ export const EztvView: React.FC<EztvViewProps> = ({
           )}
         </div>
 
-        {/* Sort selector & Count */}
-        <div className="flex items-center gap-3">
+        {/* View Mode Toggle, Sort selector & Count */}
+        <div className="flex flex-wrap items-center gap-3">
+          {/* View Mode Toggle */}
+          <div className="flex items-center p-0.5 rounded-xl bg-white/5 border border-white/10">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                viewMode === 'grid'
+                  ? 'bg-rose-600 text-white shadow-xs'
+                  : 'text-neutral-400 hover:text-white hover:bg-white/5'
+              }`}
+              title="Browse as TV Series Cards"
+            >
+              <LayoutGrid size={14} />
+              <span>Series Grid</span>
+            </button>
+            <button
+              onClick={() => setViewMode('feed')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                viewMode === 'feed'
+                  ? 'bg-rose-600 text-white shadow-xs'
+                  : 'text-neutral-400 hover:text-white hover:bg-white/5'
+              }`}
+              title="View Raw Torrent Feed"
+            >
+              <List size={14} />
+              <span>Torrent Feed</span>
+            </button>
+          </div>
+
           <div className="flex items-center gap-1.5 text-xs text-neutral-400 font-mono">
             <HardDrive className="w-3.5 h-3.5" />
             <span>
-              {filteredTorrents.length}{' '}
-              {filteredTorrents.length === 1 ? 'Release' : 'Releases'}
+              {viewMode === 'grid' ? `${groupedSeries.length} Series` : `${filteredTorrents.length} Releases`}
             </span>
           </div>
 
@@ -1096,21 +1338,36 @@ export const EztvView: React.FC<EztvViewProps> = ({
       {/* Loading Skeleton Grid */}
       {isLoading && <EztvReleasesSkeleton />}
 
-      {/* Torrents Release List */}
+      {/* Torrents Release List vs Series Grid */}
       {!isLoading && !error && filteredTorrents.length > 0 && (
-        <div className="space-y-2.5">
-          {filteredTorrents.map((torrent) => (
-            <EztvReleaseRow
-              key={torrent.id || torrent.hash}
-              torrent={torrent}
-              showMeta={showMeta}
-              isCopied={copiedHash === torrent.hash}
-              onSelectRelease={handleSelectRelease}
-              onLaunchMagnet={handleLaunchMagnet}
-              onCopyMagnet={handleCopyMagnet}
-            />
-          ))}
-        </div>
+        viewMode === 'grid' ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3.5 sm:gap-4">
+            {groupedSeries.map((series) => (
+              <SeriesGridCard
+                key={series.imdbId || series.title}
+                series={series}
+                isCopied={copiedHash === series.sampleTorrent.hash}
+                onSelectSeries={handleSelectRelease}
+                onLaunchMagnet={handleLaunchMagnet}
+                onCopyMagnet={handleCopyMagnet}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-2.5">
+            {filteredTorrents.map((torrent) => (
+              <EztvReleaseRow
+                key={torrent.id || torrent.hash}
+                torrent={torrent}
+                showMeta={showMeta}
+                isCopied={copiedHash === torrent.hash}
+                onSelectRelease={handleSelectRelease}
+                onLaunchMagnet={handleLaunchMagnet}
+                onCopyMagnet={handleCopyMagnet}
+              />
+            ))}
+          </div>
+        )
       )}
 
       {/* Empty State */}

@@ -274,6 +274,10 @@ export interface TvShowDetails extends TvShowInfo {
   cast?: TvCastMember[];
   episodes?: TvEpisode[];
   backdropImage?: string;
+  schedule?: {
+    time?: string;
+    days?: string[];
+  };
 }
 
 // EZTV API Types (https://eztvx.to/api/get-torrents)

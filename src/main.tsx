@@ -11,8 +11,12 @@ if (typeof window !== 'undefined') {
   const isExtensionError = (message: string, context?: string) => {
     const combined = `${message || ''} ${context || ''}`.toLowerCase();
     return (
+      combined.includes('script error') ||
       combined.includes('metamask') ||
       combined.includes('ethereum') ||
+      combined.includes('ejbalbakoplchlghecdalmeeeajnimhm') ||
+      combined.includes('inpage.js') ||
+      combined.includes('inpage') ||
       combined.includes('solana') ||
       combined.includes('phantom') ||
       combined.includes('coinbase') ||
@@ -33,6 +37,7 @@ if (typeof window !== 'undefined') {
       combined.includes('chrome-extension') ||
       combined.includes('moz-extension') ||
       combined.includes('safari-web-extension') ||
+      combined.includes('safari-extension') ||
       combined.includes('sa.min.js') ||
       combined.includes('gatekeeperconsent') ||
       combined.includes('chrome: call method') ||
@@ -42,6 +47,41 @@ if (typeof window !== 'undefined') {
       combined.includes('foxified')
     );
   };
+
+  // Intercept and drop third-party extension errors from polluting console
+  try {
+    const origConsoleError = console.error;
+    const origConsoleWarn = console.warn;
+    console.error = (...args: any[]) => {
+      let str = '';
+      for (const a of args) {
+        if (a) {
+          if (typeof a === 'string') {
+            str += ` ${a}`;
+          } else {
+            str += ` ${a.name || ''} ${a.message || ''} ${a.stack || ''} ${String(a)}`;
+          }
+        }
+      }
+      if (isExtensionError(str)) return;
+      origConsoleError.apply(console, args);
+    };
+
+    console.warn = (...args: any[]) => {
+      let str = '';
+      for (const a of args) {
+        if (a) {
+          if (typeof a === 'string') {
+            str += ` ${a}`;
+          } else {
+            str += ` ${a.name || ''} ${a.message || ''} ${a.stack || ''} ${String(a)}`;
+          }
+        }
+      }
+      if (isExtensionError(str)) return;
+      origConsoleWarn.apply(console, args);
+    };
+  } catch {}
 
   const prevOnError = window.onerror;
   window.onerror = (message, source, lineno, colno, error) => {

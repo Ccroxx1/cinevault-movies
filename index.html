@@ -7,6 +7,66 @@
     <!-- 1. Universal Error Trapper & Extension Shield (MUST execute first in <head>) -->
     <script>
       (function() {
+        // 1.0 Defuse MetaMask inpage connection failure & block injection into non-web3 application
+        try {
+          var noop = function() {};
+          var resolvedPromise = function() { return Promise.resolve([]); };
+          var mockEthereum = {
+            isMetaMask: true,
+            isConnected: function() { return true; },
+            request: resolvedPromise,
+            sendAsync: function(payload, cb) { if (typeof cb === 'function') cb(null, { result: [] }); },
+            send: function(payload, cb) { if (typeof cb === 'function') cb(null, { result: [] }); return { result: [] }; },
+            enable: resolvedPromise,
+            on: noop,
+            once: noop,
+            off: noop,
+            addListener: noop,
+            removeListener: noop,
+            removeAllListeners: noop,
+            emit: noop,
+            autoRefreshOnNetworkChange: false,
+            selectedAddress: null,
+            chainId: '0x1',
+            networkVersion: '1'
+          };
+          if (!window.ethereum) {
+            try {
+              Object.defineProperty(window, 'ethereum', {
+                value: mockEthereum,
+                writable: true,
+                configurable: true
+              });
+            } catch(e) {
+              window.ethereum = mockEthereum;
+            }
+          }
+        } catch(e) {}
+
+        // Block injected extension scripts like MetaMask inpage.js
+        try {
+          var origAppendChild = Node.prototype.appendChild;
+          Node.prototype.appendChild = function(child) {
+            if (child && child.tagName === 'SCRIPT') {
+              var s = (child.src || (child.getAttribute && child.getAttribute('src')) || '').toLowerCase();
+              if (s && (s.indexOf('ejbalbakoplchlghecdalmeeeajnimhm') !== -1 || s.indexOf('inpage.js') !== -1)) {
+                return child;
+              }
+            }
+            return origAppendChild.apply(this, arguments);
+          };
+          var origInsertBefore = Node.prototype.insertBefore;
+          Node.prototype.insertBefore = function(newNode, referenceNode) {
+            if (newNode && newNode.tagName === 'SCRIPT') {
+              var s = (newNode.src || (newNode.getAttribute && newNode.getAttribute('src')) || '').toLowerCase();
+              if (s && (s.indexOf('ejbalbakoplchlghecdalmeeeajnimhm') !== -1 || s.indexOf('inpage.js') !== -1)) {
+                return newNode;
+              }
+            }
+            return origInsertBefore.apply(this, arguments);
+          };
+        } catch(e) {}
+
         var isExtensionOrExternalError = function(msg, file, stack, extra) {
           var combined = (
             String(msg || '') + ' ' +
@@ -16,20 +76,26 @@
           ).toLowerCase();
 
           return (
+            combined.indexOf('script error') !== -1 ||
             combined.indexOf('chrome-extension') !== -1 ||
             combined.indexOf('moz-extension') !== -1 ||
             combined.indexOf('safari-web-extension') !== -1 ||
+            combined.indexOf('safari-extension') !== -1 ||
+            combined.indexOf('ejbalbakoplchlghecdalmeeeajnimhm') !== -1 ||
             combined.indexOf('cldmemdnllncchfahbcnjijheaolemfk') !== -1 ||
+            combined.indexOf('inpage.js') !== -1 ||
+            combined.indexOf('inpage') !== -1 ||
             combined.indexOf('ff-content') !== -1 ||
             combined.indexOf('foxified') !== -1 ||
             combined.indexOf('call method') !== -1 ||
             combined.indexOf('window message') !== -1 ||
-            combined.indexOf('timed out') !== -1 && combined.indexOf('window message') !== -1 ||
+            (combined.indexOf('timed out') !== -1 && combined.indexOf('window message') !== -1) ||
             combined.indexOf('metamask') !== -1 ||
             combined.indexOf('ethereum') !== -1 ||
             combined.indexOf('solana') !== -1 ||
             combined.indexOf('phantom') !== -1 ||
             combined.indexOf('coinbase') !== -1 ||
+            combined.indexOf('failed to connect') !== -1 ||
             combined.indexOf('country consent') !== -1 ||
             combined.indexOf('sacountry') !== -1 ||
             combined.indexOf('gatekeeper') !== -1 ||
@@ -52,7 +118,13 @@
         window.onerror = function(message, source, lineno, colno, error) {
           var stack = error && error.stack ? error.stack : '';
           var msgStr = typeof message === 'string' ? message : ((message && message.message) || String(message || ''));
-          if (isExtensionOrExternalError(msgStr, source, stack, String(error || ''))) {
+          var srcStr = String(source || '');
+          if (
+            msgStr.toLowerCase().indexOf('script error') !== -1 ||
+            srcStr.indexOf('chrome-extension') !== -1 ||
+            srcStr.indexOf('ejbalbakoplchlghecdalmeeeajnimhm') !== -1 ||
+            isExtensionOrExternalError(msgStr, source, stack, String(error || ''))
+          ) {
             return true;
           }
         };
@@ -74,7 +146,12 @@
           var msg = (event && event.message) || '';
           var file = (event && event.filename) || '';
           var stack = (event && event.error && event.error.stack) || '';
-          if (isExtensionOrExternalError(msg, file, stack, String(event && event.error))) {
+          if (
+            msg.toLowerCase().indexOf('script error') !== -1 ||
+            file.indexOf('chrome-extension') !== -1 ||
+            file.indexOf('ejbalbakoplchlghecdalmeeeajnimhm') !== -1 ||
+            isExtensionOrExternalError(msg, file, stack, String(event && event.error))
+          ) {
             if (event.preventDefault) event.preventDefault();
             if (event.stopPropagation) event.stopPropagation();
             if (event.stopImmediatePropagation) event.stopImmediatePropagation();
@@ -105,9 +182,11 @@
             if (
               lower.indexOf('chrome: call method') !== -1 ||
               lower.indexOf('cldmemdnllncchfahbcnjijheaolemfk') !== -1 ||
+              lower.indexOf('ejbalbakoplchlghecdalmeeeajnimhm') !== -1 ||
               lower.indexOf('foxified') !== -1 ||
               lower.indexOf('ff-content') !== -1 ||
-              lower.indexOf('window message') !== -1
+              lower.indexOf('window message') !== -1 ||
+              lower.indexOf('metamask') !== -1
             ) {
               if (event.stopImmediatePropagation) event.stopImmediatePropagation();
               if (event.stopPropagation) event.stopPropagation();
@@ -115,7 +194,7 @@
           } catch(e) {}
         }, true);
 
-        // Console error & warn silence for external noise
+        // Console error & warn silence for external noise (drops completely without forwarding)
         try {
           var origError = console.error;
           var origWarn = console.warn;
@@ -123,10 +202,15 @@
             var str = '';
             for (var i = 0; i < arguments.length; i++) {
               var a = arguments[i];
-              str += ' ' + (typeof a === 'string' ? a : ((a && (a.message || a.stack)) ? (a.message + ' ' + a.stack) : String(a)));
+              if (a) {
+                if (typeof a === 'string') {
+                  str += ' ' + a;
+                } else {
+                  str += ' ' + (a.name || '') + ' ' + (a.message || '') + ' ' + (a.stack || '') + ' ' + String(a);
+                }
+              }
             }
             if (isExtensionOrExternalError(str)) {
-              if (typeof console.debug === 'function') console.debug.apply(console, arguments);
               return;
             }
             origError.apply(console, arguments);
@@ -136,10 +220,15 @@
             var str = '';
             for (var i = 0; i < arguments.length; i++) {
               var a = arguments[i];
-              str += ' ' + (typeof a === 'string' ? a : ((a && (a.message || a.stack)) ? (a.message + ' ' + a.stack) : String(a)));
+              if (a) {
+                if (typeof a === 'string') {
+                  str += ' ' + a;
+                } else {
+                  str += ' ' + (a.name || '') + ' ' + (a.message || '') + ' ' + (a.stack || '') + ' ' + String(a);
+                }
+              }
             }
             if (isExtensionOrExternalError(str)) {
-              if (typeof console.debug === 'function') console.debug.apply(console, arguments);
               return;
             }
             origWarn.apply(console, arguments);

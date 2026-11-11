@@ -41,6 +41,7 @@ const detectedIndexHtmlPath = path.resolve(detectedDistPath, 'index.html');
 
 // API Proxy Configuration - ordered by stability and latency
 const API_BASE_URLS = [
+  'https://movies-api.accel.li/api/v2',
   'https://yts.am/api/v2',
   'https://yts.bz/api/v2',
   'https://yts.lt/api/v2',
@@ -709,124 +710,8 @@ Your core objectives:
   }
 });
 
-let latestMoviesPoolCache: {
-  timestamp: number;
-  movies: any[];
-} | null = null;
-
-async function getFilteredLatestMoviesPool(): Promise<any[]> {
-  const now = Date.now();
-  if (latestMoviesPoolCache && now - latestMoviesPoolCache.timestamp < 3 * 60 * 1000) {
-    return latestMoviesPoolCache.movies;
-  }
-
-  const currentYear = new Date().getFullYear();
-  const minEligibleYear = currentYear - 1;
-
-  try {
-    const [p1, p2, p3] = await Promise.allSettled([
-      fetchFromApi('list_movies.json', { sort_by: 'date_added', order_by: 'desc', limit: 50, page: 1 } as any),
-      fetchFromApi('list_movies.json', { sort_by: 'date_added', order_by: 'desc', limit: 50, page: 2 } as any),
-      fetchFromApi('list_movies.json', { sort_by: 'date_added', order_by: 'desc', limit: 50, page: 3 } as any),
-    ]);
-
-    const seenIds = new Set<number>();
-    const eligible: any[] = [];
-
-    for (const res of [p1, p2, p3]) {
-      if (res.status === 'fulfilled' && Array.isArray(res.value?.data?.movies)) {
-        for (const m of res.value.data.movies) {
-          if (m && m.id && !seenIds.has(m.id)) {
-            seenIds.add(m.id);
-            const y = Number(m.year);
-            // Strictly only current year and the year before current year (e.g. 2026 & 2025)
-            if (!isNaN(y) && y >= minEligibleYear) {
-              eligible.push(m);
-            }
-          }
-        }
-      }
-    }
-
-    if (eligible.length > 0) {
-      latestMoviesPoolCache = {
-        timestamp: now,
-        movies: eligible
-      };
-      return eligible;
-    }
-  } catch (err) {
-    console.warn('Error creating latest movies pool:', err);
-  }
-
-  return latestMoviesPoolCache?.movies || [];
-}
-
 app.get(['/api/movies', '/api/movies/list', '/api/v2/list_movies.json'], async (req, res) => {
   try {
-    const rawSort = typeof req.query.sort_by === 'string' ? req.query.sort_by.trim() : 'date_added';
-    const queryTerm = typeof req.query.query_term === 'string' ? req.query.query_term.trim() : '';
-    const yearParam = typeof req.query.year === 'string' ? req.query.year.trim() : '';
-    const decadeParam = typeof req.query.decade === 'string' ? req.query.decade.trim() : '';
-    const genreParam = typeof req.query.genre === 'string' ? req.query.genre.trim() : '';
-    const qualityParam = typeof req.query.quality === 'string' ? req.query.quality.trim() : '';
-    const minimumRating = typeof req.query.minimum_rating === 'string' ? parseFloat(req.query.minimum_rating) || 0 : 0;
-    const page = Math.max(1, parseInt(String(req.query.page || '1'), 10) || 1);
-    const limit = Math.max(1, Math.min(50, parseInt(String(req.query.limit || '20'), 10) || 20));
-
-    // When a search term is specified, OR explicit year/decade is chosen:
-    // "Every other movies can be search to see" - return full catalog without year restriction!
-    const isSearchOrExplicitYear = Boolean(
-      queryTerm ||
-      (yearParam && yearParam !== 'All') ||
-      (decadeParam && decadeParam !== 'All')
-    );
-
-    // Check if this is the recently added / latest movies section:
-    const isRecentlyAddedSection = !isSearchOrExplicitYear && rawSort === 'date_added';
-
-    if (isRecentlyAddedSection) {
-      const pool = await getFilteredLatestMoviesPool();
-      let filtered = pool;
-
-      // Filter by genre if user selected a genre pill while browsing latest
-      if (genreParam && genreParam !== 'All') {
-        const target = genreParam.toLowerCase();
-        filtered = filtered.filter((m: any) =>
-          Array.isArray(m.genres) && m.genres.some((g: string) => g.toLowerCase() === target)
-        );
-      }
-
-      // Filter by quality if requested
-      if (qualityParam && qualityParam !== 'All') {
-        filtered = filtered.filter((m: any) =>
-          Array.isArray(m.torrents) && m.torrents.some((t: any) => t.quality?.includes(qualityParam))
-        );
-      }
-
-      // Filter by minimum rating if requested
-      if (minimumRating > 0) {
-        filtered = filtered.filter((m: any) => (m.rating || 0) >= minimumRating);
-      }
-
-      const startIndex = (page - 1) * limit;
-      const paged = filtered.slice(startIndex, startIndex + limit);
-
-      if (paged.length > 0 || startIndex < filtered.length) {
-        return res.json({
-          status: 'ok',
-          status_message: 'Query was successful',
-          data: {
-            movie_count: filtered.length,
-            limit,
-            page_number: page,
-            movies: paged
-          }
-        });
-      }
-    }
-
-    // Default passthrough for search queries, specific sorts, or older year filters
     const data = await fetchFromApi('list_movies.json', req.query as any);
     res.json(data);
   } catch (e: any) {
@@ -1713,6 +1598,10 @@ app.get('/api/tv/details', async (req, res) => {
       officialSite: tvmazeShow.officialSite,
       type: tvmazeShow.type,
       language: tvmazeShow.language,
+      schedule: tvmazeShow.schedule ? {
+        time: tvmazeShow.schedule.time,
+        days: tvmazeShow.schedule.days
+      } : undefined,
       cast: castList,
       episodes: episodesList
     };

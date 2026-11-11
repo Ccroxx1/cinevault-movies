@@ -419,6 +419,10 @@ export async function fetchTvShowDetails(params: { imdb?: string; id?: number; t
       officialSite: rawShow.officialSite,
       type: rawShow.type,
       language: rawShow.language,
+      schedule: rawShow.schedule ? {
+        time: rawShow.schedule.time,
+        days: rawShow.schedule.days
+      } : undefined,
       cast: Array.isArray(castList) ? castList.slice(0, 16) : [],
       episodes: Array.isArray(epList) ? epList : []
     };

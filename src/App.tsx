@@ -1190,9 +1190,9 @@ export default function App() {
                       ★ {filters.minimum_rating}+
                     </span>
                   )}
-                  {filters.sort_by === 'date_added' && !filters.query_term && (!filters.year || filters.year === 'All') && (
-                    <span className="px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[11px] font-bold">
-                      {new Date().getFullYear() - 1}–{new Date().getFullYear()} Releases
+                  {filters.year && filters.year !== 'All' && (
+                    <span className="px-2 py-0.5 rounded-md bg-purple-500/15 text-purple-400 border border-purple-500/30 text-[11px] font-bold">
+                      Year: {filters.year}
                     </span>
                   )}
 
@@ -1218,6 +1218,33 @@ export default function App() {
                 </div>
 
                 <div className="flex items-center gap-2 self-start sm:self-center">
+                  {/* Per-Page Selector */}
+                  <div className={`hidden sm:flex items-center gap-1 px-1.5 py-1 rounded-xl border text-xs font-semibold ${
+                    isWhite
+                      ? 'bg-slate-100 border-slate-200 text-slate-700'
+                      : colorMode === 'blue-black'
+                      ? 'bg-sky-950/40 border-sky-900/40 text-neutral-300'
+                      : 'bg-white/5 border-white/10 text-neutral-300'
+                  }`}>
+                    <span className="text-[11px] text-neutral-400 px-1">Per page:</span>
+                    {[20, 30, 50].map((pageSize) => (
+                      <button
+                        key={pageSize}
+                        type="button"
+                        onClick={() => handleFilterChange({ limit: pageSize, page: 1 })}
+                        className={`px-2 py-0.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                          filters.limit === pageSize
+                            ? 'bg-rose-600 text-white shadow-xs'
+                            : isWhite
+                            ? 'hover:bg-slate-200 text-slate-600'
+                            : 'hover:bg-white/10 text-neutral-400 hover:text-white'
+                        }`}
+                      >
+                        {pageSize}
+                      </button>
+                    ))}
+                  </div>
+
                   <MovieSortDropdown
                     sortBy={filters.sort_by}
                     orderBy={filters.order_by}
