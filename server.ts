@@ -1616,9 +1616,14 @@ app.get('/api/tv/details', async (req, res) => {
 
 // ==========================================
 // TV SERIES GENRE FILTERING & DETECTION ENGINE
-// Exclusively curated for: Action, Crime, Adventure, Thriller, Mystery
+// Supported genres for the latest TV-series catalog
 // ==========================================
-const APPROVED_TV_GENRES = new Set(['action', 'crime', 'adventure', 'thriller', 'mystery']);
+const APPROVED_TV_GENRES = new Set([
+  'action', 'adventure', 'anime', 'children', 'comedy', 'crime', 'drama',
+  'espionage', 'family', 'fantasy', 'food', 'history', 'horror', 'legal',
+  'medical', 'music', 'mystery', 'romance', 'science-fiction', 'sports',
+  'thriller', 'war', 'western'
+]);
 
 const KNOWN_TV_EXCLUSIONS = [
   /bake\s*off/i, /great\s*british/i, /masterchef/i, /kitchen/i, /cooking/i, /food/i,
@@ -1889,12 +1894,12 @@ app.get(['/api/eztv', '/api/eztv/torrents', '/api/eztv/get-torrents'], async (re
   try {
     const rawImdb = typeof req.query.imdb_id === 'string' ? req.query.imdb_id.trim() : '';
     const rawSearch = typeof req.query.search === 'string' ? req.query.search.trim() : (typeof req.query.query === 'string' ? req.query.query.trim() : '');
-    const genreParam = typeof req.query.genre === 'string' ? req.query.genre.trim() : 'Action';
+    const genreParam = typeof req.query.genre === 'string' ? req.query.genre.trim() : 'All';
     const page = Math.min(100, Math.max(1, parseInt(String(req.query.page || '1'), 10) || 1));
     const limit = Math.min(100, Math.max(1, parseInt(String(req.query.limit || '40'), 10) || 40));
 
     // Case 1: Browsing latest episode releases (when no specific search or IMDb ID is queried)
-    // Automatically defaults to Action series, and supports Crime, Adventure, Thriller, Mystery, or All!
+    // Browse all supported TV genres by default, with optional genre filtering.
     if (!rawImdb && !rawSearch) {
       const filteredResult = await fetchFilteredLatestReleases({
         page,
