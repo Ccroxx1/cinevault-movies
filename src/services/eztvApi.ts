@@ -151,7 +151,7 @@ export async function fetchEztvTorrents(params: EztvFetchParams = {}): Promise<E
   let showMeta: TvShowInfo | null = null;
 
   if (!targetImdbId && !params.search?.trim()) {
-    throw backendError || new Error('The seven-day TV release feed is unavailable. Please try again.');
+    throw backendError || new Error('The 30-day TV release feed is unavailable. Please try again.');
   }
 
   if (!targetImdbId && params.search && params.search.trim()) {

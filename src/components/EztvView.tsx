@@ -605,7 +605,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
     };
   }, [isSuggestionsOpen]);
 
-  // Fetch recent EZTV releases; the server applies the seven-day window and genre filter.
+  // Fetch recent EZTV releases; the server applies the 30-day window and genre filter.
   const loadTorrents = async (
     page: number,
     imdbId?: string | null,
@@ -887,7 +887,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
             </div>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-neutral-200 border border-white/15 text-xs font-semibold">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              All TV genres • Past 7 days • Action • Crime • Adventure • Thriller • Mystery
+              All TV genres • Past 30 days • Action • Crime • Adventure • Thriller • Mystery
             </span>
           </div>
 
@@ -897,7 +897,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
 
           <p className="text-sm sm:text-base text-neutral-300 leading-relaxed eztv-hero-sub">
             Live television torrent index powered directly by the official EZTV API and TVmaze.
-            Showing eligible TV series and episode releases from the past 7 days, newest first, with optional genre filters, magnet links, and full seasons.
+            Showing eligible TV series and episode releases from the past 30 days, newest first, with optional genre filters, magnet links, and full seasons.
           </p>
 
           {/* Search Form with Live Autocomplete */}
