@@ -58,8 +58,7 @@ const POPULAR_SHOWS = [
   { name: 'Friends', imdb: 'tt0108778' }
 ];
 
-export const GENRE_FILTERS = ['Action', 'All', 'Crime', 'Adventure', 'Thriller', 'Mystery'];
-const APPROVED_GENRES_SET = new Set(['action', 'crime', 'adventure', 'thriller', 'mystery']);
+export const GENRE_FILTERS = ['All', 'Action', 'Crime', 'Adventure', 'Thriller', 'Mystery'];
 const QUALITY_FILTERS = ['All', '1080p', '720p', '4K UHD', 'x265 / HEVC', '480p'];
 
 export interface SeriesCardData {
@@ -509,6 +508,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
   const [torrents, setTorrents] = useState<EztvTorrent[]>([]);
   const [totalTorrentsCount, setTotalTorrentsCount] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const totalPages = Math.max(1, Math.ceil(totalTorrentsCount / 100));
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [serverMessage, setServerMessage] = useState<string | null>(null);
@@ -526,7 +526,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
         if (match) return match;
       }
     }
-    return 'Action';
+    return 'All';
   });
   const [selectedQuality, setSelectedQuality] = useState<string>('All');
   const [selectedSeason, setSelectedSeason] = useState<string>('All');
@@ -618,10 +618,10 @@ export const EztvView: React.FC<EztvViewProps> = ({
     try {
       const res = await fetchEztvTorrents({
         page,
-        limit: 40,
+        limit: 100,
         imdb_id: imdbId || undefined,
         search: search || undefined,
-        genre: genreFilter || 'Action'
+        genre: genreFilter || 'All'
       });
 
       setTorrents(res.torrents || []);
@@ -769,10 +769,6 @@ export const EztvView: React.FC<EztvViewProps> = ({
           const target = selectedGenre.toLowerCase();
           const genres = (t.genres || []).map((g) => g.toLowerCase());
           if (!genres.includes(target)) return false;
-        } else if (!activeImdbId && !activeQuery && t.genres && t.genres.length > 0) {
-          const genres = t.genres.map((g) => g.toLowerCase());
-          const isApproved = genres.some((g) => APPROVED_GENRES_SET.has(g));
-          if (!isApproved) return false;
         }
 
         // Season filter
@@ -883,7 +879,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
             </div>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-neutral-200 border border-white/15 text-xs font-semibold">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Action (Default) • Crime • Adventure • Thriller • Mystery
+              All TV genres • Action • Crime • Adventure • Thriller • Mystery
             </span>
           </div>
 
@@ -893,7 +889,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
 
           <p className="text-sm sm:text-base text-neutral-300 leading-relaxed eztv-hero-sub">
             Live television torrent index powered directly by the official EZTV API and TVmaze.
-            Defaulting to newest Action series episode releases, with verified filters for Crime, Adventure, Thriller, and Mystery series with magnet links and full seasons.
+            Showing the newest eligible TV series episode releases across all genres, with optional Action, Crime, Adventure, Thriller, and Mystery filters, magnet links, and full seasons.
           </p>
 
           {/* Search Form with Live Autocomplete */}
@@ -1418,12 +1414,12 @@ export const EztvView: React.FC<EztvViewProps> = ({
           </button>
 
           <span className="text-xs font-mono text-neutral-400">
-            Page <strong className="text-rose-500">{currentPage}</strong> of 100
+            Page <strong className="text-rose-500">{currentPage}</strong> of {totalPages}
           </span>
 
           <button
-            onClick={() => setCurrentPage((p) => Math.min(100, p + 1))}
-            disabled={currentPage >= 100}
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage >= totalPages}
             className="px-4 py-2 rounded-xl eztv-tag-btn text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
           >
             <span>Next Page</span>
