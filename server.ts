@@ -709,8 +709,124 @@ Your core objectives:
   }
 });
 
+let latestMoviesPoolCache: {
+  timestamp: number;
+  movies: any[];
+} | null = null;
+
+async function getFilteredLatestMoviesPool(): Promise<any[]> {
+  const now = Date.now();
+  if (latestMoviesPoolCache && now - latestMoviesPoolCache.timestamp < 3 * 60 * 1000) {
+    return latestMoviesPoolCache.movies;
+  }
+
+  const currentYear = new Date().getFullYear();
+  const minEligibleYear = currentYear - 1;
+
+  try {
+    const [p1, p2, p3] = await Promise.allSettled([
+      fetchFromApi('list_movies.json', { sort_by: 'date_added', order_by: 'desc', limit: 50, page: 1 } as any),
+      fetchFromApi('list_movies.json', { sort_by: 'date_added', order_by: 'desc', limit: 50, page: 2 } as any),
+      fetchFromApi('list_movies.json', { sort_by: 'date_added', order_by: 'desc', limit: 50, page: 3 } as any),
+    ]);
+
+    const seenIds = new Set<number>();
+    const eligible: any[] = [];
+
+    for (const res of [p1, p2, p3]) {
+      if (res.status === 'fulfilled' && Array.isArray(res.value?.data?.movies)) {
+        for (const m of res.value.data.movies) {
+          if (m && m.id && !seenIds.has(m.id)) {
+            seenIds.add(m.id);
+            const y = Number(m.year);
+            // Strictly only current year and the year before current year (e.g. 2026 & 2025)
+            if (!isNaN(y) && y >= minEligibleYear) {
+              eligible.push(m);
+            }
+          }
+        }
+      }
+    }
+
+    if (eligible.length > 0) {
+      latestMoviesPoolCache = {
+        timestamp: now,
+        movies: eligible
+      };
+      return eligible;
+    }
+  } catch (err) {
+    console.warn('Error creating latest movies pool:', err);
+  }
+
+  return latestMoviesPoolCache?.movies || [];
+}
+
 app.get(['/api/movies', '/api/movies/list', '/api/v2/list_movies.json'], async (req, res) => {
   try {
+    const rawSort = typeof req.query.sort_by === 'string' ? req.query.sort_by.trim() : 'date_added';
+    const queryTerm = typeof req.query.query_term === 'string' ? req.query.query_term.trim() : '';
+    const yearParam = typeof req.query.year === 'string' ? req.query.year.trim() : '';
+    const decadeParam = typeof req.query.decade === 'string' ? req.query.decade.trim() : '';
+    const genreParam = typeof req.query.genre === 'string' ? req.query.genre.trim() : '';
+    const qualityParam = typeof req.query.quality === 'string' ? req.query.quality.trim() : '';
+    const minimumRating = typeof req.query.minimum_rating === 'string' ? parseFloat(req.query.minimum_rating) || 0 : 0;
+    const page = Math.max(1, parseInt(String(req.query.page || '1'), 10) || 1);
+    const limit = Math.max(1, Math.min(50, parseInt(String(req.query.limit || '20'), 10) || 20));
+
+    // When a search term is specified, OR explicit year/decade is chosen:
+    // "Every other movies can be search to see" - return full catalog without year restriction!
+    const isSearchOrExplicitYear = Boolean(
+      queryTerm ||
+      (yearParam && yearParam !== 'All') ||
+      (decadeParam && decadeParam !== 'All')
+    );
+
+    // Check if this is the recently added / latest movies section:
+    const isRecentlyAddedSection = !isSearchOrExplicitYear && rawSort === 'date_added';
+
+    if (isRecentlyAddedSection) {
+      const pool = await getFilteredLatestMoviesPool();
+      let filtered = pool;
+
+      // Filter by genre if user selected a genre pill while browsing latest
+      if (genreParam && genreParam !== 'All') {
+        const target = genreParam.toLowerCase();
+        filtered = filtered.filter((m: any) =>
+          Array.isArray(m.genres) && m.genres.some((g: string) => g.toLowerCase() === target)
+        );
+      }
+
+      // Filter by quality if requested
+      if (qualityParam && qualityParam !== 'All') {
+        filtered = filtered.filter((m: any) =>
+          Array.isArray(m.torrents) && m.torrents.some((t: any) => t.quality?.includes(qualityParam))
+        );
+      }
+
+      // Filter by minimum rating if requested
+      if (minimumRating > 0) {
+        filtered = filtered.filter((m: any) => (m.rating || 0) >= minimumRating);
+      }
+
+      const startIndex = (page - 1) * limit;
+      const paged = filtered.slice(startIndex, startIndex + limit);
+
+      if (paged.length > 0 || startIndex < filtered.length) {
+        return res.json({
+          status: 'ok',
+          status_message: 'Query was successful',
+          data: {
+            movie_count: filtered.length,
+            limit,
+            page_number: page,
+            movies: paged
+          }
+        });
+      }
+    }
+
+    // Default passthrough for search queries, specific sorts, or older year filters
     const data = await fetchFromApi('list_movies.json', req.query as any);
     res.json(data);
   } catch (e: any) {
@@ -1609,12 +1725,305 @@ app.get('/api/tv/details', async (req, res) => {
   }
 });
 
+// ==========================================
+// TV SERIES GENRE FILTERING & DETECTION ENGINE
+// Exclusively curated for: Action, Crime, Adventure, Thriller, Mystery
+// ==========================================
+const APPROVED_TV_GENRES = new Set(['action', 'crime', 'adventure', 'thriller', 'mystery']);
+
+const KNOWN_TV_EXCLUSIONS = [
+  /bake\s*off/i, /great\s*british/i, /masterchef/i, /kitchen/i, /cooking/i, /food/i,
+  /family\s*feud/i, /jeopardy/i, /wheel\s*of\s*fortune/i, /price\s*is\s*right/i,
+  /love\s*island/i, /bachelor/i, /bachelorette/i, /real\s*housewives/i, /big\s*brother/i,
+  /survivor/i, /strictly\s*come\s*dancing/i, /dancing\s*with\s*the\s*stars/i, /drag\s*race/i,
+  /american\s*idol/i, /the\s*voice/i, /snl\b/i, /saturday\s*night\s*live/i,
+  /tonight\s*show/i, /jimmy\s*kimmel/i, /daily\s*show/i, /late\s*night/i, /late\s*show/i,
+  /coronation\s*street/i, /eastenders/i, /emmerdale/i, /fair\s*city/i, /home\s*and\s*away/i, /neighbours/i,
+  /days\s*of\s*our\s*lives/i, /young\s*and\s*the\s*restless/i, /bold\s*and\s*the\s*beautiful/i, /general\s*hospital/i,
+  /looksmaxxing/i, /pawn\s*stars/i, /storage\s*wars/i,
+  /wwe\b/i, /aew\b/i, /ufc\b/i, /match\s*of\s*the\s*day/i, /tempting\s*fortune/i,
+  /house\s*of\s*games/i, /hard\s*quiz/i, /qi\s*(xl)?\b/i, /lingo/i, /homes\s*under\s*the\s*hammer/i,
+  /a\s*place\s*in\s*the\s*sun/i, /sam\s*pang/i, /the\s*cheap\s*seats/i, /barn\s*in\s*the\s*dales/i,
+  /beyond\s*the\s*gates/i, /the\s*devils\s*plan/i, /the\s*traitors/i, /crowd\s*control/i,
+  /between\s*steps/i, /son\s*of\s*a\s*critch/i, /acting\s*good/i, /sky\s*at\s*night/i,
+  /last\s*one\s*standing/i, /rockstar\s*chef/i, /final\s*table/i, /love\s*in\s*disguise/i,
+  /locker\s*diaries/i, /dating/i, /wedding/i, /soap\b/i
+];
+
+const KNOWN_TV_APPROVED = [
+  { pattern: /forensics(\s*murder)?/i, genres: ['Crime', 'Mystery'] },
+  { pattern: /this\s*is\s*not\s*a\s*murder\s*mystery/i, genres: ['Mystery', 'Crime', 'Thriller'] },
+  { pattern: /mistletoe\s*murders/i, genres: ['Mystery', 'Crime'] },
+  { pattern: /mysteries\s*from\s*above/i, genres: ['Mystery', 'Adventure'] },
+  { pattern: /house\s*of\s*the\s*dragon/i, genres: ['Action', 'Adventure'] },
+  { pattern: /mayor\s*of\s*kingstown/i, genres: ['Crime', 'Thriller'] },
+  { pattern: /reacher/i, genres: ['Action', 'Crime', 'Thriller'] },
+  { pattern: /dark\b/i, genres: ['Thriller', 'Mystery'] },
+  { pattern: /loki/i, genres: ['Action', 'Adventure'] },
+  { pattern: /breaking\s*bad/i, genres: ['Crime', 'Thriller'] },
+  { pattern: /stranger\s*things/i, genres: ['Mystery', 'Thriller'] },
+  { pattern: /severance/i, genres: ['Thriller', 'Mystery'] },
+  { pattern: /the\s*boys/i, genres: ['Action'] },
+  { pattern: /last\s*of\s*us/i, genres: ['Action', 'Adventure', 'Thriller'] },
+  { pattern: /fallout/i, genres: ['Action', 'Adventure'] },
+  { pattern: /slow\s*horses/i, genres: ['Thriller', 'Crime'] },
+  { pattern: /the\s*penguin/i, genres: ['Crime'] },
+  { pattern: /peaky\s*blinders/i, genres: ['Crime'] },
+  { pattern: /dexter/i, genres: ['Crime', 'Mystery', 'Thriller'] },
+  { pattern: /fargo/i, genres: ['Crime', 'Thriller'] },
+  { pattern: /true\s*detective/i, genres: ['Crime', 'Mystery', 'Thriller'] },
+  { pattern: /sherlock/i, genres: ['Crime', 'Mystery'] },
+  { pattern: /tulsa\s*king/i, genres: ['Crime'] },
+  { pattern: /yellowstone/i, genres: ['Drama', 'Crime'] },
+  { pattern: /cross\b/i, genres: ['Action', 'Crime', 'Thriller'] },
+  { pattern: /day\s*of\s*the\s*jackal/i, genres: ['Action', 'Thriller'] },
+  { pattern: /dune/i, genres: ['Adventure', 'Action'] },
+  { pattern: /skeleton\s*crew/i, genres: ['Action', 'Adventure'] },
+  { pattern: /silo/i, genres: ['Mystery', 'Thriller'] },
+  { pattern: /from\b/i, genres: ['Mystery', 'Thriller'] },
+  { pattern: /only\s*murders/i, genres: ['Crime', 'Mystery'] },
+  { pattern: /ncis/i, genres: ['Action', 'Crime', 'Mystery'] },
+  { pattern: /law\s*(&|and)\s*order/i, genres: ['Crime', 'Mystery'] },
+  { pattern: /chicago\s*p\.?d/i, genres: ['Action', 'Crime'] },
+  { pattern: /fbi/i, genres: ['Action', 'Crime'] },
+  { pattern: /the\s*rookie/i, genres: ['Action', 'Crime'] },
+  { pattern: /tracker/i, genres: ['Action', 'Crime'] },
+  { pattern: /high\s*potential/i, genres: ['Crime', 'Mystery'] },
+  { pattern: /matlock/i, genres: ['Crime', 'Mystery'] },
+  { pattern: /the\s*night\s*agent/i, genres: ['Action', 'Thriller'] },
+  { pattern: /the\s*terminal\s*list/i, genres: ['Action', 'Thriller'] },
+  { pattern: /special\s*ops/i, genres: ['Action', 'Thriller'] },
+  { pattern: /lioness/i, genres: ['Action', 'Thriller'] },
+  { pattern: /citadel/i, genres: ['Action', 'Thriller'] },
+  { pattern: /daredevil/i, genres: ['Action', 'Crime'] },
+  { pattern: /the\s*old\s*man/i, genres: ['Action', 'Thriller'] },
+  { pattern: /tokyo\s*vice/i, genres: ['Crime', 'Thriller'] },
+  { pattern: /presumed\s*innocent/i, genres: ['Crime', 'Mystery', 'Thriller'] },
+  { pattern: /the\s*agency/i, genres: ['Thriller'] },
+  { pattern: /the\s*diplomat/i, genres: ['Thriller'] },
+  { pattern: /cobra\s*kai/i, genres: ['Action'] },
+  { pattern: /yellowjackets/i, genres: ['Mystery', 'Thriller'] },
+  { pattern: /shogun/i, genres: ['Adventure', 'Drama'] },
+  { pattern: /black\s*rabbit/i, genres: ['Crime'] },
+  { pattern: /zero\s*day/i, genres: ['Thriller'] },
+  { pattern: /bad\s*monkey/i, genres: ['Crime', 'Mystery'] },
+  { pattern: /the\s*blacklist/i, genres: ['Crime', 'Mystery', 'Action'] },
+  { pattern: /blue\s*bloods/i, genres: ['Crime', 'Mystery'] },
+  { pattern: /swat\b/i, genres: ['Action', 'Crime'] },
+  { pattern: /9-1-1/i, genres: ['Action'] },
+  { pattern: /csi/i, genres: ['Crime', 'Mystery'] },
+  { pattern: /criminal\s*minds/i, genres: ['Crime', 'Mystery', 'Thriller'] },
+  { pattern: /homicide/i, genres: ['Crime', 'Mystery'] },
+  { pattern: /murder/i, genres: ['Crime', 'Mystery'] },
+  { pattern: /detective/i, genres: ['Crime', 'Mystery'] }
+];
+
+const tvSeriesGenreCache = new Map<string, { eligible: boolean; genres: string[]; name: string }>();
+
+async function detectTvSeriesGenres(params: {
+  title: string;
+  imdb_id?: string;
+}): Promise<{ eligible: boolean; genres: string[] }> {
+  const { title, imdb_id } = params;
+  const cleanTitle = extractShowTitleFromRelease(title);
+  const cacheKey = (imdb_id && imdb_id !== '0') ? `tt${imdb_id}` : cleanTitle.toLowerCase();
+
+  // 1. In-memory cache check
+  const cached = tvSeriesGenreCache.get(cacheKey);
+  if (cached) {
+    return { eligible: cached.eligible, genres: cached.genres };
+  }
+
+  // 2. Known exclusion check (unless also explicitly in known approved)
+  const isExcluded = KNOWN_TV_EXCLUSIONS.some((re) => re.test(title) || re.test(cleanTitle));
+  const isApprovedFast = KNOWN_TV_APPROVED.find((k) => k.pattern.test(title) || k.pattern.test(cleanTitle));
+
+  if (isExcluded && !isApprovedFast) {
+    tvSeriesGenreCache.set(cacheKey, { eligible: false, genres: [], name: cleanTitle });
+    return { eligible: false, genres: [] };
+  }
+
+  if (isApprovedFast) {
+    tvSeriesGenreCache.set(cacheKey, { eligible: true, genres: isApprovedFast.genres, name: cleanTitle });
+    return { eligible: true, genres: isApprovedFast.genres };
+  }
+
+  // 3. Dynamic lookup via TVmaze
+  try {
+    let show: any = null;
+    if (imdb_id && imdb_id !== '0' && /^tt?\d{5,9}$/i.test(imdb_id)) {
+      const code = imdb_id.startsWith('tt') ? imdb_id : `tt${imdb_id}`;
+      const res = await fetch(`https://api.tvmaze.com/lookup/shows?imdb=${code}`, {
+        headers: { 'Accept': 'application/json' },
+        signal: AbortSignal.timeout(3500)
+      });
+      if (res.ok) {
+        show = await res.json();
+      }
+    }
+
+    if (!show && cleanTitle && cleanTitle.length >= 2) {
+      const res = await fetch(`https://api.tvmaze.com/search/shows?q=${encodeURIComponent(cleanTitle)}`, {
+        headers: { 'Accept': 'application/json' },
+        signal: AbortSignal.timeout(3500)
+      });
+      if (res.ok) {
+        const list = await res.json();
+        if (Array.isArray(list) && list.length > 0) {
+          show = list[0].show;
+        }
+      }
+    }
+
+    if (show) {
+      const rawGenres: string[] = Array.isArray(show.genres) ? show.genres : [];
+      const approvedList = rawGenres.filter((g: string) => APPROVED_TV_GENRES.has(g.toLowerCase()));
+
+      if (approvedList.length === 0) {
+        tvSeriesGenreCache.set(cacheKey, { eligible: false, genres: rawGenres, name: show.name || cleanTitle });
+        return { eligible: false, genres: rawGenres };
+      }
+
+      tvSeriesGenreCache.set(cacheKey, { eligible: true, genres: approvedList, name: show.name || cleanTitle });
+      return { eligible: true, genres: approvedList };
+    }
+  } catch (err) {
+    // Graceful fallback
+  }
+
+  // 4. Fallback heuristics for crime/action/thriller keywords
+  const crimeActionKeywords = /\b(murder|crime|homicide|detective|forensic|police|investigation|mystery|thriller|fbi|swat|espionage|killer|assassin|special ops|chase|heist)\b/i;
+  if (crimeActionKeywords.test(title) || crimeActionKeywords.test(cleanTitle)) {
+    const genres = ['Crime', 'Mystery'];
+    tvSeriesGenreCache.set(cacheKey, { eligible: true, genres, name: cleanTitle });
+    return { eligible: true, genres };
+  }
+
+  // Default: exclude unverified shows to prevent unwanted content leaking
+  tvSeriesGenreCache.set(cacheKey, { eligible: false, genres: [], name: cleanTitle });
+  return { eligible: false, genres: [] };
+}
+
+let latestEligibleReleasesCache: {
+  timestamp: number;
+  releases: any[];
+} | null = null;
+
+async function fetchFilteredLatestReleases(params: {
+  page: number;
+  limit: number;
+  genre?: string;
+}): Promise<{ torrents: any[]; torrents_count: number; page: number; limit: number }> {
+  const { page, limit, genre } = params;
+  const now = Date.now();
+
+  // Cache filtered latest pool for 3 minutes for optimal performance
+  if (!latestEligibleReleasesCache || (now - latestEligibleReleasesCache.timestamp > 3 * 60 * 1000)) {
+    try {
+      const [p1, p2, p3] = await Promise.allSettled([
+        fetchEztvFromMirrors({ limit: '100', page: '1' }),
+        fetchEztvFromMirrors({ limit: '100', page: '2' }),
+        fetchEztvFromMirrors({ limit: '100', page: '3' }),
+      ]);
+
+      const rawTorrents: any[] = [];
+      const seenIds = new Set<string>();
+
+      for (const res of [p1, p2, p3]) {
+        if (res.status === 'fulfilled' && Array.isArray(res.value?.torrents)) {
+          for (const t of res.value.torrents) {
+            const key = String(t.id || t.hash || t.title);
+            if (!seenIds.has(key)) {
+              seenIds.add(key);
+              rawTorrents.push(t);
+            }
+          }
+        }
+      }
+
+      const eligible: any[] = [];
+      for (const t of rawTorrents) {
+        const cleanTitle = extractShowTitleFromRelease(t.title);
+        const genreInfo = await detectTvSeriesGenres({ title: t.title, imdb_id: t.imdb_id });
+        if (genreInfo.eligible) {
+          const imdb = (t.imdb_id && t.imdb_id !== '0') ? `tt${t.imdb_id}` : '';
+          const posterUrl = imdb
+            ? `/api/poster?imdb=${imdb}&size=small`
+            : (cleanTitle ? `/api/poster?title=${encodeURIComponent(cleanTitle)}&type=tv&size=small` : undefined);
+
+          eligible.push({
+            ...t,
+            clean_title: cleanTitle,
+            genres: genreInfo.genres,
+            poster_url: posterUrl
+          });
+        }
+      }
+
+      // Sort descending by actual release date (newest first)
+      eligible.sort((a, b) => (b.date_released_unix || 0) - (a.date_released_unix || 0));
+
+      if (eligible.length > 0) {
+        latestEligibleReleasesCache = {
+          timestamp: now,
+          releases: eligible
+        };
+      }
+    } catch (err) {
+      console.warn('Error fetching latest filtered releases pool:', err);
+    }
+  }
+
+  let pool = latestEligibleReleasesCache?.releases || [];
+
+  // Filter by requested individual genre among the 5 if provided
+  if (genre && genre !== 'All') {
+    const target = genre.toLowerCase();
+    pool = pool.filter((t: any) =>
+      Array.isArray(t.genres) && t.genres.some((g: string) => g.toLowerCase() === target)
+    );
+  }
+
+  const totalCount = pool.length;
+  const startIndex = (page - 1) * limit;
+  const paged = pool.slice(startIndex, startIndex + limit);
+
+  return {
+    torrents: paged,
+    torrents_count: totalCount,
+    page,
+    limit
+  };
+}
+
 app.get(['/api/eztv', '/api/eztv/torrents', '/api/eztv/get-torrents'], async (req, res) => {
   try {
     const rawImdb = typeof req.query.imdb_id === 'string' ? req.query.imdb_id.trim() : '';
     const rawSearch = typeof req.query.search === 'string' ? req.query.search.trim() : (typeof req.query.query === 'string' ? req.query.query.trim() : '');
+    const genreParam = typeof req.query.genre === 'string' ? req.query.genre.trim() : 'Action';
     const page = Math.min(100, Math.max(1, parseInt(String(req.query.page || '1'), 10) || 1));
     const limit = Math.min(100, Math.max(1, parseInt(String(req.query.limit || '40'), 10) || 40));
+
+    // Case 1: Browsing latest episode releases (when no specific search or IMDb ID is queried)
+    // Automatically defaults to Action series, and supports Crime, Adventure, Thriller, Mystery, or All!
+    if (!rawImdb && !rawSearch) {
+      const filteredResult = await fetchFilteredLatestReleases({
+        page,
+        limit,
+        genre: genreParam
+      });
+
+      return res.json({
+        status: 'ok',
+        imdb_id: null,
+        resolved_title: null,
+        show_meta: null,
+        torrents_count: filteredResult.torrents_count,
+        limit: filteredResult.limit,
+        page: filteredResult.page,
+        torrents: filteredResult.torrents
+      });
+    }
 
     let effectiveImdbId = '';
     let resolvedTitle = '';
@@ -2371,9 +2780,9 @@ async function start() {
   if (!process.env.VERCEL) {
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`🎬 CineVault running on http://0.0.0.0:${PORT}`);
-      // Prime initial EZTV cache in background so TV torrents are instantly ready
-      fetchEztvFromMirrors({ limit: '40', page: '1' }).catch((e) => {
-        console.warn('Initial background EZTV seed notice:', e.message);
+      // Prime initial filtered EZTV releases cache in background so Action/Crime/Adventure/Thriller/Mystery TV torrents are instantly ready
+      fetchFilteredLatestReleases({ page: 1, limit: 40 }).catch((e) => {
+        console.warn('Initial background EZTV genre filter seed notice:', e.message);
       });
     });
   }

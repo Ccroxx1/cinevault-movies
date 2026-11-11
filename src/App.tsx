@@ -60,6 +60,7 @@ interface AppRoute {
   movie?: Movie | null;
   seriesQuery?: string;
   seriesImdb?: string;
+  seriesGenre?: string;
   seriesShow?: TvShowDetails | TvShowInfo | null;
   seriesTorrent?: EztvTorrent | null;
 }
@@ -98,8 +99,9 @@ function parseCurrentUrl(): {
   if (pathname === '/series' || pathname === '/tv') {
     const searchQuery = searchParams.get('search') || searchParams.get('q') || searchParams.get('query') || undefined;
     const imdbId = searchParams.get('imdb') || searchParams.get('imdb_id') || undefined;
+    const genre = searchParams.get('genre') || undefined;
     return {
-      route: { type: 'series', seriesQuery: searchQuery, seriesImdb: imdbId },
+      route: { type: 'series', seriesQuery: searchQuery, seriesImdb: imdbId, seriesGenre: genre },
       currentNav: 'series'
     };
   }
@@ -432,21 +434,23 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleNavigateSeries = (query?: unknown, imdbId?: unknown) => {
+  const handleNavigateSeries = (query?: unknown, imdbId?: unknown, genre?: unknown) => {
     const safeQuery = typeof query === 'string' ? query : undefined;
     const safeImdb = typeof imdbId === 'string' ? imdbId : undefined;
-    setRoute({ type: 'series', seriesQuery: safeQuery, seriesImdb: safeImdb });
+    const safeGenre = typeof genre === 'string' ? genre : undefined;
+    setRoute({ type: 'series', seriesQuery: safeQuery, seriesImdb: safeImdb, seriesGenre: safeGenre });
     setCurrentNav('series');
     setMovieSlugError(null);
 
     const params = new URLSearchParams();
     if (safeQuery) params.set('search', safeQuery);
     if (safeImdb) params.set('imdb', safeImdb);
+    if (safeGenre && safeGenre !== 'Action') params.set('genre', safeGenre);
     const queryString = params.toString() ? `?${params.toString()}` : '';
     const targetUrl = `/series${queryString}`;
 
     if (window.location.pathname + window.location.search !== targetUrl) {
-      window.history.pushState({ type: 'series', seriesQuery: safeQuery, seriesImdb: safeImdb }, '', targetUrl);
+      window.history.pushState({ type: 'series', seriesQuery: safeQuery, seriesImdb: safeImdb, seriesGenre: safeGenre }, '', targetUrl);
     }
 
     updateDocumentSeo({
@@ -537,7 +541,7 @@ export default function App() {
       // Parallel fetch across different high-quality dimensions
       const [trendingRes, recentRes, topRatedRes, actionRes] = await Promise.allSettled([
         fetchMovies({ sort_by: 'download_count', limit: 25 }),
-        fetchMovies({ query_term: '2024', sort_by: 'download_count', limit: 20 }),
+        fetchMovies({ query_term: String(new Date().getFullYear()), sort_by: 'download_count', limit: 20 }),
         fetchMovies({ minimum_rating: 8, sort_by: 'like_count', limit: 20 }),
         fetchMovies({ genre: 'Action', sort_by: 'like_count', limit: 20 }),
       ]);
@@ -920,6 +924,7 @@ export default function App() {
           <EztvView
             initialQuery={route.seriesQuery}
             initialImdb={route.seriesImdb}
+            initialGenre={route.seriesGenre}
             onShowToast={(msg, type) => addToast(type || 'info', msg)}
             onOpenGuide={() => setIsGuideOpen(true)}
             onSelectSeries={handleSelectSeries}
@@ -1121,11 +1126,17 @@ export default function App() {
                         ? '4K Ultra HD Cinema (2160p)'
                         : currentNav === 'top'
                         ? 'Top Rated Masterpieces (IMDb 8+)'
+                        : filters.sort_by === 'date_added'
+                        ? 'Recently Added & Latest Films'
                         : 'Explore Films'}
                     </span>
                   </h1>
                   <p className={`text-xs sm:text-sm mt-0.5 ${isWhite ? 'text-slate-600' : 'text-neutral-400'}`}>
-                    Stream trailers, view metadata, and download high-quality files with magnet links
+                    {filters.query_term
+                      ? 'Displaying matching titles across all years from the full cinematic archive'
+                      : filters.sort_by === 'date_added'
+                      ? `Latest additions from ${new Date().getFullYear() - 1}–${new Date().getFullYear()} • Search any title above to find earlier films`
+                      : 'Stream trailers, view metadata, and download high-quality files with magnet links'}
                   </p>
                 </div>
 
@@ -1177,6 +1188,11 @@ export default function App() {
                   {filters.minimum_rating > 0 && (
                     <span className="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400 border border-amber-500/30 text-[11px] font-bold">
                       ★ {filters.minimum_rating}+
+                    </span>
+                  )}
+                  {filters.sort_by === 'date_added' && !filters.query_term && (!filters.year || filters.year === 'All') && (
+                    <span className="px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[11px] font-bold">
+                      {new Date().getFullYear() - 1}–{new Date().getFullYear()} Releases
                     </span>
                   )}
 

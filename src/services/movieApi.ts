@@ -135,8 +135,8 @@ export const MOVIE_SORT_OPTIONS: SortOptionItem[] = [
     shortLabel: 'Recently Added',
     sortBy: 'date_added',
     orderBy: 'desc',
-    badge: 'Latest',
-    description: 'Films most recently uploaded to CineVault'
+    badge: `${new Date().getFullYear() - 1}–${new Date().getFullYear()}`,
+    description: `Latest additions strictly from ${new Date().getFullYear() - 1}–${new Date().getFullYear()}`
   },
   {
     key: 'year_desc',
@@ -479,6 +479,19 @@ export function filterMoviesByParams(movies: Movie[], params: Partial<FilterPara
   }
 
   // 5. Year (exact or range like 1990-2005, or min_year/max_year)
+  // In recently added / latest movies section: only current year and previous year are visible.
+  // Every other movie remains accessible through search or explicit year selection.
+  const isRecentlyAddedBrowse =
+    (!params.query_term || !params.query_term.trim() || params.query_term === 'All') &&
+    (!params.year || params.year === 'All') &&
+    (!params.decade || params.decade === 'All') &&
+    (!params.sort_by || params.sort_by === 'date_added');
+
+  if (isRecentlyAddedBrowse) {
+    const minYear = new Date().getFullYear() - 1;
+    list = list.filter(m => (m.year || 0) >= minYear);
+  }
+
   if (typeof params.min_year === 'number' && params.min_year > 0) {
     list = list.filter(m => (m.year || 0) >= params.min_year!);
   }
@@ -612,6 +625,17 @@ export async function fetchMovies(params: Partial<FilterParams> = {}): Promise<{
     let movies: Movie[] = validateAndCleanMovies(rawMovies);
 
     // Optional client-side refinements if year range, runtime, codec, or language were selected
+    const isRecentlyAddedBrowse =
+      (!params.query_term || !params.query_term.trim() || params.query_term === 'All') &&
+      (!params.year || params.year === 'All') &&
+      (!params.decade || params.decade === 'All') &&
+      (!params.sort_by || params.sort_by === 'date_added');
+
+    if (isRecentlyAddedBrowse) {
+      const minYear = new Date().getFullYear() - 1;
+      movies = movies.filter(m => (m.year || 0) >= minYear);
+    }
+
     if (typeof params.min_year === 'number' && params.min_year > 0) {
       movies = movies.filter(m => (m.year || 0) >= params.min_year!);
     }

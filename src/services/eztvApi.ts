@@ -3,9 +3,12 @@ import { EztvApiResponse, EztvTorrent, TvShowInfo, TvShowDetails } from '../type
 export interface EztvFetchParams {
   imdb_id?: string;
   search?: string;
+  genre?: string;
   page?: number;
   limit?: number;
 }
+
+export const APPROVED_TV_GENRES = ['Action', 'Crime', 'Adventure', 'Thriller', 'Mystery'] as const;
 
 /**
  * Search television series metadata via /api/tv/shows (TVmaze proxy with fallback)
@@ -75,6 +78,7 @@ const CLIENT_EZTV_MIRRORS = [
 
 /**
  * Fetch torrents from the EZTV API (proxied via /api/eztv with direct client-side fallback)
+ * Automatically filters latest episode releases exclusively for Action, Crime, Adventure, Thriller, and Mystery series!
  * Documentation: https://eztvx.to/api/get-torrents
  */
 export async function fetchEztvTorrents(params: EztvFetchParams = {}): Promise<EztvApiResponse> {
@@ -88,6 +92,10 @@ export async function fetchEztvTorrents(params: EztvFetchParams = {}): Promise<E
 
   if (params.search && params.search.trim()) {
     query.set('search', params.search.trim());
+  }
+
+  if (params.genre && params.genre.trim()) {
+    query.set('genre', params.genre.trim());
   }
 
   if (params.page && params.page > 0) {

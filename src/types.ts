@@ -295,6 +295,8 @@ export interface EztvTorrent {
   peers: number;
   date_released_unix: number;
   size_bytes: string | number;
+  clean_title?: string;
+  genres?: string[];
 }
 
 export interface EztvApiResponse {

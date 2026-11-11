@@ -19,6 +19,8 @@ export interface CuratedSectionConfig {
     order_by?: 'desc' | 'asc';
     query_term?: string;
     quality?: string;
+    min_year?: number;
+    max_year?: number;
   };
 }
 
@@ -90,10 +92,10 @@ export const CURATED_SECTIONS: CuratedSectionConfig[] = [
   {
     id: 'upcoming',
     title: 'Latest High-Bitrate Releases',
-    subtitle: 'Brand new 2024–2026 additions & freshest encodes',
+    subtitle: `Brand new ${new Date().getFullYear() - 1}–${new Date().getFullYear()} additions & freshest encodes`,
     badge: 'Fresh Encodes',
     accentColor: 'from-indigo-500/20 text-indigo-400 border-indigo-500/30',
-    filterParams: { sort_by: 'date_added', order_by: 'desc' }
+    filterParams: { sort_by: 'date_added', order_by: 'desc', min_year: new Date().getFullYear() - 1 }
   }
 ];
 

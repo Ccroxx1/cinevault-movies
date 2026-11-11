@@ -36,6 +36,7 @@ import { getSeriesPosterCandidates, getPrimarySeriesPoster, CINEVAULT_POSTER_FAL
 interface EztvViewProps {
   initialQuery?: string;
   initialImdb?: string;
+  initialGenre?: string;
   onShowToast: (message: string, type?: 'success' | 'info' | 'error') => void;
   onOpenGuide: () => void;
   onSelectSeries?: (params: { imdb?: string; title?: string; torrent?: EztvTorrent; show?: TvShowInfo }) => void;
@@ -55,6 +56,8 @@ const POPULAR_SHOWS = [
   { name: 'Friends', imdb: 'tt0108778' }
 ];
 
+export const GENRE_FILTERS = ['Action', 'All', 'Crime', 'Adventure', 'Thriller', 'Mystery'];
+const APPROVED_GENRES_SET = new Set(['action', 'crime', 'adventure', 'thriller', 'mystery']);
 const QUALITY_FILTERS = ['All', '1080p', '720p', '4K UHD', 'x265 / HEVC', '480p'];
 
 interface EztvReleaseRowProps {
@@ -140,6 +143,13 @@ const EztvReleaseRow: React.FC<EztvReleaseRowProps> = ({
             {isHevc && (
               <span className="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-400 border border-purple-500/30 text-xs font-semibold">
                 x265 / HEVC
+              </span>
+            )}
+
+            {/* Curated Genre Badge */}
+            {torrent.genres && torrent.genres.length > 0 && (
+              <span className="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-300 border border-rose-500/25 text-xs font-semibold">
+                {torrent.genres.slice(0, 2).join(' • ')}
               </span>
             )}
 
@@ -328,6 +338,7 @@ export const EztvReleasesSkeleton: React.FC = () => {
 export const EztvView: React.FC<EztvViewProps> = ({
   initialQuery,
   initialImdb,
+  initialGenre,
   onShowToast,
   onOpenGuide,
   onSelectSeries
@@ -352,7 +363,21 @@ export const EztvView: React.FC<EztvViewProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [serverMessage, setServerMessage] = useState<string | null>(null);
 
-  // Filters & Sorting
+  // Filters & Sorting - 'Action' is default genre
+  const [selectedGenre, setSelectedGenre] = useState<string>(() => {
+    if (initialGenre) {
+      const match = GENRE_FILTERS.find((g) => g.toLowerCase() === initialGenre.toLowerCase());
+      if (match) return match;
+    }
+    if (typeof window !== 'undefined') {
+      const urlGenre = new URLSearchParams(window.location.search).get('genre');
+      if (urlGenre) {
+        const match = GENRE_FILTERS.find((g) => g.toLowerCase() === urlGenre.toLowerCase());
+        if (match) return match;
+      }
+    }
+    return 'Action';
+  });
   const [selectedQuality, setSelectedQuality] = useState<string>('All');
   const [selectedSeason, setSelectedSeason] = useState<string>('All');
   const [sortBy, setSortBy] = useState<'date' | 'seeds' | 'size'>('date');
@@ -372,7 +397,11 @@ export const EztvView: React.FC<EztvViewProps> = ({
       setActiveImdbId(safeImdb);
       setCurrentPage(1);
     }
-  }, [initialQuery, initialImdb]);
+    if (initialGenre) {
+      const match = GENRE_FILTERS.find((g) => g.toLowerCase() === initialGenre.toLowerCase());
+      if (match) setSelectedGenre(match);
+    }
+  }, [initialQuery, initialImdb, initialGenre]);
 
   // Live TV show autocomplete when typing
   useEffect(() => {
@@ -424,8 +453,13 @@ export const EztvView: React.FC<EztvViewProps> = ({
     };
   }, [isSuggestionsOpen]);
 
-  // Fetch torrents from EZTV API
-  const loadTorrents = async (page: number, imdbId?: string | null, search?: string | null) => {
+  // Fetch torrents from EZTV API (automatically genre-filtered for Action, Crime, Adventure, Thriller, Mystery)
+  const loadTorrents = async (
+    page: number,
+    imdbId?: string | null,
+    search?: string | null,
+    genreFilter?: string
+  ) => {
     setIsLoading(true);
     setError(null);
     setServerMessage(null);
@@ -435,7 +469,8 @@ export const EztvView: React.FC<EztvViewProps> = ({
         page,
         limit: 40,
         imdb_id: imdbId || undefined,
-        search: search || undefined
+        search: search || undefined,
+        genre: genreFilter || 'Action'
       });
 
       setTorrents(res.torrents || []);
@@ -462,8 +497,8 @@ export const EztvView: React.FC<EztvViewProps> = ({
 
   // Trigger search on parameter change
   useEffect(() => {
-    loadTorrents(currentPage, activeImdbId, activeQuery);
-  }, [currentPage, activeImdbId, activeQuery]);
+    loadTorrents(currentPage, activeImdbId, activeQuery, selectedGenre);
+  }, [currentPage, activeImdbId, activeQuery, selectedGenre]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -517,6 +552,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
     setActiveShowName(null);
     setShowMeta(null);
     setSelectedSeason('All');
+    setSelectedGenre('Action');
     setCurrentPage(1);
   };
 
@@ -577,6 +613,17 @@ export const EztvView: React.FC<EztvViewProps> = ({
   const filteredTorrents = useMemo(() => {
     return torrents
       .filter((t) => {
+        // Genre filter (Active when browsing latest releases or when specific genre is selected)
+        if (selectedGenre !== 'All') {
+          const target = selectedGenre.toLowerCase();
+          const genres = (t.genres || []).map((g) => g.toLowerCase());
+          if (!genres.includes(target)) return false;
+        } else if (!activeImdbId && !activeQuery && t.genres && t.genres.length > 0) {
+          const genres = t.genres.map((g) => g.toLowerCase());
+          const isApproved = genres.some((g) => APPROVED_GENRES_SET.has(g));
+          if (!isApproved) return false;
+        }
+
         // Season filter
         if (selectedSeason !== 'All') {
           const s = String(t.season || '').trim();
@@ -607,16 +654,22 @@ export const EztvView: React.FC<EztvViewProps> = ({
         // Default: date released descending
         return (b.date_released_unix || 0) - (a.date_released_unix || 0);
       });
-  }, [torrents, selectedSeason, selectedQuality, sortBy]);
+  }, [torrents, selectedSeason, selectedQuality, selectedGenre, sortBy, activeImdbId, activeQuery]);
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8 animate-in fade-in duration-200">
       {/* Hero Header */}
       <div className="relative z-20 rounded-3xl p-6 sm:p-10 border eztv-hero-banner shadow-2xl">
         <div className="relative z-10 space-y-4 max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-bold uppercase tracking-wider eztv-hero-badge">
-            <Tv className="w-3.5 h-3.5" />
-            <span>EZTV Television Index</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-bold uppercase tracking-wider eztv-hero-badge">
+              <Tv className="w-3.5 h-3.5" />
+              <span>EZTV Television Index</span>
+            </div>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-neutral-200 border border-white/15 text-xs font-semibold">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Action (Default) • Crime • Adventure • Thriller • Mystery
+            </span>
           </div>
 
           <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight eztv-hero-title">
@@ -625,7 +678,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
 
           <p className="text-sm sm:text-base text-neutral-300 leading-relaxed eztv-hero-sub">
             Live television torrent index powered directly by the official EZTV API and TVmaze.
-            Search any series (like Dark, Loki, Breaking Bad, Stranger Things) or IMDb ID to browse full seasons and verified episode releases.
+            Defaulting to newest Action series episode releases, with verified filters for Crime, Adventure, Thriller, and Mystery series with magnet links and full seasons.
           </p>
 
           {/* Search Form with Live Autocomplete */}
@@ -914,8 +967,29 @@ export const EztvView: React.FC<EztvViewProps> = ({
       {/* Filter & Sort Controls Bar */}
       <div className="p-4 rounded-2xl bg-[#0f0f13] border border-white/10 flex flex-wrap items-center justify-between gap-4 backdrop-blur-sm">
         <div className="flex flex-wrap items-center gap-3">
-          {/* Quality Filter */}
+          {/* Genre Filter */}
           <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Genre:</span>
+            <div className="flex flex-wrap gap-1">
+              {GENRE_FILTERS.map((g) => (
+                <button
+                  key={g}
+                  onClick={() => {
+                    setSelectedGenre(g);
+                    setCurrentPage(1);
+                  }}
+                  className={`px-2.5 py-1 text-xs rounded-lg font-semibold transition-all cursor-pointer eztv-tag-btn ${
+                    selectedGenre === g ? 'is-active font-bold' : ''
+                  }`}
+                >
+                  {g}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Quality Filter */}
+          <div className="flex items-center gap-2 border-l border-white/10 pl-3">
             <SlidersHorizontal className="w-4 h-4 text-neutral-400" />
             <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Quality:</span>
             <div className="flex flex-wrap gap-1">
