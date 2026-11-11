@@ -59,6 +59,7 @@ const POPULAR_SHOWS = [
 ];
 
 export const GENRE_FILTERS = ['All', 'Action', 'Crime', 'Adventure', 'Thriller', 'Mystery'];
+const EZTV_PAGE_SIZE = 40;
 const QUALITY_FILTERS = ['All', '1080p', '720p', '4K UHD', 'x265 / HEVC', '480p'];
 
 export interface SeriesCardData {
@@ -508,7 +509,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
   const [torrents, setTorrents] = useState<EztvTorrent[]>([]);
   const [totalTorrentsCount, setTotalTorrentsCount] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const totalPages = Math.max(1, Math.ceil(totalTorrentsCount / 100));
+  const totalPages = Math.max(1, Math.ceil(totalTorrentsCount / EZTV_PAGE_SIZE));
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [serverMessage, setServerMessage] = useState<string | null>(null);
@@ -604,7 +605,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
     };
   }, [isSuggestionsOpen]);
 
-  // Fetch torrents from EZTV API (automatically genre-filtered for Action, Crime, Adventure, Thriller, Mystery)
+  // Fetch recent EZTV releases; the server applies the seven-day window and genre filter.
   const loadTorrents = async (
     page: number,
     imdbId?: string | null,
@@ -618,14 +619,21 @@ export const EztvView: React.FC<EztvViewProps> = ({
     try {
       const res = await fetchEztvTorrents({
         page,
-        limit: 100,
+        limit: EZTV_PAGE_SIZE,
         imdb_id: imdbId || undefined,
         search: search || undefined,
         genre: genreFilter || 'All'
       });
 
+      const resultCount = res.torrents_count ?? res.torrents?.length ?? 0;
+      const resultPageCount = Math.max(1, Math.ceil(resultCount / (res.limit || EZTV_PAGE_SIZE)));
+      setTotalTorrentsCount(resultCount);
+      if (page > resultPageCount) {
+        setCurrentPage(resultPageCount);
+        return;
+      }
+
       setTorrents(res.torrents || []);
-      setTotalTorrentsCount(res.torrents_count || (res.torrents ? res.torrents.length : 0));
       if (res.show_meta) {
         setShowMeta(res.show_meta);
       } else if (!imdbId && !search) {
@@ -879,7 +887,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
             </div>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-neutral-200 border border-white/15 text-xs font-semibold">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              All TV genres • Action • Crime • Adventure • Thriller • Mystery
+              All TV genres • Past 7 days • Action • Crime • Adventure • Thriller • Mystery
             </span>
           </div>
 
@@ -889,7 +897,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
 
           <p className="text-sm sm:text-base text-neutral-300 leading-relaxed eztv-hero-sub">
             Live television torrent index powered directly by the official EZTV API and TVmaze.
-            Showing the newest eligible TV series episode releases across all genres, with optional Action, Crime, Adventure, Thriller, and Mystery filters, magnet links, and full seasons.
+            Showing eligible TV series and episode releases from the past 7 days, newest first, with optional genre filters, magnet links, and full seasons.
           </p>
 
           {/* Search Form with Live Autocomplete */}
@@ -1290,7 +1298,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
           </div>
 
           <button
-            onClick={() => loadTorrents(currentPage, activeImdbId, activeQuery)}
+            onClick={() => loadTorrents(currentPage, activeImdbId, activeQuery, selectedGenre)}
             className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white transition-colors cursor-pointer"
             title="Refresh EZTV torrents"
           >
@@ -1307,7 +1315,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
             <span>{error}</span>
           </div>
           <button
-            onClick={() => loadTorrents(currentPage, activeImdbId, activeQuery)}
+            onClick={() => loadTorrents(currentPage, activeImdbId, activeQuery, selectedGenre)}
             className="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-lg transition-colors cursor-pointer shrink-0"
           >
             Retry
@@ -1402,7 +1410,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
       )}
 
       {/* Pagination Controls */}
-      {!isLoading && !error && filteredTorrents.length > 0 && (
+      {!isLoading && !error && totalPages > 1 && (
         <div className="pt-4 flex items-center justify-between border-t border-white/10">
           <button
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
