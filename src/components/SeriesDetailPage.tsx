@@ -684,116 +684,101 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
     onShowToast(`Copied ${uniqueMagnets.length} magnet links for Season ${seasonNum} to clipboard!`, 'success');
   };
 
-  // Load TV show details and episodes
+  // Concurrently load TV show details and torrent releases in parallel for ultra-fast loading
   useEffect(() => {
     let isMounted = true;
 
-    const loadShowData = async () => {
+    const loadData = async () => {
       if (!show?.episodes || show.episodes.length === 0) {
         setIsLoadingDetails((prev) => (prev ? prev : true));
       }
+      setIsLoadingTorrents((prev) => (prev ? prev : true));
       setError(null);
 
-      try {
-        let details: TvShowDetails | null = null;
-
-        if (effectiveImdb) {
-          details = await fetchTvShowDetails({ imdb: effectiveImdb });
-        }
-        if (!details && cleanInitialTitle) {
-          details = await fetchTvShowDetails({ title: cleanInitialTitle });
-        }
-        if (!details && seriesId) {
-          const match = seriesId.match(/^(tt\d+)/i);
-          if (match) {
-            details = await fetchTvShowDetails({ imdb: match[1] });
-          } else {
-            details = await fetchTvShowDetails({ title: seriesId.replace(/-/g, ' ') });
+      // 1. Fetch TV show metadata
+      const detailsPromise = (async () => {
+        try {
+          let details: TvShowDetails | null = null;
+          if (effectiveImdb) {
+            details = await fetchTvShowDetails({ imdb: effectiveImdb });
           }
-        }
-        if (!details && initialTorrent?.title) {
-          details = await fetchTvShowDetails({ title: initialTorrent.title });
-        }
-
-        if (isMounted) {
-          if (details) {
-            setShow(details);
-          } else if (initialShow) {
-            setShow(initialShow as TvShowDetails);
-          } else if (!cleanInitialTitle) {
-            setError('Television series information could not be located.');
+          if (!details && cleanInitialTitle) {
+            details = await fetchTvShowDetails({ title: cleanInitialTitle });
           }
-        }
-      } catch (err: any) {
-        if (isMounted) {
+          if (!details && seriesId) {
+            const match = seriesId.match(/^(tt\d+)/i);
+            if (match) {
+              details = await fetchTvShowDetails({ imdb: match[1] });
+            } else {
+              details = await fetchTvShowDetails({ title: seriesId.replace(/-/g, ' ') });
+            }
+          }
+          if (!details && initialTorrent?.title) {
+            details = await fetchTvShowDetails({ title: initialTorrent.title });
+          }
+          return details;
+        } catch (err) {
           console.error('Error fetching TV details:', err);
-          if (!show) {
-            setError('Failed to load series details. Please check your connection.');
+          return null;
+        }
+      })();
+
+      // 2. Concurrently fetch EZTV releases for the show
+      const releasesPromise = (async () => {
+        try {
+          const imdbToUse = effectiveImdb || initialTorrent?.imdb_id;
+          let res: EztvApiResponse | null = null;
+
+          if (imdbToUse && imdbToUse !== '0') {
+            res = await fetchEztvTorrents({ imdb_id: imdbToUse, limit: 100 });
           }
-        }
-      } finally {
-        if (isMounted) setIsLoadingDetails(false);
-      }
-    };
 
-    loadShowData();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [effectiveImdb, seriesId, initialTorrent, cleanInitialTitle]);
-
-  // Load torrents for this TV show
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadReleases = async () => {
-      setIsLoadingTorrents((prev) => (prev ? prev : true));
-
-      try {
-        let res: EztvApiResponse | null = null;
-        const imdbToUse = show?.imdb_code || effectiveImdb;
-
-        if (imdbToUse) {
-          res = await fetchEztvTorrents({ imdb_id: imdbToUse, limit: 100 });
-        }
-
-        // If no torrents returned by IMDb ID or no IMDb ID, fallback to title search
-        if ((!res || !res.torrents || res.torrents.length === 0) && (show?.name || cleanInitialTitle)) {
-          const searchTitle = show?.name || cleanInitialTitle;
-          if (searchTitle) {
-            res = await fetchEztvTorrents({ search: searchTitle, limit: 100 });
+          if ((!res || !res.torrents || res.torrents.length === 0) && cleanInitialTitle) {
+            res = await fetchEztvTorrents({ search: cleanInitialTitle, limit: 100 });
           }
-        }
 
-        if (isMounted && res && res.torrents && res.torrents.length > 0) {
-          const allTorrents = [...res.torrents];
-          if (initialTorrent && !allTorrents.some(t => t.hash === initialTorrent.hash)) {
-            allTorrents.unshift(initialTorrent);
-          }
-          setTorrents(allTorrents);
-        } else if (isMounted && initialTorrent) {
-          setTorrents([initialTorrent]);
-        }
-      } catch (err) {
-        if (isMounted) {
+          return res;
+        } catch (err) {
           console.warn('Could not fetch releases for series:', err);
+          return null;
         }
-      } finally {
-        if (isMounted) setIsLoadingTorrents(false);
+      })();
+
+      const [detailsResult, releasesResult] = await Promise.all([detailsPromise, releasesPromise]);
+
+      if (!isMounted) return;
+
+      if (detailsResult) {
+        setShow(detailsResult);
+        setIsLoadingDetails(false);
+      } else if (initialShow) {
+        setShow(initialShow as TvShowDetails);
+        setIsLoadingDetails(false);
+      } else {
+        setIsLoadingDetails(false);
+        if (!cleanInitialTitle) {
+          setError('Television series information could not be located.');
+        }
       }
+
+      if (releasesResult && releasesResult.torrents && releasesResult.torrents.length > 0) {
+        const allTorrents = [...releasesResult.torrents];
+        if (initialTorrent && !allTorrents.some((t) => t.hash === initialTorrent.hash)) {
+          allTorrents.unshift(initialTorrent);
+        }
+        setTorrents(allTorrents);
+      } else if (initialTorrent) {
+        setTorrents([initialTorrent]);
+      }
+      setIsLoadingTorrents(false);
     };
 
-    if (show?.imdb_code || show?.name || effectiveImdb || cleanInitialTitle) {
-      loadReleases();
-    } else {
-      setIsLoadingTorrents((prev) => (prev ? false : prev));
-    }
+    loadData();
 
     return () => {
       isMounted = false;
     };
-  }, [show?.imdb_code, show?.name, effectiveImdb, seriesId, cleanInitialTitle]);
+  }, [effectiveImdb, seriesId, cleanInitialTitle]);
 
   // Dynamic SEO head tags
   useEffect(() => {

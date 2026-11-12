@@ -1416,6 +1416,7 @@ app.get('/api/tv/details', async (req, res) => {
     const cacheKey = `tv_details:${rawImdb || rawId || rawTitle.toLowerCase()}`;
     const cached = cache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < 7200000) {
+      res.set('Cache-Control', 'public, max-age=1800, stale-while-revalidate=86400');
       return res.json({ status: 'ok', show: cached.data });
     }
 
@@ -1595,6 +1596,7 @@ app.get('/api/tv/details', async (req, res) => {
     };
 
     cache.set(cacheKey, { timestamp: Date.now(), data: details });
+    res.set('Cache-Control', 'public, max-age=1800, stale-while-revalidate=86400');
     return res.json({ status: 'ok', show: details });
   } catch (err: any) {
     console.error('TV details endpoint error:', err);
@@ -1700,12 +1702,12 @@ const KNOWN_TV_APPROVED = [
   { pattern: /detective/i, genres: ['Crime', 'Mystery'] }
 ];
 
-const tvSeriesGenreCache = new Map<string, { eligible: boolean; genres: string[]; name: string }>();
+const tvSeriesGenreCache = new Map<string, { eligible: boolean; genres: string[]; name: string; image?: string }>();
 
 async function detectTvSeriesGenres(params: {
   title: string;
   imdb_id?: string;
-}): Promise<{ eligible: boolean; genres: string[] }> {
+}): Promise<{ eligible: boolean; genres: string[]; image?: string }> {
   const { title, imdb_id } = params;
   const cleanTitle = extractShowTitleFromRelease(title);
   const cacheKey = (imdb_id && imdb_id !== '0') ? `tt${imdb_id}` : cleanTitle.toLowerCase();
@@ -1713,7 +1715,7 @@ async function detectTvSeriesGenres(params: {
   // 1. In-memory cache check
   const cached = tvSeriesGenreCache.get(cacheKey);
   if (cached) {
-    return { eligible: cached.eligible, genres: cached.genres };
+    return { eligible: cached.eligible, genres: cached.genres, image: cached.image };
   }
 
   // 2. Known exclusion check (unless also explicitly in known approved)
@@ -1760,14 +1762,15 @@ async function detectTvSeriesGenres(params: {
     if (show) {
       const rawGenres: string[] = Array.isArray(show.genres) ? show.genres : [];
       const approvedList = rawGenres.filter((g: string) => APPROVED_TV_GENRES.has(g.toLowerCase()));
+      const showImage = show.image?.medium || show.image?.original || undefined;
 
       if (approvedList.length === 0) {
-        tvSeriesGenreCache.set(cacheKey, { eligible: false, genres: rawGenres, name: show.name || cleanTitle });
+        tvSeriesGenreCache.set(cacheKey, { eligible: false, genres: rawGenres, name: show.name || cleanTitle, image: showImage });
         return { eligible: false, genres: rawGenres };
       }
 
-      tvSeriesGenreCache.set(cacheKey, { eligible: true, genres: approvedList, name: show.name || cleanTitle });
-      return { eligible: true, genres: approvedList };
+      tvSeriesGenreCache.set(cacheKey, { eligible: true, genres: approvedList, name: show.name || cleanTitle, image: showImage });
+      return { eligible: true, genres: approvedList, image: showImage };
     }
   } catch (err) {
     // Graceful fallback
@@ -1797,7 +1800,7 @@ const EZTV_SOURCE_PAGE_SIZE = 100;
 const EZTV_SOURCE_PAGE_BATCH_SIZE = 10;
 const TVMAZE_LOOKUP_CONCURRENCY = 8;
 const TV_RELEASE_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
-const LATEST_RELEASES_CACHE_TTL_MS = 10 * 60 * 1000;
+const LATEST_RELEASES_CACHE_TTL_MS = 30 * 60 * 1000;
 
 function getEztvReleaseTimestampMs(torrent: any): number {
   const timestamp = Number(torrent.date_released_unix);
@@ -1889,7 +1892,7 @@ async function buildLatestEligibleReleases(): Promise<{ releases: any[]; sourceL
   }
 
   const showEntries = Array.from(showsByKey.entries());
-  const genreByShow = new Map<string, { eligible: boolean; genres: string[] }>();
+  const genreByShow = new Map<string, { eligible: boolean; genres: string[]; image?: string }>();
   let nextShowIndex = 0;
   const lookupWorkers = Math.min(TVMAZE_LOOKUP_CONCURRENCY, showEntries.length);
   await Promise.all(Array.from({ length: lookupWorkers }, async () => {
@@ -1912,14 +1915,15 @@ async function buildLatestEligibleReleases(): Promise<{ releases: any[]; sourceL
     if (!genreInfo) continue;
     if (genreInfo.eligible) {
       const imdb = (torrent.imdb_id && torrent.imdb_id !== '0') ? `tt${torrent.imdb_id}` : '';
-      const posterUrl = imdb
+      const posterUrl = genreInfo.image || (imdb
         ? `/api/poster?imdb=${imdb}&size=small`
-        : (cleanTitle ? `/api/poster?title=${encodeURIComponent(cleanTitle)}&type=tv&size=small` : undefined);
+        : (cleanTitle ? `/api/poster?title=${encodeURIComponent(cleanTitle)}&type=tv&size=small` : undefined));
 
       eligible.push({
         ...torrent,
         clean_title: cleanTitle,
         genres: genreInfo.genres,
+        image: genreInfo.image,
         poster_url: posterUrl
       });
     }
@@ -2026,6 +2030,7 @@ app.get(['/api/eztv', '/api/eztv/torrents', '/api/eztv/get-torrents'], async (re
         genre: genreParam
       });
 
+      res.set('Cache-Control', 'public, max-age=180, stale-while-revalidate=1800');
       return res.json({
         status: 'ok',
         imdb_id: null,
@@ -2108,16 +2113,18 @@ app.get(['/api/eztv', '/api/eztv/torrents', '/api/eztv/get-torrents'], async (re
     const enrichedTorrents = torrents.map((t: any) => {
       const showTitle = extractShowTitleFromRelease(t.title);
       const imdb = (t.imdb_id && t.imdb_id !== '0') ? `tt${t.imdb_id}` : (showMeta?.imdb_code || '');
-      const posterUrl = imdb
+      const posterUrl = showMeta?.image || (imdb
         ? `/api/poster?imdb=${imdb}&size=small`
-        : (showTitle ? `/api/poster?title=${encodeURIComponent(showTitle)}&type=tv&size=small` : undefined);
+        : (showTitle ? `/api/poster?title=${encodeURIComponent(showTitle)}&type=tv&size=small` : undefined));
       return {
         ...t,
         clean_title: showTitle,
+        image: showMeta?.image,
         poster_url: posterUrl
       };
     });
 
+    res.set('Cache-Control', 'public, max-age=180, stale-while-revalidate=1800');
     return res.json({
       status: 'ok',
       imdb_id: effectiveImdbId || result.imdb_id || null,

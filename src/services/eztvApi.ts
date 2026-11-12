@@ -76,12 +76,69 @@ const CLIENT_EZTV_MIRRORS = [
   'https://eztv.ag/api/get-torrents'
 ];
 
+// Client-side In-Memory & Session Storage Cache with Stale-While-Revalidate
+const eztvTorrentsMemoryCache = new Map<string, { timestamp: number; data: EztvApiResponse }>();
+const tvDetailsMemoryCache = new Map<string, { timestamp: number; data: TvShowDetails }>();
+
+function getEztvCacheKey(params: EztvFetchParams): string {
+  const imdb = params.imdb_id ? params.imdb_id.replace(/^tt/i, '').trim() : '';
+  const search = (params.search || '').trim().toLowerCase();
+  const genre = (params.genre || 'All').trim();
+  const page = params.page || 1;
+  const limit = params.limit || 40;
+  return `eztv:${imdb}:${search}:${genre}:${page}:${limit}`;
+}
+
+/**
+ * Synchronous cache lookup for instant 0ms grid hydration without waiting for network
+ */
+export function getCachedEztvTorrents(params: EztvFetchParams = {}): EztvApiResponse | null {
+  const key = getEztvCacheKey(params);
+  const mem = eztvTorrentsMemoryCache.get(key);
+  if (mem && Date.now() - mem.timestamp < 10 * 60 * 1000) {
+    return mem.data;
+  }
+  if (typeof window !== 'undefined' && window.sessionStorage) {
+    try {
+      const raw = sessionStorage.getItem(`cv_eztv_${key}`);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.data && Date.now() - parsed.timestamp < 20 * 60 * 1000) {
+          eztvTorrentsMemoryCache.set(key, parsed);
+          return parsed.data;
+        }
+      }
+    } catch {}
+  }
+  return null;
+}
+
+export function saveCachedEztvTorrents(params: EztvFetchParams, data: EztvApiResponse): void {
+  const key = getEztvCacheKey(params);
+  const entry = { timestamp: Date.now(), data };
+  eztvTorrentsMemoryCache.set(key, entry);
+  if (typeof window !== 'undefined' && window.sessionStorage) {
+    try {
+      sessionStorage.setItem(`cv_eztv_${key}`, JSON.stringify(entry));
+    } catch {}
+  }
+}
+
 /**
  * Fetch torrents from the EZTV API (proxied via /api/eztv with direct client-side fallback)
- * The server provides the latest eligible episode releases with genre and date filtering.
+ * Uses high-speed SWR client caching to display results with 0ms delay.
  * Documentation: https://eztvx.to/api/get-torrents
  */
 export async function fetchEztvTorrents(params: EztvFetchParams = {}): Promise<EztvApiResponse> {
+  const cached = getCachedEztvTorrents(params);
+  const key = getEztvCacheKey(params);
+  const mem = eztvTorrentsMemoryCache.get(key);
+
+  // If cache is fresh (< 3 minutes), return immediately
+  if (cached && mem && Date.now() - mem.timestamp < 3 * 60 * 1000) {
+    return cached;
+  }
+
   const query = new URLSearchParams();
 
   if (params.imdb_id) {
@@ -119,7 +176,7 @@ export async function fetchEztvTorrents(params: EztvFetchParams = {}): Promise<E
 
     if (response.ok) {
       const data: EztvApiResponse = await response.json();
-      return {
+      const result: EztvApiResponse = {
         torrents_count: data.torrents_count || (data.torrents ? data.torrents.length : 0),
         limit: data.limit || params.limit || 30,
         page: data.page || params.page || 1,
@@ -129,6 +186,9 @@ export async function fetchEztvTorrents(params: EztvFetchParams = {}): Promise<E
         message: data.message,
         torrents: Array.isArray(data.torrents) ? data.torrents : []
       };
+
+      saveCachedEztvTorrents(params, result);
+      return result;
     } else {
       let msg = `EZTV proxy error (${response.status})`;
       try {
@@ -141,6 +201,11 @@ export async function fetchEztvTorrents(params: EztvFetchParams = {}): Promise<E
     }
   } catch (err: any) {
     backendError = err instanceof Error ? err : new Error(String(err));
+  }
+
+  // If backend had an error but we have cached data, return cached data gracefully
+  if (cached) {
+    return cached;
   }
 
   // Dual-layer fallback: Direct fetch to CORS-enabled EZTV mirrors from browser
@@ -345,10 +410,54 @@ export function getSeriesPath(showOrTitle: { name?: string; title?: string; imdb
   return `/series/${slug}`;
 }
 
+function getTvDetailsCacheKey(params: { imdb?: string; id?: number; title?: string }): string {
+  const imdb = params.imdb ? params.imdb.replace(/^tt/i, '').trim() : '';
+  const id = params.id ? String(params.id) : '';
+  const title = (params.title || '').trim().toLowerCase();
+  return `tv_details:${imdb || id || title}`;
+}
+
+export function getCachedTvShowDetails(params: { imdb?: string; id?: number; title?: string }): TvShowDetails | null {
+  const key = getTvDetailsCacheKey(params);
+  const mem = tvDetailsMemoryCache.get(key);
+  if (mem && Date.now() - mem.timestamp < 30 * 60 * 1000) {
+    return mem.data;
+  }
+  if (typeof window !== 'undefined' && window.sessionStorage) {
+    try {
+      const raw = sessionStorage.getItem(`cv_${key}`);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.data && Date.now() - parsed.timestamp < 60 * 60 * 1000) {
+          tvDetailsMemoryCache.set(key, parsed);
+          return parsed.data;
+        }
+      }
+    } catch {}
+  }
+  return null;
+}
+
+export function saveCachedTvShowDetails(params: { imdb?: string; id?: number; title?: string }, data: TvShowDetails): void {
+  const key = getTvDetailsCacheKey(params);
+  const entry = { timestamp: Date.now(), data };
+  tvDetailsMemoryCache.set(key, entry);
+  if (typeof window !== 'undefined' && window.sessionStorage) {
+    try {
+      sessionStorage.setItem(`cv_${key}`, JSON.stringify(entry));
+    } catch {}
+  }
+}
+
 /**
  * Fetch full TV show details (metadata, cast, episodes) via /api/tv/details
  */
 export async function fetchTvShowDetails(params: { imdb?: string; id?: number; title?: string }): Promise<TvShowDetails | null> {
+  const cached = getCachedTvShowDetails(params);
+  if (cached) {
+    return cached;
+  }
+
   const query = new URLSearchParams();
   if (params.imdb) query.set('imdb', params.imdb.trim());
   if (params.id) query.set('id', String(params.id));
@@ -368,6 +477,7 @@ export async function fetchTvShowDetails(params: { imdb?: string; id?: number; t
     if (res.ok) {
       const data = await res.json();
       if (data?.show) {
+        saveCachedTvShowDetails(params, data.show as TvShowDetails);
         return data.show as TvShowDetails;
       }
     }

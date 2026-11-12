@@ -154,7 +154,17 @@ export function getSeriesPosterCandidates(series?: {
   const cleanTitle = (series.name || series.title || '').trim();
   const year = series.year ? String(series.year) : '';
 
-  // 1. Official Genuine Series Poster Resolver via IMDb / TVmaze
+  // 1. Direct resolved series image (e.g. TVmaze CDN) for zero-latency direct browser fetch
+  if (series.image && !series.image.startsWith('data:image/svg')) {
+    rawList.push(series.image);
+  }
+
+  // 2. Direct external release poster URL if available
+  if (series.poster_url && /^https?:\/\//i.test(series.poster_url) && !series.poster_url.includes('/api/')) {
+    rawList.push(series.poster_url);
+  }
+
+  // 3. Official Genuine Series Poster Resolver via IMDb / TVmaze
   if (rawImdb && /^tt\d+/i.test(rawImdb)) {
     const params = new URLSearchParams();
     params.set('imdb', rawImdb);
@@ -163,15 +173,14 @@ export function getSeriesPosterCandidates(series?: {
     params.set('type', 'tv');
     params.set('size', 'medium');
     rawList.push(`/api/tv/poster?${params.toString()}`);
-    rawList.push(`/api/poster?${params.toString()}`);
   }
 
-  // 2. Resolved series image if present and not fallback SVG
-  if (series.image && !series.image.startsWith('data:image/svg')) {
-    rawList.push(series.image);
+  // 4. Attached release poster_url (proxy or fallback)
+  if (series.poster_url && !series.poster_url.startsWith('data:image/svg')) {
+    rawList.push(series.poster_url);
   }
 
-  // 3. Official Server Title Resolver if no IMDb ID
+  // 5. Official Server Title Resolver if no IMDb ID
   if (!rawImdb && cleanTitle) {
     const params = new URLSearchParams();
     params.set('title', cleanTitle);
@@ -179,15 +188,9 @@ export function getSeriesPosterCandidates(series?: {
     params.set('type', 'tv');
     params.set('size', 'medium');
     rawList.push(`/api/tv/poster?${params.toString()}`);
-    rawList.push(`/api/poster?${params.toString()}`);
   }
 
-  // 4. Attached release poster_url
-  if (series.poster_url && !series.poster_url.startsWith('data:image/svg')) {
-    rawList.push(series.poster_url);
-  }
-
-  // 5. Final fallback
+  // 6. Final fallback
   rawList.push(CINEVAULT_POSTER_FALLBACK);
 
   return Array.from(new Set(rawList.filter((s) => typeof s === 'string' && s.trim().length > 0)));

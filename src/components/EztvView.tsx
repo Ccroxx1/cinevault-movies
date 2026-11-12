@@ -4,7 +4,6 @@ import {
   Search,
   Magnet,
   Check,
-  Sparkles,
   ArrowUpDown,
   RefreshCw,
   SlidersHorizontal,
@@ -29,7 +28,9 @@ import {
   formatEztvDate,
   parseQualityFromEztv,
   extractShowTitleFromRelease,
-  extractShowTitleAndYear
+  extractShowTitleAndYear,
+  getSeriesPath,
+  getCachedEztvTorrents
 } from '../services/eztvApi';
 import { CopyIcon } from './ActionIcons';
 import { useTheme } from '../context/ThemeContext';
@@ -77,6 +78,7 @@ export interface SeriesCardData {
 
 interface SeriesGridCardProps {
   series: SeriesCardData;
+  index?: number;
   isCopied: boolean;
   onSelectSeries: (torrent: EztvTorrent) => void;
   onLaunchMagnet: (torrent: EztvTorrent) => void;
@@ -85,6 +87,7 @@ interface SeriesGridCardProps {
 
 const SeriesGridCard: React.FC<SeriesGridCardProps> = ({
   series,
+  index,
   isCopied,
   onSelectSeries,
   onLaunchMagnet,
@@ -121,9 +124,12 @@ const SeriesGridCard: React.FC<SeriesGridCardProps> = ({
     ? `Season ${series.latestSeason}`
     : 'Series';
 
+  const isTopCard = index !== undefined && index < 6;
+
   return (
     <div
       onClick={() => onSelectSeries(series.sampleTorrent)}
+      style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 340px' }}
       className="group rounded-2xl border border-white/10 bg-[#0f0f13] hover:border-rose-500/50 hover:bg-white/[0.04] transition-all duration-300 flex flex-col overflow-hidden cursor-pointer shadow-md hover:shadow-xl hover:shadow-rose-950/20 relative"
     >
       {/* Poster */}
@@ -131,7 +137,9 @@ const SeriesGridCard: React.FC<SeriesGridCardProps> = ({
         <img
           src={currentPosterSrc}
           alt={series.title}
-          loading="lazy"
+          loading={isTopCard ? 'eager' : 'lazy'}
+          {...(isTopCard ? { fetchPriority: 'high' } : {})}
+          decoding="async"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           referrerPolicy="no-referrer"
           onError={handleImageError}
@@ -506,15 +514,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const [torrents, setTorrents] = useState<EztvTorrent[]>([]);
-  const [totalTorrentsCount, setTotalTorrentsCount] = useState<number>(0);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const totalPages = Math.max(1, Math.ceil(totalTorrentsCount / EZTV_PAGE_SIZE));
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [serverMessage, setServerMessage] = useState<string | null>(null);
-
-  // Filters & Sorting - 'Action' is default genre
+  // Filters & Sorting - initial genre determination
   const [selectedGenre, setSelectedGenre] = useState<string>(() => {
     if (initialGenre) {
       const match = GENRE_FILTERS.find((g) => g.toLowerCase() === initialGenre.toLowerCase());
@@ -529,6 +529,26 @@ export const EztvView: React.FC<EztvViewProps> = ({
     }
     return 'All';
   });
+
+  // Fast-path: Check for cached torrents immediately for 0ms initial render
+  const initialCache = useMemo(() => {
+    return getCachedEztvTorrents({
+      page: 1,
+      limit: EZTV_PAGE_SIZE,
+      imdb_id: initialImdb || undefined,
+      search: initialQuery || undefined,
+      genre: selectedGenre
+    });
+  }, [initialImdb, initialQuery, selectedGenre]);
+
+  const [torrents, setTorrents] = useState<EztvTorrent[]>(() => initialCache?.torrents || []);
+  const [totalTorrentsCount, setTotalTorrentsCount] = useState<number>(() => initialCache?.torrents_count ?? (initialCache?.torrents?.length || 0));
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const totalPages = Math.max(1, Math.ceil(totalTorrentsCount / EZTV_PAGE_SIZE));
+  const [isLoading, setIsLoading] = useState<boolean>(() => !initialCache || initialCache.torrents.length === 0);
+  const [error, setError] = useState<string | null>(null);
+  const [serverMessage, setServerMessage] = useState<string | null>(null);
+
   const [selectedQuality, setSelectedQuality] = useState<string>('All');
   const [selectedSeason, setSelectedSeason] = useState<string>('All');
   const [sortBy, setSortBy] = useState<'date' | 'seeds' | 'size'>('date');
@@ -612,7 +632,24 @@ export const EztvView: React.FC<EztvViewProps> = ({
     search?: string | null,
     genreFilter?: string
   ) => {
-    setIsLoading(true);
+    const cached = getCachedEztvTorrents({
+      page,
+      limit: EZTV_PAGE_SIZE,
+      imdb_id: imdbId || undefined,
+      search: search || undefined,
+      genre: genreFilter || 'All'
+    });
+
+    if (cached && Array.isArray(cached.torrents) && cached.torrents.length > 0) {
+      setTorrents(cached.torrents);
+      setTotalTorrentsCount(cached.torrents_count ?? cached.torrents.length);
+      if (cached.show_meta) setShowMeta(cached.show_meta);
+      if (cached.resolved_title) setActiveShowName(cached.resolved_title);
+      setIsLoading(false);
+    } else {
+      setIsLoading(true);
+    }
+
     setError(null);
     setServerMessage(null);
 
@@ -880,25 +917,9 @@ export const EztvView: React.FC<EztvViewProps> = ({
       {/* Hero Header */}
       <div className="relative z-20 rounded-3xl p-6 sm:p-10 border eztv-hero-banner shadow-2xl">
         <div className="relative z-10 space-y-4 max-w-3xl">
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-bold uppercase tracking-wider eztv-hero-badge">
-              <Tv className="w-3.5 h-3.5" />
-              <span>EZTV Television Index</span>
-            </div>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-neutral-200 border border-white/15 text-xs font-semibold">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              All TV genres • Past 30 days • Action • Crime • Adventure • Thriller • Mystery
-            </span>
-          </div>
-
           <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight eztv-hero-title">
             TV Series, Seasons & Episode Releases
           </h1>
-
-          <p className="text-sm sm:text-base text-neutral-300 leading-relaxed eztv-hero-sub">
-            Live television torrent index powered directly by the official EZTV API and TVmaze.
-            Showing eligible TV series and episode releases from the past 30 days, newest first, with optional genre filters, magnet links, and full seasons.
-          </p>
 
           {/* Search Form with Live Autocomplete */}
           <div className="relative pt-2">
@@ -1024,8 +1045,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
 
           {/* Popular Suggestions */}
           <div className="pt-1 flex flex-wrap items-center gap-1.5 sm:gap-2">
-            <span className="text-xs font-semibold text-neutral-400 flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-amber-400" />
+            <span className="text-xs font-semibold text-neutral-400">
               Popular Series:
             </span>
             {POPULAR_SHOWS.map((show) => {
@@ -1323,21 +1343,6 @@ export const EztvView: React.FC<EztvViewProps> = ({
         </div>
       )}
 
-      {/* Server Notice Message */}
-      {serverMessage && !error && (
-        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-sm font-medium">
-            <Info className="w-4 h-4 shrink-0" />
-            <span>{serverMessage}</span>
-          </div>
-          <button
-            onClick={handleClearSearch}
-            className="px-3 py-1 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-lg transition-colors cursor-pointer shrink-0"
-          >
-            View All Shows
-          </button>
-        </div>
-      )}
 
       {/* Loading Skeleton Grid */}
       {isLoading && <EztvReleasesSkeleton />}
@@ -1346,10 +1351,11 @@ export const EztvView: React.FC<EztvViewProps> = ({
       {!isLoading && !error && filteredTorrents.length > 0 && (
         viewMode === 'grid' ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3.5 sm:gap-4">
-            {groupedSeries.map((series) => (
+            {groupedSeries.map((series, idx) => (
               <SeriesGridCard
                 key={series.imdbId || series.title}
                 series={series}
+                index={idx}
                 isCopied={copiedHash === series.sampleTorrent.hash}
                 onSelectSeries={handleSelectRelease}
                 onLaunchMagnet={handleLaunchMagnet}
