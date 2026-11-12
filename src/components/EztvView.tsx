@@ -60,55 +60,51 @@ const POPULAR_SHOWS = [
 ];
 
 export const GENRE_FILTERS = ['All', 'Action', 'Crime', 'Adventure', 'Thriller', 'Mystery'];
-const EZTV_PAGE_SIZE = 40;
+const EZTV_PAGE_SIZE = 50;
 const QUALITY_FILTERS = ['All', '1080p', '720p', '4K UHD', 'x265 / HEVC', '480p'];
 
-export interface SeriesCardData {
-  title: string;
-  year?: string;
-  imdbId?: string;
-  torrents: EztvTorrent[];
-  maxSeeds: number;
-  qualities: string[];
-  latestSeason?: number;
-  latestEpisode?: number;
-  latestReleaseDate: number;
-  sampleTorrent: EztvTorrent;
-}
-
-interface SeriesGridCardProps {
-  series: SeriesCardData;
+interface ReleaseGridCardProps {
+  torrent: EztvTorrent;
   index?: number;
+  showMeta?: TvShowInfo | null;
   isCopied: boolean;
-  onSelectSeries: (torrent: EztvTorrent) => void;
+  onSelectRelease: (torrent: EztvTorrent) => void;
   onLaunchMagnet: (torrent: EztvTorrent) => void;
   onCopyMagnet: (torrent: EztvTorrent) => void;
 }
 
-const SeriesGridCard: React.FC<SeriesGridCardProps> = ({
-  series,
+const ReleaseGridCard: React.FC<ReleaseGridCardProps> = ({
+  torrent,
   index,
+  showMeta,
   isCopied,
-  onSelectSeries,
+  onSelectRelease,
   onLaunchMagnet,
   onCopyMagnet
 }) => {
-  const imdbParam = series.imdbId || (series.sampleTorrent.imdb_id && series.sampleTorrent.imdb_id !== '0' ? `tt${series.sampleTorrent.imdb_id}` : '');
+  const { quality, isHevc } = parseQualityFromEztv(torrent.title, torrent.filename);
+  const { title: showTitle, year: showYear } = extractShowTitleAndYear(torrent.title);
+  const cleanTitle = (torrent.clean_title || showTitle || torrent.title).trim();
+  const imdbParam = (torrent.imdb_id && torrent.imdb_id !== '0')
+    ? `tt${torrent.imdb_id}`
+    : (showMeta?.imdb_code || '');
+
   const posterCandidates = useMemo(() => {
     return getSeriesPosterCandidates({
-      name: series.title,
+      name: cleanTitle,
       imdb_code: imdbParam,
-      imdb_id: series.sampleTorrent.imdb_id,
-      year: series.year,
-      poster_url: series.sampleTorrent.poster_url
+      imdb_id: torrent.imdb_id,
+      year: showYear,
+      poster_url: torrent.poster_url,
+      image: showMeta?.image
     });
-  }, [series.title, imdbParam, series.sampleTorrent.imdb_id, series.year, series.sampleTorrent.poster_url]);
+  }, [cleanTitle, imdbParam, torrent.imdb_id, showYear, torrent.poster_url, showMeta?.image]);
 
   const [candidateIndex, setCandidateIndex] = useState(0);
 
   useEffect(() => {
     setCandidateIndex(0);
-  }, [series.title, series.imdbId]);
+  }, [torrent.id, torrent.hash]);
 
   const handleImageError = () => {
     if (candidateIndex + 1 < posterCandidates.length) {
@@ -118,17 +114,17 @@ const SeriesGridCard: React.FC<SeriesGridCardProps> = ({
 
   const currentPosterSrc = posterCandidates[candidateIndex] || CINEVAULT_POSTER_FALLBACK;
 
-  const episodeBadge = series.latestSeason && series.latestEpisode
-    ? `S${String(series.latestSeason).padStart(2, '0')}E${String(series.latestEpisode).padStart(2, '0')}`
-    : series.latestSeason
-    ? `Season ${series.latestSeason}`
-    : 'Series';
+  const episodeBadge = torrent.season && torrent.episode
+    ? `S${String(torrent.season).padStart(2, '0')}E${String(torrent.episode).padStart(2, '0')}`
+    : torrent.season
+    ? `Season ${torrent.season}`
+    : 'Release';
 
   const isTopCard = index !== undefined && index < 6;
 
   return (
     <div
-      onClick={() => onSelectSeries(series.sampleTorrent)}
+      onClick={() => onSelectRelease(torrent)}
       style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 340px' }}
       className="group rounded-2xl border border-white/10 bg-[#0f0f13] hover:border-rose-500/50 hover:bg-white/[0.04] transition-all duration-300 flex flex-col overflow-hidden cursor-pointer shadow-md hover:shadow-xl hover:shadow-rose-950/20 relative"
     >
@@ -136,7 +132,7 @@ const SeriesGridCard: React.FC<SeriesGridCardProps> = ({
       <div className="aspect-[2/3] w-full bg-neutral-900 relative overflow-hidden">
         <img
           src={currentPosterSrc}
-          alt={series.title}
+          alt={cleanTitle}
           loading={isTopCard ? 'eager' : 'lazy'}
           {...(isTopCard ? { fetchPriority: 'high' } : {})}
           decoding="async"
@@ -151,23 +147,26 @@ const SeriesGridCard: React.FC<SeriesGridCardProps> = ({
           <span className="px-2 py-0.5 rounded-md bg-black/75 backdrop-blur-xs text-rose-400 font-mono font-bold text-[10px] border border-rose-500/30">
             {episodeBadge}
           </span>
-          {series.maxSeeds > 0 && (
+          {Number(torrent.seeds || 0) > 0 && (
             <span className="px-1.5 py-0.5 rounded-md bg-emerald-950/80 backdrop-blur-xs text-emerald-400 font-mono font-bold text-[10px] border border-emerald-500/30 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              {series.maxSeeds}
+              {torrent.seeds}
             </span>
           )}
         </div>
 
         {/* Bottom Poster Info */}
         <div className="absolute bottom-2 left-2 right-2 flex flex-wrap items-center gap-1">
-          {series.qualities.slice(0, 2).map((q) => (
-            <span key={q} className="px-1.5 py-0.2 rounded bg-white/15 backdrop-blur-xs text-[10px] font-semibold text-neutral-200 border border-white/10">
-              {q}
+          <span className="px-1.5 py-0.2 rounded bg-white/15 backdrop-blur-xs text-[10px] font-semibold text-neutral-200 border border-white/10">
+            {quality}
+          </span>
+          {isHevc && (
+            <span className="px-1.5 py-0.2 rounded bg-purple-500/30 backdrop-blur-xs text-[10px] font-semibold text-purple-300 border border-purple-500/30">
+              x265
             </span>
-          ))}
+          )}
           <span className="ml-auto text-[10px] font-mono text-neutral-300 bg-black/60 px-1.5 py-0.2 rounded">
-            {series.torrents.length} {series.torrents.length === 1 ? 'file' : 'files'}
+            {formatEztvBytes(torrent.size_bytes)}
           </span>
         </div>
       </div>
@@ -176,12 +175,12 @@ const SeriesGridCard: React.FC<SeriesGridCardProps> = ({
       <div className="p-3 flex-1 flex flex-col justify-between gap-2">
         <div>
           <h3 className="text-sm font-bold text-white group-hover:text-rose-400 transition-colors line-clamp-1 leading-snug">
-            {series.title}
+            {cleanTitle}
           </h3>
-          <div className="flex items-center gap-2 text-xs text-neutral-400 mt-0.5">
-            {series.year && <span>{series.year}</span>}
-            {series.year && <span>•</span>}
-            <span className="text-rose-400/90 font-medium text-[11px] group-hover:underline">Explore Series →</span>
+          <div className="flex items-center gap-1.5 text-xs text-neutral-400 mt-0.5 font-mono text-[11px]">
+            <span>{episodeBadge}</span>
+            <span>•</span>
+            <span>{formatEztvDate(torrent.date_released_unix)}</span>
           </div>
         </div>
 
@@ -190,7 +189,7 @@ const SeriesGridCard: React.FC<SeriesGridCardProps> = ({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onLaunchMagnet(series.sampleTorrent);
+              onLaunchMagnet(torrent);
             }}
             className="flex-1 py-1.5 px-2.5 rounded-lg bg-rose-600/90 hover:bg-rose-500 text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
             title="Get Fast Magnet"
@@ -201,7 +200,7 @@ const SeriesGridCard: React.FC<SeriesGridCardProps> = ({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onCopyMagnet(series.sampleTorrent);
+              onCopyMagnet(torrent);
             }}
             className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
               isCopied
@@ -625,7 +624,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
     };
   }, [isSuggestionsOpen]);
 
-  // Fetch recent EZTV releases; the server applies the 30-day window and genre filter.
+  // Fetch all EZTV releases; the server handles genre filtering and pagination (50 displays per page).
   const loadTorrents = async (
     page: number,
     imdbId?: string | null,
@@ -848,70 +847,6 @@ export const EztvView: React.FC<EztvViewProps> = ({
       });
   }, [torrents, selectedSeason, selectedQuality, selectedGenre, sortBy, activeImdbId, activeQuery]);
 
-  // Group filtered torrents by TV series for the visual Series Grid mode
-  const groupedSeries = useMemo(() => {
-    const map = new Map<string, {
-      title: string;
-      year?: string;
-      imdbId?: string;
-      torrents: EztvTorrent[];
-      maxSeeds: number;
-      qualities: Set<string>;
-      latestSeason?: number;
-      latestEpisode?: number;
-      latestReleaseDate: number;
-      sampleTorrent: EztvTorrent;
-    }>();
-
-    for (const t of filteredTorrents) {
-      const { title: showTitle, year: showYear } = extractShowTitleAndYear(t.title);
-      const cleanTitle = (showTitle || t.title).trim();
-      const imdbKey = (t.imdb_id && t.imdb_id !== '0') ? `tt${t.imdb_id}` : cleanTitle.toLowerCase();
-      
-      const { quality } = parseQualityFromEztv(t.title, t.filename);
-      const seeds = t.seeds || 0;
-      const releaseDate = t.date_released_unix || 0;
-      const sNum = t.season ? parseInt(t.season, 10) : undefined;
-      const eNum = t.episode ? parseInt(t.episode, 10) : undefined;
-
-      if (!map.has(imdbKey)) {
-        map.set(imdbKey, {
-          title: cleanTitle,
-          year: showYear,
-          imdbId: (t.imdb_id && t.imdb_id !== '0') ? `tt${t.imdb_id}` : undefined,
-          torrents: [t],
-          maxSeeds: seeds,
-          qualities: new Set([quality]),
-          latestSeason: sNum,
-          latestEpisode: eNum,
-          latestReleaseDate: releaseDate,
-          sampleTorrent: t
-        });
-      } else {
-        const item = map.get(imdbKey)!;
-        item.torrents.push(t);
-        if (seeds > item.maxSeeds) {
-          item.maxSeeds = seeds;
-          item.sampleTorrent = t;
-        }
-        item.qualities.add(quality);
-        if (releaseDate > item.latestReleaseDate) {
-          item.latestReleaseDate = releaseDate;
-          if (sNum) item.latestSeason = sNum;
-          if (eNum) item.latestEpisode = eNum;
-        }
-      }
-    }
-
-    return Array.from(map.values()).map(item => ({
-      ...item,
-      qualities: Array.from(item.qualities)
-    })).sort((a, b) => {
-      if (sortBy === 'seeds') return b.maxSeeds - a.maxSeeds;
-      return b.latestReleaseDate - a.latestReleaseDate;
-    });
-  }, [filteredTorrents, sortBy]);
-
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8 animate-in fade-in duration-200">
       {/* Hero Header */}
@@ -1044,8 +979,8 @@ export const EztvView: React.FC<EztvViewProps> = ({
           </div>
 
           {/* Popular Suggestions */}
-          <div className="pt-1 flex flex-wrap items-center gap-1.5 sm:gap-2">
-            <span className="text-xs font-semibold text-neutral-400">
+          <div className="pt-1 flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar -mx-1 px-1 sm:mx-0 sm:px-0 sm:flex-wrap">
+            <span className="text-xs font-semibold text-neutral-400 shrink-0">
               Popular Series:
             </span>
             {POPULAR_SHOWS.map((show) => {
@@ -1054,7 +989,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
                 <button
                   key={show.imdb}
                   onClick={() => handleSelectPopularShow(show)}
-                  className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-all cursor-pointer eztv-tag-btn ${
+                  className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-all cursor-pointer whitespace-nowrap shrink-0 eztv-tag-btn ${
                     isSelected ? 'is-active font-bold' : ''
                   }`}
                 >
@@ -1204,12 +1139,15 @@ export const EztvView: React.FC<EztvViewProps> = ({
       ) : null}
 
       {/* Filter & Sort Controls Bar */}
-      <div className="p-4 rounded-2xl bg-[#0f0f13] border border-white/10 flex flex-wrap items-center justify-between gap-4 backdrop-blur-sm">
-        <div className="flex flex-wrap items-center gap-3">
+      <div className="p-3.5 sm:p-4 rounded-2xl bg-[#0f0f13] border border-white/10 flex flex-col gap-3.5 backdrop-blur-sm">
+        {/* Top Filters Group: Genre, Quality & Season */}
+        <div className="flex flex-col lg:flex-row items-start lg:items-center gap-3 w-full">
           {/* Genre Filter */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Genre:</span>
-            <div className="flex flex-wrap gap-1">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2 w-full lg:w-auto">
+            <span className="text-[11px] sm:text-xs font-bold text-neutral-400 uppercase tracking-wider shrink-0">
+              Genre:
+            </span>
+            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pb-0.5 sm:pb-0 sm:flex-wrap -mx-1 px-1 sm:mx-0 sm:px-0">
               {GENRE_FILTERS.map((g) => (
                 <button
                   key={g}
@@ -1217,7 +1155,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
                     setSelectedGenre(g);
                     setCurrentPage(1);
                   }}
-                  className={`px-2.5 py-1 text-xs rounded-lg font-semibold transition-all cursor-pointer eztv-tag-btn ${
+                  className={`px-3 py-1.5 sm:px-2.5 sm:py-1 text-xs rounded-lg font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 eztv-tag-btn ${
                     selectedGenre === g ? 'is-active font-bold' : ''
                   }`}
                 >
@@ -1228,15 +1166,17 @@ export const EztvView: React.FC<EztvViewProps> = ({
           </div>
 
           {/* Quality Filter */}
-          <div className="flex items-center gap-2 border-l border-white/10 pl-3">
-            <SlidersHorizontal className="w-4 h-4 text-neutral-400" />
-            <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Quality:</span>
-            <div className="flex flex-wrap gap-1">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2 w-full lg:w-auto lg:border-l lg:border-white/10 lg:pl-3 pt-2 lg:pt-0 border-t border-white/5 lg:border-t-0">
+            <div className="flex items-center gap-1 text-neutral-400 shrink-0">
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider">Quality:</span>
+            </div>
+            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pb-0.5 sm:pb-0 sm:flex-wrap -mx-1 px-1 sm:mx-0 sm:px-0">
               {QUALITY_FILTERS.map((q) => (
                 <button
                   key={q}
                   onClick={() => setSelectedQuality(q)}
-                  className={`px-2.5 py-1 text-xs rounded-lg font-semibold transition-all cursor-pointer eztv-tag-btn ${
+                  className={`px-3 py-1.5 sm:px-2.5 sm:py-1 text-xs rounded-lg font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 eztv-tag-btn ${
                     selectedQuality === q ? 'is-active font-bold' : ''
                   }`}
                 >
@@ -1248,9 +1188,11 @@ export const EztvView: React.FC<EztvViewProps> = ({
 
           {/* Season Filter (if any) */}
           {availableSeasons.length > 0 && !showMeta && (
-            <div className="flex items-center gap-1.5 border-l border-white/10 pl-3">
-              <Layers className="w-3.5 h-3.5 text-neutral-400" />
-              <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Season:</span>
+            <div className="flex items-center justify-between sm:justify-start gap-2 w-full lg:w-auto lg:border-l lg:border-white/10 lg:pl-3 pt-2 lg:pt-0 border-t border-white/5 lg:border-t-0">
+              <div className="flex items-center gap-1.5 text-neutral-400 shrink-0">
+                <Layers className="w-3.5 h-3.5" />
+                <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider">Season:</span>
+              </div>
               <select
                 value={selectedSeason}
                 onChange={(e) => setSelectedSeason(e.target.value)}
@@ -1267,63 +1209,67 @@ export const EztvView: React.FC<EztvViewProps> = ({
           )}
         </div>
 
-        {/* View Mode Toggle, Sort selector & Count */}
-        <div className="flex flex-wrap items-center gap-3">
-          {/* View Mode Toggle */}
-          <div className="flex items-center p-0.5 rounded-xl bg-white/5 border border-white/10">
+        {/* Bottom Bar: View Mode, Release Count, Sort & Refresh */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 w-full pt-3 border-t border-white/10">
+          <div className="flex items-center justify-between sm:justify-start gap-3">
+            {/* View Mode Toggle */}
+            <div className="flex items-center p-0.5 rounded-xl bg-white/5 border border-white/10 flex-1 sm:flex-initial">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  viewMode === 'grid'
+                    ? 'bg-rose-600 text-white shadow-xs'
+                    : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                }`}
+                title="Browse as TV Series Cards"
+              >
+                <LayoutGrid size={14} />
+                <span>Series Grid</span>
+              </button>
+              <button
+                onClick={() => setViewMode('feed')}
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  viewMode === 'feed'
+                    ? 'bg-rose-600 text-white shadow-xs'
+                    : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                }`}
+                title="View Raw Torrent Feed"
+              >
+                <List size={14} />
+                <span>Torrent Feed</span>
+              </button>
+            </div>
+
+            {/* Releases Count */}
+            <div className="flex items-center gap-1.5 text-xs text-neutral-400 font-mono shrink-0">
+              <HardDrive className="w-3.5 h-3.5 text-rose-500" />
+              <span>{filteredTorrents.length} Releases</span>
+            </div>
+          </div>
+
+          {/* Sort selector & Refresh button */}
+          <div className="flex items-center justify-between sm:justify-end gap-2">
+            <div className="flex items-center gap-1.5 flex-1 sm:flex-initial">
+              <ArrowUpDown className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="w-full sm:w-auto bg-[#18181c] border border-white/15 rounded-lg px-2.5 py-1.5 sm:py-1 text-xs text-neutral-200 focus:outline-hidden focus:border-rose-500 cursor-pointer"
+              >
+                <option value="date">Newest Released</option>
+                <option value="seeds">Most Seeds (Fastest)</option>
+                <option value="size">Largest Size (High Bitrate)</option>
+              </select>
+            </div>
+
             <button
-              onClick={() => setViewMode('grid')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                viewMode === 'grid'
-                  ? 'bg-rose-600 text-white shadow-xs'
-                  : 'text-neutral-400 hover:text-white hover:bg-white/5'
-              }`}
-              title="Browse as TV Series Cards"
+              onClick={() => loadTorrents(currentPage, activeImdbId, activeQuery, selectedGenre)}
+              className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white transition-colors cursor-pointer shrink-0"
+              title="Refresh EZTV torrents"
             >
-              <LayoutGrid size={14} />
-              <span>Series Grid</span>
-            </button>
-            <button
-              onClick={() => setViewMode('feed')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                viewMode === 'feed'
-                  ? 'bg-rose-600 text-white shadow-xs'
-                  : 'text-neutral-400 hover:text-white hover:bg-white/5'
-              }`}
-              title="View Raw Torrent Feed"
-            >
-              <List size={14} />
-              <span>Torrent Feed</span>
+              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             </button>
           </div>
-
-          <div className="flex items-center gap-1.5 text-xs text-neutral-400 font-mono">
-            <HardDrive className="w-3.5 h-3.5" />
-            <span>
-              {viewMode === 'grid' ? `${groupedSeries.length} Series` : `${filteredTorrents.length} Releases`}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <ArrowUpDown className="w-3.5 h-3.5 text-neutral-400" />
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="bg-[#18181c] border border-white/15 rounded-lg px-2.5 py-1 text-xs text-neutral-200 focus:outline-hidden focus:border-rose-500 cursor-pointer"
-            >
-              <option value="date">Newest Released</option>
-              <option value="seeds">Most Seeds (Fastest)</option>
-              <option value="size">Largest Size (High Bitrate)</option>
-            </select>
-          </div>
-
-          <button
-            onClick={() => loadTorrents(currentPage, activeImdbId, activeQuery, selectedGenre)}
-            className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white transition-colors cursor-pointer"
-            title="Refresh EZTV torrents"
-          >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-          </button>
         </div>
       </div>
 
@@ -1347,17 +1293,18 @@ export const EztvView: React.FC<EztvViewProps> = ({
       {/* Loading Skeleton Grid */}
       {isLoading && <EztvReleasesSkeleton />}
 
-      {/* Torrents Release List vs Series Grid */}
+      {/* Torrents Release List vs Releases Grid (both displaying 50 releases) */}
       {!isLoading && !error && filteredTorrents.length > 0 && (
         viewMode === 'grid' ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3.5 sm:gap-4">
-            {groupedSeries.map((series, idx) => (
-              <SeriesGridCard
-                key={series.imdbId || series.title}
-                series={series}
+            {filteredTorrents.map((torrent, idx) => (
+              <ReleaseGridCard
+                key={torrent.id || torrent.hash || idx}
+                torrent={torrent}
                 index={idx}
-                isCopied={copiedHash === series.sampleTorrent.hash}
-                onSelectSeries={handleSelectRelease}
+                showMeta={showMeta}
+                isCopied={copiedHash === torrent.hash}
+                onSelectRelease={handleSelectRelease}
                 onLaunchMagnet={handleLaunchMagnet}
                 onCopyMagnet={handleCopyMagnet}
               />

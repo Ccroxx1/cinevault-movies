@@ -178,7 +178,7 @@ export async function fetchEztvTorrents(params: EztvFetchParams = {}): Promise<E
       const data: EztvApiResponse = await response.json();
       const result: EztvApiResponse = {
         torrents_count: data.torrents_count || (data.torrents ? data.torrents.length : 0),
-        limit: data.limit || params.limit || 30,
+        limit: data.limit || params.limit || 50,
         page: data.page || params.page || 1,
         imdb_id: data.imdb_id || params.imdb_id,
         resolved_title: data.resolved_title,
@@ -216,7 +216,13 @@ export async function fetchEztvTorrents(params: EztvFetchParams = {}): Promise<E
   let showMeta: TvShowInfo | null = null;
 
   if (!targetImdbId && !params.search?.trim()) {
-    throw backendError || new Error('The 30-day TV release feed is unavailable. Please try again.');
+    return {
+      torrents: [],
+      torrents_count: 0,
+      limit: params.limit || 50,
+      page: params.page || 1,
+      message: backendError?.message || 'The television release feed is updating. Please refresh in a moment.'
+    };
   }
 
   if (!targetImdbId && params.search && params.search.trim()) {
@@ -255,7 +261,7 @@ export async function fetchEztvTorrents(params: EztvFetchParams = {}): Promise<E
         if (data && Array.isArray(data.torrents)) {
           return {
             torrents_count: data.torrents_count || data.torrents.length,
-            limit: data.limit || params.limit || 30,
+            limit: data.limit || params.limit || 50,
             page: data.page || params.page || 1,
             imdb_id: targetImdbId || params.imdb_id,
             resolved_title: resolvedTitle,

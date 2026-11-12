@@ -1799,7 +1799,6 @@ let latestEligibleReleasesPromise: Promise<any[]> | null = null;
 const EZTV_SOURCE_PAGE_SIZE = 100;
 const EZTV_SOURCE_PAGE_BATCH_SIZE = 10;
 const TVMAZE_LOOKUP_CONCURRENCY = 8;
-const TV_RELEASE_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 const LATEST_RELEASES_CACHE_TTL_MS = 30 * 60 * 1000;
 
 function getEztvReleaseTimestampMs(torrent: any): number {
@@ -1808,15 +1807,19 @@ function getEztvReleaseTimestampMs(torrent: any): number {
 }
 
 async function buildLatestEligibleReleases(): Promise<{ releases: any[]; sourceLimited: boolean }> {
-  const now = Date.now();
-  const cutoff = now - TV_RELEASE_WINDOW_MS;
   const rawTorrents: any[] = [];
   const seenIds = new Set<string>();
   let sourceLimited = false;
 
   // Fetch bounded page batches in parallel; process each batch in source order
-  // and stop at the first page that crosses the date cutoff.
+  // and collect all releases from the upstream EZTV browse feed.
   for (let firstPage = 1; ; firstPage += EZTV_SOURCE_PAGE_BATCH_SIZE) {
+    // Upper safety limit on source pagination (EZTV browse feed caps out well before page 50)
+    if (firstPage > 50) {
+      sourceLimited = true;
+      break;
+    }
+
     const responses = await Promise.all(
       Array.from({ length: EZTV_SOURCE_PAGE_BATCH_SIZE }, (_, offset) =>
         fetchEztvFromMirrors({
@@ -1825,7 +1828,6 @@ async function buildLatestEligibleReleases(): Promise<{ releases: any[]; sourceL
         })
       )
     );
-    let cutoffReached = false;
     let sourceExhausted = false;
 
     for (let offset = 0; offset < responses.length; offset++) {
@@ -1844,28 +1846,19 @@ async function buildLatestEligibleReleases(): Promise<{ releases: any[]; sourceL
         break;
       }
 
-      let oldestReleaseAt = Number.POSITIVE_INFINITY;
       let newReleaseCount = 0;
       for (const torrent of pageTorrents) {
         const releaseAt = getEztvReleaseTimestampMs(torrent);
-        if (releaseAt === 0) {
-          throw new Error('EZTV returned a release without a valid release date.');
+        if (releaseAt <= 0) {
+          continue;
         }
-        oldestReleaseAt = Math.min(oldestReleaseAt, releaseAt);
 
         const key = String(torrent.id || torrent.hash || torrent.title);
         if (!seenIds.has(key)) {
           seenIds.add(key);
           newReleaseCount++;
-          if (releaseAt >= cutoff && releaseAt <= now) {
-            rawTorrents.push(torrent);
-          }
+          rawTorrents.push(torrent);
         }
-      }
-
-      if (oldestReleaseAt < cutoff) {
-        cutoffReached = true;
-        break;
       }
 
       const reportedTotal = Number(response.torrents_count);
@@ -1875,11 +1868,14 @@ async function buildLatestEligibleReleases(): Promise<{ releases: any[]; sourceL
         break;
       }
       if (newReleaseCount === 0) {
-        throw new Error(`EZTV repeated releases while fetching page ${sourcePage}; refusing an incomplete date range.`);
+        // Feed has finished serving unique releases (e.g. at end of available pagination)
+        sourceLimited = true;
+        sourceExhausted = true;
+        break;
       }
     }
 
-    if (cutoffReached || sourceExhausted) break;
+    if (sourceExhausted) break;
   }
 
   const showsByKey = new Map<string, { cleanTitle: string; torrent: any }>();
@@ -1974,21 +1970,15 @@ async function fetchFilteredLatestReleases(params: {
   genre?: string;
 }): Promise<{ torrents: any[]; torrents_count: number; page: number; limit: number; message?: string }> {
   const { page, limit, genre } = params;
-  let releases: any[];
+  let releases: any[] = [];
   try {
     releases = await getLatestEligibleReleases();
   } catch (err) {
     console.warn('Error fetching latest filtered releases pool:', err);
-    if (!latestEligibleReleasesCache) throw err;
-    releases = latestEligibleReleasesCache.releases;
+    releases = latestEligibleReleasesCache?.releases || [];
   }
 
-  const now = Date.now();
-  const cutoff = now - TV_RELEASE_WINDOW_MS;
-  let pool = releases.filter((torrent) => {
-    const releaseAt = getEztvReleaseTimestampMs(torrent);
-    return releaseAt >= cutoff && releaseAt <= now;
-  });
+  let pool = releases;
 
   // Filter by the requested genre when one is selected.
   if (genre && genre !== 'All') {
@@ -2008,7 +1998,7 @@ async function fetchFilteredLatestReleases(params: {
     page,
     limit,
     message: latestEligibleReleasesCache?.sourceLimited
-      ? 'EZTV limits its browse feed to 100 pages, so releases at the oldest edge of the 30-day window may be unavailable.'
+      ? 'EZTV limits its browse feed to 100 pages, so releases beyond the upstream feed limit may be unavailable.'
       : undefined
   };
 }
@@ -2019,7 +2009,7 @@ app.get(['/api/eztv', '/api/eztv/torrents', '/api/eztv/get-torrents'], async (re
     const rawSearch = typeof req.query.search === 'string' ? req.query.search.trim() : (typeof req.query.query === 'string' ? req.query.query.trim() : '');
     const genreParam = typeof req.query.genre === 'string' ? req.query.genre.trim() : 'All';
     const page = Math.max(1, parseInt(String(req.query.page || '1'), 10) || 1);
-    const limit = Math.min(100, Math.max(1, parseInt(String(req.query.limit || '40'), 10) || 40));
+    const limit = Math.min(100, Math.max(1, parseInt(String(req.query.limit || '50'), 10) || 50));
 
     // Case 1: Browsing latest episode releases (when no specific search or IMDb ID is queried)
     // Browse all supported TV genres by default, with optional genre filtering.
@@ -2801,8 +2791,8 @@ async function start() {
   if (!process.env.VERCEL) {
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`🎬 CineVault running on http://0.0.0.0:${PORT}`);
-      // Prime the complete 30-day EZTV release cache in the background.
-      fetchFilteredLatestReleases({ page: 1, limit: 40 }).catch((e) => {
+      // Prime the complete EZTV release cache in the background.
+      fetchFilteredLatestReleases({ page: 1, limit: 50 }).catch((e) => {
         console.warn('Initial background EZTV genre filter seed notice:', e.message);
       });
     });

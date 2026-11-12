@@ -324,7 +324,7 @@ export const Header: React.FC<HeaderProps> = ({
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
                     onFocus={() => setIsSearchFocused(true)}
-                    placeholder={currentNav === 'series' ? 'Search TV series or IMDb ID...' : 'Search titles, actors, directors...'}
+                    placeholder={currentNav === 'series' ? 'Search TV series...' : 'Search movies, actors...'}
                     className="w-full pl-8 sm:pl-10 pr-14 sm:pr-16 py-1.5 sm:py-2.5 text-xs sm:text-sm bg-[#0f0f0f] hover:bg-[#141414] focus:bg-[#141414] border border-white/10 focus:border-rose-500/80 rounded-xl text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 transition-all"
                   />
                   
