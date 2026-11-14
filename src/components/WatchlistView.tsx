@@ -264,6 +264,9 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
 
         <nav className="flex flex-wrap items-center gap-2" aria-label="Watchlist actions">
           <input
+            id="watchlist-import-file"
+            name="watchlistImportFile"
+            aria-label="Import watchlist JSON or CSV file"
             type="file"
             ref={fileInputRef}
             onChange={handleFileChange}

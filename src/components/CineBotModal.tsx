@@ -978,7 +978,12 @@ export const CineBotModal: React.FC<CineBotModalProps> = ({
           className="flex items-center gap-2"
         >
           <div className="relative flex-1">
+            <label htmlFor="cinebot-chat-input" className="sr-only">
+              Ask CineBot
+            </label>
             <input
+              id="cinebot-chat-input"
+              name="cinebotPrompt"
               ref={inputRef}
               type="text"
               value={inputVal}

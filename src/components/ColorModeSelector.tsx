@@ -91,7 +91,7 @@ export const ColorModeSelector: React.FC<ColorModeSelectorProps> = ({
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
         aria-haspopup="true"
-        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer select-none ${
+        className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer select-none ${
           isOpen
             ? 'bg-rose-500/15 border-rose-500/40 text-rose-400 shadow-sm'
             : 'border-white/10 hover:border-white/20 hover:bg-white/5 text-neutral-300 hover:text-white'
@@ -100,7 +100,7 @@ export const ColorModeSelector: React.FC<ColorModeSelectorProps> = ({
         aria-label={`Color Mode: ${currentConfig.name}`}
       >
         <div className="flex items-center gap-1.5">
-          <span className={`w-2.5 h-2.5 rounded-full ${currentConfig.dotColor}`} />
+          <span className={`hidden sm:inline-block w-2.5 h-2.5 rounded-full ${currentConfig.dotColor}`} />
           {getModeIcon(colorMode, 14)}
           <span className="hidden sm:inline font-medium capitalize">{currentConfig.name}</span>
         </div>

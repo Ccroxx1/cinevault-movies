@@ -155,8 +155,10 @@ export const MovieNightSpinnerModal: React.FC<MovieNightSpinnerModalProps> = ({
         <div className="p-4 border-b border-white/10 bg-white/[0.01] space-y-3">
           <div className="flex items-center justify-between gap-2 flex-wrap text-xs">
             <div className="flex items-center gap-2">
-              <span className="text-neutral-400 font-semibold">Mood / Genre:</span>
+              <label htmlFor="spinner-genre-select" className="text-neutral-400 font-semibold">Mood / Genre:</label>
               <select
+                id="spinner-genre-select"
+                name="spinnerGenre"
                 value={selectedGenre}
                 onChange={(e) => setSelectedGenre(e.target.value)}
                 className="bg-[#141414] text-white border border-white/15 rounded-lg px-2.5 py-1 text-xs font-semibold focus:outline-none focus:border-rose-500 cursor-pointer"

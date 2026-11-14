@@ -157,7 +157,7 @@ const ReleaseGridCard: React.FC<ReleaseGridCardProps> = ({
 
         {/* Bottom Poster Info */}
         <div className="absolute bottom-2 left-2 right-2 flex flex-wrap items-center gap-1">
-          <span className="px-1.5 py-0.2 rounded bg-white/15 backdrop-blur-xs text-[10px] font-semibold text-neutral-200 border border-white/10">
+          <span className="poster-badge px-1.5 py-0.2 rounded bg-black/65 backdrop-blur-xs text-[10px] font-semibold text-neutral-100 border border-white/15">
             {quality}
           </span>
           {isHevc && (
@@ -347,7 +347,7 @@ const EztvReleaseRow: React.FC<EztvReleaseRowProps> = ({
 
       {/* Actions */}
       <div
-        className="flex items-center gap-2 shrink-0 self-end lg:self-center"
+        className="flex flex-wrap items-center justify-end gap-2 shrink-0 w-full lg:w-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* View Details Button */}
@@ -848,11 +848,11 @@ export const EztvView: React.FC<EztvViewProps> = ({
   }, [torrents, selectedSeason, selectedQuality, selectedGenre, sortBy, activeImdbId, activeQuery]);
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8 animate-in fade-in duration-200">
+    <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6 sm:space-y-8 animate-in fade-in duration-200">
       {/* Hero Header */}
-      <div className="relative z-20 rounded-3xl p-6 sm:p-10 border eztv-hero-banner shadow-2xl">
+      <div className="relative z-20 rounded-2xl sm:rounded-3xl p-4 sm:p-10 border eztv-hero-banner shadow-2xl">
         <div className="relative z-10 space-y-4 max-w-3xl">
-          <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight eztv-hero-title">
+          <h1 className="text-xl sm:text-4xl font-black text-white tracking-tight leading-tight eztv-hero-title">
             TV Series, Seasons & Episode Releases
           </h1>
 
@@ -861,7 +861,12 @@ export const EztvView: React.FC<EztvViewProps> = ({
             <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-2.5">
               <div className="relative flex-1">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
+                <label htmlFor="eztv-series-search" className="sr-only">
+                  Search TV series or IMDb ID
+                </label>
                 <input
+                  id="eztv-series-search"
+                  name="seriesSearch"
                   ref={searchInputRef}
                   type="text"
                   value={searchInput}
@@ -1189,11 +1194,13 @@ export const EztvView: React.FC<EztvViewProps> = ({
           {/* Season Filter (if any) */}
           {availableSeasons.length > 0 && !showMeta && (
             <div className="flex items-center justify-between sm:justify-start gap-2 w-full lg:w-auto lg:border-l lg:border-white/10 lg:pl-3 pt-2 lg:pt-0 border-t border-white/5 lg:border-t-0">
-              <div className="flex items-center gap-1.5 text-neutral-400 shrink-0">
+              <label htmlFor="eztv-season-filter" className="flex items-center gap-1.5 text-neutral-400 shrink-0">
                 <Layers className="w-3.5 h-3.5" />
                 <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider">Season:</span>
-              </div>
+              </label>
               <select
+                id="eztv-season-filter"
+                name="season"
                 value={selectedSeason}
                 onChange={(e) => setSelectedSeason(e.target.value)}
                 className="bg-[#18181c] border border-white/15 rounded-lg px-2.5 py-1 text-xs text-neutral-200 focus:outline-hidden focus:border-rose-500 cursor-pointer"
@@ -1250,8 +1257,12 @@ export const EztvView: React.FC<EztvViewProps> = ({
           {/* Sort selector & Refresh button */}
           <div className="flex items-center justify-between sm:justify-end gap-2">
             <div className="flex items-center gap-1.5 flex-1 sm:flex-initial">
+              <label htmlFor="eztv-sort-by" className="sr-only">Sort TV releases</label>
               <ArrowUpDown className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
               <select
+                id="eztv-sort-by"
+                name="sortBy"
+                aria-label="Sort TV releases"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
                 className="w-full sm:w-auto bg-[#18181c] border border-white/15 rounded-lg px-2.5 py-1.5 sm:py-1 text-xs text-neutral-200 focus:outline-hidden focus:border-rose-500 cursor-pointer"
@@ -1364,26 +1375,28 @@ export const EztvView: React.FC<EztvViewProps> = ({
 
       {/* Pagination Controls */}
       {!isLoading && !error && totalPages > 1 && (
-        <div className="pt-4 flex items-center justify-between border-t border-white/10">
+        <div className="pt-4 flex items-center justify-between gap-2 border-t border-white/10">
           <button
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage <= 1}
-            className="px-4 py-2 rounded-xl eztv-tag-btn text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
+            className="px-3 sm:px-4 py-2 rounded-xl eztv-tag-btn text-xs font-bold flex items-center gap-1 sm:gap-1.5 transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none shrink-0"
           >
             <ChevronLeft className="w-4 h-4" />
-            <span>Previous Page</span>
+            <span className="sm:hidden">Prev</span>
+            <span className="hidden sm:inline">Previous Page</span>
           </button>
 
-          <span className="text-xs font-mono text-neutral-400">
+          <span className="text-xs font-mono text-neutral-400 text-center">
             Page <strong className="text-rose-500">{currentPage}</strong> of {totalPages}
           </span>
 
           <button
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage >= totalPages}
-            className="px-4 py-2 rounded-xl eztv-tag-btn text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
+            className="px-3 sm:px-4 py-2 rounded-xl eztv-tag-btn text-xs font-bold flex items-center gap-1 sm:gap-1.5 transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none shrink-0"
           >
-            <span>Next Page</span>
+            <span className="sm:hidden">Next</span>
+            <span className="hidden sm:inline">Next Page</span>
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>

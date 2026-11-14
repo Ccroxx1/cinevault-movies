@@ -159,7 +159,12 @@ export const MovieComparisonModal: React.FC<MovieComparisonModalProps> = ({
                 <div className="p-4 rounded-2xl bg-neutral-900/90 border border-rose-500/30 space-y-3 animate-in fade-in duration-150">
                   <div className="relative">
                     <Search className="absolute left-3 top-2.5 w-4 h-4 text-neutral-400" />
+                    <label htmlFor="comparison-add-search" className="sr-only">
+                      Search movie title to add
+                    </label>
                     <input
+                      id="comparison-add-search"
+                      name="comparisonSearch"
                       type="text"
                       placeholder="Search movie title to add..."
                       value={addSearchTerm}

@@ -283,19 +283,19 @@ export const Header: React.FC<HeaderProps> = ({
           ? 'bg-[#080e1e]/85 border-sky-400/10 shadow-none'
           : 'bg-[#0a0a0a]/85 border-white/10 shadow-none'
       }`}>
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-14 sm:h-16 md:h-20 gap-2 sm:gap-4">
+        <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-14 sm:h-16 md:h-20 gap-1.5 sm:gap-4">
             
             {/* Left: Mobile Menu Button + Brand Logo */}
-            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
               <button
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="p-2 -ml-1 text-neutral-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors cursor-pointer lg:hidden"
+                className="p-1.5 sm:p-2 -ml-1 text-neutral-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors cursor-pointer lg:hidden"
                 aria-label="Open Navigation Menu"
               >
-                <div className="w-6 h-0.5 bg-current mb-1"></div>
-                <div className="w-6 h-0.5 bg-current mb-1"></div>
-                <div className="w-6 h-0.5 bg-current"></div>
+                <div className="w-5 sm:w-6 h-0.5 bg-current mb-1"></div>
+                <div className="w-5 sm:w-6 h-0.5 bg-current mb-1"></div>
+                <div className="w-5 sm:w-6 h-0.5 bg-current"></div>
               </button>
 
               <div
@@ -312,24 +312,25 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
 
             {/* Middle: Search Bar with Live Quick Dropdown */}
-            <div className="relative flex-1 max-w-xs sm:max-w-md lg:max-w-lg mx-1 sm:mx-2">
+            <div className="relative flex-1 min-w-0 max-w-xs sm:max-w-md lg:max-w-lg mx-0.5 sm:mx-2">
               <form onSubmit={handleFormSubmit} className="relative" role="search">
                 <div className="relative flex items-center">
                   <Search className="absolute left-2.5 sm:left-3.5 w-3.5 sm:w-4 h-3.5 sm:h-4 text-neutral-400 pointer-events-none" />
                   <label htmlFor="movie-search-input" className="sr-only">Search movies</label>
                   <input
                     id="movie-search-input"
+                    name="headerSearch"
                     ref={searchInputRef}
                     type="text"
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
                     onFocus={() => setIsSearchFocused(true)}
-                    placeholder={currentNav === 'series' ? 'Search TV series...' : 'Search movies, actors...'}
-                    className="w-full pl-8 sm:pl-10 pr-14 sm:pr-16 py-1.5 sm:py-2.5 text-xs sm:text-sm bg-[#0f0f0f] hover:bg-[#141414] focus:bg-[#141414] border border-white/10 focus:border-rose-500/80 rounded-xl text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 transition-all"
+                    placeholder={currentNav === 'series' ? 'Search TV...' : 'Search...'}
+                    className="w-full min-w-0 pl-7 sm:pl-10 pr-7 sm:pr-14 py-1.5 sm:py-2.5 text-xs sm:text-sm bg-[#0f0f0f] hover:bg-[#141414] focus:bg-[#141414] border border-white/10 focus:border-rose-500/80 rounded-xl text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 transition-all"
                   />
                   
                   {searchQuery ? (
-                    <div className="absolute right-2 sm:right-2.5 flex items-center">
+                    <div className="absolute right-1.5 sm:right-2.5 flex items-center">
                       <button
                         type="button"
                         onClick={() => {
@@ -357,7 +358,7 @@ export const Header: React.FC<HeaderProps> = ({
               {isSearchFocused && searchQuery.trim().length >= 2 && (
                 <div
                   ref={dropdownRef}
-                  className="absolute top-full left-0 right-0 mt-2 bg-[#0c0c0c] border border-white/15 rounded-2xl shadow-2xl shadow-black overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150"
+                  className="fixed left-2.5 right-2.5 top-14 sm:absolute sm:top-full sm:left-0 sm:right-0 mt-1 sm:mt-2 bg-[#0c0c0c] border border-white/15 rounded-2xl shadow-2xl shadow-black overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150"
                 >
                   <div className="p-2.5 bg-neutral-900/80 border-b border-white/10 text-[11px] font-semibold text-neutral-400 flex items-center justify-between">
                     <span>Quick Search Results</span>
@@ -806,11 +807,11 @@ export const Header: React.FC<HeaderProps> = ({
             </nav>
 
             {/* Mobile Actions */}
-            <div className="flex items-center gap-1.5 lg:hidden">
+            <div className="flex items-center gap-0.5 sm:gap-1.5 shrink-0 lg:hidden">
               {onOpenCineBot && (
                 <button
                   onClick={onOpenCineBot}
-                  className="p-2 text-rose-400 hover:text-rose-300 rounded-xl cursor-pointer relative"
+                  className="hidden sm:inline-flex p-2 text-rose-400 hover:text-rose-300 rounded-xl cursor-pointer relative"
                   aria-label="CineBot AI Concierge"
                   title="CineBot AI Concierge"
                 >
@@ -822,7 +823,7 @@ export const Header: React.FC<HeaderProps> = ({
               {onOpenSpinner && (
                 <button
                   onClick={onOpenSpinner}
-                  className="p-2 text-amber-400 hover:text-amber-300 rounded-xl cursor-pointer"
+                  className="p-1.5 sm:p-2 text-amber-400 hover:text-amber-300 rounded-xl cursor-pointer"
                   aria-label="Movie Night Roulette"
                   title="Movie Night Roulette"
                 >
@@ -834,18 +835,18 @@ export const Header: React.FC<HeaderProps> = ({
 
               <button
                 onClick={() => onNavSelect('watchlist')}
-                className="p-2 text-neutral-300 hover:text-white rounded-xl relative cursor-pointer"
+                className="p-1.5 sm:p-2 text-neutral-300 hover:text-white rounded-xl relative cursor-pointer"
                 aria-label={`Watchlist (${watchlistCount} items)`}
               >
                 <BookmarkIcon size={18} />
                 {watchlistCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-600"></span>
+                  <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-2 h-2 rounded-full bg-rose-600"></span>
                 )}
               </button>
 
               <button
                 onClick={onOpenGuide}
-                className="p-2 text-neutral-400 hover:text-white rounded-xl cursor-pointer"
+                className="hidden sm:inline-flex p-2 text-neutral-400 hover:text-white rounded-xl cursor-pointer"
                 aria-label="Download Guide & FAQs"
                 title="Download Guide & FAQs"
               >

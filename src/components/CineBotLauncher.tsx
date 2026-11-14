@@ -25,28 +25,20 @@ export const CineBotLauncher: React.FC<CineBotLauncherProps> = ({ onOpen, isOpen
         title="Open CineBot AI"
         className={`cinebot-launcher-btn group relative flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 aspect-square rounded-full border transition-all transform hover:-translate-y-0.5 hover:scale-105 active:scale-95 cursor-pointer shadow-lg select-none ${
           isWhite
-            ? 'bg-gradient-to-tr from-rose-600 to-rose-500 text-white border-rose-400 shadow-[0_8px_24px_rgba(225,29,72,0.35)] hover:shadow-[0_12px_28px_rgba(225,29,72,0.5)]'
+            ? 'bg-white text-rose-600 border-rose-300 shadow-[0_10px_28px_rgba(225,29,72,0.2)] hover:bg-rose-50 hover:border-rose-400'
             : isBlueBlack
             ? 'bg-gradient-to-tr from-sky-600 via-sky-500 to-indigo-600 text-white border-sky-400/40 shadow-[0_8px_24px_rgba(56,189,248,0.35)] hover:shadow-[0_12px_32px_rgba(56,189,248,0.55)]'
             : 'bg-gradient-to-tr from-rose-600 via-rose-500 to-pink-600 text-white border-rose-400/40 shadow-[0_8px_24px_rgba(225,29,72,0.45)] hover:shadow-[0_12px_32px_rgba(225,29,72,0.65)]'
         }`}
       >
-        {/* Center text CB without symbols */}
+        {/* Center text CB only */}
         <span
-          className={`font-mono font-black text-xs sm:text-sm tracking-wider group-hover:scale-110 transition-transform ${
+          className={`font-mono font-black text-xs sm:text-sm tracking-wider group-hover:scale-110 transition-transform leading-none ${
             isWhite ? 'text-rose-600' : 'text-white'
           }`}
         >
           CB
         </span>
-
-        {/* Pulsing online indicator dot */}
-        <span
-          className={`absolute top-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 animate-pulse ${
-            isWhite ? 'border-white' : isBlueBlack ? 'border-[#0a1122]' : 'border-[#0a0a0f]'
-          }`}
-          aria-hidden="true"
-        />
       </button>
     </aside>
   );

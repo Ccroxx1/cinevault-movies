@@ -37,17 +37,25 @@ export const CineVaultLogo: React.FC<CineVaultLogoProps> = ({
   }
 
   return (
-    <div className={`flex items-center gap-2.5 sm:gap-3 select-none ${className}`}>
-      <CineVaultEmblem size={emblemSize} />
+    <div className={`flex items-center gap-1.5 sm:gap-3 select-none ${className}`}>
+      <img
+        src="/favicon.svg"
+        width={emblemSize}
+        height={emblemSize}
+        alt="CineVault"
+        className={`shrink-0 rounded-xl ${
+          size === 'md' ? 'w-7 h-7 sm:w-9 sm:h-9' : ''
+        }`}
+      />
       <div className="flex flex-col justify-center leading-none">
-        <div className="flex items-center tracking-tight font-black font-display text-base sm:text-lg md:text-xl">
+        <div className="flex items-center tracking-tight font-black font-display text-sm sm:text-lg md:text-xl">
           <span className="cine-vault-title-cine bg-gradient-to-b from-white via-neutral-200 to-neutral-400 bg-clip-text text-transparent tracking-wider">CINE</span>
           <span className="bg-gradient-to-b from-[#FF4D6D] via-[#E50914] to-[#800010] bg-clip-text text-transparent tracking-wider">VAULT</span>
         </div>
         <div className="flex items-center gap-1 mt-0.5 sm:mt-1">
-          <span className="h-[1.5px] w-2 sm:w-3 bg-gradient-to-r from-transparent to-[#E50914] rounded-full" />
-          <span className="cine-vault-by-sasuu text-[8px] sm:text-[9.5px] font-black tracking-[0.2em] uppercase text-neutral-300/90 font-mono">BY SASUU</span>
-          <span className="h-[1.5px] w-2 sm:w-3 bg-gradient-to-l from-transparent to-[#E50914] rounded-full" />
+          <span className="h-[1.5px] w-1.5 sm:w-3 bg-gradient-to-r from-transparent to-[#E50914] rounded-full" />
+          <span className="cine-vault-by-sasuu text-[7px] sm:text-[9.5px] font-black tracking-[0.16em] sm:tracking-[0.2em] uppercase text-neutral-300/90 font-mono">BY SASUU</span>
+          <span className="h-[1.5px] w-1.5 sm:w-3 bg-gradient-to-l from-transparent to-[#E50914] rounded-full" />
         </div>
         {showTagline && (
           <div className="text-[7.5px] sm:text-[8.5px] text-neutral-400 font-bold uppercase tracking-[0.18em] mt-1 hidden sm:block">

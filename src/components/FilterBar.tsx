@@ -128,8 +128,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-2.5 mb-3.5" role="search">
           <div className="relative flex-1">
             <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
+            <label htmlFor="main-search-input" className="sr-only">Search movies</label>
             <input
               id="main-search-input"
+              name="movieSearch"
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -301,8 +303,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                 { label: 'Language', value: filters.language || 'All', key: 'language', options: LANGUAGE_OPTIONS },
               ].map((field) => (
                 <div key={field.key} className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-neutral-400">{field.label}:</label>
+                  <label htmlFor={`filter-${field.key}`} className="block text-xs font-semibold text-neutral-400">{field.label}:</label>
                   <select
+                    id={`filter-${field.key}`}
+                    name={field.key}
                     value={field.value}
                     onChange={(e) =>
                       onFilterChange({
@@ -325,8 +329,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               ))}
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-neutral-400">Order By:</label>
+                <label htmlFor="filter-order-by" className="block text-xs font-semibold text-neutral-400">Order By:</label>
                 <select
+                  id="filter-order-by"
+                  name="orderBy"
                   value={currentSortKey}
                   onChange={handleSortChange}
                   className="w-full bg-[#1c1c1c] border border-neutral-700/60 rounded-lg px-3 py-2 text-xs text-neutral-200 focus:border-rose-500 cursor-pointer"
@@ -366,10 +372,12 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                 <div className="space-y-1">
                   <div className="flex justify-between text-[11px] text-neutral-400">
-                    <span>From Year:</span>
+                    <label htmlFor="filter-min-year">From Year:</label>
                     <span className="font-mono font-bold text-white">{filters.min_year || 1950}</span>
                   </div>
                   <input
+                    id="filter-min-year"
+                    name="min_year"
                     type="range"
                     min="1950"
                     max="2026"
@@ -390,10 +398,12 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
                 <div className="space-y-1">
                   <div className="flex justify-between text-[11px] text-neutral-400">
-                    <span>To Year:</span>
+                    <label htmlFor="filter-max-year">To Year:</label>
                     <span className="font-mono font-bold text-white">{filters.max_year || 2026}</span>
                   </div>
                   <input
+                    id="filter-max-year"
+                    name="max_year"
                     type="range"
                     min="1950"
                     max="2026"

@@ -1630,7 +1630,10 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                     <Search className={`w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none ${
                       isWhite ? 'text-slate-400' : 'text-neutral-400'
                     }`} />
+                    <label htmlFor="series-release-search" className="sr-only">Search releases</label>
                     <input
+                      id="series-release-search"
+                      name="seriesReleaseSearch"
                       type="text"
                       value={releaseSearch}
                       onChange={(e) => setReleaseSearch(e.target.value)}
@@ -1840,10 +1843,12 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                   {/* Sort selector */}
                   <div className="flex items-center gap-2">
                     <ArrowUpDown className={`w-3.5 h-3.5 ${isWhite ? 'text-slate-500' : 'text-neutral-400'}`} />
-                    <span className={`text-xs font-medium ${isWhite ? 'text-slate-600' : 'text-neutral-400'}`}>
+                    <label htmlFor="series-release-sort" className={`text-xs font-medium ${isWhite ? 'text-slate-600' : 'text-neutral-400'}`}>
                       Sort:
-                    </span>
+                    </label>
                     <select
+                      id="series-release-sort"
+                      name="seriesReleaseSort"
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value as any)}
                       aria-label="Sort releases by"
