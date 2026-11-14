@@ -54,6 +54,14 @@
         {
           "key": "X-Content-Type-Options",
           "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.clarity.ms https://scripts.clarity.ms https://cdn.cookiehub.eu https://pl31437220.profitableratecpmnetwork.com https://pl31437221.profitableratecpmnetwork.com https://eagerdazzle.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.tvmaze.com https://www.wikidata.org https://query.wikidata.org https://movies-api.accel.li https://yts.am https://yts.bz https://yts.lt https://yts.ag https://yts.gg https://eztvx.to https://eztv.wf https://eztv.tf https://eztv.yt https://eztv.ag https://img.yts.gg https://static.tvmaze.com https://image.tmdb.org https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com https://*.clarity.ms https://cdn.cookiehub.eu https://cookiehub.eu; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://eagerdazzle.com; worker-src 'self' blob:; manifest-src 'self'"
         }
       ]
     },

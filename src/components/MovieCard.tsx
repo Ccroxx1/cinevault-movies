@@ -136,7 +136,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
               }}
               src={currentPosterSrc}
               alt={`${movie.title} (${movie.year}) Poster`}
-              loading="lazy"
+              loading="eager"
               decoding="async"
               width="240"
               height="360"

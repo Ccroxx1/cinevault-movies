@@ -1,4 +1,5 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { hasAdvertisingConsent, isAdHostEligible, onConsentChange } from '../utils/consent';
 
 const invokeScriptUrl = 'https://eagerdazzle.com/a62700da0f74191791572095727853bc/invoke.js';
 const desktopBannerWidth = 728;
@@ -31,39 +32,56 @@ export const AdsterraBanner: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const host = window.location.hostname;
-    const isProd = host === 'cinevaultmovies.online' || host.endsWith('.cinevaultmovies.online');
-    const isDebug =
-      window.location.search.includes('force_ads=1') ||
-      window.location.search.includes('force_adsterra=1') ||
-      window.location.search.includes('ez_js_debugger=1');
+    let mounted = true;
+    let invokeScript: HTMLScriptElement | null = null;
 
-    if (!isProd && !isDebug) return;
+    const mountBannerScript = () => {
+      if (!mounted || invokeScript) return;
+      if (!isAdHostEligible() || !hasAdvertisingConsent()) return;
 
-    const adContainer = adContainerRef.current;
-    if (!adContainer) return;
+      const adContainer = adContainerRef.current;
+      if (!adContainer) return;
 
-    const optionsScript = document.createElement('script');
-    optionsScript.textContent = `window.atOptions = ${JSON.stringify({
-      key: 'a62700da0f74191791572095727853bc',
-      format: 'iframe',
-      height: bannerHeight,
-      width: desktopBannerWidth,
-      params: {},
-    })};`;
+      try {
+        // Assign atOptions directly instead of injecting an inline <script> tag
+        (window as any).atOptions = {
+          key: 'a62700da0f74191791572095727853bc',
+          format: 'iframe',
+          height: bannerHeight,
+          width: desktopBannerWidth,
+          params: {},
+        };
 
-    const invokeScript = document.createElement('script');
-    invokeScript.src = invokeScriptUrl;
-    invokeScript.async = false;
-    invokeScript.setAttribute('data-cfasync', 'false');
-    invokeScript.onerror = () => console.warn('Adsterra banner failed to load.');
+        invokeScript = document.createElement('script');
+        invokeScript.src = invokeScriptUrl;
+        invokeScript.async = true;
+        invokeScript.setAttribute('data-cfasync', 'false');
+        invokeScript.onerror = () => {
+          // Ad banner blocked or unavailable — fail silently without affecting layout or app
+        };
 
-    adContainer.append(optionsScript, invokeScript);
+        adContainer.append(invokeScript);
+      } catch {
+        // Non-critical ad initialization must never break React rendering
+      }
+    };
+
+    mountBannerScript();
+    const unsubscribe = onConsentChange((accepted) => {
+      if (accepted) {
+        mountBannerScript();
+      } else if (invokeScript) {
+        invokeScript.remove();
+        invokeScript = null;
+        adContainerRef.current?.replaceChildren();
+      }
+    });
 
     return () => {
-      optionsScript.remove();
-      invokeScript.remove();
-      adContainer.replaceChildren();
+      mounted = false;
+      unsubscribe();
+      invokeScript?.remove();
+      adContainerRef.current?.replaceChildren();
     };
   }, []);
 

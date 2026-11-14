@@ -170,7 +170,7 @@ export const FilmographyModal: React.FC<FilmographyModalProps> = ({
                       alt={m.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       referrerPolicy="no-referrer"
-                      loading="lazy"
+                      loading="eager"
                       onError={(e) => {
                         (e.currentTarget as HTMLImageElement).src = CINEVAULT_POSTER_FALLBACK;
                       }}

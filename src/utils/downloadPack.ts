@@ -1,4 +1,3 @@
-import JSZip from 'jszip';
 import { Movie, Torrent, buildMagnetLink, RECOMMENDED_TRACKERS } from '../types';
 import { getMovieSlug } from './seo';
 
@@ -780,6 +779,7 @@ export async function downloadMoviePackage(
 ): Promise<boolean> {
   try {
     onProgress?.('Preparing your CineVault download...');
+    const { default: JSZip } = await import('jszip');
     const zip = new JSZip();
 
     const cleanTitle = sanitizeFileName(movie.title);

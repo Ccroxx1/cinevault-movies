@@ -445,7 +445,7 @@ export const Header: React.FC<HeaderProps> = ({
                             <img
                               src={getPrimaryMoviePoster(movie)}
                               alt={`${movie.title} (${movie.year || 'Film'}) Poster`}
-                              loading="lazy"
+                              loading="eager"
                               width="40"
                               height="56"
                               className="w-8 h-11 sm:w-10 sm:h-14 object-cover rounded bg-neutral-900 shrink-0"

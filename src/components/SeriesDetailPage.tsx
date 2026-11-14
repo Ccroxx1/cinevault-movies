@@ -1498,7 +1498,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                       src={nextUpEpisode.ep.image?.medium || currentPosterSrc}
                       alt={nextUpEpisode.ep.name}
                       className="w-full h-full object-cover"
-                      loading="lazy"
+                      loading="eager"
                     />
                     <span className="absolute bottom-1 left-1 px-1.5 py-0.2 rounded bg-black/80 font-mono font-bold text-[10px] text-rose-400">
                       {nextUpEpisode.tag}
@@ -2605,7 +2605,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                                 src={ep.image.medium || ep.image.original!}
                                 alt={`${ep.name} still`}
                                 className="w-full h-full object-cover"
-                                loading="lazy"
+                                loading="eager"
                               />
                             ) : (
                               <div className={`w-full h-full flex items-center justify-center ${
@@ -2764,7 +2764,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                         src={c.person.image.medium || c.person.image.original!}
                         alt={c.person.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
+                        loading="eager"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-white/5 text-neutral-600">
@@ -2853,7 +2853,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                 <img
                   src={getPrimarySeriesPoster(pop)}
                   alt={pop.name}
-                  loading="lazy"
+                  loading="eager"
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   onError={(e) => {

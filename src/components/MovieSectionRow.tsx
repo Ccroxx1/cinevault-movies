@@ -204,7 +204,7 @@ const MovieSectionCard: React.FC<MovieSectionCardProps> = ({
               width="192"
               height="288"
               referrerPolicy="no-referrer"
-              loading="lazy"
+              loading="eager"
               decoding="async"
               onLoad={() => setIsLoaded(true)}
               onError={handleImageError}

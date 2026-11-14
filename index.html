@@ -96,18 +96,6 @@
             combined.indexOf('phantom') !== -1 ||
             combined.indexOf('coinbase') !== -1 ||
             combined.indexOf('failed to connect') !== -1 ||
-            combined.indexOf('country consent') !== -1 ||
-            combined.indexOf('sacountry') !== -1 ||
-            combined.indexOf('gatekeeper') !== -1 ||
-            combined.indexOf('ezoic') !== -1 ||
-            combined.indexOf('ezojs') !== -1 ||
-            combined.indexOf('ezstandalone') !== -1 ||
-            combined.indexOf('profitableratecpmnetwork') !== -1 ||
-            combined.indexOf('adsterra') !== -1 ||
-            combined.indexOf('eagerdazzle') !== -1 ||
-            combined.indexOf('monetization not allowed') !== -1 ||
-            combined.indexOf('bad response') !== -1 ||
-            combined.indexOf('sa.min.js') !== -1 ||
             combined.indexOf('[vite]') !== -1 ||
             combined.indexOf('failed to connect to websocket') !== -1 ||
             combined.indexOf('vite-plugin-pwa') !== -1 ||
@@ -118,8 +106,6 @@
             combined.indexOf('orphaned data for stream') !== -1 ||
             combined.indexOf('maxlistenersexceededwarning') !== -1 ||
             combined.indexOf('permissions policy violation') !== -1 ||
-            combined.indexOf('cookiehub') !== -1 ||
-            combined.indexOf('id5-sync') !== -1 ||
             combined.indexOf('getembedinfo') !== -1 ||
             combined.indexOf('elhekieabhbkpmcefcoobjddigjcaadp') !== -1
           );
@@ -205,47 +191,6 @@
           } catch(e) {}
         }, true);
 
-        // Console error & warn silence for external noise (drops completely without forwarding)
-        try {
-          var origError = console.error;
-          var origWarn = console.warn;
-          console.error = function() {
-            var str = '';
-            for (var i = 0; i < arguments.length; i++) {
-              var a = arguments[i];
-              if (a) {
-                if (typeof a === 'string') {
-                  str += ' ' + a;
-                } else {
-                  str += ' ' + (a.name || '') + ' ' + (a.message || '') + ' ' + (a.stack || '') + ' ' + String(a);
-                }
-              }
-            }
-            if (isExtensionOrExternalError(str)) {
-              return;
-            }
-            origError.apply(console, arguments);
-          };
-
-          console.warn = function() {
-            var str = '';
-            for (var i = 0; i < arguments.length; i++) {
-              var a = arguments[i];
-              if (a) {
-                if (typeof a === 'string') {
-                  str += ' ' + a;
-                } else {
-                  str += ' ' + (a.name || '') + ' ' + (a.message || '') + ' ' + (a.stack || '') + ' ' + String(a);
-                }
-              }
-            }
-            if (isExtensionOrExternalError(str)) {
-              return;
-            }
-            origWarn.apply(console, arguments);
-          };
-        } catch(e) {}
-
         // 1.1 Outdated Chunk Recovery & Deployment Auto-Reload (Vite official vite:preloadError event)
         window.addEventListener('vite:preloadError', function(event) {
           console.warn('[CineVault] New deployment detected or dynamic chunk load error. Refreshing to load latest version...');
@@ -263,74 +208,44 @@
       })();
     </script>
 
-    <!-- 2. Conditional CookieHub & Ad Networks (Only on Production or Debug) -->
+    <!-- 2. Conditional CookieHub Consent & Theme Initialization -->
     <script>
-      window.ezstandalone = window.ezstandalone || {};
-      ezstandalone.cmd = ezstandalone.cmd || [];
-
       (function() {
         var host = window.location.hostname;
         var isProd = host === 'cinevaultmovies.online' || host.endsWith('.cinevaultmovies.online');
-        var isDebug = window.location.search.indexOf('ez_js_debugger=1') !== -1 || window.location.search.indexOf('force_ezoic=1') !== -1;
 
-        // Initialize CookieHub CMP only on production domain
+        // Sync CookieHub decisions into first-party consent state without blocking app render
+        var syncConsentState = function() {
+          try {
+            if (window.cookiehub && typeof window.cookiehub.hasConsented === 'function') {
+              var allowed = Boolean(window.cookiehub.hasConsented('marketing'));
+              localStorage.setItem('cinevault_cookie_consent', allowed ? 'accepted' : 'essential_only');
+              window.dispatchEvent(new CustomEvent('cinevault_consent_changed', { detail: { accepted: allowed } }));
+            }
+          } catch(e) {}
+        };
+
+        // Initialize CookieHub CMP only on production domain (never loads ad/tracking scripts before consent)
         if (isProd) {
           try {
             var ch = document.createElement('script');
+            ch.async = true;
             ch.src = 'https://cdn.cookiehub.eu/c2/b3cbcdd6.js';
-            ch.onerror = function() {};
+            ch.onerror = function() {
+              // Blocked by tracking prevention or ad blocker — first-party CookieConsentBanner handles consent
+            };
             ch.onload = function() {
               if (window.cookiehub && typeof window.cookiehub.load === 'function') {
-                window.cookiehub.load({});
+                window.cookiehub.load({
+                  onInitialise: syncConsentState,
+                  onAllow: syncConsentState,
+                  onRevoke: syncConsentState
+                });
               }
             };
             document.head.appendChild(ch);
           } catch(e) {}
         }
-
-        // Conditionally load ad network tags only in production or explicit debug mode
-        try {
-          if (isProd || isDebug) {
-            // 1. Adsterra SocialBar
-            if (!document.querySelector('script[src*="0626bb7ebab6d2671706e9b94ba2b96f.js"]')) {
-              var sb = document.createElement('script');
-              sb.async = true;
-              sb.src = 'https://pl31437221.profitableratecpmnetwork.com/06/26/bb/0626bb7ebab6d2671706e9b94ba2b96f.js';
-              sb.onerror = function() {};
-              document.head.appendChild(sb);
-            }
-
-            // 2. Adsterra Popunder
-            if (!document.querySelector('script[src*="145a579d83e9caaf18d1d1f81ab75ab8.js"]')) {
-              var pu = document.createElement('script');
-              pu.async = false;
-              pu.src = 'https://eagerdazzle.com/14/5a/57/145a579d83e9caaf18d1d1f81ab75ab8.js';
-              pu.onerror = function() {};
-              document.head.appendChild(pu);
-            }
-
-            // 3. Ezoic Header Scripts
-            if (!document.querySelector('script[src*="sa.min.js"]')) {
-              var s1 = document.createElement('script');
-              s1.setAttribute('data-cfasync', 'false');
-              s1.src = 'https://cmp.gatekeeperconsent.com/min.js';
-              s1.onerror = function() {};
-              document.head.appendChild(s1);
-
-              var s2 = document.createElement('script');
-              s2.setAttribute('data-cfasync', 'false');
-              s2.src = 'https://the.gatekeeperconsent.com/cmp.min.js';
-              s2.onerror = function() {};
-              document.head.appendChild(s2);
-
-              var s3 = document.createElement('script');
-              s3.async = true;
-              s3.src = '//www.ezojs.com/ezoic/sa.min.js';
-              s3.onerror = function() {};
-              document.head.appendChild(s3);
-            }
-          }
-        } catch(e) {}
 
         // Clear legacy Service Workers or stale precached shells in preview/sandbox environments
         try {
@@ -343,96 +258,6 @@
                 for (var j = 0; j < keys.length; j++) caches.delete(keys[j]);
               });
             }
-          }
-        } catch(e) {}
-
-        // Intercept XMLHttpRequest to handle pending 403 or blocked responses from ad/consent servers gracefully
-        try {
-          var origXhrOpen = XMLHttpRequest.prototype.open;
-          var origXhrSend = XMLHttpRequest.prototype.send;
-          XMLHttpRequest.prototype.open = function(method, url) {
-            try { this._ezUrl = url ? String(url) : ''; } catch(e) {}
-            return origXhrOpen.apply(this, arguments);
-          };
-          XMLHttpRequest.prototype.send = function() {
-            var self = this;
-            var url = (self._ezUrl || '').toLowerCase();
-            var isAdOrConsentUrl = (
-              url.indexOf('sa.go') !== -1 ||
-              url.indexOf('samo.go') !== -1 ||
-              url.indexOf('saa.go') !== -1 ||
-              url.indexOf('sacountry.go') !== -1 ||
-              url.indexOf('ezoic') !== -1 ||
-              url.indexOf('ezojs') !== -1 ||
-              url.indexOf('gatekeeperconsent') !== -1 ||
-              url.indexOf('profitableratecpmnetwork') !== -1 ||
-              url.indexOf('adsterra') !== -1 ||
-              url.indexOf('eagerdazzle') !== -1
-            );
-            if (isAdOrConsentUrl) {
-              var origOnload = self.onload;
-              var safePayload = '{"country":"US","state":"CA","consent":false}';
-              var mockSuccess = function() {
-                try {
-                  Object.defineProperty(self, 'status', { value: 200, writable: true, configurable: true });
-                  Object.defineProperty(self, 'statusText', { value: 'OK', writable: true, configurable: true });
-                  Object.defineProperty(self, 'responseText', { value: safePayload, writable: true, configurable: true });
-                  Object.defineProperty(self, 'response', { value: safePayload, writable: true, configurable: true });
-                } catch(e) {}
-              };
-
-              self.onerror = function() {
-                mockSuccess();
-                if (origOnload) {
-                  try { return origOnload.apply(this, arguments); } catch(e) {}
-                }
-              };
-
-              self.onload = function() {
-                if (self.status >= 400 || self.status === 0) mockSuccess();
-                if (origOnload) return origOnload.apply(this, arguments);
-              };
-              self.addEventListener('load', function() {
-                if (self.status >= 400 || self.status === 0) mockSuccess();
-              }, true);
-            }
-            return origXhrSend.apply(this, arguments);
-          };
-        } catch(e) {}
-
-        // Intercept fetch for ad and consent network endpoints
-        try {
-          var origFetch = window.fetch;
-          if (origFetch) {
-            window.fetch = function(input, init) {
-              var url = '';
-              try { url = typeof input === 'string' ? input : (input && input.url ? input.url : ''); } catch(e) {}
-              var lowerUrl = (url || '').toLowerCase();
-              var promise = origFetch.apply(this, arguments);
-              if (
-                lowerUrl.indexOf('sa.go') !== -1 ||
-                lowerUrl.indexOf('samo.go') !== -1 ||
-                lowerUrl.indexOf('saa.go') !== -1 ||
-                lowerUrl.indexOf('sacountry.go') !== -1 ||
-                lowerUrl.indexOf('ezoic') !== -1 ||
-                lowerUrl.indexOf('ezojs') !== -1 ||
-                lowerUrl.indexOf('gatekeeperconsent') !== -1 ||
-                lowerUrl.indexOf('profitableratecpmnetwork') !== -1 ||
-                lowerUrl.indexOf('adsterra') !== -1 ||
-                lowerUrl.indexOf('eagerdazzle') !== -1
-              ) {
-                var safeFallback = '{"country":"US","state":"CA","consent":false}';
-                return promise.then(function(res) {
-                  if (res && (res.status >= 400 || res.status === 0)) {
-                    return new Response(safeFallback, { status: 200, statusText: 'OK', headers: { 'Content-Type': 'application/json' } });
-                  }
-                  return res;
-                }).catch(function() {
-                  return new Response(safeFallback, { status: 200, statusText: 'OK', headers: { 'Content-Type': 'application/json' } });
-                });
-              }
-              return promise;
-            };
           }
         } catch(e) {}
 

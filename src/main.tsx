@@ -23,23 +23,10 @@ if (typeof window !== 'undefined') {
       combined.includes('failed to connect') ||
       combined.includes('websocket') ||
       combined.includes('[vite]') ||
-      combined.includes('country consent') ||
-      combined.includes('sacountry') ||
-      combined.includes('gatekeeper') ||
-      combined.includes('ezoic') ||
-      combined.includes('ezojs') ||
-      combined.includes('ezstandalone') ||
-      combined.includes('profitableratecpmnetwork') ||
-      combined.includes('adsterra') ||
-      combined.includes('eagerdazzle') ||
-      combined.includes('monetization not allowed') ||
-      combined.includes('bad response') ||
       combined.includes('chrome-extension') ||
       combined.includes('moz-extension') ||
       combined.includes('safari-web-extension') ||
       combined.includes('safari-extension') ||
-      combined.includes('sa.min.js') ||
-      combined.includes('gatekeeperconsent') ||
       combined.includes('chrome: call method') ||
       combined.includes('window message') ||
       combined.includes('ff-content') ||
@@ -52,46 +39,9 @@ if (typeof window !== 'undefined') {
       combined.includes('orphaned data for stream') ||
       combined.includes('maxlistenersexceededwarning') ||
       combined.includes('permissions policy violation') ||
-      combined.includes('cookiehub') ||
-      combined.includes('id5-sync') ||
       combined.includes('getembedinfo')
     );
   };
-
-  // Intercept and drop third-party extension errors from polluting console
-  try {
-    const origConsoleError = console.error;
-    const origConsoleWarn = console.warn;
-    console.error = (...args: any[]) => {
-      let str = '';
-      for (const a of args) {
-        if (a) {
-          if (typeof a === 'string') {
-            str += ` ${a}`;
-          } else {
-            str += ` ${a.name || ''} ${a.message || ''} ${a.stack || ''} ${String(a)}`;
-          }
-        }
-      }
-      if (isExtensionError(str)) return;
-      origConsoleError.apply(console, args);
-    };
-
-    console.warn = (...args: any[]) => {
-      let str = '';
-      for (const a of args) {
-        if (a) {
-          if (typeof a === 'string') {
-            str += ` ${a}`;
-          } else {
-            str += ` ${a.name || ''} ${a.message || ''} ${a.stack || ''} ${String(a)}`;
-          }
-        }
-      }
-      if (isExtensionError(str)) return;
-      origConsoleWarn.apply(console, args);
-    };
-  } catch {}
 
   const prevOnError = window.onerror;
   window.onerror = (message, source, lineno, colno, error) => {

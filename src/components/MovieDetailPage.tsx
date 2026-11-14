@@ -800,7 +800,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                       <img
                         src={actor.url_small_image}
                         alt={actor.name}
-                        loading="lazy"
+                        loading="eager"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                         onError={(e) => (e.currentTarget.style.display = 'none')}
                       />
@@ -832,7 +832,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {screenshots.map((src, i) => (
                 <div key={i} onClick={() => setSelectedScreenshotIndex(i)} className="aspect-video rounded-2xl overflow-hidden bg-neutral-900 border border-white/10 cursor-pointer group">
-                  <img src={src} alt={`Screenshot ${i + 1}`} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                  <img src={src} alt={`Screenshot ${i + 1}`} loading="eager" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                 </div>
               ))}
             </div>

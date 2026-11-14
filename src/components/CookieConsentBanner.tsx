@@ -1,4 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import {
+  getStoredConsent,
+  hasCookieHubMarketingConsent,
+  setAdvertisingConsent,
+  ensureConsentGatedGlobalAds
+} from '../utils/consent';
+
 interface CookieConsentBannerProps {
   onOpenPrivacy: () => void;
 }
@@ -7,20 +14,40 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ onOpen
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const consent = localStorage.getItem('cinevault_cookie_consent');
-    if (!consent) {
-      const timer = setTimeout(() => setIsVisible(true), 1500);
-      return () => clearTimeout(timer);
+    const stored = getStoredConsent();
+    if (stored === 'accepted') {
+      ensureConsentGatedGlobalAds();
+      return;
     }
+    if (stored === 'essential_only') {
+      return;
+    }
+
+    // Wait briefly for CookieHub on production; if CookieHub hasn't resolved or was blocked,
+    // show the resilient first-party consent banner.
+    const timer = setTimeout(() => {
+      const chConsent = hasCookieHubMarketingConsent();
+      if (chConsent === true) {
+        setAdvertisingConsent(true);
+        ensureConsentGatedGlobalAds();
+        return;
+      }
+      if (!getStoredConsent()) {
+        setIsVisible(true);
+      }
+    }, 1500);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const handleAccept = () => {
-    localStorage.setItem('cinevault_cookie_consent', 'accepted');
+    setAdvertisingConsent(true);
+    ensureConsentGatedGlobalAds();
     setIsVisible(false);
   };
 
   const handleDecline = () => {
-    localStorage.setItem('cinevault_cookie_consent', 'essential_only');
+    setAdvertisingConsent(false);
     setIsVisible(false);
   };
 
@@ -37,11 +64,11 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ onOpen
               className="text-neutral-400 hover:text-white p-1"
               aria-label="Dismiss"
             >
-                Dismiss
-              </button>
+              Dismiss
+            </button>
           </h4>
           <p className="text-[11px] text-neutral-300 leading-relaxed">
-            We use cookies and web storage to enhance movie discovery, maintain your watchlist, and deliver relevant advertisements via Google AdSense.
+            We use essential storage to maintain your watchlist and preferences. Optional advertising cookies are only enabled if you accept.
           </p>
           <div className="flex flex-wrap items-center gap-2 pt-1">
             <button

@@ -35,6 +35,7 @@ import {
 import { CopyIcon } from './ActionIcons';
 import { useTheme } from '../context/ThemeContext';
 import { getSeriesPosterCandidates, getPrimarySeriesPoster, CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
+import { useIntersectionLazyLoad } from '../hooks/useIntersectionLazyLoad';
 
 interface EztvViewProps {
   initialQuery?: string;
@@ -121,25 +122,32 @@ const ReleaseGridCard: React.FC<ReleaseGridCardProps> = ({
     : 'Release';
 
   const isTopCard = index !== undefined && index < 6;
+  const [cardRef, isObserved] = useIntersectionLazyLoad<HTMLDivElement>({
+    rootMargin: '250px 0px 250px 0px',
+  });
+  const shouldRenderImage = isTopCard || isObserved;
 
   return (
     <div
+      ref={cardRef}
       onClick={() => onSelectRelease(torrent)}
       style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 340px' }}
       className="group rounded-2xl border border-white/10 bg-[#0f0f13] hover:border-rose-500/50 hover:bg-white/[0.04] transition-all duration-300 flex flex-col overflow-hidden cursor-pointer shadow-md hover:shadow-xl hover:shadow-rose-950/20 relative"
     >
       {/* Poster */}
       <div className="aspect-[2/3] w-full bg-neutral-900 relative overflow-hidden">
-        <img
-          src={currentPosterSrc}
-          alt={cleanTitle}
-          loading={isTopCard ? 'eager' : 'lazy'}
-          {...(isTopCard ? { fetchPriority: 'high' } : {})}
-          decoding="async"
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          referrerPolicy="no-referrer"
-          onError={handleImageError}
-        />
+        {shouldRenderImage && (
+          <img
+            src={currentPosterSrc}
+            alt={cleanTitle}
+            loading="eager"
+            {...(isTopCard ? { fetchPriority: 'high' } : {})}
+            decoding="async"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            referrerPolicy="no-referrer"
+            onError={handleImageError}
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
 
         {/* Top Badges */}
@@ -262,23 +270,30 @@ const EztvReleaseRow: React.FC<EztvReleaseRowProps> = ({
   };
 
   const currentPosterSrc = posterCandidates[candidateIndex] || CINEVAULT_POSTER_FALLBACK;
+  const [rowRef, isRowVisible] = useIntersectionLazyLoad<HTMLDivElement>({
+    rootMargin: '250px 0px 250px 0px',
+  });
 
   return (
     <div
+      ref={rowRef}
       onClick={() => onSelectRelease(torrent)}
       className="group p-3.5 sm:p-4 rounded-2xl border transition-all duration-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4 eztv-release-row shadow-xs cursor-pointer hover:border-rose-500/50 hover:bg-white/[0.03]"
     >
       <div className="flex items-start sm:items-center gap-3.5 flex-1 min-w-0">
         {/* Real Official Show Poster Thumbnail */}
         <div className="w-12 h-16 sm:w-14 sm:h-20 bg-neutral-900 rounded-xl overflow-hidden shrink-0 border border-white/10 relative shadow-md">
-          <img
-            src={currentPosterSrc}
-            alt={showTitle}
-            loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-            referrerPolicy="no-referrer"
-            onError={handleImageError}
-          />
+          {isRowVisible && (
+            <img
+              src={currentPosterSrc}
+              alt={showTitle}
+              loading="eager"
+              decoding="async"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+              referrerPolicy="no-referrer"
+              onError={handleImageError}
+            />
+          )}
         </div>
 
         {/* Release Details */}

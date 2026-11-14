@@ -189,7 +189,7 @@ export const MovieComparisonModal: React.FC<MovieComparisonModalProps> = ({
                             src={getPrimaryMoviePoster(cand)}
                             alt={cand.title}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                            loading="lazy"
+                            loading="eager"
                           />
                         </div>
                         <h5 className="text-[11px] font-bold text-neutral-200 truncate group-hover:text-rose-400">
@@ -244,7 +244,7 @@ export const MovieComparisonModal: React.FC<MovieComparisonModalProps> = ({
                             alt={movie.title}
                             className="w-full h-full object-cover"
                             referrerPolicy="no-referrer"
-                            loading="lazy"
+                            loading="eager"
                           />
                         </div>
 

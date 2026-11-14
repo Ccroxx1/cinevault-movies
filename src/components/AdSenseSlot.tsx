@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useTheme } from '../context/ThemeContext';
+import { hasAdvertisingConsent, isAdHostEligible, onConsentChange } from '../utils/consent';
 
 interface AdSenseSlotProps {
   slotId?: string;
@@ -20,29 +21,32 @@ export const AdSenseSlot: React.FC<AdSenseSlotProps> = ({
   const loadedRef = useRef<boolean>(false);
 
   useEffect(() => {
-    if (loadedRef.current) return;
-    loadedRef.current = true;
+    const loadNativeBanner = () => {
+      if (loadedRef.current) return;
+      if (!isAdHostEligible() || !hasAdvertisingConsent()) return;
+      loadedRef.current = true;
 
-    try {
-      const host = window.location.hostname;
-      const isProd = host === 'cinevaultmovies.online' || host.endsWith('.cinevaultmovies.online');
-      const isDebug =
-        window.location.search.indexOf('force_ads=1') !== -1 ||
-        window.location.search.indexOf('force_adsterra=1') !== -1 ||
-        window.location.search.indexOf('ez_js_debugger=1') !== -1;
-
-      if (isProd || isDebug) {
-        // Load Adsterra Native Banner script if not already present
+      try {
         const scriptSrc = 'https://pl31437220.profitableratecpmnetwork.com/2e2c5aa1814513310d921e06208ff111/invoke.js';
-        if (!document.querySelector(`script[src*="2e2c5aa1814513310d921e06208ff111"]`)) {
+        if (!document.querySelector('script[src*="2e2c5aa1814513310d921e06208ff111"]')) {
           const script = document.createElement('script');
           script.async = true;
           script.setAttribute('data-cfasync', 'false');
           script.src = scriptSrc;
+          script.onerror = () => {
+            // Ad network blocked by tracking prevention or ad blocker — fail gracefully
+          };
           document.head.appendChild(script);
         }
+      } catch {
+        // Never allow ad script issues to disrupt rendering
       }
-    } catch (e) {}
+    };
+
+    loadNativeBanner();
+    return onConsentChange((accepted) => {
+      if (accepted) loadNativeBanner();
+    });
   }, []);
 
   // Format-specific sizing constraints to avoid Cumulative Layout Shift (CLS)
@@ -89,6 +93,3 @@ export const AdSenseSlot: React.FC<AdSenseSlotProps> = ({
 };
 
 export const AdSlot = AdSenseSlot;
-
-
-

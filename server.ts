@@ -14,6 +14,28 @@ const PORT = 3000;
 
 app.use(express.json());
 
+const PRODUCTION_CSP = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "upgrade-insecure-requests",
+  "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.clarity.ms https://scripts.clarity.ms https://cdn.cookiehub.eu https://pl31437220.profitableratecpmnetwork.com https://pl31437221.profitableratecpmnetwork.com https://eagerdazzle.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' data: https://fonts.gstatic.com",
+  "img-src 'self' data: blob: https:",
+  "connect-src 'self' https://api.tvmaze.com https://www.wikidata.org https://query.wikidata.org https://movies-api.accel.li https://yts.am https://yts.bz https://yts.lt https://yts.ag https://yts.gg https://eztvx.to https://eztv.wf https://eztv.tf https://eztv.yt https://eztv.ag https://img.yts.gg https://static.tvmaze.com https://image.tmdb.org https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com https://*.clarity.ms https://cdn.cookiehub.eu https://cookiehub.eu",
+  "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://eagerdazzle.com",
+  "worker-src 'self' blob:",
+  "manifest-src 'self'"
+].join('; ');
+
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Content-Security-Policy', PRODUCTION_CSP);
+  next();
+});
+
 // Synchronous Path Detection for Vercel & Local Production
 const possibleDistPaths = [
   path.resolve(process.cwd(), 'dist'),
@@ -2605,7 +2627,6 @@ app.get(['/privacy-policy', '/privacy'], (req, res) => {
         /<meta\s+name="description"\s+content=".*?"\s*\/?>/i,
         '<meta name="description" content="Privacy Policy for CineVault Movies. Learn how we handle your data, our cookie usage, and Ezoic advertising compliance." />'
       );
-    html = ensureEzoicProductionTags(html, (req.headers.host as string) || '', req.originalUrl);
     return res.status(200).set({ 'Content-Type': 'text/html; charset=utf-8' }).send(html);
   }
   res.redirect('/');
@@ -2702,39 +2723,6 @@ async function injectDynamicMetaTags(htmlTemplate: string, reqUrl: string): Prom
   return htmlTemplate;
 }
 
-// Ensure Ad network scripts (Adsterra, Ezoic) are delivered in the static HTML
-function ensureEzoicProductionTags(html: string, reqHost: string = '', reqUrl: string = ''): string {
-  const isProdHost = reqHost.includes('cinevaultmovies.online');
-  const isDebug = reqUrl.includes('ez_js_debugger=1') || reqUrl.includes('force_ezoic=1') || reqUrl.includes('force_ads=1');
-
-  if ((isProdHost || isDebug) && !html.includes('0626bb7ebab6d2671706e9b94ba2b96f.js')) {
-    const adsterraTags = `
-    <!-- Adsterra SocialBar & Popunder Tags -->
-    <script async src="https://pl31437221.profitableratecpmnetwork.com/06/26/bb/0626bb7ebab6d2671706e9b94ba2b96f.js"></script>
-    <script async src="https://pl31437219.profitableratecpmnetwork.com/14/5a/57/145a579d83e9caaf18d1d1f81ab75ab8.js"></script>`;
-    html = html.replace('<head>', `<head>\n${adsterraTags}`);
-  }
-
-  // If html already contains sa.min.js, it is already wired directly in the template
-  if (html.includes('sa.min.js')) {
-    return html;
-  }
-
-  if (isProdHost || isDebug) {
-    const ezoicTags = `
-    <script data-cfasync="false" src="https://cmp.gatekeeperconsent.com/min.js"></script>
-    <script data-cfasync="false" src="https://the.gatekeeperconsent.com/cmp.min.js"></script>
-    <script async src="//www.ezojs.com/ezoic/sa.min.js"></script>
-    <script>
-      window.ezstandalone = window.ezstandalone || {};
-      ezstandalone.cmd = ezstandalone.cmd || [];
-    </script>
-    <script src="//ezoicanalytics.com/analytics.js"></script>`;
-    return html.replace('<head>', `<head>\n${ezoicTags}`);
-  }
-  return html;
-}
-
 // Development vs Production Setup
 async function start() {
   if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
@@ -2745,8 +2733,7 @@ async function start() {
       try {
         let template = fs.readFileSync(path.resolve(process.cwd(), 'index.html'), 'utf-8');
         template = await vite.transformIndexHtml(req.originalUrl, template);
-        let html = await injectDynamicMetaTags(template, req.originalUrl);
-        html = ensureEzoicProductionTags(html, (req.headers.host as string) || '', req.originalUrl);
+        const html = await injectDynamicMetaTags(template, req.originalUrl);
         res.status(200).set({ 'Content-Type': 'text/html' }).send(html);
       } catch (e: any) { res.status(500).end(e.stack); }
     });
@@ -2759,8 +2746,7 @@ async function start() {
         }
 
         const template = fs.readFileSync(detectedIndexHtmlPath, 'utf-8');
-        let html = await injectDynamicMetaTags(template, req.originalUrl);
-        html = ensureEzoicProductionTags(html, (req.headers.host as string) || '', req.originalUrl);
+        const html = await injectDynamicMetaTags(template, req.originalUrl);
 
         return res
           .status(200)

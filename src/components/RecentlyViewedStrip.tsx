@@ -71,7 +71,7 @@ const RecentlyViewedCard: React.FC<{
             }}
             src={currentPosterSrc}
             alt={`${movie.title} Poster`}
-            loading="lazy"
+            loading="eager"
             decoding="async"
             width="176"
             height="264"
