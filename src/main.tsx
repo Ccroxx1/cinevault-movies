@@ -44,7 +44,17 @@ if (typeof window !== 'undefined') {
       combined.includes('window message') ||
       combined.includes('ff-content') ||
       combined.includes('cldmemdnllncchfahbcnjijheaolemfk') ||
-      combined.includes('foxified')
+      combined.includes('foxified') ||
+      combined.includes('message channel closed') ||
+      combined.includes('listener indicated an asynchronous response') ||
+      combined.includes('asynchronous response by returning true') ||
+      combined.includes('objectmultiplex') ||
+      combined.includes('orphaned data for stream') ||
+      combined.includes('maxlistenersexceededwarning') ||
+      combined.includes('permissions policy violation') ||
+      combined.includes('cookiehub') ||
+      combined.includes('id5-sync') ||
+      combined.includes('getembedinfo')
     );
   };
 
