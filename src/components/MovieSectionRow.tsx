@@ -88,14 +88,6 @@ export const CURATED_SECTIONS: CuratedSectionConfig[] = [
     badge: 'Universal Appeal',
     accentColor: 'from-teal-500/20 text-teal-400 border-teal-500/30',
     filterParams: { genre: 'Animation', sort_by: 'rating', order_by: 'desc', minimum_rating: 7.5 }
-  },
-  {
-    id: 'upcoming',
-    title: 'Latest High-Bitrate Releases',
-    subtitle: `Brand new ${new Date().getFullYear() - 1}–${new Date().getFullYear()} additions & freshest encodes`,
-    badge: 'Fresh Encodes',
-    accentColor: 'from-indigo-500/20 text-indigo-400 border-indigo-500/30',
-    filterParams: { sort_by: 'date_added', order_by: 'desc', min_year: new Date().getFullYear() - 1 }
   }
 ];
 
