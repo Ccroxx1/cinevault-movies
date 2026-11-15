@@ -33,6 +33,7 @@ import {
   getCachedEztvTorrents
 } from '../services/eztvApi';
 import { CopyIcon } from './ActionIcons';
+import { AdSenseSlot } from './AdSenseSlot';
 import { useTheme } from '../context/ThemeContext';
 import { getSeriesPosterCandidates, getPrimarySeriesPoster, CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
 import { useIntersectionLazyLoad } from '../hooks/useIntersectionLazyLoad';
@@ -1416,6 +1417,9 @@ export const EztvView: React.FC<EztvViewProps> = ({
           </button>
         </div>
       )}
+
+      {/* Native Banner Ad Placement */}
+      <AdSenseSlot format="auto" responsive={true} className="my-6" />
 
       {/* Legal & Safety Helper Strip */}
       <div className="p-4 rounded-2xl bg-[#0f0f13] border border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-neutral-400">

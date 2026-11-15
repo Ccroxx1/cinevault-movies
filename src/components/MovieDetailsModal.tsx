@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Movie, Torrent, ParentalGuide, buildMagnetLink, RECOMMENDED_TRACKERS } from '../types';
 import { fetchMovieDetails, fetchMovieSuggestions, fetchParentalGuides } from '../services/movieApi';
 import { downloadMoviePackage, handleBrandedMagnetDownload } from '../utils/downloadPack';
+import { getSafeExternalUrl } from '../utils/safeUrl';
 import { AdSenseSlot } from './AdSenseSlot';
 import { SubtitlesModal } from './SubtitlesModal';
 import { BatchQualityModal } from './BatchQualityModal';
@@ -552,16 +553,18 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
                           </button>
 
                           {/* 4. Direct .torrent Download Button */}
-                          <a
-                            href={torrent.url}
-                            target="_blank"
-                            rel="noreferrer noopener"
-                            download
-                            className="p-2 bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white rounded-xl border border-white/10 transition-colors flex items-center justify-center"
-                            title="Download .torrent file"
-                          >
-                            <FileDown className="w-4 h-4" />
-                          </a>
+                          {getSafeExternalUrl(torrent.url) && (
+                            <a
+                              href={getSafeExternalUrl(torrent.url)!}
+                              target="_blank"
+                              rel="noreferrer noopener"
+                              download
+                              className="p-2 bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white rounded-xl border border-white/10 transition-colors flex items-center justify-center"
+                              title="Download .torrent file"
+                            >
+                              <FileDown className="w-4 h-4" />
+                            </a>
+                          )}
                         </div>
                       </div>
                     );

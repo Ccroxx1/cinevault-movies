@@ -54,6 +54,7 @@ import { TorrentSwarmHealthBadge } from './TorrentSwarmHealthBadge';
 import { DownloadSpeedEstimator } from './DownloadSpeedEstimator';
 import { BookmarkPlusIcon, BookmarkIcon, PlayIcon, CopyIcon } from './ActionIcons';
 import { getSeriesPosterCandidates, getPrimarySeriesPoster, CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
+import { getSafeExternalUrl } from '../utils/safeUrl';
 import { ShareMovieModal } from './ShareMovieModal';
 
 /**
@@ -2131,9 +2132,9 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                                         {isCopied ? <span className="text-emerald-500 font-bold">Copied!</span> : <span>URI</span>}
                                       </button>
 
-                                      {torrent.torrent_url && (
+                                      {getSafeExternalUrl(torrent.torrent_url) && (
                                         <a
-                                          href={torrent.torrent_url}
+                                          href={getSafeExternalUrl(torrent.torrent_url)!}
                                           target="_blank"
                                           rel="noopener noreferrer"
                                           className={`px-2.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1 transition-all ${
@@ -2271,9 +2272,9 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                               {isCopied ? <span className="text-emerald-500 font-bold">Copied!</span> : <span>URI</span>}
                             </button>
 
-                            {torrent.torrent_url && (
+                            {getSafeExternalUrl(torrent.torrent_url) && (
                               <a
-                                href={torrent.torrent_url}
+                                href={getSafeExternalUrl(torrent.torrent_url)!}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className={`px-2.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1 transition-all ${
@@ -2383,10 +2384,10 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                 <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed">
                   {show?.summary || 'No overview synopsis currently recorded for this television series.'}
                 </p>
-                {show?.officialSite && (
+                {getSafeExternalUrl(show?.officialSite) && (
                   <div className="pt-2 border-t border-white/5">
                     <a
-                      href={show.officialSite}
+                      href={getSafeExternalUrl(show?.officialSite)!}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 text-xs text-rose-400 hover:text-rose-300 font-semibold"
@@ -2808,10 +2809,10 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
               <p className="text-sm text-neutral-300 leading-relaxed">
                 {show?.summary || 'No synopsis recorded.'}
               </p>
-              {show?.officialSite && (
+              {getSafeExternalUrl(show?.officialSite) && (
                 <div className="pt-2">
                   <a
-                    href={show.officialSite}
+                    href={getSafeExternalUrl(show?.officialSite)!}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 text-xs text-rose-400 hover:text-rose-300 font-semibold"

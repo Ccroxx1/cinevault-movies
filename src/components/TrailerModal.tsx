@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { ExternalLink, X } from 'lucide-react';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
+import { getSafeYoutubeId } from '../utils/safeUrl';
 
 interface TrailerModalProps {
   ytTrailerCode: string;
@@ -24,12 +25,14 @@ export const TrailerModal: React.FC<TrailerModalProps> = ({
 
   if (!ytTrailerCode && !movieTitle) return null;
 
-  const embedUrl = ytTrailerCode
-    ? `https://www.youtube-nocookie.com/embed/${ytTrailerCode}?autoplay=1&rel=0&modestbranding=1`
+  const safeYtCode = getSafeYoutubeId(ytTrailerCode);
+
+  const embedUrl = safeYtCode
+    ? `https://www.youtube-nocookie.com/embed/${safeYtCode}?autoplay=1&rel=0&modestbranding=1`
     : `https://www.youtube-nocookie.com/embed?listType=search&list=${encodeURIComponent(movieTitle + ' official trailer')}&autoplay=1`;
 
-  const externalUrl = ytTrailerCode
-    ? `https://www.youtube.com/watch?v=${ytTrailerCode}`
+  const externalUrl = safeYtCode
+    ? `https://www.youtube.com/watch?v=${safeYtCode}`
     : `https://www.youtube.com/results?search_query=${encodeURIComponent(movieTitle + ' official trailer')}`;
 
   return (

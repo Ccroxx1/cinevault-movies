@@ -258,15 +258,16 @@ export async function fetchEztvTorrents(params: EztvFetchParams = {}): Promise<E
       });
       if (res.ok) {
         const data = await res.json();
-        if (data && Array.isArray(data.torrents)) {
+        if (data && typeof data === 'object' && (Array.isArray(data.torrents) || typeof data.torrents_count === 'number')) {
+          const torrents = Array.isArray(data.torrents) ? data.torrents : [];
           return {
-            torrents_count: data.torrents_count || data.torrents.length,
+            torrents_count: data.torrents_count ?? torrents.length,
             limit: data.limit || params.limit || 50,
             page: data.page || params.page || 1,
             imdb_id: targetImdbId || params.imdb_id,
             resolved_title: resolvedTitle,
             show_meta: showMeta,
-            torrents: data.torrents
+            torrents
           };
         }
       }

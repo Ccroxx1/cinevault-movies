@@ -23,6 +23,7 @@ import { buildMagnetLink, Movie, Torrent } from '../types';
 import { TorrentSwarmHealthBadge } from './TorrentSwarmHealthBadge';
 import { DownloadSpeedEstimator } from './DownloadSpeedEstimator';
 import { CINEVAULT_POSTER_FALLBACK, getPrimaryMoviePoster } from '../utils/imageFallback';
+import { getSafeExternalUrl, getSafeMagnetUrl } from '../utils/safeUrl';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 interface MovieComparisonModalProps {
@@ -367,17 +368,21 @@ export const MovieComparisonModal: React.FC<MovieComparisonModalProps> = ({
                                     <div className="flex items-center justify-between pt-0.5">
                                       <TorrentSwarmHealthBadge seeds={t.seeds} peers={t.peers} />
                                       <div className="flex items-center gap-1">
+                                        {getSafeExternalUrl(t.url) && (
+                                          <a
+                                            href={getSafeExternalUrl(t.url)!}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            download
+                                            className="p-1 rounded bg-rose-600 hover:bg-rose-500 text-white text-[10px] font-bold flex items-center gap-1 transition"
+                                            title={`Download ${t.quality} torrent`}
+                                          >
+                                            <Download className="w-2.5 h-2.5" />
+                                            <span>Torrent</span>
+                                          </a>
+                                        )}
                                         <a
-                                          href={t.url}
-                                          download
-                                          className="p-1 rounded bg-rose-600 hover:bg-rose-500 text-white text-[10px] font-bold flex items-center gap-1 transition"
-                                          title={`Download ${t.quality} torrent`}
-                                        >
-                                          <Download className="w-2.5 h-2.5" />
-                                          <span>Torrent</span>
-                                        </a>
-                                        <a
-                                          href={buildMagnetLink(t.hash, movie.title)}
+                                          href={getSafeMagnetUrl(buildMagnetLink(t.hash, movie.title)) || '#'}
                                           className="p-1 rounded bg-white/10 hover:bg-white/20 text-neutral-200 text-[10px] font-bold flex items-center gap-1 transition"
                                           title="Magnet link"
                                         >

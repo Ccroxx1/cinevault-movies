@@ -33,6 +33,20 @@ export function escapeHtml(str: string): string {
     .replace(/'/g, '&#039;');
 }
 
+export function escapeJsonLd(data: unknown): string {
+  return JSON.stringify(data, null, 2)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026');
+}
+
+function sanitizeImageUrl(raw: unknown, fallback: string): string {
+  if (typeof raw !== 'string') return fallback;
+  const trimmed = raw.trim();
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return fallback;
+}
+
 export function buildMovieHtml(baseHtmlTemplate: string, movie: any, relatedMovies: any[] = [], overrideSlug?: string): string {
   const slug = overrideSlug || getMovieSlug(movie);
   const canonicalUrl = `${SITE_BASE_URL}/movies/${slug}`;
@@ -45,8 +59,14 @@ export function buildMovieHtml(baseHtmlTemplate: string, movie: any, relatedMovi
   const cleanSynopsis = rawSynopsis.replace(/\s+/g, ' ').trim();
   const metaDescription = `Learn about ${movieTitle}${movieYear}, including synopsis, cast, genres, IMDb rating, trailer and download info on CineVault By Sasuu.`;
 
-  const coverImage = movie.large_cover_image || movie.medium_cover_image || movie.small_cover_image || `${SITE_BASE_URL}/favicon.svg`;
-  const backdropImage = movie.background_image_original || movie.background_image || coverImage;
+  const coverImage = sanitizeImageUrl(
+    movie.large_cover_image || movie.medium_cover_image || movie.small_cover_image,
+    `${SITE_BASE_URL}/favicon.svg`
+  );
+  const backdropImage = sanitizeImageUrl(
+    movie.background_image_original || movie.background_image,
+    coverImage
+  );
   const ratingStr = movie.rating ? `${movie.rating.toFixed(1)} / 10 ` : 'Not Rated';
   const genresArray = Array.isArray(movie.genres) ? movie.genres : [];
   const genresStr = genresArray.length > 0 ? genresArray.join(', ') : 'Cinema, Feature Film';
@@ -111,18 +131,21 @@ export function buildMovieHtml(baseHtmlTemplate: string, movie: any, relatedMovi
       }));
   }
 
-  if (movie.yt_trailer_code) {
+  const safeYtCode = typeof movie.yt_trailer_code === 'string' && /^[a-zA-Z0-9_-]{6,20}$/.test(movie.yt_trailer_code.trim())
+    ? movie.yt_trailer_code.trim()
+    : '';
+  if (safeYtCode) {
     jsonLd['trailer'] = {
       '@type': 'VideoObject',
       'name': `${movie.title} Official Trailer`,
-      'embedUrl': `https://www.youtube.com/embed/${movie.yt_trailer_code}`,
-      'thumbnailUrl': `https://img.youtube.com/vi/${movie.yt_trailer_code}/hqdefault.jpg`,
+      'embedUrl': `https://www.youtube.com/embed/${safeYtCode}`,
+      'thumbnailUrl': `https://img.youtube.com/vi/${safeYtCode}/hqdefault.jpg`,
       'description': `Official trailer for ${movie.title}${movieYear}`,
       'uploadDate': movie.date_uploaded ? new Date(movie.date_uploaded).toISOString() : new Date().toISOString()
     };
   }
 
-  const jsonLdScript = `<script type="application/ld+json" id="schema-jsonld">\n${JSON.stringify(jsonLd, null, 2)}\n    </script>`;
+  const jsonLdScript = `<script type="application/ld+json" id="schema-jsonld">\n${escapeJsonLd(jsonLd)}\n    </script>`;
 
   // Build semantic visible body shell inside <div id="root">
   const torrentsList = Array.isArray(movie.torrents) && movie.torrents.length > 0

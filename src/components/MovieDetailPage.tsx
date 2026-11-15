@@ -4,6 +4,7 @@ import { Movie, Torrent, ParentalGuide, buildMagnetLink, RECOMMENDED_TRACKERS } 
 import { fetchMovieDetails, fetchMovieSuggestions, fetchParentalGuides } from '../services/movieApi';
 import { getMoviePath, getMovieCanonicalUrl, updateDocumentSeo } from '../utils/seo';
 import { downloadMoviePackage, downloadBrandedCompanionFile, handleBrandedMagnetDownload } from '../utils/downloadPack';
+import { getSafeExternalUrl } from '../utils/safeUrl';
 import { AdSenseSlot } from './AdSenseSlot';
 import { MovieCard } from './MovieCard';
 import { SubtitlesModal } from './SubtitlesModal';
@@ -711,9 +712,9 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                             </button>
 
                             {/* 4. Direct .torrent file download */}
-                            {torrent.url && (
+                            {getSafeExternalUrl(torrent.url) && (
                               <a
-                                href={torrent.url}
+                                href={getSafeExternalUrl(torrent.url)!}
                                 target="_blank"
                                 rel="noreferrer noopener"
                                 download

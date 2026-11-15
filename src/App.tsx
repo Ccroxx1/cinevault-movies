@@ -1320,8 +1320,6 @@ export default function App() {
               )
             )}
 
-            <AdSenseSlot format="auto" responsive={true} className="my-8" />
-
             {!isLoading && totalCount > filters.limit && (
               <Pagination
                 currentPage={filters.page}

@@ -118,18 +118,70 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const isCsv = file.name.endsWith('.csv');
-    const isJson = file.name.endsWith('.json');
+    const MAX_IMPORT_BYTES = 2 * 1024 * 1024; // 2 MB cap
+    if (file.size > MAX_IMPORT_BYTES) {
+      showToast('Import file exceeds 2 MB limit.');
+      if (e.target) e.target.value = '';
+      return;
+    }
+
+    const isCsv = file.name.toLowerCase().endsWith('.csv');
+    const isJson = file.name.toLowerCase().endsWith('.json');
+    if (!isCsv && !isJson) {
+      showToast('Only .json and .csv watchlist files are supported.');
+      if (e.target) e.target.value = '';
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
-        const content = event.target?.result as string;
+        const content = event.target?.result;
+        if (typeof content !== 'string') return;
 
         if (isJson) {
           const parsed = JSON.parse(content);
           if (Array.isArray(parsed)) {
-            const valid = parsed.filter((m: any) => m && (m.id || m.title));
+            const safeHttp = (u: unknown) =>
+              typeof u === 'string' && /^https?:\/\//i.test(u.trim()) ? u.trim().slice(0, 500) : '';
+
+            const valid: Movie[] = parsed
+              .slice(0, 500)
+              .filter((m: any) => m && typeof m === 'object' && typeof m.title === 'string' && m.title.trim().length > 0)
+              .map((m: any) => {
+                const title = m.title.trim().slice(0, 200);
+                const numericId = Number(m.id);
+                const fallbackId = Math.abs(
+                  title.split('').reduce((acc: number, ch: string) => (acc << 5) - acc + ch.charCodeAt(0), 0)
+                );
+                return {
+                  id: Number.isFinite(numericId) && numericId > 0 ? numericId : fallbackId,
+                  url: safeHttp(m.url),
+                  imdb_code: typeof m.imdb_code === 'string' && /^tt\d{5,9}$/i.test(m.imdb_code.trim()) ? m.imdb_code.trim() : '',
+                  title,
+                  title_english: typeof m.title_english === 'string' ? m.title_english.trim().slice(0, 200) : title,
+                  title_long: typeof m.title_long === 'string' ? m.title_long.trim().slice(0, 220) : title,
+                  slug: typeof m.slug === 'string' ? m.slug.toLowerCase().replace(/[^a-z0-9-]+/g, '-').slice(0, 120) : title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+                  year: Number.isFinite(Number(m.year)) ? Math.min(2100, Math.max(1888, Number(m.year))) : new Date().getFullYear(),
+                  rating: Number.isFinite(Number(m.rating)) ? Math.min(10, Math.max(0, Number(m.rating))) : 0,
+                  runtime: Number.isFinite(Number(m.runtime)) ? Math.max(0, Number(m.runtime)) : 0,
+                  genres: Array.isArray(m.genres) ? m.genres.filter((g: unknown) => typeof g === 'string').slice(0, 8) : [],
+                  summary: typeof m.summary === 'string' ? m.summary.slice(0, 2000) : '',
+                  description_full: typeof m.description_full === 'string' ? m.description_full.slice(0, 4000) : '',
+                  yt_trailer_code: typeof m.yt_trailer_code === 'string' && /^[a-zA-Z0-9_-]{6,20}$/.test(m.yt_trailer_code) ? m.yt_trailer_code : '',
+                  language: typeof m.language === 'string' ? m.language.slice(0, 24) : 'en',
+                  mpa_rating: typeof m.mpa_rating === 'string' ? m.mpa_rating.slice(0, 16) : '',
+                  background_image: safeHttp(m.background_image),
+                  background_image_original: safeHttp(m.background_image_original),
+                  small_cover_image: safeHttp(m.small_cover_image),
+                  medium_cover_image: safeHttp(m.medium_cover_image),
+                  large_cover_image: safeHttp(m.large_cover_image),
+                  torrents: [],
+                  date_uploaded: typeof m.date_uploaded === 'string' ? m.date_uploaded.slice(0, 64) : new Date().toISOString(),
+                  date_uploaded_unix: Number.isFinite(Number(m.date_uploaded_unix)) ? Number(m.date_uploaded_unix) : Math.floor(Date.now() / 1000),
+                };
+              });
+
             if (valid.length > 0) {
               const existingIds = new Set(watchlist.map((w) => w.id));
               const existingTitles = new Set(watchlist.map((w) => w.title.toLowerCase().trim()));
@@ -143,14 +195,16 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
                   : `Imported ${fresh.length} movies from JSON backup.`
               );
             } else {
-              alert('No valid movie objects found in JSON file.');
+              showToast('No valid movie objects found in JSON file.');
             }
+          } else {
+            showToast('Invalid JSON format: expected an array of movies.');
           }
         } else if (isCsv) {
           // Parse CSV (Letterboxd, IMDb, or generic watchlist CSV)
-          const lines = content.split(/\r?\n/).filter((l) => l.trim().length > 0);
+          const lines = content.split(/\r?\n/).filter((l) => l.trim().length > 0).slice(0, 501);
           if (lines.length <= 1) {
-            alert('CSV file is empty or missing data rows.');
+            showToast('CSV file is empty or missing data rows.');
             return;
           }
 
@@ -168,7 +222,7 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
             const line = lines[i];
             const cols = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || line.split(',');
             if (cols.length > titleIdx) {
-              const rawTitle = cols[titleIdx]?.replace(/^["']|["']$/g, '').trim();
+              const rawTitle = cols[titleIdx]?.replace(/^["']|["']$/g, '').trim().slice(0, 200);
               if (!rawTitle) continue;
 
               const rawYear = yearIdx !== -1 ? parseInt(cols[yearIdx]?.replace(/\D/g, '') || '0', 10) : 0;
@@ -219,11 +273,11 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
                 : `Imported ${fresh.length} films from CSV.`
             );
           } else {
-            alert('Could not extract valid film rows from this CSV file.');
+            showToast('Could not extract valid film rows from this CSV file.');
           }
         }
-      } catch (err) {
-        alert('Could not parse uploaded file. Please verify format.');
+      } catch {
+        showToast('Could not parse uploaded file. Please verify format.');
       }
     };
     reader.readAsText(file);
