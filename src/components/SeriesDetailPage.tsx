@@ -5,7 +5,6 @@ import {
   Check,
   Tv,
   Magnet,
-  Sparkles,
   Download,
   FileDown,
   Layers,
@@ -1385,10 +1384,9 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                 {onAskCineBot && show && (
                   <button
                     onClick={() => onAskCineBot(`Tell me about the television series "${show.name}" (${show.year || ''}) and recommend 3 similar binge-worthy shows.`)}
-                    className="px-4 py-2.5 bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 hover:text-white font-bold text-xs sm:text-sm rounded-full border border-rose-500/35 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm shadow-rose-950/30"
+                    className="px-4 py-2.5 bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 hover:text-white font-bold text-xs sm:text-sm rounded-full border border-rose-500/35 transition-all flex items-center cursor-pointer shadow-sm shadow-rose-950/30"
                     title="Ask CineBot AI about this series"
                   >
-                    <Sparkles className="w-4 h-4 text-rose-400" />
                     <span>Ask CineBot AI</span>
                   </button>
                 )}

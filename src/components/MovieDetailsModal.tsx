@@ -340,10 +340,9 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
                 {onAskCineBot && (
                   <button
                     onClick={() => onAskCineBot(`Recommend 3 films that share a similar mood, tension, or cinematic style with "${movie.title}" (${movie.year})`)}
-                    className="flex items-center gap-1.5 text-xs font-bold text-rose-300 hover:text-white bg-rose-500/15 hover:bg-rose-500/25 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full border border-rose-500/35 transition-all cursor-pointer shadow-sm shadow-rose-950/30"
+                    className="flex items-center text-xs font-bold text-rose-300 hover:text-white bg-rose-500/15 hover:bg-rose-500/25 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full border border-rose-500/35 transition-all cursor-pointer shadow-sm shadow-rose-950/30"
                     title="Ask CineBot AI for movies like this"
                   >
-                    <Sparkles className="w-3.5 h-3.5 text-rose-400" />
                     <span>Ask CineBot AI</span>
                   </button>
                 )}

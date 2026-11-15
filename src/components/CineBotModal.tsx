@@ -460,11 +460,7 @@ export const CineBotModal: React.FC<CineBotModalProps> = ({
           ? 'bg-[#0b142c] border-sky-400/20'
           : 'bg-gradient-to-r from-[#14141a] via-[#101015] to-[#14141a] border-white/10'
       }`}>
-        <div className="flex items-center gap-2.5">
-          <div className="relative flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-tr from-rose-600 to-rose-500 shadow-md shadow-rose-900/30 text-white">
-            <Sparkles className="w-4 h-4" />
-            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-[#14141a]" title="Online"></span>
-          </div>
+        <div className="flex items-center">
           <div>
             <div className="flex items-center gap-2">
               <h2 className={`text-sm font-black tracking-tight flex items-center gap-1.5 cinebot-header-title ${isWhite ? 'text-slate-950' : 'text-white'}`}>
