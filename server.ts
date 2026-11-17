@@ -5,7 +5,7 @@ import fs from 'fs';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI } from '@google/genai';
-import { buildMovieHtml, getMovieSlug, slugify, SITE_BASE_URL } from './src/utils/htmlBuilder.ts';
+import { buildMovieHtml, getMovieSlug, slugify, SITE_BASE_URL } from './src/utils/htmlBuilder.js';
 
 const currentFilename = typeof __filename !== 'undefined' ? __filename : '';
 const currentDirname = typeof __dirname !== 'undefined' ? __dirname : (currentFilename ? path.dirname(currentFilename) : process.cwd());
@@ -1820,8 +1820,9 @@ let latestEligibleReleasesCache: {
 let latestEligibleReleasesPromise: Promise<any[]> | null = null;
 
 const EZTV_SOURCE_PAGE_SIZE = 100;
-const EZTV_SOURCE_PAGE_BATCH_SIZE = 10;
-const TVMAZE_LOOKUP_CONCURRENCY = 8;
+const EZTV_SOURCE_PAGE_BATCH_SIZE = process.env.VERCEL ? 5 : 10;
+const EZTV_MAX_SOURCE_PAGES = process.env.VERCEL ? 5 : 20;
+const TVMAZE_LOOKUP_CONCURRENCY = 16;
 const LATEST_RELEASES_CACHE_TTL_MS = 30 * 60 * 1000;
 
 function getEztvReleaseTimestampMs(torrent: any): number {
@@ -1833,18 +1834,20 @@ async function buildLatestEligibleReleases(): Promise<{ releases: any[]; sourceL
   const rawTorrents: any[] = [];
   const seenIds = new Set<string>();
   let sourceLimited = false;
+  const startedAt = Date.now();
+  const maxCrawlMs = process.env.VERCEL ? 4500 : 12000;
 
   // Fetch bounded page batches in parallel; process each batch in source order
   // and collect all releases from the upstream EZTV browse feed.
   for (let firstPage = 1; ; firstPage += EZTV_SOURCE_PAGE_BATCH_SIZE) {
-    // Upper safety limit on source pagination (EZTV browse feed caps out well before page 50)
-    if (firstPage > 50) {
+    if (firstPage > EZTV_MAX_SOURCE_PAGES || Date.now() - startedAt > maxCrawlMs) {
       sourceLimited = true;
       break;
     }
 
+    const batchSize = Math.min(EZTV_SOURCE_PAGE_BATCH_SIZE, EZTV_MAX_SOURCE_PAGES - firstPage + 1);
     const responses = await Promise.all(
-      Array.from({ length: EZTV_SOURCE_PAGE_BATCH_SIZE }, (_, offset) =>
+      Array.from({ length: batchSize }, (_, offset) =>
         fetchEztvFromMirrors({
           limit: String(EZTV_SOURCE_PAGE_SIZE),
           page: String(firstPage + offset)

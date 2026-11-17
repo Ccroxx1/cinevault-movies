@@ -1,7 +1,11 @@
 export const SITE_BASE_URL = 'https://www.moviesandseries.xyz';
 export const SITE_NAME = 'CineVault By Sasuu';
 
-export function slugify(text: string): string {
+/**
+ * @param {string} text
+ * @returns {string}
+ */
+export function slugify(text) {
   if (!text) return '';
   return text
     .toString()
@@ -12,7 +16,11 @@ export function slugify(text: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-export function getMovieSlug(movie: { title: string; year?: number; slug?: string }): string {
+/**
+ * @param {{ title: string; year?: number; slug?: string }} movie
+ * @returns {string}
+ */
+export function getMovieSlug(movie) {
   if (movie.slug && movie.slug.trim()) {
     return slugify(movie.slug);
   }
@@ -23,7 +31,11 @@ export function getMovieSlug(movie: { title: string; year?: number; slug?: strin
   return baseTitle;
 }
 
-export function escapeHtml(str: string): string {
+/**
+ * @param {string} str
+ * @returns {string}
+ */
+export function escapeHtml(str) {
   if (!str) return '';
   return str
     .replace(/&/g, '&amp;')
@@ -33,28 +45,44 @@ export function escapeHtml(str: string): string {
     .replace(/'/g, '&#039;');
 }
 
-export function escapeJsonLd(data: unknown): string {
+/**
+ * @param {unknown} data
+ * @returns {string}
+ */
+export function escapeJsonLd(data) {
   return JSON.stringify(data, null, 2)
     .replace(/</g, '\\u003c')
     .replace(/>/g, '\\u003e')
     .replace(/&/g, '\\u0026');
 }
 
-function sanitizeImageUrl(raw: unknown, fallback: string): string {
+/**
+ * @param {unknown} raw
+ * @param {string} fallback
+ * @returns {string}
+ */
+function sanitizeImageUrl(raw, fallback) {
   if (typeof raw !== 'string') return fallback;
   const trimmed = raw.trim();
   if (/^https?:\/\//i.test(trimmed)) return trimmed;
   return fallback;
 }
 
-export function buildMovieHtml(baseHtmlTemplate: string, movie: any, relatedMovies: any[] = [], overrideSlug?: string): string {
+/**
+ * @param {string} baseHtmlTemplate
+ * @param {any} movie
+ * @param {any[]} [relatedMovies=[]]
+ * @param {string} [overrideSlug]
+ * @returns {string}
+ */
+export function buildMovieHtml(baseHtmlTemplate, movie, relatedMovies = [], overrideSlug) {
   const slug = overrideSlug || getMovieSlug(movie);
   const canonicalUrl = `${SITE_BASE_URL}/movies/${slug}`;
   const movieTitle = movie.title || 'Movie';
   const movieYear = movie.year ? ` (${movie.year})` : '';
   const pageTitle = `${movieTitle}${movieYear} — CineVault By Sasuu`;
-  
-  const rawSynopsis = movie.description_full || movie.summary || movie.synopsis || 
+
+  const rawSynopsis = movie.description_full || movie.summary || movie.synopsis ||
     `Explore ${movieTitle}${movieYear} on CineVault By Sasuu. Watch trailers, check IMDb ratings, cast, genres, and high-speed magnet downloads.`;
   const cleanSynopsis = rawSynopsis.replace(/\s+/g, ' ').trim();
   const metaDescription = `Learn about ${movieTitle}${movieYear}, including synopsis, cast, genres, IMDb rating, trailer and download info on CineVault By Sasuu.`;
@@ -72,7 +100,8 @@ export function buildMovieHtml(baseHtmlTemplate: string, movie: any, relatedMovi
   const genresStr = genresArray.length > 0 ? genresArray.join(', ') : 'Cinema, Feature Film';
 
   // Build JSON-LD Movie Schema
-  const jsonLd: Record<string, any> = {
+  /** @type {Record<string, any>} */
+  const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Movie',
     'name': movie.title,
@@ -123,8 +152,8 @@ export function buildMovieHtml(baseHtmlTemplate: string, movie: any, relatedMovi
 
   if (Array.isArray(movie.cast) && movie.cast.length > 0) {
     jsonLd['actor'] = movie.cast
-      .filter((c: any) => c && c.name)
-      .map((c: any) => ({
+      .filter((c) => c && c.name)
+      .map((c) => ({
         '@type': 'Person',
         'name': c.name,
         ...(c.character_name ? { 'characterName': c.character_name } : {})
@@ -149,7 +178,7 @@ export function buildMovieHtml(baseHtmlTemplate: string, movie: any, relatedMovi
 
   // Build semantic visible body shell inside <div id="root">
   const torrentsList = Array.isArray(movie.torrents) && movie.torrents.length > 0
-    ? movie.torrents.map((t: any) => `
+    ? movie.torrents.map((t) => `
         <li class="flex items-center justify-between p-3 bg-white/5 border border-white/10 rounded-xl text-xs">
           <span class="font-bold text-white uppercase tracking-wider">${escapeHtml(t.quality || 'HD')} ${escapeHtml(t.type || '')}</span>
           <span class="text-neutral-400">${escapeHtml(t.size || '')}</span>
@@ -161,7 +190,7 @@ export function buildMovieHtml(baseHtmlTemplate: string, movie: any, relatedMovi
       <section class="space-y-2 pt-2">
         <h2 class="text-sm font-bold text-neutral-400 uppercase tracking-wider">Cast &amp; Starring</h2>
         <div class="flex flex-wrap gap-2 text-xs">
-          ${movie.cast.filter((c: any) => c?.name).map((c: any) => `
+          ${movie.cast.filter((c) => c?.name).map((c) => `
             <span class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-neutral-200">
               <strong class="text-white">${escapeHtml(c.name)}</strong>${c.character_name ? ` as ${escapeHtml(c.character_name)}` : ''}
             </span>`).join('')}
@@ -174,7 +203,7 @@ export function buildMovieHtml(baseHtmlTemplate: string, movie: any, relatedMovi
       <section class="space-y-3 pt-6 border-t border-white/10">
         <h2 class="text-base font-bold text-white">Related &amp; Recommended Movies on CineVault</h2>
         <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
-          ${relatedMovies.slice(0, 6).map((rm: any) => {
+          ${relatedMovies.slice(0, 6).map((rm) => {
             const rmSlug = getMovieSlug(rm);
             return `
             <a href="/movies/${rmSlug}" class="group block p-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-rose-500/50 rounded-xl transition-all">
@@ -219,7 +248,7 @@ export function buildMovieHtml(baseHtmlTemplate: string, movie: any, relatedMovi
                 loading="eager"
               />
             </div>
-            
+
             <div class="md:col-span-2 space-y-6">
               <section class="space-y-2">
                 <h2 class="text-lg font-bold text-white">Movie Synopsis &amp; Overview</h2>
@@ -285,7 +314,7 @@ export function buildMovieHtml(baseHtmlTemplate: string, movie: any, relatedMovi
     <meta property="og:locale" content="en_US" />
     ${movie.year ? `<meta property="video:release_date" content="${movie.year}" />` : ''}
     ${movie.runtime ? `<meta property="video:duration" content="${movie.runtime * 60}" />` : ''}
-    ${genresArray.map((g: string) => `<meta property="video:tag" content="${escapeHtml(g)}" />`).join('\n    ')}
+    ${genresArray.map((g) => `<meta property="video:tag" content="${escapeHtml(g)}" />`).join('\n    ')}
 
     <!-- Twitter / X Card -->
     <meta name="twitter:card" content="summary_large_image" />
