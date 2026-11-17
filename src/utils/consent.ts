@@ -17,11 +17,24 @@ declare global {
 export function isAdHostEligible(): boolean {
   if (typeof window === 'undefined') return false;
   try {
-    const host = window.location.hostname;
+    const host = window.location.hostname.toLowerCase();
     const search = window.location.search;
+    const isLocalPreview =
+      host === 'localhost' ||
+      host === '127.0.0.1' ||
+      host === '[::1]' ||
+      host.endsWith('.localhost') ||
+      host.endsWith('.vercel.app') ||
+      host.endsWith('.netlify.app') ||
+      host.endsWith('.pages.dev') ||
+      host.endsWith('.github.dev') ||
+      host.includes('preview') ||
+      host.includes('staging');
+
     return (
       host === 'cinevaultmovies.online' ||
       host.endsWith('.cinevaultmovies.online') ||
+      isLocalPreview ||
       search.includes('force_ads=1') ||
       search.includes('force_adsterra=1') ||
       search.includes('force_ezoic=1') ||
