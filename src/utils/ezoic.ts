@@ -23,13 +23,15 @@ const REFRESH_COOLDOWN_MS = 1000;
 export function isEzoicEligible(): boolean {
   if (typeof window === 'undefined') return false;
   try {
-    const host = window.location.hostname;
+    const host = window.location.hostname.toLowerCase();
     const isDebug =
       window.location.search.includes('ez_js_debugger=1') ||
       window.location.search.includes('force_ezoic=1');
     const isEligibleHost =
       host === 'cinevaultmovies.online' ||
       host.endsWith('.cinevaultmovies.online') ||
+      host === 'moviesandseries.xyz' ||
+      host.endsWith('.moviesandseries.xyz') ||
       isDebug;
 
     if (!isEligibleHost || !isAdHostEligible()) return false;

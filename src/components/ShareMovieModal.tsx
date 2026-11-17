@@ -567,7 +567,7 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
     // Subtitle & Canonical Website (fits comfortably inside the 750px box)
     ctx.font = '600 20.5px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
     ctx.fillStyle = '#9CA3AF';
-    ctx.fillText('Watch Trailer & Stream HD • cinevaultmovies.online', textStartX, brandBoxY + 97);
+    ctx.fillText('Watch Trailer & Stream HD • moviesandseries.xyz', textStartX, brandBoxY + 97);
     ctx.restore();
 
     // Story Safe Zone Bottom Tip

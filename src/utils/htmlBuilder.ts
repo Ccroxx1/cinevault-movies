@@ -1,4 +1,4 @@
-export const SITE_BASE_URL = 'https://www.cinevaultmovies.online';
+export const SITE_BASE_URL = 'https://www.moviesandseries.xyz';
 export const SITE_NAME = 'CineVault By Sasuu';
 
 export function slugify(text: string): string {

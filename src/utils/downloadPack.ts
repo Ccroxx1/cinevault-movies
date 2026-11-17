@@ -1,7 +1,7 @@
 import { Movie, Torrent, buildMagnetLink, RECOMMENDED_TRACKERS } from '../types';
 import { getMovieSlug } from './seo';
 
-export const SITE_URL = 'https://www.cinevaultmovies.online';
+export const SITE_URL = 'https://www.moviesandseries.xyz';
 export const SITE_NAME = 'CineVault By Sasuu';
 
 /**

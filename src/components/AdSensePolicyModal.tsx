@@ -73,7 +73,7 @@ export const AdSensePolicyModal: React.FC<AdSensePolicyModalProps> = ({
             <div className="space-y-3">
               <h3 className="text-base font-bold text-white">Privacy Policy</h3>
               <p className="text-neutral-400">Last updated: September 2026.</p>
-              <p>At CineVault (<a href="https://cinevaultmovies.online" className="text-rose-400 underline">cinevaultmovies.online</a>), accessible from our official website, the privacy of our visitors is one of our top priorities. This Privacy Policy document outlines the types of information collected and recorded by CineVault and how we use it.</p>
+              <p>At CineVault (<a href="https://www.moviesandseries.xyz" className="text-rose-400 underline">moviesandseries.xyz</a>), accessible from our official website, the privacy of our visitors is one of our top priorities. This Privacy Policy document outlines the types of information collected and recorded by CineVault and how we use it.</p>
               
               <h4 className="text-sm font-bold text-white pt-2">1. Ezoic Service Privacy Policy & Ad Serving</h4>
               <p>This website uses the services of Ezoic Inc. ("Ezoic") for advertising optimization, analytics, and site personalization. Ezoic employs various technologies to serve tailored advertisements and enhance user experience. A comprehensive overview of Ezoic’s privacy practices and how your data is processed by Ezoic can be found at <a href="https://www.ezoic.com/privacy-policy/" target="_blank" rel="noopener noreferrer" className="text-rose-400 underline">https://www.ezoic.com/privacy-policy/</a>.</p>

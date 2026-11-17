@@ -1,6 +1,6 @@
 import { Movie } from '../types';
 
-export const SITE_BASE_URL = 'https://www.cinevaultmovies.online';
+export const SITE_BASE_URL = 'https://www.moviesandseries.xyz';
 export const SITE_NAME = 'CineVault By Sasuu';
 export const DEFAULT_DESCRIPTION = 'Explore, search, and download high-quality curated films with rich metadata, trailers, IMDb ratings, torrents, and magnet links.';
 export const DEFAULT_TITLE = 'CineVault By Sasuu — HD Movie Library & Downloads';

@@ -2612,7 +2612,7 @@ app.get('/og-image.jpg', (req, res) => {
 });
 
 app.get('/ads.txt', (req, res) => {
-  res.redirect(301, 'https://srv.adstxtmanager.com/85131/cinevaultmovies.online');
+  res.redirect(301, 'https://srv.adstxtmanager.com/85131/moviesandseries.xyz');
 });
 
 app.get(['/privacy-policy', '/privacy'], (req, res) => {

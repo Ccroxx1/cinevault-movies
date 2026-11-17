@@ -19,6 +19,11 @@ export function isAdHostEligible(): boolean {
   try {
     const host = window.location.hostname.toLowerCase();
     const search = window.location.search;
+    const isAllowedProductionHost =
+      host === 'cinevaultmovies.online' ||
+      host.endsWith('.cinevaultmovies.online') ||
+      host === 'moviesandseries.xyz' ||
+      host.endsWith('.moviesandseries.xyz');
     const isLocalPreview =
       host === 'localhost' ||
       host === '127.0.0.1' ||
@@ -32,8 +37,7 @@ export function isAdHostEligible(): boolean {
       host.includes('staging');
 
     return (
-      host === 'cinevaultmovies.online' ||
-      host.endsWith('.cinevaultmovies.online') ||
+      isAllowedProductionHost ||
       isLocalPreview ||
       search.includes('force_ads=1') ||
       search.includes('force_adsterra=1') ||
