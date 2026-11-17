@@ -1,13 +1,13 @@
 # CineVault By Sasuu — Comprehensive LLM Specification & Catalog Architecture
 
-Welcome to CineVault's comprehensive machine-readable site index. This document provides language models, AI search engines, and web scrapers with deep architectural, taxonomical, and operational context for CineVault (https://www.cinevaultmovies.online).
+Welcome to CineVault's comprehensive machine-readable site index. This document provides language models, AI search engines, and web scrapers with deep architectural, taxonomical, and operational context for CineVault (https://www.moviesandseries.xyz).
 
 ---
 
 ## 1. System Overview
 
 - **Platform Name**: CineVault By Sasuu
-- **Primary Domain**: https://www.cinevaultmovies.online
+- **Primary Domain**: https://www.moviesandseries.xyz
 - **Purpose**: High-definition cinema and television discovery vault offering verified metadata, BitTorrent/magnet access, trailers, and subtitles.
 - **Curator**: Sasuu (prospersasuu808@gmail.com)
 - **Supported Video Qualities**: 720p (HD), 1080p (Full HD), 2160p (4K Ultra HD), 3D
@@ -19,12 +19,12 @@ Welcome to CineVault's comprehensive machine-readable site index. This document 
 
 | Resource Type | Canonical URL Pattern | Example |
 |---|---|---|
-| Homepage / Catalog | `https://www.cinevaultmovies.online/` | `https://www.cinevaultmovies.online/` |
-| Movie Detail | `https://www.cinevaultmovies.online/movies/{slug}` | `https://www.cinevaultmovies.online/movies/oppenheimer-2023` |
-| TV Series Releases | `https://www.cinevaultmovies.online/series/{imdb_id}-{slug}` | `https://www.cinevaultmovies.online/series/tt11126994-arcane-league-of-legends` |
-| TV Series Search View | `https://www.cinevaultmovies.online/?view=tv` | `https://www.cinevaultmovies.online/?view=tv` |
-| Dynamic Sitemap | `https://www.cinevaultmovies.online/sitemap.xml` | `https://www.cinevaultmovies.online/sitemap.xml` |
-| Privacy Policy | `https://www.cinevaultmovies.online/privacy-policy` | `https://www.cinevaultmovies.online/privacy-policy` |
+| Homepage / Catalog | `https://www.moviesandseries.xyz/` | `https://www.moviesandseries.xyz/` |
+| Movie Detail | `https://www.moviesandseries.xyz/movies/{slug}` | `https://www.moviesandseries.xyz/movies/oppenheimer-2023` |
+| TV Series Releases | `https://www.moviesandseries.xyz/series/{imdb_id}-{slug}` | `https://www.moviesandseries.xyz/series/tt11126994-arcane-league-of-legends` |
+| TV Series Search View | `https://www.moviesandseries.xyz/series` | `https://www.moviesandseries.xyz/series` |
+| Dynamic Sitemap | `https://www.moviesandseries.xyz/sitemap.xml` | `https://www.moviesandseries.xyz/sitemap.xml` |
+| Privacy Policy | `https://www.moviesandseries.xyz/privacy-policy` | `https://www.moviesandseries.xyz/privacy-policy` |
 
 ---
 
@@ -87,7 +87,7 @@ CineVault publishes Schema.org JSON-LD structured data on all canonical routes:
 
 ## 6. Social Share & OpenGraph Standards
 
-- **Static Social Banner**: `https://www.cinevaultmovies.online/og-image.jpg` (1200x630 branded card)
+- **Static Social Banner**: `https://www.moviesandseries.xyz/og-image.jpg` (1200x630 branded card)
 - **Dynamic Social Cards**: Dynamic movie cover artwork delivered via `<meta property="og:image">` and `<meta name="twitter:image">`.
 - **Vertical 9:16 Social Stories**: In-app generated 1080x1920 PNG story graphics for mobile sharing to Instagram, Facebook Stories, WhatsApp, and Discord.
 
@@ -96,5 +96,5 @@ CineVault publishes Schema.org JSON-LD structured data on all canonical routes:
 ## 7. Compliance & Contact
 
 - **DMCA & Privacy Inquiries**: prospersasuu808@gmail.com
-- **Website**: https://www.cinevaultmovies.online
+- **Website**: https://www.moviesandseries.xyz
 - **Robots Policy**: Follows standard directives at `/robots.txt`.

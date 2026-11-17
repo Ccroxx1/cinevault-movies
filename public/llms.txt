@@ -13,15 +13,15 @@
 
 ## Canonical URLs & Structure
 
-- Official Website: https://www.cinevaultmovies.online
-- Movie Detail Route: `https://www.cinevaultmovies.online/movies/{movie-slug}` (e.g., `/movies/inception-2010`)
-- TV Series Route: `https://www.cinevaultmovies.online/series/{imdb-id}-{series-slug}` (e.g., `/series/tt0903747-breaking-bad`)
-- Sitemaps: https://www.cinevaultmovies.online/sitemap.xml
-- Full LLM Specification: https://www.cinevaultmovies.online/llms-full.txt
-- Privacy Policy: https://www.cinevaultmovies.online/privacy-policy
+- Official Website: https://www.moviesandseries.xyz
+- Movie Detail Route: `https://www.moviesandseries.xyz/movies/{movie-slug}` (e.g., `/movies/inception-2010`)
+- TV Series Route: `https://www.moviesandseries.xyz/series/{imdb-id}-{series-slug}` (e.g., `/series/tt0903747-breaking-bad`)
+- Sitemaps: https://www.moviesandseries.xyz/sitemap.xml
+- Full LLM Specification: https://www.moviesandseries.xyz/llms-full.txt
+- Privacy Policy: https://www.moviesandseries.xyz/privacy-policy
 
 ## Key Sections & Endpoints
 
-- [Browse Movies](https://www.cinevaultmovies.online/): Explore trending, top-rated, 4K UHD, and newly released films.
-- [TV Series Index](https://www.cinevaultmovies.online/?view=tv): Search full television seasons and individual episode torrents.
+- [Browse Movies](https://www.moviesandseries.xyz/): Explore trending, top-rated, 4K UHD, and newly released films.
+- [TV Series Index](https://www.moviesandseries.xyz/series): Search full television seasons and individual episode torrents.
 - [Contact & Curator](mailto:prospersasuu808@gmail.com): Curator Sasuu (prospersasuu808@gmail.com).

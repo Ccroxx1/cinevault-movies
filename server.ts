@@ -1328,7 +1328,7 @@ app.get(['/api/poster', '/api/movies/poster', '/api/tv/poster'], async (req, res
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
-        'Referer': finalPosterUrl.includes('media-amazon.com') ? 'https://www.imdb.com/' : 'https://cinevaultmovies.online/'
+        'Referer': finalPosterUrl.includes('media-amazon.com') ? 'https://www.imdb.com/' : 'https://www.moviesandseries.xyz/'
       },
       signal: AbortSignal.timeout(6000)
     });
@@ -1389,7 +1389,7 @@ app.get(['/api/image-proxy', '/api/proxy/image', '/api/download/proxy-image', '/
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
         'Accept': '*/*',
-        'Referer': targetUrl.includes('yts') ? 'https://yts.gg/' : (targetUrl.includes('amazon') ? 'https://www.imdb.com/' : 'https://cinevaultmovies.online/')
+        'Referer': targetUrl.includes('yts') ? 'https://yts.gg/' : (targetUrl.includes('amazon') ? 'https://www.imdb.com/' : 'https://www.moviesandseries.xyz/')
       },
       signal: AbortSignal.timeout(10000)
     });
@@ -2643,7 +2643,7 @@ app.get('/robots.txt', (req, res) => {
   if (fs.existsSync(robotsPath)) {
     res.set({
       'Content-Type': 'text/plain; charset=utf-8',
-      'Cache-Control': 'public, max-age=86400, immutable',
+      'Cache-Control': 'public, max-age=3600, must-revalidate',
     });
     return res.sendFile(robotsPath);
   }
@@ -2656,7 +2656,7 @@ app.get(['/llms.txt', '/llms-full.txt'], (req, res) => {
   if (fs.existsSync(filePath)) {
     res.set({
       'Content-Type': 'text/plain; charset=utf-8',
-      'Cache-Control': 'public, max-age=86400, immutable',
+      'Cache-Control': 'public, max-age=3600, must-revalidate',
     });
     return res.sendFile(filePath);
   }

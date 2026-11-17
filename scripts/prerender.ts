@@ -6,7 +6,7 @@ import { FALLBACK_FEATURED_MOVIES } from '../src/data/fallbackMovies.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const SITE_BASE_URL = 'https://www.cinevaultmovies.online';
+const SITE_BASE_URL = 'https://www.moviesandseries.xyz';
 const SITE_NAME = 'CineVault By Sasuu';
 const DEFAULT_DESCRIPTION = 'Explore, search, and download high-quality curated films with rich metadata, trailers, IMDb ratings, torrents, and magnet links.';
 
@@ -457,7 +457,8 @@ async function main() {
   const xmlLines = [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-    '  <url><loc>${SITE_BASE_URL}/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>'
+    `  <url><loc>${SITE_BASE_URL}/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>`,
+    `  <url><loc>${SITE_BASE_URL}/series</loc><changefreq>daily</changefreq><priority>0.9</priority></url>`
   ];
   for (const movie of moviesArray) {
     xmlLines.push(`  <url><loc>${SITE_BASE_URL}/movies/${getMovieSlug(movie)}</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>`);

@@ -84,7 +84,16 @@
       ]
     },
     {
-      "source": "/(robots.txt|sitemap.xml|ads.txt|google.*.html|BingSiteAuth.xml|og-image.jpg|.*.txt)",
+      "source": "/(robots.txt|sitemap.xml|llms.txt|llms-full.txt)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/(ads.txt|google.*.html|BingSiteAuth.xml|og-image.jpg|e35378d088b04d1694d7df64ce04a4dc.txt)",
       "headers": [
         {
           "key": "Cache-Control",

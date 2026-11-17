@@ -47,6 +47,16 @@ export default defineConfig(() => {
           maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
           globIgnores: ['**/assets/aistudio/**'],
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+          navigateFallbackDenylist: [
+            /^\/api\//,
+            /^\/sitemap\.xml$/,
+            /^\/robots\.txt$/,
+            /^\/llms(-full)?\.txt$/,
+            /^\/ads\.txt$/,
+            /^\/BingSiteAuth\.xml$/,
+            /^\/google.*\.html$/,
+            /^\/e35378d088b04d1694d7df64ce04a4dc\.txt$/
+          ],
           runtimeCaching: [
             {
               urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,

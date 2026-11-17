@@ -1079,7 +1079,7 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
                                 <span className="text-rose-400 font-bold ml-0.5">By Sasuu</span>
                               </div>
                               <div className="text-[8px] text-neutral-300 font-mono truncate mt-0.5">
-                                cinevaultmovies.online
+                                moviesandseries.xyz
                               </div>
                             </div>
                           </div>

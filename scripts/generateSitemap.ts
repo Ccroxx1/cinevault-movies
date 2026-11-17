@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const SITE_BASE_URL = 'https://www.cinevaultmovies.online';
+const SITE_BASE_URL = 'https://www.moviesandseries.xyz';
 
 const MIRRORS = [
   'https://yts.am/api/v2/list_movies.json',
@@ -149,6 +149,16 @@ async function main() {
     `    <loc>${SITE_BASE_URL}/</loc>`,
     '    <changefreq>daily</changefreq>',
     '    <priority>1.0</priority>',
+    '  </url>',
+    '  <url>',
+    `    <loc>${SITE_BASE_URL}/series</loc>`,
+    '    <changefreq>daily</changefreq>',
+    '    <priority>0.9</priority>',
+    '  </url>',
+    '  <url>',
+    `    <loc>${SITE_BASE_URL}/privacy-policy</loc>`,
+    '    <changefreq>monthly</changefreq>',
+    '    <priority>0.5</priority>',
     '  </url>'
   ];
 

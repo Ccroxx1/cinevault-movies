@@ -1,6 +1,6 @@
-#Ads.txt cinevaultmovies.online
+#Ads.txt moviesandseries.xyz
 #Ads.txt managed by AdsTxtManager.com - the free ads.txt management tool for publishers
-ownerdomain=cinevaultmovies.online
+ownerdomain=moviesandseries.xyz
 contact=directsales@ezoic.com
 managerdomain=ezoic.ai
 

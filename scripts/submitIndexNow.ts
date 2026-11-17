@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const HOST = 'www.cinevaultmovies.online';
+const HOST = 'www.moviesandseries.xyz';
 const KEY = 'e35378d088b04d1694d7df64ce04a4dc';
 const KEY_LOCATION = `https://${HOST}/${KEY}.txt`;
 
@@ -47,7 +47,7 @@ async function submitToIndexNow() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json; charset=utf-8',
-          'User-Agent': 'Mozilla/5.0 (compatible; CineVault/1.0; +https://www.cinevaultmovies.online)'
+          'User-Agent': 'Mozilla/5.0 (compatible; CineVault/1.0; +https://www.moviesandseries.xyz)'
         },
         body: JSON.stringify(payload)
       });
