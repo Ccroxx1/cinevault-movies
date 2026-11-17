@@ -1,10 +1,11 @@
+import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI } from '@google/genai';
-import { buildMovieHtml, getMovieSlug, slugify, SITE_BASE_URL } from './src/utils/htmlBuilder.js';
+import { buildMovieHtml, getMovieSlug, slugify, SITE_BASE_URL } from './src/utils/htmlBuilder.ts';
 
 const currentFilename = typeof __filename !== 'undefined' ? __filename : '';
 const currentDirname = typeof __dirname !== 'undefined' ? __dirname : (currentFilename ? path.dirname(currentFilename) : process.cwd());
@@ -18,13 +19,13 @@ const PRODUCTION_CSP = [
   "default-src 'self'",
   "base-uri 'self'",
   "object-src 'none'",
-  "upgrade-insecure-requests",
-  "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.clarity.ms https://scripts.clarity.ms https://cdn.cookiehub.eu https://pl31437220.profitableratecpmnetwork.com https://pl31437221.profitableratecpmnetwork.com https://eagerdazzle.com",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "font-src 'self' data: https://fonts.gstatic.com",
+  ...(process.env.NODE_ENV === 'production' ? ["upgrade-insecure-requests"] : []),
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:",
+  "style-src 'self' 'unsafe-inline' https:",
+  "font-src 'self' data: https:",
   "img-src 'self' data: blob: https:",
-  "connect-src 'self' https://api.tvmaze.com https://www.wikidata.org https://query.wikidata.org https://movies-api.accel.li https://yts.am https://yts.bz https://yts.lt https://yts.ag https://yts.gg https://eztvx.to https://eztv.wf https://eztv.tf https://eztv.yt https://eztv.ag https://img.yts.gg https://static.tvmaze.com https://image.tmdb.org https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com https://*.clarity.ms https://cdn.cookiehub.eu https://cookiehub.eu",
-  "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://eagerdazzle.com",
+  "connect-src 'self' https:",
+  "frame-src 'self' https:",
   "worker-src 'self' blob:",
   "manifest-src 'self'"
 ].join('; ');
@@ -2727,7 +2728,14 @@ async function injectDynamicMetaTags(htmlTemplate: string, reqUrl: string): Prom
 async function start() {
   if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
     const { createServer: createViteServer } = await import('vite');
-    const vite = await createViteServer({ server: { middlewareMode: true }, appType: 'spa' });
+    const disableHmr = process.env.DISABLE_HMR === 'true' || Boolean(process.env.CONTROL_PLANE_PORT);
+    const vite = await createViteServer({
+      server: {
+        middlewareMode: true,
+        ...(disableHmr ? { hmr: false, watch: null } : {}),
+      },
+      appType: 'spa',
+    });
     app.use(vite.middlewares);
     app.use('*', async (req, res) => {
       try {
@@ -2777,10 +2785,13 @@ async function start() {
   if (!process.env.VERCEL) {
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`🎬 CineVault running on http://0.0.0.0:${PORT}`);
-      // Prime the complete EZTV release cache in the background.
-      fetchFilteredLatestReleases({ page: 1, limit: 50 }).catch((e) => {
-        console.warn('Initial background EZTV genre filter seed notice:', e.message);
-      });
+      // Prime the complete EZTV release cache in the background after startup settles.
+      const warmTimer = setTimeout(() => {
+        fetchFilteredLatestReleases({ page: 1, limit: 50 }).catch((e) => {
+          console.warn('Initial background EZTV genre filter seed notice:', e.message);
+        });
+      }, 5000);
+      warmTimer.unref();
     });
   }
 }

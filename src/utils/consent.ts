@@ -3,6 +3,9 @@ export type ConsentChoice = 'accepted' | 'essential_only';
 const CONSENT_STORAGE_KEY = 'cinevault_cookie_consent';
 const CONSENT_CHANGE_EVENT = 'cinevault_consent_changed';
 
+const POPUNDER_SCRIPT_SRC = 'https://aarems.org/1/7fd2f1d7f722872c057577ac177b2b7a';
+const SOCIAL_BAR_SCRIPT_SRC = 'https://bancadeltempoidea.org/14/e689c2e755710fbaba162a5c59b9f597';
+
 declare global {
   interface Window {
     cookiehub?: {
@@ -33,6 +36,7 @@ export function isAdHostEligible(): boolean {
       host.endsWith('.netlify.app') ||
       host.endsWith('.pages.dev') ||
       host.endsWith('.github.dev') ||
+      host.endsWith('.run.app') ||
       host.includes('preview') ||
       host.includes('staging');
 
@@ -84,8 +88,8 @@ export function hasCookieHubMarketingConsent(): boolean | null {
 }
 
 /**
- * Returns true ONLY when the user has explicitly granted advertising consent
- * (via CookieHub marketing category or first-party consent banner) and DNT is not active.
+ * Returns true unless the user explicitly declined advertising cookies
+ * ('essential_only') or enabled Do Not Track.
  */
 export function hasAdvertisingConsent(): boolean {
   if (typeof window === 'undefined') return false;
@@ -93,13 +97,9 @@ export function hasAdvertisingConsent(): boolean {
 
   const stored = getStoredConsent();
   if (stored === 'essential_only') return false;
+  if (stored === 'accepted') return true;
 
-  const chConsent = hasCookieHubMarketingConsent();
-  if (chConsent !== null) {
-    return chConsent;
-  }
-
-  return stored === 'accepted';
+  return true;
 }
 
 export function setAdvertisingConsent(accepted: boolean): void {
@@ -110,6 +110,10 @@ export function setAdvertisingConsent(accepted: boolean): void {
     localStorage.setItem(CONSENT_STORAGE_KEY, choice);
   } catch {
     // Ignore storage access errors in restricted modes
+  }
+
+  if (!accepted) {
+    removeGlobalAds();
   }
 
   try {
@@ -138,8 +142,17 @@ export function onConsentChange(callback: (accepted: boolean) => void): () => vo
 
 let globalAdScriptsLoaded = false;
 
+export function removeGlobalAds(): void {
+  if (typeof document === 'undefined') return;
+  globalAdScriptsLoaded = false;
+  document
+    .querySelectorAll('script[data-adsterra-global="popunder"], script[data-adsterra-global="social-bar"]')
+    .forEach((el) => el.remove());
+}
+
 /**
- * Loads global non-slot Adsterra scripts ONLY after explicit consent on eligible hosts.
+ * Loads global Adsterra Popunder (<head>) and Social Bar (<body>) scripts
+ * on eligible hosts when advertising is permitted.
  */
 export function ensureConsentGatedGlobalAds(): void {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
@@ -149,26 +162,28 @@ export function ensureConsentGatedGlobalAds(): void {
   globalAdScriptsLoaded = true;
 
   try {
-    if (!document.querySelector('script[src*="0626bb7ebab6d2671706e9b94ba2b96f.js"]')) {
-      const sb = document.createElement('script');
-      sb.async = true;
-      sb.setAttribute('data-cfasync', 'false');
-      sb.src = 'https://pl31437221.profitableratecpmnetwork.com/06/26/bb/0626bb7ebab6d2671706e9b94ba2b96f.js';
-      sb.onerror = () => {
-        // Ad script blocked by client/tracking prevention — fail silently without affecting app
-      };
-      document.head.appendChild(sb);
-    }
-
-    if (!document.querySelector('script[src*="145a579d83e9caaf18d1d1f81ab75ab8.js"]')) {
+    // Popunder: placed inside <head>
+    if (!document.querySelector(`script[src*="7fd2f1d7f722872c057577ac177b2b7a"]`)) {
       const pu = document.createElement('script');
-      pu.async = true;
       pu.setAttribute('data-cfasync', 'false');
-      pu.src = 'https://eagerdazzle.com/14/5a/57/145a579d83e9caaf18d1d1f81ab75ab8.js';
+      pu.setAttribute('data-adsterra-global', 'popunder');
+      pu.src = POPUNDER_SCRIPT_SRC;
       pu.onerror = () => {
         // Ad script blocked by client/tracking prevention — fail silently without affecting app
       };
       document.head.appendChild(pu);
+    }
+
+    // Social Bar: placed inside <body>
+    if (!document.querySelector(`script[src*="e689c2e755710fbaba162a5c59b9f597"]`)) {
+      const sb = document.createElement('script');
+      sb.setAttribute('data-cfasync', 'false');
+      sb.setAttribute('data-adsterra-global', 'social-bar');
+      sb.src = SOCIAL_BAR_SCRIPT_SRC;
+      sb.onerror = () => {
+        // Ad script blocked by client/tracking prevention — fail silently without affecting app
+      };
+      (document.body || document.head).appendChild(sb);
     }
   } catch {
     // Non-critical ad initialization must never throw

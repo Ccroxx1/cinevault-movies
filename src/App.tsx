@@ -36,6 +36,7 @@ import { TvShowDetails, TvShowInfo, EztvTorrent } from './types';
 import { getSeriesSlug, extractShowTitleFromRelease } from './services/eztvApi';
 import { getMoviePath, getMovieSlug, updateDocumentSeo } from './utils/seo';
 import { refreshEzoicAds } from './utils/ezoic';
+import { ensureConsentGatedGlobalAds, onConsentChange } from './utils/consent';
 import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 import { MovieSortDropdown } from './components/MovieSortDropdown';
@@ -374,6 +375,16 @@ export default function App() {
   useEffect(() => {
     refreshEzoicAds();
   }, [route.type, (route as any).slug]);
+
+  // Mount global Adsterra Popunder (<head>) & Social Bar (<body>) scripts on eligible hosts
+  useEffect(() => {
+    ensureConsentGatedGlobalAds();
+    return onConsentChange((accepted) => {
+      if (accepted) {
+        ensureConsentGatedGlobalAds();
+      }
+    });
+  }, []);
 
   // Navigation Handlers
   const handleSelectMovie = (movie: Movie) => {

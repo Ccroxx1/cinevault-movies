@@ -215,17 +215,18 @@
         var isProd = host === 'cinevaultmovies.online' || host.endsWith('.cinevaultmovies.online') || host === 'moviesandseries.xyz' || host.endsWith('.moviesandseries.xyz');
 
         // Sync CookieHub decisions into first-party consent state without blocking app render
-        var syncConsentState = function() {
+        var syncConsentState = function(isInit) {
           try {
             if (window.cookiehub && typeof window.cookiehub.hasConsented === 'function') {
               var allowed = Boolean(window.cookiehub.hasConsented('marketing'));
+              if (isInit && !allowed) return;
               localStorage.setItem('cinevault_cookie_consent', allowed ? 'accepted' : 'essential_only');
               window.dispatchEvent(new CustomEvent('cinevault_consent_changed', { detail: { accepted: allowed } }));
             }
           } catch(e) {}
         };
 
-        // Initialize CookieHub CMP only on production domain (never loads ad/tracking scripts before consent)
+        // Initialize CookieHub CMP only on production domain
         if (isProd) {
           try {
             var ch = document.createElement('script');
@@ -237,9 +238,9 @@
             ch.onload = function() {
               if (window.cookiehub && typeof window.cookiehub.load === 'function') {
                 window.cookiehub.load({
-                  onInitialise: syncConsentState,
-                  onAllow: syncConsentState,
-                  onRevoke: syncConsentState
+                  onInitialise: function() { syncConsentState(true); },
+                  onAllow: function() { syncConsentState(false); },
+                  onRevoke: function() { syncConsentState(false); }
                 });
               }
             };
@@ -277,7 +278,6 @@
       })();
     </script>
 
-    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />
     <title>CineVault — HD Movie & TV Series Library</title>
     <meta name="description" content="Explore, search, and download high-quality curated films and TV series with rich metadata, trailers, IMDb ratings, torrents, and magnet links." />
     <meta name="robots" content="index, follow, max-image-preview:large" />
@@ -377,6 +377,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <script data-cfasync="false" data-adsterra-global="popunder" src="https://aarems.org/1/7fd2f1d7f722872c057577ac177b2b7a"></script>
   </head>
   <body class="bg-[#050505] text-neutral-100 antialiased selection:bg-rose-600 selection:text-white">
     <div id="root">
@@ -427,5 +428,6 @@
     </div>
     <script type="module" src="/src/main.tsx"></script>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NBFJMMHC" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <script data-cfasync="false" data-adsterra-global="social-bar" src="https://bancadeltempoidea.org/14/e689c2e755710fbaba162a5c59b9f597"></script>
   </body>
 </html>

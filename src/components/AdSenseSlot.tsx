@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { hasAdvertisingConsent, isAdHostEligible, onConsentChange } from '../utils/consent';
 
@@ -10,6 +10,10 @@ interface AdSenseSlotProps {
   className?: string;
 }
 
+const NATIVE_BANNER_ID = '345a61a2efd686e177ae1dfa713937e8';
+const NATIVE_BANNER_SRC = `https://bancadeltempoidea.org/21/${NATIVE_BANNER_ID}`;
+const NATIVE_CONTAINER_ID = `container-${NATIVE_BANNER_ID}`;
+
 export const AdSenseSlot: React.FC<AdSenseSlotProps> = ({
   slotId,
   format = 'auto',
@@ -18,36 +22,55 @@ export const AdSenseSlot: React.FC<AdSenseSlotProps> = ({
   const { colorMode } = useTheme();
   const isWhite = colorMode === 'white';
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const loadedRef = useRef<boolean>(false);
+  const [adsEnabled, setAdsEnabled] = useState<boolean>(
+    () => isAdHostEligible() && hasAdvertisingConsent()
+  );
 
   useEffect(() => {
-    const loadNativeBanner = () => {
-      if (loadedRef.current) return;
-      if (!isAdHostEligible() || !hasAdvertisingConsent()) return;
-      loadedRef.current = true;
+    const syncAndLoad = () => {
+      const eligible = isAdHostEligible() && hasAdvertisingConsent();
+      setAdsEnabled(eligible);
+
+      const container = containerRef.current;
+      if (!container) return;
+
+      if (!eligible) {
+        container.replaceChildren();
+        document
+          .querySelectorAll(`script[data-adsterra-native="${NATIVE_BANNER_ID}"]`)
+          .forEach((el) => el.remove());
+        return;
+      }
 
       try {
-        const scriptSrc = 'https://pl31437220.profitableratecpmnetwork.com/2e2c5aa1814513310d921e06208ff111/invoke.js';
-        if (!document.querySelector('script[src*="2e2c5aa1814513310d921e06208ff111"]')) {
-          const script = document.createElement('script');
-          script.async = true;
-          script.setAttribute('data-cfasync', 'false');
-          script.src = scriptSrc;
-          script.onerror = () => {
-            // Ad network blocked by tracking prevention or ad blocker — fail gracefully
-          };
-          document.head.appendChild(script);
-        }
+        // Remove any prior invocation script so SPA route transitions re-populate the newly mounted container
+        document
+          .querySelectorAll(`script[data-adsterra-native="${NATIVE_BANNER_ID}"]`)
+          .forEach((el) => el.remove());
+
+        const script = document.createElement('script');
+        script.async = true;
+        script.setAttribute('data-cfasync', 'false');
+        script.setAttribute('data-adsterra-native', NATIVE_BANNER_ID);
+        script.src = NATIVE_BANNER_SRC;
+        script.onerror = () => {
+          // Ad network blocked by tracking prevention or ad blocker — fail gracefully
+        };
+        document.body.appendChild(script);
       } catch {
         // Never allow ad script issues to disrupt rendering
       }
     };
 
-    loadNativeBanner();
-    return onConsentChange((accepted) => {
-      if (accepted) loadNativeBanner();
+    syncAndLoad();
+    return onConsentChange(() => {
+      syncAndLoad();
     });
-  }, []);
+  }, [adsEnabled]);
+
+  if (!adsEnabled) {
+    return null;
+  }
 
   // Format-specific sizing constraints to avoid Cumulative Layout Shift (CLS)
   const getContainerStyles = () => {
@@ -84,7 +107,7 @@ export const AdSenseSlot: React.FC<AdSenseSlotProps> = ({
       {/* Adsterra Native Banner Container */}
       <div
         ref={containerRef}
-        id="container-2e2c5aa1814513310d921e06208ff111"
+        id={NATIVE_CONTAINER_ID}
         className="w-full flex items-center justify-center overflow-hidden min-h-[60px]"
         {...(slotId ? { 'data-slot-id': slotId } : {})}
       />

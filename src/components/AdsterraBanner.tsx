@@ -9,6 +9,9 @@ export const AdsterraBanner: React.FC = () => {
   const bannerViewportRef = useRef<HTMLDivElement | null>(null);
   const adContainerRef = useRef<HTMLDivElement | null>(null);
   const [bannerScale, setBannerScale] = useState(1);
+  const [adsEnabled, setAdsEnabled] = useState<boolean>(
+    () => isAdHostEligible() && hasAdvertisingConsent()
+  );
 
   useLayoutEffect(() => {
     const updateBannerScale = () => {
@@ -36,8 +39,9 @@ export const AdsterraBanner: React.FC = () => {
     let invokeScript: HTMLScriptElement | null = null;
 
     const mountBannerScript = () => {
-      if (!mounted || invokeScript) return;
-      if (!isAdHostEligible() || !hasAdvertisingConsent()) return;
+      const eligible = isAdHostEligible() && hasAdvertisingConsent();
+      setAdsEnabled(eligible);
+      if (!mounted || invokeScript || !eligible) return;
 
       const adContainer = adContainerRef.current;
       if (!adContainer) return;
@@ -68,6 +72,7 @@ export const AdsterraBanner: React.FC = () => {
 
     mountBannerScript();
     const unsubscribe = onConsentChange((accepted) => {
+      setAdsEnabled(isAdHostEligible() && accepted);
       if (accepted) {
         mountBannerScript();
       } else if (invokeScript) {
@@ -83,7 +88,11 @@ export const AdsterraBanner: React.FC = () => {
       invokeScript?.remove();
       adContainerRef.current?.replaceChildren();
     };
-  }, []);
+  }, [adsEnabled]);
+
+  if (!adsEnabled) {
+    return null;
+  }
 
   return (
     <aside className="my-6 w-full rounded-2xl border border-white/10 bg-[#0a0a0a]/80 p-3 sm:p-4">

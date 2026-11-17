@@ -133,9 +133,9 @@ export default defineConfig(() => {
       host: '0.0.0.0',
       port: 3000,
       allowedHosts: true as const,
-      hmr: process.env.DISABLE_HMR !== 'true',
-      // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
-      watch: process.env.DISABLE_HMR === 'true' ? null : {},
+      hmr: process.env.DISABLE_HMR !== 'true' && !process.env.CONTROL_PLANE_PORT,
+      // Disable file watching when HMR is disabled to save CPU during agent edits.
+      watch: process.env.DISABLE_HMR === 'true' || Boolean(process.env.CONTROL_PLANE_PORT) ? null : {},
     },
   };
 });
