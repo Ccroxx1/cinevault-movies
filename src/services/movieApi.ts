@@ -254,11 +254,33 @@ const PUBLIC_MIRRORS = [
   'https://yts.gg/api/v2'
 ];
 
+// Client-side in-flight deduplication and short TTL response cache
+const inFlightMirrorRequests = new Map<string, Promise<any>>();
+const mirrorResponseCache = new Map<string, { timestamp: number; data: any }>();
+const LIST_CLIENT_CACHE_TTL_MS = 45 * 1000; // 45s client cache for list queries
+const DETAILS_CLIENT_CACHE_TTL_MS = 5 * 60 * 1000; // 5m client cache for details/suggestions
+
 async function fetchFromMirrors(
   endpointName: 'list' | 'details' | 'suggestions' | 'parental_guides',
-  queryParams: Record<string, string>
+  queryParams: Record<string, string>,
+  bypassCache = false
 ): Promise<any> {
-  const queryString = new URLSearchParams(queryParams).toString();
+  const sortedEntries = Object.entries(queryParams).sort(([a], [b]) => a.localeCompare(b));
+  const queryString = new URLSearchParams(sortedEntries).toString();
+  const cacheKey = `${endpointName}:${queryString}`;
+  const cacheTtl = endpointName === 'list' ? LIST_CLIENT_CACHE_TTL_MS : DETAILS_CLIENT_CACHE_TTL_MS;
+
+  if (!bypassCache) {
+    const cached = mirrorResponseCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < cacheTtl) {
+      return cached.data;
+    }
+    const existingPromise = inFlightMirrorRequests.get(cacheKey);
+    if (existingPromise) {
+      return existingPromise;
+    }
+  }
+
   let lastErrorMessage = 'Unable to connect to movie catalog';
 
   // Endpoint mapping
@@ -271,70 +293,92 @@ async function fetchFromMirrors(
 
   const fileEndpoint = fileEndpointMap[endpointName] || 'list_movies.json';
 
-  for (const mirror of PUBLIC_MIRRORS) {
-    try {
-      let targetUrl = '';
-      if (mirror.startsWith('/api')) {
-        targetUrl = `${mirror}/${endpointName}?${queryString}`;
-      } else {
-        targetUrl = `${mirror}/${fileEndpoint}?${queryString}`;
-      }
-
-      const controller = new AbortController();
-      const timeoutMs = mirror.startsWith('/api') ? 12000 : 5000;
-      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-      const headers: Record<string, string> = {
-        'Accept': 'application/json, text/plain, */*'
-      };
-      if (endpointName === 'list') {
-        headers['Cache-Control'] = 'no-cache';
-        headers['Pragma'] = 'no-cache';
-      }
-
-      const response = await fetch(targetUrl, {
-        headers,
-        signal: controller.signal,
-        redirect: 'follow'
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        continue;
-      }
-
-      const text = await response.text();
-      const trimmed = text ? text.trim() : '';
-
-      // Ensure response is valid JSON and not an HTML error document
-      if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
-        try {
-          const parsed = JSON.parse(trimmed);
-          if (endpointName === 'list') {
-            const movies = parsed?.data?.movies || parsed?.movies;
-            if (Array.isArray(movies) && movies.length > 0) {
-              return parsed;
-            }
-            if (parsed?.data && parsed?.data?.movie_count === 0) {
-              return parsed;
-            }
-            // If empty array for list query without valid 0 count, try next mirror
-            continue;
-          } else if (parsed && (parsed.status === 'ok' || parsed.data || parsed.movie)) {
-            return parsed;
-          }
-        } catch {
-          // JSON parsing failed for this mirror, proceed to next
+  const requestPromise = (async () => {
+    for (const mirror of PUBLIC_MIRRORS) {
+      try {
+        let targetUrl = '';
+        if (mirror.startsWith('/api')) {
+          targetUrl = `${mirror}/${endpointName}?${queryString}`;
+        } else {
+          targetUrl = `${mirror}/${fileEndpoint}?${queryString}`;
         }
+
+        const controller = new AbortController();
+        const timeoutMs = mirror.startsWith('/api') ? 12000 : 5000;
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+        const headers: Record<string, string> = {
+          'Accept': 'application/json, text/plain, */*'
+        };
+        if (bypassCache) {
+          headers['Cache-Control'] = 'no-cache';
+          headers['Pragma'] = 'no-cache';
+        }
+
+        const response = await fetch(targetUrl, {
+          headers,
+          signal: controller.signal,
+          redirect: 'follow'
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          continue;
+        }
+
+        const text = await response.text();
+        const trimmed = text ? text.trim() : '';
+
+        // Ensure response is valid JSON and not an HTML error document
+        if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+          try {
+            const parsed = JSON.parse(trimmed);
+            if (endpointName === 'list') {
+              const movies = parsed?.data?.movies || parsed?.movies;
+              if (Array.isArray(movies) && movies.length > 0) {
+                if (mirrorResponseCache.size > 120) {
+                  const oldestKey = mirrorResponseCache.keys().next().value;
+                  if (oldestKey) mirrorResponseCache.delete(oldestKey);
+                }
+                mirrorResponseCache.set(cacheKey, { timestamp: Date.now(), data: parsed });
+                return parsed;
+              }
+              if (parsed?.data && parsed?.data?.movie_count === 0) {
+                mirrorResponseCache.set(cacheKey, { timestamp: Date.now(), data: parsed });
+                return parsed;
+              }
+              // If empty array for list query without valid 0 count, try next mirror
+              continue;
+            } else if (parsed && (parsed.status === 'ok' || parsed.data || parsed.movie)) {
+              if (mirrorResponseCache.size > 120) {
+                const oldestKey = mirrorResponseCache.keys().next().value;
+                if (oldestKey) mirrorResponseCache.delete(oldestKey);
+              }
+              mirrorResponseCache.set(cacheKey, { timestamp: Date.now(), data: parsed });
+              return parsed;
+            }
+          } catch {
+            // JSON parsing failed for this mirror, proceed to next
+          }
+        }
+      } catch (err: any) {
+        lastErrorMessage = err?.message || lastErrorMessage;
+        // Try next mirror
       }
-    } catch (err: any) {
-      lastErrorMessage = err?.message || lastErrorMessage;
-      // Try next mirror
+    }
+
+    throw new Error(lastErrorMessage);
+  })();
+
+  inFlightMirrorRequests.set(cacheKey, requestPromise);
+  try {
+    return await requestPromise;
+  } finally {
+    if (inFlightMirrorRequests.get(cacheKey) === requestPromise) {
+      inFlightMirrorRequests.delete(cacheKey);
     }
   }
-
-  throw new Error(lastErrorMessage);
 }
 
 /**
@@ -572,7 +616,10 @@ export function filterMoviesByParams(movies: Movie[], params: Partial<FilterPara
   return list;
 }
 
-export async function fetchMovies(params: Partial<FilterParams> = {}): Promise<{
+export async function fetchMovies(
+  params: Partial<FilterParams> = {},
+  options: { bypassCache?: boolean } = {}
+): Promise<{
   movies: Movie[];
   totalCount: number;
   limit: number;
@@ -608,7 +655,7 @@ export async function fetchMovies(params: Partial<FilterParams> = {}): Promise<{
   queryParams.with_rt_ratings = 'true';
 
   try {
-    const json = await fetchFromMirrors('list', queryParams);
+    const json = await fetchFromMirrors('list', queryParams, Boolean(options.bypassCache));
     const data = json?.data || {};
     let rawMovies = data.movies || [];
     let movies: Movie[] = validateAndCleanMovies(rawMovies);

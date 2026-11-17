@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, Suspense, lazy } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { Movie, FilterParams } from './types';
 import { fetchMovies, fetchMovieBySlug, validateAndCleanMovies, filterMoviesByParams } from './services/movieApi';
@@ -8,13 +8,8 @@ import { FeaturedHero } from './components/FeaturedHero';
 import { MovieSectionRow, CURATED_SECTIONS } from './components/MovieSectionRow';
 import { FilterBar } from './components/FilterBar';
 import { MovieCard } from './components/MovieCard';
-import { MovieDetailPage } from './components/MovieDetailPage';
-import { TrailerModal } from './components/TrailerModal';
-import { WatchlistView } from './components/WatchlistView';
-import { DownloadGuideModal } from './components/DownloadGuideModal';
 import { Pagination } from './components/Pagination';
 import { ToastContainer, ToastMessage } from './components/Toast';
-import { AdSensePolicyModal } from './components/AdSensePolicyModal';
 import { CookieConsentBanner } from './components/CookieConsentBanner';
 import { AdSenseSlot } from './components/AdSenseSlot';
 import { AdsterraBanner } from './components/AdsterraBanner';
@@ -23,24 +18,45 @@ import { CuratedCollections } from './components/CuratedCollections';
 import { RecentlyViewedStrip } from './components/RecentlyViewedStrip';
 import { PersonalizedRecommendations } from './components/PersonalizedRecommendations';
 import { MovieComparisonBar } from './components/MovieComparisonBar';
-import { MovieComparisonModal } from './components/MovieComparisonModal';
-import { MovieNightSpinnerModal } from './components/MovieNightSpinnerModal';
-import { FilmographyModal } from './components/FilmographyModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
-import { CineBotModal } from './components/CineBotModal';
 import { CineBotLauncher } from './components/CineBotLauncher';
 import { ScrollToTopButton } from './components/ScrollToTopButton';
-import { EztvView } from './components/EztvView';
-import { SeriesDetailPage } from './components/SeriesDetailPage';
 import { TvShowDetails, TvShowInfo, EztvTorrent } from './types';
 import { getSeriesSlug, extractShowTitleFromRelease } from './services/eztvApi';
 import { getMoviePath, getMovieSlug, updateDocumentSeo } from './utils/seo';
 import { refreshEzoicAds } from './utils/ezoic';
 import { ensureConsentGatedGlobalAds, onConsentChange } from './utils/consent';
-import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 import { MovieSortDropdown } from './components/MovieSortDropdown';
 import { useTheme } from './context/ThemeContext';
+import { useMovieComparison } from './context/MovieComparisonContext';
+
+// Code-split route pages and heavy modals to keep initial browse bundle small
+const MovieDetailPage = lazy(() => import('./components/MovieDetailPage').then((m) => ({ default: m.MovieDetailPage })));
+const SeriesDetailPage = lazy(() => import('./components/SeriesDetailPage').then((m) => ({ default: m.SeriesDetailPage })));
+const EztvView = lazy(() => import('./components/EztvView').then((m) => ({ default: m.EztvView })));
+const WatchlistView = lazy(() => import('./components/WatchlistView').then((m) => ({ default: m.WatchlistView })));
+const TrailerModal = lazy(() => import('./components/TrailerModal').then((m) => ({ default: m.TrailerModal })));
+const DownloadGuideModal = lazy(() => import('./components/DownloadGuideModal').then((m) => ({ default: m.DownloadGuideModal })));
+const AdSensePolicyModal = lazy(() => import('./components/AdSensePolicyModal').then((m) => ({ default: m.AdSensePolicyModal })));
+const MovieComparisonModal = lazy(() => import('./components/MovieComparisonModal').then((m) => ({ default: m.MovieComparisonModal })));
+const MovieNightSpinnerModal = lazy(() => import('./components/MovieNightSpinnerModal').then((m) => ({ default: m.MovieNightSpinnerModal })));
+const FilmographyModal = lazy(() => import('./components/FilmographyModal').then((m) => ({ default: m.FilmographyModal })));
+const CineBotModal = lazy(() => import('./components/CineBotModal').then((m) => ({ default: m.CineBotModal })));
+const KeyboardShortcutsModal = lazy(() => import('./components/KeyboardShortcutsModal'));
+
+const RouteSuspenseFallback = () => (
+  <div className="space-y-6 animate-pulse py-8">
+    <div className="h-8 bg-neutral-900 rounded-lg w-1/3" />
+    <div className="h-80 bg-neutral-900 rounded-3xl border border-white/5" />
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="aspect-[2/3] bg-neutral-900 rounded-2xl" />
+      <div className="aspect-[2/3] bg-neutral-900 rounded-2xl" />
+      <div className="aspect-[2/3] bg-neutral-900 rounded-2xl hidden sm:block" />
+      <div className="aspect-[2/3] bg-neutral-900 rounded-2xl hidden sm:block" />
+    </div>
+  </div>
+);
 
 const DEFAULT_FILTERS: FilterParams = {
   query_term: '',
@@ -165,15 +181,22 @@ export default function App() {
   const [isMovieSlugLoading, setIsMovieSlugLoading] = useState<boolean>(false);
   const [movieSlugError, setMovieSlugError] = useState<string | null>(null);
 
+  const { isOpen: isComparisonOpen } = useMovieComparison();
+
   // Curated sections state map: sectionId -> Movie[]
   const [sectionMovies, setSectionMovies] = useState<Record<string, Movie[]>>({});
-  const [isSectionsLoading, setIsSectionsLoading] = useState<boolean>(() => initialUrlState.route.type === 'browse');
-  
+  const [sectionLoadingMap, setSectionLoadingMap] = useState<Record<string, boolean>>({});
+  const requestedSectionsRef = useRef<Set<string>>(new Set());
+  const seenSectionMovieIdsRef = useRef<Set<number>>(new Set());
+  const featuredSeedIdsRef = useRef<number[]>([]);
+
   // Navigation & Modals
   const [currentNav, setCurrentNav] = useState<string>(() => initialUrlState.currentNav);
   const [trailerData, setTrailerData] = useState<{ ytCode: string; title: string } | null>(null);
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
   const [isSpinnerOpen, setIsSpinnerOpen] = useState<boolean>(false);
+  const [hasOpenedSpinner, setHasOpenedSpinner] = useState<boolean>(false);
+  const [hasOpenedComparison, setHasOpenedComparison] = useState<boolean>(false);
   const [policyModalTab, setPolicyModalTab] = useState<'privacy' | 'terms' | 'about' | 'contact' | 'dmca' | 'agreement' | null>(() => {
     if (typeof window !== 'undefined') {
       const path = window.location.pathname.toLowerCase();
@@ -188,8 +211,21 @@ export default function App() {
   });
   const [filmographyPerson, setFilmographyPerson] = useState<{ name: string; role?: 'director' | 'actor' | 'cast' } | null>(null);
   const [isCineBotOpen, setIsCineBotOpen] = useState<boolean>(false);
+  const [hasOpenedCineBot, setHasOpenedCineBot] = useState<boolean>(false);
   const [cineBotInitialPrompt, setCineBotInitialPrompt] = useState<string | null>(null);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (isSpinnerOpen) setHasOpenedSpinner(true);
+  }, [isSpinnerOpen]);
+
+  useEffect(() => {
+    if (isComparisonOpen) setHasOpenedComparison(true);
+  }, [isComparisonOpen]);
+
+  useEffect(() => {
+    if (isCineBotOpen) setHasOpenedCineBot(true);
+  }, [isCineBotOpen]);
 
   const handleOpenCineBotWithPrompt = (prompt: string) => {
     setCineBotInitialPrompt(prompt);
@@ -590,78 +626,69 @@ export default function App() {
     loadFeatured();
   }, [loadFeatured]);
 
-  // Fetch all Curated Homepage Sections with cross-shelf deduplication
   useEffect(() => {
+    featuredSeedIdsRef.current = featuredMovies.slice(0, 5).map((m) => m.id).filter(Boolean);
+  }, [featuredMovies]);
+
+  // Lazy per-shelf loader triggered when each horizontal curated shelf scrolls near viewport
+  const loadCuratedSection = useCallback(async (sectionId: string) => {
     if (route.type !== 'browse') return;
-    const loadCuratedSections = async () => {
-      setIsSectionsLoading(true);
+    if (requestedSectionsRef.current.has(sectionId)) return;
+
+    const sec = CURATED_SECTIONS.find((s) => s.id === sectionId);
+    if (!sec) return;
+
+    requestedSectionsRef.current.add(sectionId);
+    setSectionLoadingMap((prev) => ({ ...prev, [sectionId]: true }));
+
+    try {
+      const filterParams = {
+        ...DEFAULT_FILTERS,
+        ...sec.filterParams,
+        limit: 20
+      };
+
+      let fetched: Movie[] = [];
       try {
-        const seenMovieIds = new Set<number>();
-        featuredMovies.slice(0, 5).forEach((m) => {
-          if (m?.id) seenMovieIds.add(m.id);
-        });
-
-        const rawResults = await Promise.allSettled(
-          CURATED_SECTIONS.map(async (sec) => {
-            const filterParams = {
-              ...DEFAULT_FILTERS,
-              ...sec.filterParams,
-              limit: 20
-            };
-
-            try {
-              const data = await fetchMovies(filterParams);
-              const cleaned = validateAndCleanMovies(data.movies || []);
-              return {
-                id: sec.id,
-                movies: filterMoviesByParams(cleaned, sec.filterParams)
-              };
-            } catch {
-              return { id: sec.id, movies: [] };
-            }
-          })
-        );
-
-        const newMap: Record<string, Movie[]> = {};
-
-        CURATED_SECTIONS.forEach((sec, index) => {
-          const res = rawResults[index];
-          const fetched = res.status === 'fulfilled' ? res.value.movies : [];
-
-          // Keep only movies not already claimed by a preceding shelf or hero
-          const uniqueMovies = fetched.filter(m => !seenMovieIds.has(m.id));
-
-          let combined = [...uniqueMovies];
-          if (combined.length < 8) {
-            const matchingFallbacks = filterMoviesByParams(FALLBACK_FEATURED_MOVIES, sec.filterParams);
-            for (const fm of matchingFallbacks) {
-              if (!seenMovieIds.has(fm.id) && !combined.some(c => c.id === fm.id)) {
-                combined.push(fm);
-              }
-            }
-          }
-
-          const finalShelf = combined.slice(0, 12);
-          finalShelf.forEach(m => seenMovieIds.add(m.id));
-
-          if (finalShelf.length > 0) {
-            newMap[sec.id] = finalShelf;
-          }
-        });
-
-        setSectionMovies(newMap);
-      } catch (err) {
-        console.error('Error loading curated movie sections:', err);
-      } finally {
-        setIsSectionsLoading(false);
+        const data = await fetchMovies(filterParams);
+        const cleaned = validateAndCleanMovies(data.movies || []);
+        fetched = filterMoviesByParams(cleaned, sec.filterParams);
+      } catch {
+        fetched = [];
       }
-    };
 
-    loadCuratedSections();
-  }, [featuredMovies, route.type]);
+      const seen = seenSectionMovieIdsRef.current;
+      for (const hid of featuredSeedIdsRef.current) {
+        seen.add(hid);
+      }
+
+      const uniqueMovies = fetched.filter((m) => !seen.has(m.id));
+      const combined = [...uniqueMovies];
+
+      if (combined.length < 8) {
+        const matchingFallbacks = filterMoviesByParams(FALLBACK_FEATURED_MOVIES, sec.filterParams);
+        for (const fm of matchingFallbacks) {
+          if (!seen.has(fm.id) && !combined.some((c) => c.id === fm.id)) {
+            combined.push(fm);
+          }
+        }
+      }
+
+      const finalShelf = combined.slice(0, 12);
+      finalShelf.forEach((m) => seen.add(m.id));
+
+      if (finalShelf.length > 0) {
+        setSectionMovies((prev) => ({ ...prev, [sectionId]: finalShelf }));
+      }
+    } catch (err) {
+      console.error(`Error loading curated movie section ${sectionId}:`, err);
+    } finally {
+      setSectionLoadingMap((prev) => ({ ...prev, [sectionId]: false }));
+    }
+  }, [route.type]);
 
   // Fetch Main Movies Catalog
-  const loadMovies = useCallback(async (isSilent = false) => {
+  const loadMovies = useCallback(async (isSilent = false, bypassCache = false) => {
     if (route.type !== 'browse') return;
 
     if (!isSilent) {
@@ -672,7 +699,7 @@ export default function App() {
     }
 
     try {
-      const data = await fetchMovies(filters);
+      const data = await fetchMovies(filters, { bypassCache });
       const newMovies = data.movies || [];
       const newTotal = data.totalCount || 0;
 
@@ -723,24 +750,23 @@ export default function App() {
     const intervalId = setInterval(() => {
       // Refresh silently only when tab is active and viewing page 1
       if (typeof document !== 'undefined' && !document.hidden && filters.page === 1) {
-        loadMovies(true);
+        loadMovies(true, true);
       }
     }, 5 * 60 * 1000); // 5 minutes
 
     return () => clearInterval(intervalId);
   }, [route.type, filters.page, loadMovies]);
 
-  // Automatic silent catalog refresh when visitor returns to CineVault browser tab
+  // Automatic silent catalog refresh when visitor returns to CineVault after >= 5 minutes
   useEffect(() => {
     const checkAndRefresh = () => {
       const elapsedSinceUpdate = Date.now() - lastCatalogUpdateRef.current;
-      // Refresh silently if tab is active, browsing page 1, and > 90 seconds have passed since last update
       if (
         route.type === 'browse' &&
         filters.page === 1 &&
-        elapsedSinceUpdate > 90 * 1000
+        elapsedSinceUpdate > 5 * 60 * 1000
       ) {
-        loadMovies(true);
+        loadMovies(true, true);
       }
     };
 
@@ -932,22 +958,25 @@ export default function App() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         
         {route.type === 'series' ? (
-          <EztvView
-            initialQuery={route.seriesQuery}
-            initialImdb={route.seriesImdb}
-            initialGenre={route.seriesGenre}
-            onShowToast={(msg, type) => addToast(type || 'info', msg)}
-            onOpenGuide={() => setIsGuideOpen(true)}
-            onSelectSeries={handleSelectSeries}
-          />
+          <Suspense fallback={<RouteSuspenseFallback />}>
+            <EztvView
+              initialQuery={route.seriesQuery}
+              initialImdb={route.seriesImdb}
+              initialGenre={route.seriesGenre}
+              onShowToast={(msg, type) => addToast(type || 'info', msg)}
+              onOpenGuide={() => setIsGuideOpen(true)}
+              onSelectSeries={handleSelectSeries}
+            />
+          </Suspense>
         ) : route.type === 'series_detail' ? (
-          <SeriesDetailPage
-            key={route.slug || route.seriesImdb || route.seriesQuery || 'series-detail'}
-            seriesId={route.slug || route.seriesImdb || undefined}
-            seriesTitle={route.seriesQuery}
-            initialShow={route.seriesShow}
-            initialTorrent={route.seriesTorrent}
-            onBack={handleBack}
+          <Suspense fallback={<RouteSuspenseFallback />}>
+            <SeriesDetailPage
+              key={route.slug || route.seriesImdb || route.seriesQuery || 'series-detail'}
+              seriesId={route.slug || route.seriesImdb || undefined}
+              seriesTitle={route.seriesQuery}
+              initialShow={route.seriesShow}
+              initialTorrent={route.seriesTorrent}
+              onBack={handleBack}
             onNavigateHome={handleNavigateHome}
             onNavigateToSeries={handleNavigateSeries}
             onSelectSeries={handleSelectSeries}
@@ -1000,6 +1029,7 @@ export default function App() {
               handleToggleWatchlist(asMovie);
             }}
           />
+          </Suspense>
         ) : route.type === 'movie' ? (
           <div>
             {isMovieSlugLoading ? (
@@ -1027,59 +1057,63 @@ export default function App() {
                 </button>
               </div>
             ) : route.movie ? (
-              <MovieDetailPage
-                movie={route.movie}
-                onBack={handleBack}
-                onNavigateHome={handleNavigateHome}
-                onSelectMovie={handleSelectMovie}
-                onSelectGenre={(genre) => {
-                  setRoute({ type: 'browse' });
-                  if (window.location.pathname !== '/') {
-                    window.history.pushState({ type: 'browse' }, '', `/?genre=${encodeURIComponent(genre)}`);
-                  }
-                  updateDocumentSeo({
-                    breadcrumbs: [{ name: 'Home', item: '/' }]
-                  });
-                  setCurrentNav('browse');
-                  setFilters((prev) => ({
-                    ...prev,
-                    genre: genre,
-                    page: 1
-                  }));
-                }}
-                onPlayTrailer={handlePlayTrailer}
-                onCopyMagnet={handleCopyMagnet}
-                isWatchlisted={isMovieWatchlisted}
-                onToggleWatchlist={handleToggleWatchlist}
-                onOpenGuide={() => setIsGuideOpen(true)}
-                onOpenFilmography={handleOpenFilmography}
-                onAskCineBot={handleOpenCineBotWithPrompt}
-                onNavigateToSeries={handleNavigateSeries}
-                onSelectSeries={handleSelectSeries}
-              />
+              <Suspense fallback={<RouteSuspenseFallback />}>
+                <MovieDetailPage
+                  movie={route.movie}
+                  onBack={handleBack}
+                  onNavigateHome={handleNavigateHome}
+                  onSelectMovie={handleSelectMovie}
+                  onSelectGenre={(genre) => {
+                    setRoute({ type: 'browse' });
+                    if (window.location.pathname !== '/') {
+                      window.history.pushState({ type: 'browse' }, '', `/?genre=${encodeURIComponent(genre)}`);
+                    }
+                    updateDocumentSeo({
+                      breadcrumbs: [{ name: 'Home', item: '/' }]
+                    });
+                    setCurrentNav('browse');
+                    setFilters((prev) => ({
+                      ...prev,
+                      genre: genre,
+                      page: 1
+                    }));
+                  }}
+                  onPlayTrailer={handlePlayTrailer}
+                  onCopyMagnet={handleCopyMagnet}
+                  isWatchlisted={isMovieWatchlisted}
+                  onToggleWatchlist={handleToggleWatchlist}
+                  onOpenGuide={() => setIsGuideOpen(true)}
+                  onOpenFilmography={handleOpenFilmography}
+                  onAskCineBot={handleOpenCineBotWithPrompt}
+                  onNavigateToSeries={handleNavigateSeries}
+                  onSelectSeries={handleSelectSeries}
+                />
+              </Suspense>
             ) : null}
           </div>
         ) : route.type === 'watchlist' ? (
-          <WatchlistView
-            watchlist={watchlist}
-            onSelectMovie={handleSelectMovie}
-            onPlayTrailer={handlePlayTrailer}
-            onCopyMagnet={handleCopyMagnet}
-            onToggleWatchlist={handleToggleWatchlist}
-            onClearWatchlist={() => {
-              setWatchlist([]);
-              addToast('info', 'Watchlist Cleared');
-            }}
-            onImportWatchlist={(imported) => {
-              setWatchlist((prev) => {
-                const existingIds = new Set(prev.map((m) => m.id));
-                const newItems = imported.filter((m) => !existingIds.has(m.id));
-                addToast('success', 'Watchlist Imported', `Added ${newItems.length} new titles to your library.`);
-                return [...newItems, ...prev];
-              });
-            }}
-            onExploreCatalog={() => handleNavSelect('browse')}
-          />
+          <Suspense fallback={<RouteSuspenseFallback />}>
+            <WatchlistView
+              watchlist={watchlist}
+              onSelectMovie={handleSelectMovie}
+              onPlayTrailer={handlePlayTrailer}
+              onCopyMagnet={handleCopyMagnet}
+              onToggleWatchlist={handleToggleWatchlist}
+              onClearWatchlist={() => {
+                setWatchlist([]);
+                addToast('info', 'Watchlist Cleared');
+              }}
+              onImportWatchlist={(imported) => {
+                setWatchlist((prev) => {
+                  const existingIds = new Set(prev.map((m) => m.id));
+                  const newItems = imported.filter((m) => !existingIds.has(m.id));
+                  addToast('success', 'Watchlist Imported', `Added ${newItems.length} new titles to your library.`);
+                  return [...newItems, ...prev];
+                });
+              }}
+              onExploreCatalog={() => handleNavSelect('browse')}
+            />
+          </Suspense>
         ) : (
           <>
             {currentNav === 'browse' && !filters.query_term && filters.page === 1 && filters.quality === 'All' && (
@@ -1211,7 +1245,7 @@ export default function App() {
                   <div className="flex items-center gap-1.5 ml-auto sm:ml-1">
                     <button
                       type="button"
-                      onClick={() => loadMovies(true)}
+                      onClick={() => loadMovies(true, true)}
                       disabled={isRefreshingSilently || isLoading}
                       title="Auto-refreshes every 5 minutes or on tab return. Click to check for new movies now."
                       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-semibold transition cursor-pointer select-none ${
@@ -1371,7 +1405,8 @@ export default function App() {
                     key={section.id}
                     section={section}
                     movies={sectionMovies[section.id] || []}
-                    isLoading={isSectionsLoading}
+                    isLoading={sectionLoadingMap[section.id] ?? !(section.id in sectionMovies)}
+                    onBecomeVisible={loadCuratedSection}
                     onSelectMovie={handleSelectMovie}
                     onPlayTrailer={handlePlayTrailer}
                     onCopyMagnet={handleCopyMagnet}
@@ -1418,114 +1453,126 @@ export default function App() {
         onOpenShortcuts={() => setIsShortcutsOpen(true)}
       />
 
-      {policyModalTab && (
-        <AdSensePolicyModal
-          initialTab={policyModalTab}
-          onClose={() => setPolicyModalTab(null)}
+      <Suspense fallback={null}>
+        {policyModalTab && (
+          <AdSensePolicyModal
+            initialTab={policyModalTab}
+            onClose={() => setPolicyModalTab(null)}
+          />
+        )}
+
+        <CookieConsentBanner
+          onOpenPrivacy={() => setPolicyModalTab('privacy')}
         />
-      )}
 
-      <CookieConsentBanner
-        onOpenPrivacy={() => setPolicyModalTab('privacy')}
-      />
+        {trailerData && (
+          <TrailerModal
+            ytTrailerCode={trailerData.ytCode}
+            movieTitle={trailerData.title}
+            onClose={() => setTrailerData(null)}
+          />
+        )}
 
-      {trailerData && (
-        <TrailerModal
-          ytTrailerCode={trailerData.ytCode}
-          movieTitle={trailerData.title}
-          onClose={() => setTrailerData(null)}
+        {isGuideOpen && (
+          <DownloadGuideModal
+            onClose={() => setIsGuideOpen(false)}
+            onCopyAllTrackers={() => {
+              addToast('success', 'Trackers Copied!', '10 high-speed trackers copied to clipboard');
+            }}
+          />
+        )}
+
+        {/* Comparison Drawer & Modal */}
+        <MovieComparisonBar />
+        {(isComparisonOpen || hasOpenedComparison) && (
+          <MovieComparisonModal
+            onSelectMovie={handleSelectMovie}
+            onOpenFilmography={handleOpenFilmography}
+            allMoviesPool={movies.length > 0 ? movies : (featuredMovies.length > 0 ? featuredMovies : [])}
+          />
+        )}
+
+        {/* Filmography Explorer Modal */}
+        {filmographyPerson && (
+          <FilmographyModal
+            personName={filmographyPerson?.name || null}
+            role={filmographyPerson?.role || 'cast'}
+            onClose={() => setFilmographyPerson(null)}
+            onSelectMovie={handleSelectMovie}
+          />
+        )}
+
+        {/* Offline Status Badge */}
+        <OfflineIndicator />
+
+        {/* Surprise Me / Movie Night Spinner */}
+        {(isSpinnerOpen || hasOpenedSpinner) && (
+          <MovieNightSpinnerModal
+            isOpen={isSpinnerOpen}
+            onClose={() => setIsSpinnerOpen(false)}
+            moviesPool={movies.length > 0 ? movies : (featuredMovies.length > 0 ? featuredMovies : [])}
+            onSelectMovie={handleSelectMovie}
+            onWatchTrailer={(m) => {
+              if (m.yt_trailer_code) {
+                handlePlayTrailer(m.yt_trailer_code, m.title);
+              }
+            }}
+            watchlist={watchlist}
+            onToggleWatchlist={handleToggleWatchlist}
+          />
+        )}
+
+        {/* CineBot AI Floating Launcher & Modal */}
+        <CineBotLauncher
+          isOpen={isCineBotOpen}
+          onOpen={() => setIsCineBotOpen(true)}
         />
-      )}
 
-      {isGuideOpen && (
-        <DownloadGuideModal
-          onClose={() => setIsGuideOpen(false)}
-          onCopyAllTrackers={() => {
-            addToast('success', 'Trackers Copied!', '10 high-speed trackers copied to clipboard');
-          }}
-        />
-      )}
+        {/* Floating Smooth Scroll to Top Button */}
+        <ScrollToTopButton />
 
-      {/* Comparison Drawer & Modal */}
-      <MovieComparisonBar />
-      <MovieComparisonModal
-        onSelectMovie={handleSelectMovie}
-        onOpenFilmography={handleOpenFilmography}
-        allMoviesPool={movies.length > 0 ? movies : (featuredMovies.length > 0 ? featuredMovies : [])}
-      />
+        {(isCineBotOpen || hasOpenedCineBot) && (
+          <CineBotModal
+            isOpen={isCineBotOpen}
+            onClose={() => setIsCineBotOpen(false)}
+            onSelectMovie={handleSelectMovie}
+            onPlayTrailer={(ytCode, title) => {
+              handlePlayTrailer(ytCode, title);
+            }}
+            watchlist={watchlist}
+            onToggleWatchlist={handleToggleWatchlist}
+            onApplyFilters={(newFilters) => {
+              setFilters((prev) => ({
+                ...prev,
+                ...newFilters,
+                page: 1
+              }));
+              setCurrentNav('browse');
+              setRoute({ type: 'browse' });
+              if (window.location.pathname !== '/') {
+                window.history.pushState({ type: 'browse' }, '', '/');
+              }
+              addToast('info', 'Filters Applied', `Updated catalog: ${newFilters.genre || 'all genres'} ${newFilters.minimum_rating ? `(min ${newFilters.minimum_rating}★)` : ''}`);
+            }}
+            initialPrompt={cineBotInitialPrompt}
+            onClearInitialPrompt={() => setCineBotInitialPrompt(null)}
+            activeMovie={route.type === 'movie' ? route.movie : null}
+            activeSeriesTitle={route.type === 'series_detail' ? (route.seriesQuery || route.seriesShow?.name) : undefined}
+            activeSeriesImdb={route.type === 'series_detail' ? route.seriesImdb : undefined}
+            onSelectSeries={handleSelectSeries}
+            onNavigateToSeries={handleNavigateSeries}
+          />
+        )}
 
-      {/* Filmography Explorer Modal */}
-      <FilmographyModal
-        personName={filmographyPerson?.name || null}
-        role={filmographyPerson?.role || 'cast'}
-        onClose={() => setFilmographyPerson(null)}
-        onSelectMovie={handleSelectMovie}
-      />
-
-      {/* Offline Status Badge */}
-      <OfflineIndicator />
-
-      {/* Surprise Me / Movie Night Spinner */}
-      <MovieNightSpinnerModal
-        isOpen={isSpinnerOpen}
-        onClose={() => setIsSpinnerOpen(false)}
-        moviesPool={movies.length > 0 ? movies : (featuredMovies.length > 0 ? featuredMovies : [])}
-        onSelectMovie={handleSelectMovie}
-        onWatchTrailer={(m) => {
-          if (m.yt_trailer_code) {
-            handlePlayTrailer(m.yt_trailer_code, m.title);
-          }
-        }}
-        watchlist={watchlist}
-        onToggleWatchlist={handleToggleWatchlist}
-      />
-
-      {/* CineBot AI Floating Launcher & Modal */}
-      <CineBotLauncher
-        isOpen={isCineBotOpen}
-        onOpen={() => setIsCineBotOpen(true)}
-      />
-
-      {/* Floating Smooth Scroll to Top Button */}
-      <ScrollToTopButton />
-
-      <CineBotModal
-        isOpen={isCineBotOpen}
-        onClose={() => setIsCineBotOpen(false)}
-        onSelectMovie={handleSelectMovie}
-        onPlayTrailer={(ytCode, title) => {
-          handlePlayTrailer(ytCode, title);
-        }}
-        watchlist={watchlist}
-        onToggleWatchlist={handleToggleWatchlist}
-        onApplyFilters={(newFilters) => {
-          setFilters((prev) => ({
-            ...prev,
-            ...newFilters,
-            page: 1
-          }));
-          setCurrentNav('browse');
-          setRoute({ type: 'browse' });
-          if (window.location.pathname !== '/') {
-            window.history.pushState({ type: 'browse' }, '', '/');
-          }
-          addToast('info', 'Filters Applied', `Updated catalog: ${newFilters.genre || 'all genres'} ${newFilters.minimum_rating ? `(min ${newFilters.minimum_rating}★)` : ''}`);
-        }}
-        initialPrompt={cineBotInitialPrompt}
-        onClearInitialPrompt={() => setCineBotInitialPrompt(null)}
-        activeMovie={route.type === 'movie' ? route.movie : null}
-        activeSeriesTitle={route.type === 'series_detail' ? (route.seriesQuery || route.seriesShow?.name) : undefined}
-        activeSeriesImdb={route.type === 'series_detail' ? route.seriesImdb : undefined}
-        onSelectSeries={handleSelectSeries}
-        onNavigateToSeries={handleNavigateSeries}
-      />
-
-      <KeyboardShortcutsModal
-        isOpen={isShortcutsOpen}
-        onClose={() => setIsShortcutsOpen(false)}
-        onTriggerSearch={handleFocusSearch}
-        onTriggerSpinner={() => setIsSpinnerOpen(true)}
-      />
+        {isShortcutsOpen && (
+          <KeyboardShortcutsModal
+            isOpen={isShortcutsOpen}
+            onClose={() => setIsShortcutsOpen(false)}
+            onTriggerSearch={handleFocusSearch}
+            onTriggerSpinner={() => setIsSpinnerOpen(true)}
+          />
+        )}
+      </Suspense>
 
       <ToastContainer toasts={toasts} onDismiss={removeToast} />
 

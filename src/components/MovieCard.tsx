@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ArrowLeftRight, Film, Download, Check } from 'lucide-react';
 import { Movie, buildMagnetLink } from '../types';
 import { getMoviePath } from '../utils/seo';
@@ -30,7 +30,17 @@ export const MovieCard: React.FC<MovieCardProps> = ({
     rootMargin: '250px 0px 250px 0px',
   });
   const [isLoaded, setIsLoaded] = useState(false);
-  const posterCandidates = getPosterCandidates(movie);
+  const posterCandidates = useMemo(() => getPosterCandidates(movie, 'medium'), [
+    movie,
+    movie.id,
+    movie.imdb_code,
+    movie.title,
+    movie.title_english,
+    movie.year,
+    movie.medium_cover_image,
+    movie.large_cover_image,
+    movie.small_cover_image,
+  ]);
   const [candidateIndex, setCandidateIndex] = useState(0);
   const [hasAllFailed, setHasAllFailed] = useState(false);
   const [copiedHash, setCopiedHash] = useState<string | null>(null);

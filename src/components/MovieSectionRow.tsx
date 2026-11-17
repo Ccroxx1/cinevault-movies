@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Film } from 'lucide-react';
 import { Movie, buildMagnetLink } from '../types';
 import { getMoviePath } from '../utils/seo';
@@ -101,6 +101,7 @@ interface MovieSectionRowProps {
   isWatchlisted: (movieId: number) => boolean;
   onToggleWatchlist: (movie: Movie) => void;
   onViewAll?: () => void;
+  onBecomeVisible?: (sectionId: string) => void;
 }
 
 interface MovieSectionCardProps {
@@ -126,7 +127,17 @@ const MovieSectionCard: React.FC<MovieSectionCardProps> = ({
     rootMargin: '250px 0px 250px 0px',
   });
   const [isLoaded, setIsLoaded] = useState(false);
-  const posterCandidates = getPosterCandidates(movie);
+  const posterCandidates = useMemo(() => getPosterCandidates(movie, 'medium'), [
+    movie,
+    movie.id,
+    movie.imdb_code,
+    movie.title,
+    movie.title_english,
+    movie.year,
+    movie.medium_cover_image,
+    movie.large_cover_image,
+    movie.small_cover_image,
+  ]);
   const [candidateIndex, setCandidateIndex] = useState(0);
   const [hasAllFailed, setHasAllFailed] = useState(false);
   const [copiedHash, setCopiedHash] = useState<string | null>(null);
@@ -309,11 +320,23 @@ export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
   onCopyMagnet,
   isWatchlisted,
   onToggleWatchlist,
-  onViewAll
+  onViewAll,
+  onBecomeVisible
 }) => {
+  const [sectionVisRef, isSectionNearViewport] = useIntersectionLazyLoad<HTMLElement>({
+    rootMargin: '450px 0px 450px 0px',
+  });
   const rowRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const triggeredVisibilityRef = useRef(false);
+
+  useEffect(() => {
+    if (isSectionNearViewport && onBecomeVisible && !triggeredVisibilityRef.current) {
+      triggeredVisibilityRef.current = true;
+      onBecomeVisible(section.id);
+    }
+  }, [isSectionNearViewport, onBecomeVisible, section.id]);
 
   const checkScrollBounds = useCallback(() => {
     if (rowRef.current) {
@@ -335,7 +358,7 @@ export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
     };
   }, [movies, checkScrollBounds]);
 
-  if (!isLoading && (!movies || movies.length === 0)) return null;
+  if (!isLoading && (!movies || movies.length === 0) && triggeredVisibilityRef.current) return null;
 
   const scroll = (direction: 'left' | 'right') => {
     if (rowRef.current) {
@@ -346,7 +369,7 @@ export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
   };
 
   return (
-    <section className="movie-section-contain space-y-3.5 my-8" aria-labelledby={`${section.id}-heading`}>
+    <section ref={sectionVisRef} className="movie-section-contain space-y-3.5 my-8" aria-labelledby={`${section.id}-heading`}>
       <div className="flex items-center justify-between">
         <div>
           <h2 id={`${section.id}-heading`} className="text-lg sm:text-xl font-bold text-white tracking-tight">

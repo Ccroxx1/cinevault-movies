@@ -189,22 +189,28 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
     setBackdropIndex(0);
   }, [currentIndex]);
 
-  // Preload adjacent slide backdrops for instant zero-flicker transitions
+  // Preload next slide backdrop during idle time to avoid competing with LCP image
   useEffect(() => {
     if (totalSlides <= 1) return;
     const nextIdx = (currentIndex + 1) % totalSlides;
-    const prevIdx = (currentIndex - 1 + totalSlides) % totalSlides;
-    [nextIdx, prevIdx].forEach((idx) => {
-      const nextMovie = activeQueue[idx];
-      if (nextMovie) {
-        const nextCandidates = getBackdropCandidates(nextMovie);
-        if (nextCandidates[0] && !nextCandidates[0].startsWith('data:')) {
-          const img = new Image();
-          img.referrerPolicy = 'no-referrer';
-          img.src = nextCandidates[0];
-        }
+    const nextMovie = activeQueue[nextIdx];
+    if (!nextMovie) return;
+
+    const preloadNext = () => {
+      const nextCandidates = getBackdropCandidates(nextMovie);
+      if (nextCandidates[0] && !nextCandidates[0].startsWith('data:')) {
+        const img = new Image();
+        img.referrerPolicy = 'no-referrer';
+        img.src = nextCandidates[0];
       }
-    });
+    };
+
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      const idleId = (window as any).requestIdleCallback(preloadNext, { timeout: 1500 });
+      return () => (window as any).cancelIdleCallback?.(idleId);
+    }
+    const timer = setTimeout(preloadNext, 500);
+    return () => clearTimeout(timer);
   }, [currentIndex, activeQueue, totalSlides]);
 
   // Autoplay with 12-second pacing to allow comfortable reading
@@ -297,6 +303,8 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
           width="1920"
           height="1080"
           loading="eager"
+          fetchPriority="high"
+          decoding="async"
           referrerPolicy="no-referrer"
           onError={handleBackdropError}
           className="w-full h-full object-cover object-center sm:object-[center_20%] scale-100 group-hover:scale-[1.025] transition-transform duration-1000 ease-out select-none"

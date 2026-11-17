@@ -61,17 +61,20 @@ function buildImageVariants(url?: string): string[] {
  * 6. Secondary CDN mirrors & small cover artwork
  * 7. Local SVG fallback
  */
-export function getPosterCandidates(movie?: {
-  id?: number | string;
-  title?: string;
-  title_english?: string;
-  imdb_code?: string;
-  year?: number | string;
-  medium_cover_image?: string;
-  large_cover_image?: string;
-  small_cover_image?: string;
-  imdb_poster?: string;
-} | null): string[] {
+export function getPosterCandidates(
+  movie?: {
+    id?: number | string;
+    title?: string;
+    title_english?: string;
+    imdb_code?: string;
+    year?: number | string;
+    medium_cover_image?: string;
+    large_cover_image?: string;
+    small_cover_image?: string;
+    imdb_poster?: string;
+  } | null,
+  preferredSize: 'medium' | 'large' = 'medium'
+): string[] {
   if (!movie) return [CINEVAULT_POSTER_FALLBACK];
 
   const rawList: string[] = [];
@@ -81,7 +84,16 @@ export function getPosterCandidates(movie?: {
     rawList.push(movie.imdb_poster);
   }
 
-  // 2. Official Genuine Theatrical Poster Resolver (retrieves genuine theatrical release poster from IMDb CDN)
+  // 2. Direct edge-CDN cover artwork first (zero serverless invocation latency)
+  if (preferredSize === 'large') {
+    if (movie.large_cover_image) rawList.push(...buildImageVariants(movie.large_cover_image));
+    if (movie.medium_cover_image) rawList.push(...buildImageVariants(movie.medium_cover_image));
+  } else {
+    if (movie.medium_cover_image) rawList.push(...buildImageVariants(movie.medium_cover_image));
+    if (movie.large_cover_image) rawList.push(...buildImageVariants(movie.large_cover_image));
+  }
+
+  // 3. Official Genuine Theatrical Poster Resolver fallback (retrieves genuine theatrical poster from IMDb CDN)
   const imdbCode = (movie.imdb_code || '').trim();
   const title = (movie.title || movie.title_english || '').trim();
   const year = movie.year ? String(movie.year) : '';
@@ -92,36 +104,23 @@ export function getPosterCandidates(movie?: {
     if (title) params.set('title', title);
     if (year) params.set('year', year);
     params.set('type', 'movie');
-    params.set('size', 'medium');
+    params.set('size', preferredSize);
     rawList.push(`/api/movies/poster?${params.toString()}`);
-    rawList.push(`/api/poster?${params.toString()}`);
-  }
-
-  // 3. High-res catalog cover artwork
-  if (movie.large_cover_image) {
-    rawList.push(...buildImageVariants(movie.large_cover_image));
-  }
-  if (movie.medium_cover_image) {
-    rawList.push(...buildImageVariants(movie.medium_cover_image));
-  }
-
-  // 4. Official Title Search Resolver if no valid IMDb code was provided
-  if (!imdbCode && title) {
+  } else if (title) {
     const params = new URLSearchParams();
     params.set('title', title);
     if (year) params.set('year', year);
     params.set('type', 'movie');
-    params.set('size', 'medium');
+    params.set('size', preferredSize);
     rawList.push(`/api/movies/poster?${params.toString()}`);
-    rawList.push(`/api/poster?${params.toString()}`);
   }
 
-  // 5. Small cover image
+  // 4. Small cover image
   if (movie.small_cover_image) {
     rawList.push(...buildImageVariants(movie.small_cover_image));
   }
 
-  // 6. Final fallback
+  // 5. Final SVG fallback
   rawList.push(CINEVAULT_POSTER_FALLBACK);
 
   // Deduplicate while preserving sequence order
@@ -270,7 +269,15 @@ export function getBackdropCandidates(movie?: {
     rawList.push(...buildImageVariants(movie.large_screenshot_image3));
   }
 
-  // 2. Automatically derive large screenshots from YTS movie asset directory if available
+  // 2. High-resolution non-blurry backdrops (e.g. Unsplash, TMDB, custom wallpapers)
+  if (movie.background_image_original && !isYtsBlurryBackground(movie.background_image_original)) {
+    rawList.push(...buildImageVariants(movie.background_image_original));
+  }
+  if (movie.background_image && !isYtsBlurryBackground(movie.background_image)) {
+    rawList.push(...buildImageVariants(movie.background_image));
+  }
+
+  // 3. Automatically derive large screenshots from YTS movie asset directory if available
   const anyMovieUrl = [
     movie.background_image_original,
     movie.background_image,
@@ -283,14 +290,6 @@ export function getBackdropCandidates(movie?: {
     rawList.push(...buildImageVariants(`${ytsBaseDir}/large-screenshot1.jpg`));
     rawList.push(...buildImageVariants(`${ytsBaseDir}/large-screenshot2.jpg`));
     rawList.push(...buildImageVariants(`${ytsBaseDir}/large-screenshot3.jpg`));
-  }
-
-  // 3. High-resolution non-blurry backdrops (e.g. Unsplash, TMDB, custom wallpapers)
-  if (movie.background_image_original && !isYtsBlurryBackground(movie.background_image_original)) {
-    rawList.push(...buildImageVariants(movie.background_image_original));
-  }
-  if (movie.background_image && !isYtsBlurryBackground(movie.background_image)) {
-    rawList.push(...buildImageVariants(movie.background_image));
   }
 
   // 4. Sharp high-resolution cover artwork (500x750 crisp movie poster)

@@ -36,11 +36,29 @@
       ]
     },
     {
-      "source": "/api/movies/(.*)",
+      "source": "/api/(movies|movies/.*|v2/.*)",
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "public, max-age=0, s-maxage=120, stale-while-revalidate=300"
+          "value": "public, max-age=60, s-maxage=120, stale-while-revalidate=300"
+        }
+      ]
+    },
+    {
+      "source": "/api/(eztv|eztv/.*|tv|tv/.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=60, s-maxage=120, stale-while-revalidate=600"
+        }
+      ]
+    },
+    {
+      "source": "/api/(poster|movies/poster|tv/poster)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, s-maxage=2592000, stale-while-revalidate=86400"
         }
       ]
     },

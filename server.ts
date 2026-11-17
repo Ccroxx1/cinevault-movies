@@ -90,7 +90,75 @@ function sanitizeMovieImages(obj: any): any {
   return obj;
 }
 
-const cache = new Map<string, { timestamp: number; data: any }>();
+class BoundedCache<V> extends Map<string, V> {
+  private readonly maxEntries: number;
+  constructor(maxEntries: number) {
+    super();
+    this.maxEntries = maxEntries;
+  }
+  override get(key: string): V | undefined {
+    const val = super.get(key);
+    if (val !== undefined) {
+      super.delete(key);
+      super.set(key, val);
+    }
+    return val;
+  }
+  override set(key: string, value: V): this {
+    if (super.has(key)) super.delete(key);
+    super.set(key, value);
+    while (this.size > this.maxEntries) {
+      const oldestKey = this.keys().next().value;
+      if (oldestKey === undefined) break;
+      super.delete(oldestKey);
+    }
+    return this;
+  }
+}
+
+class BoundedBufferCache<V extends { buffer: Buffer }> extends Map<string, V> {
+  private readonly maxEntries: number;
+  private readonly maxBytes: number;
+  private totalBytes = 0;
+
+  constructor(maxEntries: number, maxBytes: number) {
+    super();
+    this.maxEntries = maxEntries;
+    this.maxBytes = maxBytes;
+  }
+
+  override get(key: string): V | undefined {
+    const val = super.get(key);
+    if (val !== undefined) {
+      super.delete(key);
+      super.set(key, val);
+    }
+    return val;
+  }
+
+  override delete(key: string): boolean {
+    const existing = super.get(key);
+    if (existing) {
+      this.totalBytes = Math.max(0, this.totalBytes - existing.buffer.byteLength);
+    }
+    return super.delete(key);
+  }
+
+  override set(key: string, value: V): this {
+    if (value.buffer.byteLength > this.maxBytes) return this;
+    if (super.has(key)) this.delete(key);
+    super.set(key, value);
+    this.totalBytes += value.buffer.byteLength;
+    while (this.size > this.maxEntries || this.totalBytes > this.maxBytes) {
+      const oldestKey = this.keys().next().value;
+      if (oldestKey === undefined) break;
+      this.delete(oldestKey);
+    }
+    return this;
+  }
+}
+
+const cache = new BoundedCache<{ timestamp: number; data: any }>(500);
 const LIST_CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes for live movie lists
 const DETAILS_CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes for static details
 
@@ -736,6 +804,7 @@ Your core objectives:
 app.get(['/api/movies', '/api/movies/list', '/api/v2/list_movies.json'], async (req, res) => {
   try {
     const data = await fetchFromApi('list_movies.json', req.query as any);
+    res.set('Cache-Control', 'public, max-age=60, s-maxage=120, stale-while-revalidate=300');
     res.json(data);
   } catch (e: any) {
     res.status(500).json({ status: 'error', status_message: e.message });
@@ -745,6 +814,7 @@ app.get(['/api/movies', '/api/movies/list', '/api/v2/list_movies.json'], async (
 app.get(['/api/movie_details', '/api/movies/details', '/api/v2/movie_details.json'], async (req, res) => {
   try {
     const data = await fetchFromApi('movie_details.json', { ...req.query, with_images: 'true', with_cast: 'true' } as any);
+    res.set('Cache-Control', 'public, max-age=300, s-maxage=900, stale-while-revalidate=3600');
     res.json(data);
   } catch (e: any) {
     res.status(500).json({ status: 'error', status_message: e.message });
@@ -754,6 +824,7 @@ app.get(['/api/movie_details', '/api/movies/details', '/api/v2/movie_details.jso
 app.get(['/api/movie_suggestions', '/api/movies/suggestions', '/api/v2/movie_suggestions.json'], async (req, res) => {
   try {
     const data = await fetchFromApi('movie_suggestions.json', req.query as any);
+    res.set('Cache-Control', 'public, max-age=300, s-maxage=900, stale-while-revalidate=3600');
     res.json(data);
   } catch (e: any) {
     res.status(500).json({ status: 'error', status_message: e.message });
@@ -763,6 +834,7 @@ app.get(['/api/movie_suggestions', '/api/movies/suggestions', '/api/v2/movie_sug
 app.get(['/api/movie_parental_guides', '/api/movies/parental_guides', '/api/v2/movie_parental_guides.json'], async (req, res) => {
   try {
     const data = await fetchFromApi('movie_parental_guides.json', req.query as any);
+    res.set('Cache-Control', 'public, max-age=300, s-maxage=900, stale-while-revalidate=3600');
     res.json(data);
   } catch (e: any) {
     res.status(500).json({ status: 'error', status_message: e.message });
@@ -1038,7 +1110,7 @@ interface ResolvedPoster {
   source: string;
 }
 
-const posterCache = new Map<string, { timestamp: number; data: ResolvedPoster }>();
+const posterCache = new BoundedCache<{ timestamp: number; data: ResolvedPoster }>(600);
 const POSTER_CACHE_TTL_MS = 48 * 60 * 60 * 1000; // 48 Hours
 
 export async function resolveOfficialPoster(params: {
@@ -1180,8 +1252,8 @@ export async function resolveOfficialPoster(params: {
   return null;
 }
 
-// Memory buffer cache for streamed official posters to guarantee instant CDN-level delivery
-const posterBufferCache = new Map<string, { buffer: Buffer; contentType: string; timestamp: number }>();
+// Memory buffer cache for streamed official posters (max 200 items / 24 MB)
+const posterBufferCache = new BoundedBufferCache<{ buffer: Buffer; contentType: string; timestamp: number }>(200, 24 * 1024 * 1024);
 const POSTER_BUFFER_TTL_MS = 24 * 60 * 60 * 1000; // 24 Hours
 
 // Default fallback SVG poster buffer when an image cannot be resolved
@@ -1292,8 +1364,8 @@ app.get(['/api/poster', '/api/movies/poster', '/api/tv/poster'], async (req, res
   return res.redirect(302, finalPosterUrl);
 });
 
-// Dedicated Proxy for external images & files to guarantee CORS-safe downloads & canvas rendering
-const proxyFileCache = new Map<string, { buffer: Buffer; contentType: string; timestamp: number }>();
+// Dedicated Proxy for external images & files (max 200 items / 24 MB)
+const proxyFileCache = new BoundedBufferCache<{ buffer: Buffer; contentType: string; timestamp: number }>(200, 24 * 1024 * 1024);
 
 app.get(['/api/image-proxy', '/api/proxy/image', '/api/download/proxy-image', '/api/download/proxy-file'], async (req, res) => {
   const targetUrl = typeof req.query.url === 'string' ? req.query.url.trim() : '';
@@ -2270,6 +2342,7 @@ app.get('/api/movies/filmography', async (req, res) => {
     };
 
     cache.set(cacheKey, { timestamp: Date.now(), data: payload });
+    res.set('Cache-Control', 'public, max-age=1800, s-maxage=3600, stale-while-revalidate=86400');
     res.json(payload);
   } catch (err: any) {
     // If upstream failure, attempt fallback direct search
