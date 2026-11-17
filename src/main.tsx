@@ -4,7 +4,11 @@ import App from './App.tsx';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ThemeProvider } from './context/ThemeContext';
 import { MovieComparisonProvider } from './context/MovieComparisonContext';
+import { inject } from '@vercel/analytics';
 import './index.css';
+
+// Initialize Vercel Web Analytics
+inject();
 
 // Filter out unhandled errors originating from third-party browser extensions (e.g., MetaMask, Foxified, crypto wallets, ad blockers)
 if (typeof window !== 'undefined') {
