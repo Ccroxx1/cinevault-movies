@@ -167,7 +167,9 @@ export default function App() {
     ...(initialUrlState.initialFilters || {})
   }));
   const [movies, setMovies] = useState<Movie[]>([]);
-  const [featuredMovies, setFeaturedMovies] = useState<Movie[]>([]);
+  const [featuredMovies, setFeaturedMovies] = useState<Movie[]>(() =>
+    initialUrlState.route.type === 'browse' ? FALLBACK_FEATURED_MOVIES : []
+  );
   const [isFeaturedLoading, setIsFeaturedLoading] = useState<boolean>(() => initialUrlState.route.type === 'browse');
   const [totalCount, setTotalCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(() => initialUrlState.route.type === 'browse');
@@ -1154,7 +1156,7 @@ export default function App() {
 
             <AdSenseSlot format="auto" responsive={true} className="my-6" />
 
-            <div id="movie-catalog-section" className="space-y-4 my-8">
+            <div id="movie-catalog-section" className="space-y-4 my-8 [contain:layout_style]">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h1 className={`text-xl sm:text-2xl font-black font-display flex items-center gap-2.5 ${
@@ -1319,15 +1321,25 @@ export default function App() {
 
             {isLoading ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6 my-6">
-                {Array.from({ length: 15 }).map((_, i) => (
+                {Array.from({ length: filters.limit || 20 }).map((_, i) => (
                   <div
                     key={`skeleton-${i}`}
-                    className="movie-card-contain aspect-[2/3] rounded-2xl bg-[#0a0a0a] border border-white/5 overflow-hidden relative flex flex-col justify-end p-4 space-y-2 select-none"
+                    className="movie-card-contain rounded-2xl bg-[#0a0a0a] border border-white/5 overflow-hidden flex flex-col select-none"
                   >
-                    <div className="absolute inset-0 skeleton-shimmer pointer-events-none" />
-                    <div className="relative z-10 space-y-2">
-                      <div className="h-4 bg-white/10 rounded-md w-3/4 skeleton-shimmer" />
-                      <div className="h-3 bg-white/5 rounded-md w-1/2 skeleton-shimmer" />
+                    <div className="relative aspect-[2/3] w-full bg-[#050505] skeleton-shimmer" />
+                    <div className="p-3.5 flex-1 flex flex-col justify-between gap-2">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <div className="h-3.5 w-10 rounded skeleton-shimmer" />
+                          <div className="h-3.5 w-8 rounded skeleton-shimmer" />
+                        </div>
+                        <div className="h-4 w-4/5 rounded skeleton-shimmer" />
+                        <div className="h-3 w-1/2 rounded skeleton-shimmer" />
+                      </div>
+                      <div className="pt-2.5 border-t border-white/5 flex items-center justify-between">
+                        <div className="h-3 w-20 rounded skeleton-shimmer" />
+                        <div className="h-3 w-12 rounded skeleton-shimmer" />
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -1375,12 +1387,12 @@ export default function App() {
             )}
 
             {/* Well-spaced Adsterra banner below main catalog */}
-            <div className="my-10 py-3 border-y border-white/5 flex justify-center overflow-hidden">
+            <div className="my-10 py-3 border-y border-white/5 flex justify-center overflow-hidden [contain:layout_style]">
               <AdsterraBanner />
             </div>
 
             {currentNav === 'browse' && !filters.query_term && (watchlist.length > 0 || recentlyViewed.length > 0) && (
-              <div className="my-10 pt-8 border-t border-white/5">
+              <div className="my-10 pt-8 border-t border-white/5 min-h-[420px] [contain:layout_style]">
                 <PersonalizedRecommendations
                   watchlist={watchlist}
                   recentlyViewed={recentlyViewed}

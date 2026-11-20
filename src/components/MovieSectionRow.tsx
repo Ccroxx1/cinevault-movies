@@ -419,8 +419,17 @@ export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
           Array.from({ length: 6 }).map((_, i) => (
             <div
               key={`skeleton-${section.id}-${i}`}
-              className="shrink-0 w-40 sm:w-48 aspect-[2/3] rounded-2xl bg-neutral-900 border border-white/5 animate-pulse"
-            />
+              className="movie-card-contain shrink-0 w-36 sm:w-44 md:w-48 snap-start rounded-2xl overflow-hidden bg-[#0e0e0e] border border-white/10 flex flex-col select-none"
+            >
+              <div className="aspect-[2/3] w-full bg-neutral-900 skeleton-shimmer" />
+              <div className="p-2.5 space-y-1.5">
+                <div className="h-4 w-4/5 rounded skeleton-shimmer" />
+                <div className="flex items-center justify-between">
+                  <div className="h-3 w-14 rounded skeleton-shimmer" />
+                  <div className="h-3 w-10 rounded skeleton-shimmer" />
+                </div>
+              </div>
+            </div>
           ))
         ) : (
           movies.map((movie) => (

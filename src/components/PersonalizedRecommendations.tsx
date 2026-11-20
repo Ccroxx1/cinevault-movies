@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Shuffle } from 'lucide-react';
 import { Movie } from '../types';
 import { fetchMovies } from '../services/movieApi';
+import { FALLBACK_FEATURED_MOVIES } from '../data/fallbackMovies';
 import { MovieCard } from './MovieCard';
 
 interface PersonalizedRecommendationsProps {
@@ -63,10 +64,13 @@ export const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsPr
 
       // Filter out movies already in watchlist or recently viewed
       const existingIds = new Set(combined.map(m => m.id));
-      const filtered = (res.movies || []).filter(m => !existingIds.has(m.id));
-      setRecommendedMovies(filtered.length > 0 ? filtered.slice(0, 5) : (res.movies || []).slice(0, 5));
+      const fetched = res.movies || [];
+      const filtered = fetched.filter(m => !existingIds.has(m.id));
+      const chosen = filtered.length > 0 ? filtered.slice(0, 5) : fetched.slice(0, 5);
+      setRecommendedMovies(chosen.length > 0 ? chosen : FALLBACK_FEATURED_MOVIES.slice(0, 5));
     } catch (err) {
       console.warn('Failed to load personalized recommendations:', err);
+      setRecommendedMovies((prev) => prev.length > 0 ? prev : FALLBACK_FEATURED_MOVIES.slice(0, 5));
     } finally {
       setIsLoading(false);
     }
@@ -102,9 +106,28 @@ export const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsPr
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="aspect-[2/3] rounded-2xl bg-neutral-900 animate-pulse border border-white/5" />
+            <div
+              key={i}
+              className="rounded-2xl bg-[#0a0a0a] border border-white/5 overflow-hidden flex flex-col select-none"
+            >
+              <div className="aspect-[2/3] w-full bg-[#050505] skeleton-shimmer" />
+              <div className="p-3.5 flex-1 flex flex-col justify-between gap-2">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <div className="h-3.5 w-10 rounded skeleton-shimmer" />
+                    <div className="h-3.5 w-8 rounded skeleton-shimmer" />
+                  </div>
+                  <div className="h-4 w-4/5 rounded skeleton-shimmer" />
+                  <div className="h-3 w-1/2 rounded skeleton-shimmer" />
+                </div>
+                <div className="pt-2.5 border-t border-white/5 flex items-center justify-between">
+                  <div className="h-3 w-20 rounded skeleton-shimmer" />
+                  <div className="h-3 w-12 rounded skeleton-shimmer" />
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       ) : (

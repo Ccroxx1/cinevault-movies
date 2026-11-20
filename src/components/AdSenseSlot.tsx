@@ -76,19 +76,19 @@ export const AdSenseSlot: React.FC<AdSenseSlotProps> = ({
   const getContainerStyles = () => {
     switch (format) {
       case 'rectangle':
-        return 'max-w-[336px] min-h-[250px] sm:min-h-[280px] mx-auto';
+        return 'max-w-[336px] min-h-[280px] max-h-[340px] mx-auto';
       case 'horizontal':
-        return 'w-full max-w-[970px] min-h-[90px] mx-auto';
+        return 'w-full max-w-[970px] min-h-[140px] max-h-[200px] mx-auto';
       case 'vertical':
         return 'w-[160px] sm:w-[300px] min-h-[600px] mx-auto';
       default:
-        return 'w-full min-h-[90px] sm:min-h-[100px]';
+        return 'w-full min-h-[260px] sm:min-h-[250px]';
     }
   };
 
   return (
     <div
-      className={`relative w-full rounded-2xl border p-3 sm:p-4 flex flex-col items-center justify-center overflow-hidden my-6 transition-all ${
+      className={`relative w-full rounded-2xl border p-3 sm:p-4 flex flex-col items-center justify-between overflow-hidden my-6 [contain:layout_style] ${
         isWhite
           ? 'bg-slate-50 border-slate-200 shadow-xs'
           : 'bg-[#0a0a0a]/80 border-white/10'
@@ -96,7 +96,7 @@ export const AdSenseSlot: React.FC<AdSenseSlotProps> = ({
     >
       {/* Standard Advertisement Labeling */}
       <div
-        className={`w-full flex items-center justify-between pb-2 mb-2 border-b text-[10px] uppercase tracking-widest font-mono select-none ${
+        className={`w-full flex items-center justify-between pb-2 mb-2 border-b text-[10px] uppercase tracking-widest font-mono select-none shrink-0 ${
           isWhite ? 'border-slate-200 text-slate-500' : 'border-white/5 text-neutral-500'
         }`}
       >
@@ -108,7 +108,7 @@ export const AdSenseSlot: React.FC<AdSenseSlotProps> = ({
       <div
         ref={containerRef}
         id={NATIVE_CONTAINER_ID}
-        className="w-full flex items-center justify-center overflow-hidden min-h-[60px]"
+        className="w-full flex-1 flex items-center justify-center overflow-hidden min-h-[190px]"
         {...(slotId ? { 'data-slot-id': slotId } : {})}
       />
     </div>

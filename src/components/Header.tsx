@@ -270,18 +270,18 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <header className={`sticky top-0 z-40 w-full transform-gpu backdrop-blur-md border-b transition-[background-color,border-color,box-shadow] duration-200 ${
+      <header className={`sticky top-0 z-40 w-full transform-gpu border-b transition-[background-color,border-color,box-shadow] duration-200 ${
         isScrolled
           ? isWhite
-            ? 'bg-white/95 border-slate-200/90 shadow-md shadow-slate-900/5'
+            ? 'bg-white/98 border-slate-200/90 shadow-md shadow-slate-900/5'
             : isBlueBlack
-            ? 'bg-[#080e1e]/95 border-sky-400/20 shadow-lg shadow-black/60'
-            : 'bg-[#0a0a0a]/95 border-white/15 shadow-lg shadow-black/70'
+            ? 'bg-[#080e1e]/98 border-sky-400/20 shadow-lg shadow-black/60'
+            : 'bg-[#0a0a0a]/98 border-white/15 shadow-lg shadow-black/70'
           : isWhite
-          ? 'bg-white/90 border-slate-200/60 shadow-none'
+          ? 'bg-white/95 border-slate-200/60 shadow-none'
           : isBlueBlack
-          ? 'bg-[#080e1e]/85 border-sky-400/10 shadow-none'
-          : 'bg-[#0a0a0a]/85 border-white/10 shadow-none'
+          ? 'bg-[#080e1e]/95 border-sky-400/10 shadow-none'
+          : 'bg-[#0a0a0a]/95 border-white/10 shadow-none'
       }`}>
         <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14 sm:h-16 md:h-20 gap-1.5 sm:gap-4">

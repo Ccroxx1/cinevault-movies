@@ -88,6 +88,7 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
   const activeGenre = selectedGenre || 'All';
   const isSpecificGenre = activeGenre.toLowerCase() !== 'all';
   const genreConfig = useMemo(() => getGenreHeroConfig(activeGenre), [activeGenre]);
+  const lastSelectionKeyRef = useRef<string>(`${activeGenre}::${curationMode}`);
 
   // Dynamically populate active queue whenever selectedGenre, movies, genreMovies, or curationMode changes
   useEffect(() => {
@@ -125,18 +126,32 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
       pool = getHeroMoviesForGenre(activeGenre, [], movies);
     }
 
-    // Keep highest-rated/top blockbuster as first featured slide for newly selected genre, then shuffle remainder
-    if (pool.length > 2) {
-      const topTitle = pool[0];
-      const remainder = shuffleArray(pool.slice(1));
-      setActiveQueue([topTitle, ...remainder]);
-    } else {
-      setActiveQueue(pool);
-    }
+    const selectionKey = `${activeGenre}::${curationMode}`;
+    const selectionChanged = lastSelectionKeyRef.current !== selectionKey;
+    lastSelectionKeyRef.current = selectionKey;
 
-    setCurrentIndex(0);
-    setBackdropIndex(0);
-    setSlideKey((k) => k + 1);
+    setActiveQueue((prevQueue) => {
+      // If user didn't switch genre/curation and we already rendered slide 0, keep the active slide 0
+      // pinned in place so its LCP image load is never aborted by background API hydration.
+      if (!selectionChanged && prevQueue.length > 0 && currentIndex === 0) {
+        const pinnedSlide = prevQueue[0];
+        const remainingLive = shuffleArray(pool.filter((m) => m.id !== pinnedSlide.id));
+        return [pinnedSlide, ...remainingLive];
+      }
+
+      if (pool.length > 2) {
+        const topTitle = pool[0];
+        const remainder = shuffleArray(pool.slice(1));
+        return [topTitle, ...remainder];
+      }
+      return pool;
+    });
+
+    if (selectionChanged) {
+      setCurrentIndex(0);
+      setBackdropIndex(0);
+      setSlideKey((k) => k + 1);
+    }
   }, [activeGenre, isSpecificGenre, movies, genreMovies, curationMode]);
 
   const totalSlides = activeQueue.length;

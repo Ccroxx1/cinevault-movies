@@ -174,7 +174,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
   const posterUrl = getPrimaryMoviePoster(movie);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto bg-black/90 backdrop-blur-xl animate-in fade-in duration-200" role="dialog" aria-modal="true" aria-label={movie.title}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto bg-black/92 animate-in fade-in duration-150" role="dialog" aria-modal="true" aria-label={movie.title}>
       
       {/* Modal Card */}
       <div className="modal-dialog-surface relative w-full max-w-5xl bg-[#0a0a0a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl my-auto flex flex-col max-h-[92vh]">
@@ -185,7 +185,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
             <img
               src={backdropImage}
               alt={movie.title}
-              className="w-full h-full object-cover opacity-35 blur-[0.5px]"
+              className="w-full h-full object-cover opacity-35"
             />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/60 to-transparent" />
@@ -194,7 +194,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
           <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
             <button
               onClick={() => setIsShareModalOpen(true)}
-              className="p-2.5 rounded-full border bg-black/60 text-neutral-300 hover:text-white border-white/10 hover:bg-black/80 hover:border-rose-500/40 transition-all cursor-pointer"
+              className="p-2.5 rounded-full border bg-black/75 text-neutral-300 hover:text-white border-white/10 hover:bg-black/90 hover:border-rose-500/40 transition-colors cursor-pointer"
               title="Share movie poster, title & synopsis across social media"
               aria-label="Share movie"
             >
@@ -203,10 +203,10 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({
 
             <button
               onClick={() => onToggleWatchlist(movie)}
-              className={`p-2.5 rounded-full border transition-all cursor-pointer ${
+              className={`p-2.5 rounded-full border transition-colors cursor-pointer ${
                 isWatchlisted
                   ? 'bg-rose-600 text-white border-rose-500 shadow-lg shadow-rose-900/30'
-                  : 'bg-black/60 text-neutral-300 hover:text-white border-white/10 hover:bg-black/80'
+                  : 'bg-black/75 text-neutral-300 hover:text-white border-white/10 hover:bg-black/90'
               }`}
               title={isWatchlisted ? 'Remove from Watchlist' : 'Add to Watchlist'}
             >

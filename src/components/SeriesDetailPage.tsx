@@ -1161,7 +1161,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
           <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-20">
             <button
               onClick={onBack || (() => onNavigateToSeries())}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-black/60 hover:bg-black/80 text-neutral-200 hover:text-white rounded-full border border-white/10 backdrop-blur-md text-xs font-semibold shadow-lg transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-black/75 hover:bg-black/90 text-neutral-200 hover:text-white rounded-full border border-white/10 text-xs font-semibold shadow-lg transition-colors cursor-pointer"
               aria-label="Go back"
             >
               <ArrowLeft size={15} />
@@ -1171,7 +1171,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
             <div className="flex items-center gap-2">
               <button
                 onClick={handleSharePage}
-                className="flex items-center gap-1.5 px-3 py-2 bg-black/60 hover:bg-black/80 text-neutral-200 hover:text-white rounded-full border border-white/10 backdrop-blur-md text-xs font-semibold shadow-lg transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-2 bg-black/75 hover:bg-black/90 text-neutral-200 hover:text-white rounded-full border border-white/10 text-xs font-semibold shadow-lg transition-colors cursor-pointer"
                 title="Share this series URL"
                 aria-label="Share series link"
               >
@@ -1191,10 +1191,10 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
               {onToggleWatchlist && show && (
                 <button
                   onClick={() => onToggleWatchlist(show)}
-                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full border text-xs font-bold shadow-lg transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full border text-xs font-bold shadow-lg transition-colors cursor-pointer ${
                     isCurrentWatchlisted
                       ? 'bg-rose-600 text-white border-rose-500 shadow-rose-900/40'
-                      : 'bg-black/60 hover:bg-black/80 text-neutral-200 hover:text-white border-white/10 backdrop-blur-md'
+                      : 'bg-black/75 hover:bg-black/90 text-neutral-200 hover:text-white border-white/10'
                   }`}
                 >
                   {isCurrentWatchlisted ? <BookmarkIcon size={16} /> : <BookmarkPlusIcon size={16} />}

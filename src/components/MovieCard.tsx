@@ -219,7 +219,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
         {/* Prominent 'Download' Badge indicating available torrent options at a glance */}
         {torrentCount > 0 ? (
           <div className="absolute bottom-2 inset-x-2 z-10 pointer-events-none group-hover:opacity-0 transition-opacity duration-200">
-            <div className="inline-flex items-center gap-1.5 py-0.5 px-2 rounded-lg bg-black/85 backdrop-blur-md border border-emerald-500/35 text-emerald-400 font-bold text-[10px] shadow-lg shadow-black/80 max-w-full">
+            <div className="inline-flex items-center gap-1.5 py-0.5 px-2 rounded-lg bg-black/90 border border-emerald-500/35 text-emerald-400 font-bold text-[10px] shadow-lg shadow-black/80 max-w-full">
               <Download className="w-2.5 h-2.5 shrink-0" />
               <span className="uppercase tracking-wider font-extrabold text-emerald-400 shrink-0">
                 {has4k ? '4K UHD' : has1080 ? '1080p' : 'HD'}
@@ -232,7 +232,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
           </div>
         ) : (
           <div className="absolute bottom-2 inset-x-2 z-10 pointer-events-none group-hover:opacity-0 transition-opacity duration-200">
-            <div className="inline-flex items-center gap-1 py-0.5 px-2 rounded-lg bg-black/80 backdrop-blur-md border border-white/10 text-neutral-400 font-medium text-[10px] shadow-md">
+            <div className="inline-flex items-center gap-1 py-0.5 px-2 rounded-lg bg-black/85 border border-white/10 text-neutral-400 font-medium text-[10px] shadow-md">
               <span>Streaming Only</span>
             </div>
           </div>

@@ -18,14 +18,14 @@ export function normalizeImageUrl(url?: string): string {
   let cleanUrl = url.trim();
   if (!cleanUrl) return '';
 
-  // Replace yts.mx domains with yts.gg for superior image loading and uptime
+  // Replace slow/legacy yts.mx & yts.pw domains with yts.gg for faster CDN delivery
   cleanUrl = cleanUrl
-    .replace(/^http:\/\/img\.yts\.mx\//i, 'https://img.yts.gg/')
-    .replace(/^https:\/\/img\.yts\.mx\//i, 'https://img.yts.gg/')
-    .replace(/^http:\/\/yts\.mx\//i, 'https://yts.gg/')
-    .replace(/^https:\/\/yts\.mx\//i, 'https://yts.gg/')
-    .replace(/img\.yts\.mx/gi, 'img.yts.gg')
-    .replace(/yts\.mx/gi, 'yts.gg');
+    .replace(/^http:\/\/img\.yts\.(mx|pw)\//i, 'https://img.yts.gg/')
+    .replace(/^https:\/\/img\.yts\.(mx|pw)\//i, 'https://img.yts.gg/')
+    .replace(/^http:\/\/yts\.(mx|pw)\//i, 'https://yts.gg/')
+    .replace(/^https:\/\/yts\.(mx|pw)\//i, 'https://yts.gg/')
+    .replace(/img\.yts\.(mx|pw)/gi, 'img.yts.gg')
+    .replace(/yts\.(mx|pw)/gi, 'yts.gg');
 
   return cleanUrl;
 }
@@ -36,7 +36,8 @@ export function normalizeImageUrl(url?: string): string {
  */
 function buildImageVariants(url?: string): string[] {
   if (!url) return [];
-  const normalized = normalizeImageUrl(url);
+  const rawTrimmed = url.trim();
+  const normalized = normalizeImageUrl(rawTrimmed);
   if (!normalized) return [];
 
   const variants = [normalized];
@@ -45,6 +46,11 @@ function buildImageVariants(url?: string): string[] {
   if (normalized.includes('yts.gg')) {
     variants.push(normalized.replace(/yts\.gg/gi, 'yts.am'));
     variants.push(normalized.replace(/yts\.gg/gi, 'yts.lt'));
+  }
+
+  // Keep original yts.pw URL only as last-resort mirror fallback
+  if (rawTrimmed.toLowerCase().includes('yts.pw') && !variants.includes(rawTrimmed)) {
+    variants.push(rawTrimmed.replace(/^http:\/\//i, 'https://'));
   }
 
   return variants;
@@ -277,19 +283,19 @@ export function getBackdropCandidates(movie?: {
     rawList.push(...buildImageVariants(movie.background_image));
   }
 
-  // 3. Automatically derive large screenshots from YTS movie asset directory if available
-  const anyMovieUrl = [
-    movie.background_image_original,
-    movie.background_image,
-    movie.large_cover_image,
-    movie.medium_cover_image,
-  ].find(Boolean);
+  // 3. Automatically derive primary large screenshot from YTS movie asset directory if none provided
+  if (!movie.large_screenshot_image1 && !movie.large_screenshot_image2 && !movie.large_screenshot_image3) {
+    const anyMovieUrl = [
+      movie.background_image_original,
+      movie.background_image,
+      movie.large_cover_image,
+      movie.medium_cover_image,
+    ].find(Boolean);
 
-  const ytsBaseDir = extractYtsMovieBaseDir(anyMovieUrl);
-  if (ytsBaseDir) {
-    rawList.push(...buildImageVariants(`${ytsBaseDir}/large-screenshot1.jpg`));
-    rawList.push(...buildImageVariants(`${ytsBaseDir}/large-screenshot2.jpg`));
-    rawList.push(...buildImageVariants(`${ytsBaseDir}/large-screenshot3.jpg`));
+    const ytsBaseDir = extractYtsMovieBaseDir(anyMovieUrl);
+    if (ytsBaseDir) {
+      rawList.push(...buildImageVariants(`${ytsBaseDir}/large-screenshot1.jpg`));
+    }
   }
 
   // 4. Sharp high-resolution cover artwork (500x750 crisp movie poster)

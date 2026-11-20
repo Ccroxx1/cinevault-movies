@@ -871,7 +871,7 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="share-movie-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-black/85 backdrop-blur-md overflow-y-auto overscroll-contain animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-black/90 overflow-y-auto overscroll-contain animate-in fade-in duration-150"
       onClick={onClose}
     >
       {/* Hidden high-res canvas used for 1080x1920 export */}
@@ -879,7 +879,7 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
 
       <div
         onClick={(e) => e.stopPropagation()}
-        className={`relative w-full max-w-2xl rounded-3xl overflow-hidden border shadow-2xl transition-all duration-200 my-auto ${
+        className={`relative w-full max-w-2xl rounded-3xl overflow-hidden border shadow-2xl my-auto ${
           isWhite
             ? 'bg-white border-slate-200 text-slate-900 shadow-slate-400/30'
             : isBlueBlack
@@ -993,21 +993,21 @@ export const ShareMovieModal: React.FC<ShareMovieModalProps> = ({
                 {/* Visual 9:16 Story Card Preview */}
                 <div className="shrink-0 w-64 sm:w-72">
                   <div className="story-9x16-surface relative aspect-[9/16] w-full rounded-3xl overflow-hidden border border-white/20 shadow-2xl shadow-black/80 flex flex-col justify-between p-3.5 sm:p-4 bg-[#0a0d18] text-white select-none ring-1 ring-white/10">
-                    {/* Blurred Backdrop Image */}
+                    {/* Soft Backdrop Image without heavy 48px Gaussian blur repaints */}
                     <img
                       src={currentPoster}
                       alt=""
                       aria-hidden="true"
                       referrerPolicy="no-referrer"
-                      className="absolute inset-0 w-full h-full object-cover scale-125 blur-2xl opacity-35"
+                      className="absolute inset-0 w-full h-full object-cover scale-110 opacity-20"
                     />
                     {/* Dark gradient overlay for extreme legibility */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-[#060810]/85 via-black/40 to-[#040508]/95 pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-[#060810]/90 via-black/65 to-[#040508]/95 pointer-events-none" />
 
                     {/* TOP SAFE HEADER */}
                     <div className="relative z-10 flex flex-col items-center gap-1.5 pt-1">
                       {/* Story Pill */}
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[10px] font-bold tracking-wider uppercase text-white shadow-sm">
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 border border-white/20 text-[10px] font-bold tracking-wider uppercase text-white shadow-sm">
                         <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
                         <span className="story-header-text text-white">Stories &amp; Status • 9:16</span>
                       </div>

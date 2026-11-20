@@ -303,7 +303,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
           <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-20">
             <button
               onClick={onBack || onNavigateHome}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-black/60 hover:bg-black/80 text-neutral-200 hover:text-white rounded-full border border-white/10 backdrop-blur-md text-xs font-semibold shadow-lg transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-black/75 hover:bg-black/90 text-neutral-200 hover:text-white rounded-full border border-white/10 text-xs font-semibold shadow-lg transition-colors cursor-pointer"
               aria-label="Go back"
             >
               <ArrowLeft size={15} />
@@ -313,7 +313,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
             <div className="flex items-center gap-2">
               <button
                 onClick={handleSharePage}
-                className="flex items-center gap-1.5 px-3.5 py-2 bg-black/60 hover:bg-black/80 text-neutral-200 hover:text-white rounded-full border border-white/10 backdrop-blur-md text-xs font-semibold shadow-lg transition-all cursor-pointer hover:border-rose-500/40"
+                className="flex items-center gap-1.5 px-3.5 py-2 bg-black/75 hover:bg-black/90 text-neutral-200 hover:text-white rounded-full border border-white/10 text-xs font-semibold shadow-lg transition-colors cursor-pointer hover:border-rose-500/40"
                 title="Share movie poster, title & synopsis across Facebook, Twitter, WhatsApp & more"
                 aria-label="Share movie"
               >
@@ -323,10 +323,10 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
 
               <button
                 onClick={() => onToggleWatchlist(movie)}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full border text-xs font-bold shadow-lg transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full border text-xs font-bold shadow-lg transition-colors cursor-pointer ${
                   isCurrentWatchlisted
                     ? 'bg-rose-600 text-white border-rose-500 shadow-rose-900/40'
-                    : 'bg-black/60 hover:bg-black/80 text-neutral-200 hover:text-white border-white/10 backdrop-blur-md'
+                    : 'bg-black/75 hover:bg-black/90 text-neutral-200 hover:text-white border-white/10'
                 }`}
               >
                 {isCurrentWatchlisted ? <BookmarkIcon size={16} /> : <BookmarkPlusIcon size={16} />}
@@ -872,7 +872,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
 
       {/* Lightbox Screenshot Modal */}
       {selectedScreenshotIndex !== null && (
-        <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 animate-in fade-in" onClick={() => setSelectedScreenshotIndex(null)}>
+        <div className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-4 animate-in fade-in duration-150" onClick={() => setSelectedScreenshotIndex(null)}>
            <img src={screenshots[selectedScreenshotIndex]} alt="Full Screenshot" className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl" onClick={(e) => e.stopPropagation()} />
            <button onClick={() => setSelectedScreenshotIndex(null)} className="mt-6 px-6 py-2 bg-rose-600 text-white font-bold rounded-full">Close Preview</button>
         </div>

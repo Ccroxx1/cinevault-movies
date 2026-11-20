@@ -95,7 +95,7 @@ export const AdsterraBanner: React.FC = () => {
   }
 
   return (
-    <aside className="my-6 w-full rounded-2xl border border-white/10 bg-[#0a0a0a]/80 p-3 sm:p-4">
+    <aside className="my-6 w-full rounded-2xl border border-white/10 bg-[#0a0a0a]/80 p-3 sm:p-4 [contain:layout_style]">
       <div className="mb-3 flex items-center justify-between border-b border-white/5 pb-2 text-[10px] font-mono uppercase tracking-widest text-neutral-500">
         <span className="font-semibold text-neutral-400">Advertisement</span>
         <span>Sponsored Content</span>
@@ -105,24 +105,26 @@ export const AdsterraBanner: React.FC = () => {
           href="https://beta.publishers.adsterra.com/referral/BYyJkzF7DE"
           target="_blank"
           rel="nofollow noopener noreferrer"
-          className="block w-full max-w-[728px]"
+          className="block w-full max-w-[728px] aspect-[728/90] overflow-hidden rounded-lg bg-neutral-900/40"
         >
           <img
             src="https://landings-cdn.adsterratech.com/referralBanners/png/728%20x%2090%20px.png"
             alt="Adsterra publisher referral banner"
             width={728}
             height={90}
-            className="block h-auto w-full"
+            loading="lazy"
+            decoding="async"
+            className="block h-full w-full object-contain"
           />
         </a>
         <div
           ref={bannerViewportRef}
-          className="flex w-full justify-center overflow-hidden"
-          style={{ height: bannerHeight * bannerScale }}
+          className="flex w-full max-w-[728px] justify-center overflow-hidden"
+          style={{ height: Math.max(40, Math.round(bannerHeight * bannerScale)) }}
         >
           <div
             ref={adContainerRef}
-            className="h-[90px] w-[728px] shrink-0"
+            className="h-[90px] w-[728px] shrink-0 overflow-hidden"
             style={{
               transform: `scale(${bannerScale})`,
               transformOrigin: 'top center',
