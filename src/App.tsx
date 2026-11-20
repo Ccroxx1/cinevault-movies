@@ -1181,8 +1181,6 @@ export default function App() {
                   <p className={`text-xs sm:text-sm mt-0.5 ${isWhite ? 'text-slate-600' : 'text-neutral-400'}`}>
                     {filters.query_term
                       ? 'Displaying matching titles across all years from the full cinematic archive'
-                      : filters.sort_by === 'date_added'
-                      ? `Latest additions from ${new Date().getFullYear() - 1}–${new Date().getFullYear()} • Search any title above to find earlier films`
                       : 'Stream trailers, view metadata, and download high-quality files with magnet links'}
                   </p>
                 </div>
