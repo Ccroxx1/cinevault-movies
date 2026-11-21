@@ -82,7 +82,7 @@ export const AdSenseSlot: React.FC<AdSenseSlotProps> = ({
       case 'vertical':
         return 'w-[160px] sm:w-[300px] min-h-[600px] mx-auto';
       default:
-        return 'w-full min-h-[260px] sm:min-h-[250px]';
+        return 'w-full h-[270px] sm:h-[250px] max-h-[270px] sm:max-h-[250px]';
     }
   };
 
@@ -108,7 +108,7 @@ export const AdSenseSlot: React.FC<AdSenseSlotProps> = ({
       <div
         ref={containerRef}
         id={NATIVE_CONTAINER_ID}
-        className="w-full flex-1 flex items-center justify-center overflow-hidden min-h-[190px]"
+        className="w-full flex-1 flex items-center justify-center overflow-hidden h-[200px] sm:h-[185px] max-h-[200px]"
         {...(slotId ? { 'data-slot-id': slotId } : {})}
       />
     </div>

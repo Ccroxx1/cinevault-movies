@@ -56,40 +56,45 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   });
 
   const setColorMode = (mode: ColorMode) => {
-    setColorModeState(mode);
     try {
       localStorage.setItem('cinevault_color_mode', mode);
     } catch {
       // ignore
     }
+    React.startTransition(() => {
+      setColorModeState(mode);
+    });
   };
 
   useEffect(() => {
-    const root = document.documentElement;
-    root.setAttribute('data-theme', colorMode);
+    const rafId = requestAnimationFrame(() => {
+      const root = document.documentElement;
+      root.setAttribute('data-theme', colorMode);
 
-    // Sync classList for Tailwind / dark mode support
-    root.classList.remove('theme-black', 'theme-white', 'theme-blue-black', 'dark', 'light');
+      // Sync classList for Tailwind / dark mode support
+      root.classList.remove('theme-black', 'theme-white', 'theme-blue-black', 'dark', 'light');
 
-    if (colorMode === 'white') {
-      root.classList.add('light', 'theme-white');
-    } else if (colorMode === 'blue-black') {
-      root.classList.add('dark', 'theme-blue-black');
-    } else {
-      root.classList.add('dark', 'theme-black');
-    }
-
-    // Sync meta theme-color for mobile address bar
-    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-    if (metaThemeColor) {
       if (colorMode === 'white') {
-        metaThemeColor.setAttribute('content', '#ffffff');
+        root.classList.add('light', 'theme-white');
       } else if (colorMode === 'blue-black') {
-        metaThemeColor.setAttribute('content', '#060B17');
+        root.classList.add('dark', 'theme-blue-black');
       } else {
-        metaThemeColor.setAttribute('content', '#050505');
+        root.classList.add('dark', 'theme-black');
       }
-    }
+
+      // Sync meta theme-color for mobile address bar
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+      if (metaThemeColor) {
+        if (colorMode === 'white') {
+          metaThemeColor.setAttribute('content', '#ffffff');
+        } else if (colorMode === 'blue-black') {
+          metaThemeColor.setAttribute('content', '#060B17');
+        } else {
+          metaThemeColor.setAttribute('content', '#050505');
+        }
+      }
+    });
+    return () => cancelAnimationFrame(rafId);
   }, [colorMode]);
 
   return (

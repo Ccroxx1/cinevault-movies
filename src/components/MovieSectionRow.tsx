@@ -207,13 +207,11 @@ const MovieSectionCard: React.FC<MovieSectionCardProps> = ({
               width="192"
               height="288"
               referrerPolicy="no-referrer"
-              loading="eager"
+              loading="lazy"
               decoding="async"
               onLoad={() => setIsLoaded(true)}
               onError={handleImageError}
-              className={`w-full h-full object-cover transition-opacity duration-300 group-hover:scale-105 group-hover:transition-transform group-hover:duration-500 ${
-                isLoaded ? 'opacity-100' : 'opacity-0'
-              }`}
+              className="relative z-[1] w-full h-full object-cover group-hover:scale-105 group-hover:transition-transform group-hover:duration-500"
             />
           ) : null
         ) : (

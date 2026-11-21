@@ -113,7 +113,7 @@ export const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsPr
               className="rounded-2xl bg-[#0a0a0a] border border-white/5 overflow-hidden flex flex-col select-none"
             >
               <div className="aspect-[2/3] w-full bg-[#050505] skeleton-shimmer" />
-              <div className="p-3.5 flex-1 flex flex-col justify-between gap-2">
+              <div className="p-3.5 min-h-[112px] flex-1 flex flex-col justify-between gap-2">
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <div className="h-3.5 w-10 rounded skeleton-shimmer" />

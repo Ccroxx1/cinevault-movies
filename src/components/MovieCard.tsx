@@ -11,6 +11,7 @@ import { useIntersectionLazyLoad } from '../hooks/useIntersectionLazyLoad';
 
 interface MovieCardProps {
   movie: Movie;
+  priority?: boolean;
   onSelect: (movie: Movie) => void;
   onPlayTrailer?: (ytCode: string, title: string) => void;
   onCopyMagnet: (magnetUrl: string, title: string) => void;
@@ -20,15 +21,17 @@ interface MovieCardProps {
 
 export const MovieCard: React.FC<MovieCardProps> = ({
   movie,
+  priority = false,
   onSelect,
   onPlayTrailer,
   onCopyMagnet,
   isWatchlisted,
   onToggleWatchlist,
 }) => {
-  const [cardRef, isVisible] = useIntersectionLazyLoad<HTMLElement>({
+  const [cardRef, isObservedVisible] = useIntersectionLazyLoad<HTMLElement>({
     rootMargin: '250px 0px 250px 0px',
   });
+  const isVisible = priority || isObservedVisible;
   const [isLoaded, setIsLoaded] = useState(false);
   const posterCandidates = useMemo(() => getPosterCandidates(movie, 'medium'), [
     movie,
@@ -146,16 +149,15 @@ export const MovieCard: React.FC<MovieCardProps> = ({
               }}
               src={currentPosterSrc}
               alt={`${movie.title} (${movie.year}) Poster`}
-              loading="eager"
-              decoding="async"
+              loading={priority ? 'eager' : 'lazy'}
+              fetchPriority={priority ? 'high' : 'auto'}
+              decoding={priority ? 'sync' : 'async'}
               width="240"
               height="360"
               referrerPolicy="no-referrer"
               onLoad={() => setIsLoaded(true)}
               onError={handleImageError}
-              className={`w-full h-full object-cover transition-opacity duration-300 group-hover:scale-105 group-hover:transition-transform group-hover:duration-500 ${
-                isLoaded ? 'opacity-100' : 'opacity-0'
-              }`}
+              className="relative z-[1] w-full h-full object-cover group-hover:scale-105 group-hover:transition-transform group-hover:duration-500"
             />
           ) : null
         ) : (
@@ -188,7 +190,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
             <button
               type="button"
               onClick={handleToggleComparisonClick}
-              className={`p-1.5 rounded-full border transition-all shadow-md cursor-pointer ${
+              className={`p-1.5 rounded-full border transition-colors shadow-md cursor-pointer ${
                 isCompared
                   ? 'bg-amber-500 text-black border-amber-400 shadow-amber-900/40'
                   : 'bg-black/85 text-neutral-300 hover:text-white hover:bg-black border-white/15'
@@ -203,7 +205,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
             <button
               type="button"
               onClick={handleToggleWatchlistClick}
-              className={`p-1.5 rounded-full border transition-all shadow-md cursor-pointer ${
+              className={`p-1.5 rounded-full border transition-colors shadow-md cursor-pointer ${
                 isWatchlisted
                   ? 'bg-rose-600 text-white border-rose-500 shadow-rose-900/30'
                   : 'bg-black/85 text-neutral-300 hover:text-white hover:bg-black border-white/15'
@@ -302,7 +304,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
         </div>
       </div>
 
-      <div className="p-3.5 flex-1 flex flex-col justify-between gap-2">
+      <div className="p-3.5 min-h-[112px] flex-1 flex flex-col justify-between gap-2">
         <div>
           <div className="flex items-center justify-between gap-1.5 text-xs text-neutral-400 mb-1">
             <span className="font-medium text-neutral-300">{movie.year || 'N/A'}</span>

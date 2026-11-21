@@ -304,13 +304,13 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      className={`hero-cinema-container relative w-full rounded-3xl overflow-hidden border ${genreConfig.themeColor.border} shadow-2xl min-h-[500px] sm:min-h-[540px] md:min-h-[580px] lg:min-h-[620px] aspect-[16/11] sm:aspect-[16/10] md:aspect-[21/9] flex flex-col justify-between group transition-all select-none mb-8`}
+      className={`hero-cinema-container relative w-full rounded-3xl overflow-hidden border ${genreConfig.themeColor.border} shadow-2xl h-[520px] sm:h-[540px] md:h-[580px] lg:h-[620px] flex flex-col justify-between group transition-colors select-none mb-8 [contain:layout_style]`}
       aria-label={`${isSpecificGenre ? activeGenre : 'Featured'} Movies Slideshow`}
     >
       {/* Edge-to-Edge Cinematic Slide Artwork with dynamic background image */}
       <div
         key={`hero-slide-${activeGenre}-${currentMovie.id}-${slideKey}-${backdropIndex}`}
-        className="absolute inset-0 z-0 animate-heroFadeIn overflow-hidden"
+        className={`absolute inset-0 z-0 overflow-hidden ${slideKey > 0 ? 'animate-heroFadeIn' : ''}`}
       >
         <img
           src={currentBackdropSrc}
@@ -319,7 +319,7 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
           height="1080"
           loading="eager"
           fetchPriority="high"
-          decoding="async"
+          decoding="sync"
           referrerPolicy="no-referrer"
           onError={handleBackdropError}
           className="w-full h-full object-cover object-center sm:object-[center_20%] scale-100 group-hover:scale-[1.025] transition-transform duration-1000 ease-out select-none"
@@ -337,7 +337,7 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
           <button
             type="button"
             onClick={handlePrev}
-            className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-30 p-2 sm:p-2.5 rounded-full bg-black/60 hover:bg-black/90 border border-white/20 text-white/80 hover:text-white backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer shadow-xl hidden sm:flex items-center justify-center hover:scale-110 active:scale-95"
+            className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-30 p-2 sm:p-2.5 rounded-full bg-black/80 hover:bg-black border border-white/20 text-white/80 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer shadow-xl hidden sm:flex items-center justify-center"
             aria-label="Previous movie slide"
             title="Previous movie"
           >
@@ -347,7 +347,7 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
           <button
             type="button"
             onClick={handleNext}
-            className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-30 p-2 sm:p-2.5 rounded-full bg-black/60 hover:bg-black/90 border border-white/20 text-white/80 hover:text-white backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer shadow-xl hidden sm:flex items-center justify-center hover:scale-110 active:scale-95"
+            className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-30 p-2 sm:p-2.5 rounded-full bg-black/80 hover:bg-black border border-white/20 text-white/80 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer shadow-xl hidden sm:flex items-center justify-center"
             aria-label="Next movie slide"
             title="Next movie"
           >
@@ -360,18 +360,18 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
       <div className="relative z-20 p-4 sm:p-6 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
           {/* Dynamic Genre Badge */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/75 border border-white/15 backdrop-blur-md text-xs font-semibold shadow-lg">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/80 border border-white/15 text-xs font-semibold shadow-lg">
             <span className={`font-bold uppercase tracking-wider text-[11px] ${genreConfig.themeColor.primaryText}`}>
               {genreConfig.badgeLabel}
             </span>
           </div>
 
-          <div className="px-2.5 py-1.5 rounded-xl bg-black/60 border border-white/10 backdrop-blur-md text-[11px] font-mono font-semibold text-neutral-300">
+          <div className="px-2.5 py-1.5 rounded-xl bg-black/75 border border-white/10 text-[11px] font-mono font-semibold text-neutral-300">
             {currentIndex + 1} of {totalSlides}
           </div>
 
           {feedbackToast && (
-            <div className="animate-fadeIn text-[11px] font-semibold text-emerald-300 bg-emerald-950/80 border border-emerald-500/40 px-2.5 py-1 rounded-xl backdrop-blur-md shadow-md">
+            <div className="animate-fadeIn text-[11px] font-semibold text-emerald-300 bg-emerald-950/90 border border-emerald-500/40 px-2.5 py-1 rounded-xl shadow-md">
               {feedbackToast}
             </div>
           )}

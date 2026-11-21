@@ -449,9 +449,11 @@ export default function App() {
   };
 
   const handleNavigateHome = () => {
-    setRoute({ type: 'browse' });
-    setCurrentNav('browse');
-    setMovieSlugError(null);
+    React.startTransition(() => {
+      setRoute({ type: 'browse' });
+      setCurrentNav('browse');
+      setMovieSlugError(null);
+    });
 
     if (window.location.pathname !== '/') {
       window.history.pushState({ type: 'browse' }, '', '/');
@@ -460,7 +462,9 @@ export default function App() {
     updateDocumentSeo({
       breadcrumbs: [{ name: 'Home', item: '/' }]
     });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (window.scrollY > 0) {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }
   };
 
   const handleNavigateWatchlist = () => {
@@ -1325,7 +1329,7 @@ export default function App() {
                     className="movie-card-contain rounded-2xl bg-[#0a0a0a] border border-white/5 overflow-hidden flex flex-col select-none"
                   >
                     <div className="relative aspect-[2/3] w-full bg-[#050505] skeleton-shimmer" />
-                    <div className="p-3.5 flex-1 flex flex-col justify-between gap-2">
+                    <div className="p-3.5 min-h-[112px] flex-1 flex flex-col justify-between gap-2">
                       <div className="space-y-1.5">
                         <div className="flex items-center justify-between">
                           <div className="h-3.5 w-10 rounded skeleton-shimmer" />
@@ -1344,10 +1348,11 @@ export default function App() {
               </div>
             ) : movies.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6 my-6">
-                {movies.map((movie) => (
+                {movies.map((movie, idx) => (
                   <MovieCard
                     key={movie.id}
                     movie={movie}
+                    priority={idx < 5}
                     onSelect={handleSelectMovie}
                     onPlayTrailer={handlePlayTrailer}
                     onCopyMagnet={handleCopyMagnet}
@@ -1375,13 +1380,17 @@ export default function App() {
               )
             )}
 
-            {!isLoading && totalCount > filters.limit && (
-              <Pagination
-                currentPage={filters.page}
-                totalCount={totalCount}
-                limit={filters.limit}
-                onPageChange={(p) => handleFilterChange({ page: p })}
-              />
+            {(isLoading || totalCount > filters.limit) && (
+              <div className="min-h-[72px] [contain:layout_style]">
+                {!isLoading && totalCount > filters.limit && (
+                  <Pagination
+                    currentPage={filters.page}
+                    totalCount={totalCount}
+                    limit={filters.limit}
+                    onPageChange={(p) => handleFilterChange({ page: p })}
+                  />
+                )}
+              </div>
             )}
 
             {/* Well-spaced Adsterra banner below main catalog */}
@@ -1404,7 +1413,7 @@ export default function App() {
             )}
 
             {currentNav === 'browse' && !filters.query_term && filters.page === 1 && filters.genre === 'All' && filters.quality === 'All' && (
-              <div className="space-y-6 my-10 border-t border-white/5 pt-8">
+              <div className="space-y-6 my-10 border-t border-white/5 pt-8 [contain:layout_style]">
                 <div>
                   <h2 className="text-xl font-bold text-white tracking-tight">Curated Film Collections</h2>
                   <p className="text-xs text-neutral-400">Explore cinematic worlds categorized by prestigious themes and genres</p>
@@ -1436,7 +1445,7 @@ export default function App() {
             )}
 
             {currentNav === 'browse' && !filters.query_term && filters.page === 1 && (
-              <div className="my-10 border-t border-white/5 pt-8">
+              <div className="my-10 border-t border-white/5 pt-8 [contain:layout_style]">
                 <CuratedCollections
                   activeCollectionId={activeCollectionId}
                   onSelectCollection={(filterParams) => {

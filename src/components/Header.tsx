@@ -783,7 +783,7 @@ export const Header: React.FC<HeaderProps> = ({
                               key={mode.id}
                               type="button"
                               onClick={() => setColorMode(mode.id)}
-                              className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl border transition-all cursor-pointer select-none text-center ${
+                              className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl border transition-colors cursor-pointer select-none text-center ${
                                 isActive
                                   ? 'border-rose-500 bg-rose-500/15 text-rose-500 font-bold shadow-xs'
                                   : isWhite
