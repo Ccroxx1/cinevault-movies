@@ -424,13 +424,14 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
                     key={opt.id}
                     type="button"
                     onClick={() => setCurationMode(opt.id)}
+                    aria-pressed={isActive}
                     className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer backdrop-blur-md shadow-sm ${
                       isActive
-                        ? 'bg-rose-600 text-white border border-rose-400/60 shadow-rose-950/40 scale-105'
+                        ? 'cv-btn-primary border border-white/25 scale-105'
                         : 'bg-black/55 text-neutral-300 hover:text-white hover:bg-black/75 border border-white/15'
                     }`}
                   >
-                    <Icon size={12} className={isActive ? 'text-white' : 'text-neutral-400'} />
+                    <Icon size={12} className={isActive ? 'text-white' : 'text-neutral-300'} />
                     <span>{opt.label}</span>
                   </button>
                 );
@@ -562,7 +563,7 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
               <button
                 type="button"
                 onClick={() => onPlayTrailer(currentMovie.yt_trailer_code, currentMovie.title)}
-                className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2.5 bg-black/50 hover:bg-black/70 backdrop-blur-md border border-white/25 text-white font-bold text-xs sm:text-sm rounded-full transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+                className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2.5 cv-btn-playback font-bold text-xs sm:text-sm rounded-full transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] shadow-lg"
               >
                 <PlayIcon size={16} />
                 <span>Trailer</span>
@@ -583,9 +584,10 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
                       }
                     });
                   }}
-                  className={`flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2.5 ${genreConfig.themeColor.accentBg} ${genreConfig.themeColor.buttonHover} text-white font-bold text-xs sm:text-sm rounded-full backdrop-blur-md shadow-lg ${genreConfig.themeColor.glow} transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]`}
+                  className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2.5 cv-btn-magnet font-bold text-xs sm:text-sm rounded-full shadow-lg transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
                   title={`Direct Magnet Download for ${primaryTorrent.quality}`}
                 >
+                  <Download size={15} />
                   <span>Magnet ({primaryTorrent.quality})</span>
                 </button>
 
@@ -594,8 +596,8 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
                   onClick={handleCopyMagnet}
                   className={`p-2.5 sm:p-3 rounded-full border backdrop-blur-md transition-all cursor-pointer shadow-lg ${
                     copiedHash === primaryTorrent.hash
-                      ? 'bg-emerald-600 text-white border-emerald-400 scale-105 shadow-emerald-950/60'
-                      : 'bg-black/50 hover:bg-black/70 text-neutral-200 hover:text-white border-white/20'
+                      ? 'cv-btn-magnet border-emerald-400 scale-105'
+                      : 'bg-black/60 hover:bg-black/80 text-neutral-200 hover:text-white border-white/20'
                   }`}
                   title={copiedHash === primaryTorrent.hash ? 'Copied Magnet URI!' : 'Copy Magnet URI'}
                   aria-label="Copy Magnet URI"
@@ -610,8 +612,8 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
               onClick={() => onToggleWatchlist(currentMovie)}
               className={`p-2.5 sm:p-3 rounded-full border transition-all cursor-pointer backdrop-blur-md shadow-lg ${
                 isWatchlisted(currentMovie.id)
-                  ? 'bg-rose-600 text-white border-rose-500 shadow-rose-950/50'
-                  : 'bg-black/50 text-neutral-300 hover:text-white border-white/20 hover:bg-black/70'
+                  ? 'cv-btn-primary border-white/25'
+                  : 'bg-black/60 text-neutral-200 hover:text-white border-white/20 hover:bg-black/80'
               }`}
               title={isWatchlisted(currentMovie.id) ? 'Remove from Watchlist' : 'Add to Watchlist'}
               aria-label={isWatchlisted(currentMovie.id) ? 'Remove from Watchlist' : 'Add to Watchlist'}
@@ -622,13 +624,13 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
         </div>
 
         {/* Right Column: Floating Glass Cinema Quick-Specs Card (Desktop & Widescreen) */}
-        <div className="hidden lg:flex flex-col gap-3.5 p-4 xl:p-5 rounded-2xl bg-black/65 backdrop-blur-xl border border-white/15 w-72 xl:w-80 shadow-2xl shrink-0 self-end mb-6 z-20 text-left">
+        <div className="hidden lg:flex flex-col gap-3.5 p-4 xl:p-5 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/15 w-72 xl:w-80 shadow-2xl shrink-0 self-end mb-6 z-20 text-left">
           <div className="flex items-center justify-between pb-2 border-b border-white/10 text-xs">
             <span className="font-bold text-white uppercase tracking-wider flex items-center gap-1.5 text-[11px]">
-              <Disc className="w-3.5 h-3.5 text-rose-500" />
+              <Disc className="w-3.5 h-3.5" style={{ color: 'var(--cv-accent-text)' }} />
               <span>Cinema Quick Specs</span>
             </span>
-            <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-300 border border-rose-500/30 font-bold">
+            <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-white/15 text-white border border-white/20 font-bold">
               {primaryTorrent?.quality || '1080p'}
             </span>
           </div>
@@ -684,8 +686,8 @@ export const FeaturedHero: React.FC<FeaturedHeroProps> = ({
                     }}
                     className={`px-2 py-1 rounded-md text-[10px] font-bold border transition-colors cursor-pointer flex items-center gap-1 ${
                       copiedHash === t.hash
-                        ? 'bg-emerald-500 text-white border-emerald-400 shadow-md shadow-emerald-950/50'
-                        : 'bg-white/5 text-neutral-300 hover:text-white border-white/10 hover:bg-white/10'
+                        ? 'cv-btn-magnet border-emerald-400'
+                        : 'bg-white/5 text-neutral-200 hover:text-white border-white/15 hover:bg-white/15'
                     }`}
                     title={`Copy ${t.quality} Magnet`}
                   >

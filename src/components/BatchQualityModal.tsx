@@ -67,17 +67,23 @@ export const BatchQualityModal: React.FC<BatchQualityModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200" role="dialog" aria-modal="true" aria-label="Quality Comparison">
-      <div className="modal-dialog-surface relative w-full max-w-2xl bg-[#0e0e0e] border border-white/15 rounded-3xl p-6 shadow-2xl space-y-6">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in duration-200"
+      style={{ backgroundColor: 'var(--cv-modal-backdrop)' }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Quality Comparison"
+    >
+      <div className="modal-dialog-surface cv-surface-elevated border relative w-full max-w-2xl rounded-3xl p-6 space-y-6">
         
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
             <div>
-              <h3 className="text-lg sm:text-xl font-display font-black text-white">
-                Quality Comparison & Media Packs
+              <h3 className="text-lg sm:text-xl font-display font-black cv-text">
+                Quality Comparison &amp; Media Packs
               </h3>
-              <p className="text-xs text-neutral-400">
+              <p className="text-xs cv-text-muted">
                 {movie.title} ({movie.year}) • {movie.torrents.length} Available Resolutions
               </p>
             </div>
@@ -85,7 +91,7 @@ export const BatchQualityModal: React.FC<BatchQualityModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 text-neutral-400 hover:text-white rounded-full bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+            className="p-2 rounded-full cv-btn-secondary transition-colors cursor-pointer"
             aria-label="Close quality comparison"
             title="Close"
           >
@@ -96,7 +102,6 @@ export const BatchQualityModal: React.FC<BatchQualityModalProps> = ({
         {/* Comparison Matrix */}
         <div className="space-y-3 max-h-[55vh] overflow-y-auto pr-1 scrollbar-thin">
           {movie.torrents.map((torrent) => {
-            const magnetUrl = buildMagnetLink(torrent.hash, movie.title_long || movie.title);
             const isCopied = copiedHash === torrent.hash;
             const isHighRes = torrent.quality === '2160p' || torrent.quality === '4k';
             const isPackaging = packagingHash === torrent.hash;
@@ -106,53 +111,53 @@ export const BatchQualityModal: React.FC<BatchQualityModalProps> = ({
                 key={torrent.hash}
                 className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
                   isHighRes
-                    ? 'bg-amber-950/20 border-amber-500/30'
-                    : 'bg-[#141414] border-white/10'
+                    ? 'cv-4k-card'
+                    : 'cv-card'
                 }`}
               >
                 <div className="space-y-1.5 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className={`px-2.5 py-0.5 text-xs font-bold rounded uppercase tracking-wider ${
                       isHighRes
-                        ? 'bg-amber-500 text-black font-extrabold'
-                        : 'bg-rose-600 text-white'
+                        ? 'cv-rating-badge'
+                        : 'cv-btn-primary'
                     }`}>
                       {torrent.quality}
                     </span>
-                    <span className="text-xs font-mono uppercase text-neutral-300 bg-neutral-800 px-2 py-0.5 rounded border border-white/10">
+                    <span className="text-xs font-mono uppercase cv-badge-neutral px-2 py-0.5 rounded border">
                       {torrent.type || 'BluRay'}
                     </span>
-                    <span className="text-xs font-mono font-bold text-white bg-white/5 px-2 py-0.5 rounded">
+                    <span className="text-xs font-mono font-bold cv-text cv-surface-muted px-2 py-0.5 rounded border cv-border-subtle">
                       {torrent.size}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-3 text-xs text-neutral-400 font-mono">
-                    <span className="text-emerald-400 font-bold">
+                  <div className="flex items-center gap-3 text-xs cv-text-muted font-mono">
+                    <span className="font-bold" style={{ color: 'var(--cv-success-soft-fg)' }}>
                        {torrent.seeds ?? 0} Seeds
                     </span>
                     <span>
                        {torrent.peers ?? 0} Peers
                     </span>
                     {torrent.video_codec && (
-                      <span className="text-neutral-500">
+                      <span className="cv-text-subtle">
                         {torrent.video_codec}
                       </span>
                     )}
                     {torrent.audio_channels && (
-                      <span className="text-neutral-500">
+                      <span className="cv-text-subtle">
                         {torrent.audio_channels}ch
                       </span>
                     )}
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-white/5">
+                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end pt-2 sm:pt-0 border-t sm:border-t-0 cv-border-subtle">
                   {/* Download Pack (.zip) */}
                   <button
                     onClick={() => handleDownloadPack(torrent)}
                     disabled={isPackaging}
-                    className="px-3 py-2 bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 hover:text-white text-xs font-bold rounded-xl border border-amber-500/30 flex items-center justify-center gap-1.5 transition-colors cursor-pointer disabled:opacity-60"
+                    className="px-3 py-2 cv-rating-badge hover:opacity-90 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-opacity cursor-pointer disabled:opacity-60"
                     title="Download ZIP folder with Cover Photo & Site Info"
                   >
                     <Archive className={`w-3.5 h-3.5 ${isPackaging ? 'animate-spin' : ''}`} />
@@ -161,7 +166,7 @@ export const BatchQualityModal: React.FC<BatchQualityModalProps> = ({
 
                   <button
                     onClick={() => handleDownloadMagnet(torrent)}
-                    className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-md transition-colors cursor-pointer"
+                    className="px-3.5 py-2 cv-btn-magnet text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-md transition-colors cursor-pointer"
                     title="Launch BitTorrent Client & Download CineVault Branded Info"
                   >
                     <Magnet className="w-3.5 h-3.5" />
@@ -170,13 +175,15 @@ export const BatchQualityModal: React.FC<BatchQualityModalProps> = ({
 
                   <button
                     onClick={() => handleCopySingle(torrent)}
-                    className="px-3 py-2 bg-[#222222] hover:bg-[#2c2c2c] text-neutral-200 hover:text-white text-xs font-semibold rounded-xl border border-white/10 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    className={`px-3 py-2 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                      isCopied ? 'cv-badge-success border' : 'cv-btn-secondary'
+                    }`}
                     title="Copy Magnet URI"
                   >
                     {isCopied ? (
                       <>
-                        <Check size={14} className="text-emerald-400" />
-                        <span className="text-emerald-400">Copied</span>
+                        <Check size={14} />
+                        <span>Copied</span>
                       </>
                     ) : (
                       <>
@@ -192,26 +199,26 @@ export const BatchQualityModal: React.FC<BatchQualityModalProps> = ({
         </div>
 
         {/* Actions bar */}
-        <div className="pt-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-3">
+        <div className="pt-3 border-t cv-border flex flex-wrap items-center justify-between gap-3">
           <button
             onClick={handleCopyAllMagnets}
-            className="flex items-center gap-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs sm:text-sm font-bold rounded-xl shadow-lg shadow-rose-900/30 transition-all cursor-pointer"
+            className="flex items-center gap-2 px-5 py-2.5 cv-btn-primary text-xs sm:text-sm font-bold rounded-xl shadow-lg transition-all cursor-pointer"
           >
             {copiedAll ? (
               <>
-                <Check className="w-4 h-4 text-white" />
+                <Check className="w-4 h-4" />
                 <span>All Magnets Copied to Clipboard!</span>
               </>
             ) : (
               <>
-                <Copy className="w-4 h-4 text-white" />
+                <Copy className="w-4 h-4" />
                 <span>Copy All {movie.torrents.length} Magnet Links</span>
               </>
             )}
           </button>
 
-          <span className="text-[11px] text-neutral-400 font-mono">
-            Direct P2P & Media Pack Verified
+          <span className="text-[11px] cv-text-muted font-mono">
+            Direct P2P &amp; Media Pack Verified
           </span>
         </div>
 

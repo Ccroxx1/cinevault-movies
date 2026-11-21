@@ -95,9 +95,9 @@ export const AdsterraBanner: React.FC = () => {
   }
 
   return (
-    <aside className="my-6 w-full rounded-2xl border border-white/10 bg-[#0a0a0a]/80 p-3 sm:p-4 [contain:layout_style]">
-      <div className="mb-3 flex items-center justify-between border-b border-white/5 pb-2 text-[10px] font-mono uppercase tracking-widest text-neutral-500">
-        <span className="font-semibold text-neutral-400">Advertisement</span>
+    <aside className="my-6 w-full rounded-2xl cv-card border p-3 sm:p-4 [contain:layout_style]">
+      <div className="mb-3 flex items-center justify-between border-b cv-border-subtle pb-2 text-[10px] font-mono uppercase tracking-widest cv-text-subtle">
+        <span className="font-semibold cv-text-muted">Advertisement</span>
         <span>Sponsored Content</span>
       </div>
       <div className="flex w-full flex-col items-center gap-3">
@@ -105,7 +105,7 @@ export const AdsterraBanner: React.FC = () => {
           href="https://beta.publishers.adsterra.com/referral/BYyJkzF7DE"
           target="_blank"
           rel="nofollow noopener noreferrer"
-          className="block w-full max-w-[728px] aspect-[728/90] overflow-hidden rounded-lg bg-neutral-900/40"
+          className="block w-full max-w-[728px] aspect-[728/90] overflow-hidden rounded-lg cv-surface-muted"
         >
           <img
             src="https://landings-cdn.adsterratech.com/referralBanners/png/728%20x%2090%20px.png"

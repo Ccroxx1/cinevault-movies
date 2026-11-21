@@ -58,9 +58,9 @@ export const CineVaultLogo: React.FC<CineVaultLogoProps> = ({
           <span className="h-[1.5px] w-1.5 sm:w-3 bg-gradient-to-l from-transparent to-[#E50914] rounded-full" />
         </div>
         {showTagline && (
-          <div className="text-[7.5px] sm:text-[8.5px] text-neutral-400 font-bold uppercase tracking-[0.18em] mt-1 hidden sm:block">
-            <span className="text-neutral-300">Your Vault. </span>
-            <span className="text-[#FF3355]">Endless Movies.</span>
+          <div className="text-[7.5px] sm:text-[8.5px] cv-text-muted font-bold uppercase tracking-[0.18em] mt-1 hidden sm:block">
+            <span className="cv-text-secondary">Your Vault. </span>
+            <span className="cv-text-accent">Endless Movies.</span>
           </div>
         )}
       </div>

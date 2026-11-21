@@ -62,24 +62,25 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="shortcuts-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 backdrop-blur-md animate-in fade-in duration-200"
+      style={{ backgroundColor: 'var(--cv-modal-backdrop)' }}
       onClick={onClose}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-lg bg-[#0e0e12] border border-white/15 rounded-3xl shadow-2xl overflow-hidden text-neutral-200 animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
+        className="modal-dialog-surface cv-surface-elevated border relative w-full max-w-lg rounded-3xl overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-white/10 bg-white/[0.02]">
+        <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b cv-border cv-surface-muted">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400">
+            <div className="p-2 rounded-xl cv-nav-soft-active">
               <Command className="w-4 h-4" />
             </div>
             <div>
-              <h2 id="shortcuts-modal-title" className="text-sm sm:text-base font-bold text-white tracking-tight">
+              <h2 id="shortcuts-modal-title" className="text-sm sm:text-base font-bold cv-text tracking-tight">
                 Keyboard Shortcuts
               </h2>
-              <p className="text-[11px] text-neutral-400">
+              <p className="text-[11px] cv-text-muted">
                 Navigate CineVault swiftly with your keyboard
               </p>
             </div>
@@ -88,7 +89,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 text-neutral-400 hover:text-white hover:bg-white/10 rounded-full transition-colors cursor-pointer"
+            className="p-2 cv-btn-secondary rounded-full transition-colors cursor-pointer"
             aria-label="Close shortcuts dialog"
           >
             <X className="w-4 h-4" />
@@ -99,21 +100,21 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
         <div className="p-5 sm:p-6 overflow-y-auto space-y-5 text-xs">
           {SHORTCUT_SECTIONS.map((section) => (
             <div key={section.title} className="space-y-2">
-              <h3 className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
+              <h3 className="text-[11px] font-bold uppercase tracking-wider cv-text-muted">
                 {section.title}
               </h3>
 
-              <div className="divide-y divide-white/5 rounded-2xl bg-white/[0.02] border border-white/5 overflow-hidden">
+              <div className="rounded-2xl cv-card border overflow-hidden">
                 {section.items.map((item, idx) => {
                   const Icon = item.icon;
                   return (
                     <div
                       key={idx}
-                      className="flex items-center justify-between p-3 hover:bg-white/[0.03] transition-colors"
+                      className="flex items-center justify-between p-3 border-b last:border-b-0 cv-border-subtle transition-colors"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
-                        {Icon && <Icon className="w-3.5 h-3.5 text-neutral-400 shrink-0" />}
-                        <span className="text-neutral-300 text-xs truncate">
+                        {Icon && <Icon className="w-3.5 h-3.5 cv-text-muted shrink-0" />}
+                        <span className="cv-text-secondary text-xs truncate">
                           {item.description}
                         </span>
                       </div>
@@ -122,7 +123,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
                         {item.keys.map((key) => (
                           <kbd
                             key={key}
-                            className="inline-flex items-center justify-center min-w-[24px] h-6 px-1.5 text-[11px] font-mono font-bold text-white bg-neutral-800/90 border border-white/20 rounded-md shadow-inner"
+                            className="cv-kbd inline-flex items-center justify-center min-w-[24px] h-6 px-1.5 text-[11px] font-mono font-bold border rounded-md shadow-inner"
                           >
                             {key}
                           </kbd>
@@ -136,8 +137,8 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
           ))}
 
           {/* Quick interactive test strip */}
-          <div className="pt-2 flex items-center justify-between text-[11px] text-neutral-400 bg-white/[0.02] border border-white/5 p-3 rounded-xl">
-            <span>Tip: Press <kbd className="px-1 text-[10px] font-mono bg-neutral-800 rounded border border-white/10">?</kbd> anywhere to open this cheatsheet.</span>
+          <div className="pt-2 flex items-center justify-between text-[11px] cv-text-muted cv-surface-muted border p-3 rounded-xl">
+            <span>Tip: Press <kbd className="cv-kbd px-1 text-[10px] font-mono rounded border">?</kbd> anywhere to open this cheatsheet.</span>
             <div className="flex items-center gap-2">
               {onTriggerSpinner && (
                 <button
@@ -146,7 +147,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
                     onClose();
                     onTriggerSpinner();
                   }}
-                  className="px-2.5 py-1 text-amber-300 hover:text-white bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-lg transition-colors cursor-pointer font-semibold"
+                  className="px-2.5 py-1 cv-rating-badge rounded-lg transition-colors cursor-pointer font-semibold"
                 >
                   Spin Now (R)
                 </button>
@@ -156,12 +157,12 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3 border-t border-white/10 bg-white/[0.01] flex items-center justify-between text-[11px] text-neutral-400">
+        <div className="px-6 py-3 border-t cv-border cv-surface-muted flex items-center justify-between text-[11px] cv-text-muted">
           <span>Shortcuts are disabled while editing search or form fields.</span>
           <button
             type="button"
             onClick={onClose}
-            className="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white font-medium transition cursor-pointer"
+            className="px-3 py-1 rounded-lg cv-btn-primary font-medium transition cursor-pointer"
           >
             Done
           </button>

@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useTheme } from '../context/ThemeContext';
 import { hasAdvertisingConsent, isAdHostEligible, onConsentChange } from '../utils/consent';
 
 interface AdSenseSlotProps {
@@ -19,8 +18,6 @@ export const AdSenseSlot: React.FC<AdSenseSlotProps> = ({
   format = 'auto',
   className = ''
 }) => {
-  const { colorMode } = useTheme();
-  const isWhite = colorMode === 'white';
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [adsEnabled, setAdsEnabled] = useState<boolean>(
     () => isAdHostEligible() && hasAdvertisingConsent()
@@ -88,20 +85,12 @@ export const AdSenseSlot: React.FC<AdSenseSlotProps> = ({
 
   return (
     <div
-      className={`relative w-full rounded-2xl border p-3 sm:p-4 flex flex-col items-center justify-between overflow-hidden my-6 [contain:layout_style] ${
-        isWhite
-          ? 'bg-slate-50 border-slate-200 shadow-xs'
-          : 'bg-[#0a0a0a]/80 border-white/10'
-      } ${getContainerStyles()} ${className}`}
+      className={`relative w-full rounded-2xl cv-card border p-3 sm:p-4 flex flex-col items-center justify-between overflow-hidden my-6 [contain:layout_style] ${getContainerStyles()} ${className}`}
     >
       {/* Standard Advertisement Labeling */}
-      <div
-        className={`w-full flex items-center justify-between pb-2 mb-2 border-b text-[10px] uppercase tracking-widest font-mono select-none shrink-0 ${
-          isWhite ? 'border-slate-200 text-slate-500' : 'border-white/5 text-neutral-500'
-        }`}
-      >
-        <span className={`font-semibold ${isWhite ? 'text-slate-700' : 'text-neutral-400'}`}>Advertisement</span>
-        <span className={isWhite ? 'text-slate-400' : 'text-neutral-600'}>Sponsored Content</span>
+      <div className="w-full flex items-center justify-between pb-2 mb-2 border-b cv-border-subtle text-[10px] uppercase tracking-widest font-mono select-none shrink-0">
+        <span className="font-semibold cv-text-muted">Advertisement</span>
+        <span className="cv-text-subtle">Sponsored Content</span>
       </div>
 
       {/* Adsterra Native Banner Container */}

@@ -103,7 +103,7 @@ export function getSwarmHealth(seeds: number, peers: number): SwarmHealth {
     return {
       status: 'blazing',
       label: 'Blazing Fast',
-      badgeClass: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+      badgeClass: 'cv-badge-success',
       description: 'High-speed throughput with robust active swarm',
       ratio,
     };
@@ -111,7 +111,7 @@ export function getSwarmHealth(seeds: number, peers: number): SwarmHealth {
     return {
       status: 'healthy',
       label: 'Healthy Swarm',
-      badgeClass: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20',
+      badgeClass: 'cv-badge-success',
       description: 'Strong swarm with steady sustained download speed',
       ratio,
     };
@@ -119,7 +119,7 @@ export function getSwarmHealth(seeds: number, peers: number): SwarmHealth {
     return {
       status: 'moderate',
       label: 'Active Swarm',
-      badgeClass: 'bg-cyan-500/10 text-cyan-300 border-cyan-500/20',
+      badgeClass: 'cv-badge-info',
       description: 'Active swarm with stable availability',
       ratio,
     };
@@ -127,7 +127,7 @@ export function getSwarmHealth(seeds: number, peers: number): SwarmHealth {
     return {
       status: 'low',
       label: 'DHT Available',
-      badgeClass: 'bg-white/[0.04] text-neutral-300 border-white/10',
+      badgeClass: 'cv-badge-neutral',
       description: 'Distributed DHT swarm; connects to seeders upon client start',
       ratio,
     };

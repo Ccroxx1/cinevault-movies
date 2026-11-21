@@ -298,7 +298,7 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
         <div
           role="status"
           aria-live="polite"
-          className="fixed top-20 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 text-white font-semibold text-xs shadow-xl shadow-emerald-950/40 border border-emerald-400/30 animate-in slide-in-from-top-3 duration-200"
+          className="fixed top-20 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-xl cv-btn-magnet font-semibold text-xs shadow-xl border border-emerald-400/40 animate-in slide-in-from-top-3 duration-200"
         >
           <Check className="w-4 h-4" />
           <span>{toastMessage}</span>
@@ -306,12 +306,12 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
       )}
 
       {/* Header Container */}
-      <header className="flex flex-wrap items-center justify-between gap-4 bg-[#0a0a0a] border border-white/10 p-4 sm:p-6 rounded-2xl">
+      <header className="flex flex-wrap items-center justify-between gap-4 cv-card border p-4 sm:p-6 rounded-2xl">
         <div>
-          <h1 id="watchlist-heading" className="text-xl sm:text-2xl font-black font-display text-white">
+          <h1 id="watchlist-heading" className="text-xl sm:text-2xl font-black font-display cv-text">
             My Watchlist & Library
           </h1>
-          <p className="text-xs sm:text-sm text-neutral-400">
+          <p className="text-xs sm:text-sm cv-text-muted">
             {watchlist.length} {watchlist.length === 1 ? 'film' : 'films'} saved locally • Sync with Letterboxd or CSV
           </p>
         </div>
@@ -331,10 +331,10 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
           {/* Import Button */}
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-[#141414] hover:bg-[#1f1f1f] text-neutral-200 border border-white/10 rounded-xl text-xs font-semibold transition cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 cv-btn-secondary rounded-xl text-xs font-semibold transition cursor-pointer"
             title="Import CineVault JSON backup or Letterboxd / IMDb CSV"
           >
-            <Upload className="w-3.5 h-3.5 text-rose-400" />
+            <Upload className="w-3.5 h-3.5" style={{ color: 'var(--cv-accent-text)' }} />
             <span>Import JSON / CSV</span>
           </button>
 
@@ -344,33 +344,34 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
               <div className="relative">
                 <button
                   onClick={() => setShowShareMenu(!showShareMenu)}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-[#141414] hover:bg-[#1f1f1f] text-rose-300 border border-rose-500/30 rounded-xl text-xs font-semibold transition cursor-pointer"
+                  aria-expanded={showShareMenu}
+                  className="flex items-center gap-1.5 px-3 py-2 cv-nav-soft-active rounded-xl text-xs font-semibold transition cursor-pointer"
                   title="Share or copy list for friends"
                 >
-                  <Share2 className="w-3.5 h-3.5 text-rose-400" />
+                  <Share2 className="w-3.5 h-3.5" />
                   <span>Share List</span>
                 </button>
 
                 {showShareMenu && (
-                  <div className="absolute right-0 top-full mt-2 w-56 rounded-xl bg-[#121212] border border-white/15 shadow-2xl p-1.5 z-30 space-y-1 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="absolute right-0 top-full mt-2 w-56 rounded-xl cv-surface-elevated border p-1.5 z-30 space-y-1 animate-in fade-in zoom-in-95 duration-150">
                     <button
                       onClick={handleCopyMarkdown}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-left rounded-lg text-xs text-neutral-200 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-left rounded-lg text-xs cv-text-secondary hover:bg-[var(--cv-surface-hover)] hover:text-[var(--cv-text)] transition cursor-pointer"
                     >
-                      <Copy className="w-3.5 h-3.5 text-rose-400" />
+                      <Copy className="w-3.5 h-3.5" style={{ color: 'var(--cv-accent-text)' }} />
                       <div>
                         <div className="font-semibold">Copy as Markdown</div>
-                        <div className="text-[10px] text-neutral-400">Great for Discord / Reddit</div>
+                        <div className="text-[10px] cv-text-muted">Great for Discord / Reddit</div>
                       </div>
                     </button>
                     <button
                       onClick={handleCopyPlainText}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-left rounded-lg text-xs text-neutral-200 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-left rounded-lg text-xs cv-text-secondary hover:bg-[var(--cv-surface-hover)] hover:text-[var(--cv-text)] transition cursor-pointer"
                     >
-                      <FileText className="w-3.5 h-3.5 text-amber-400" />
+                      <FileText className="w-3.5 h-3.5 cv-rating" />
                       <div>
                         <div className="font-semibold">Copy as Plain Text</div>
-                        <div className="text-[10px] text-neutral-400">Formatted text message</div>
+                        <div className="text-[10px] cv-text-muted">Formatted text message</div>
                       </div>
                     </button>
                   </div>
@@ -380,27 +381,27 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
               {/* Export JSON */}
               <button
                 onClick={handleExportJson}
-                className="flex items-center gap-1.5 px-3 py-2 bg-[#141414] hover:bg-[#1f1f1f] text-neutral-300 border border-white/10 rounded-xl text-xs font-semibold transition cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-2 cv-btn-secondary rounded-xl text-xs font-semibold transition cursor-pointer"
                 title="Backup full library with torrent hashes"
               >
-                <FileJson className="w-3.5 h-3.5 text-amber-400" />
+                <FileJson className="w-3.5 h-3.5 cv-rating" />
                 <span>Export JSON</span>
               </button>
 
               {/* Export CSV */}
               <button
                 onClick={handleExportCsv}
-                className="flex items-center gap-1.5 px-3 py-2 bg-[#141414] hover:bg-[#1f1f1f] text-neutral-300 border border-white/10 rounded-xl text-xs font-semibold transition cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-2 cv-btn-secondary rounded-xl text-xs font-semibold transition cursor-pointer"
                 title="Export spreadsheet compatible with Excel and Letterboxd"
               >
-                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+                <FileSpreadsheet className="w-3.5 h-3.5" style={{ color: 'var(--cv-success-soft-fg)' }} />
                 <span>Export CSV</span>
               </button>
 
               {/* Clear All */}
               <button
                 onClick={onClearWatchlist}
-                className="flex items-center gap-1.5 px-3 py-2 bg-[#141414] hover:bg-rose-950/40 text-neutral-400 hover:text-rose-300 border border-white/10 rounded-xl text-xs font-semibold transition cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-2 cv-btn-secondary hover:bg-[var(--cv-error-soft-bg)] hover:text-[var(--cv-error-soft-fg)] hover:border-[var(--cv-error-border)] rounded-xl text-xs font-semibold transition cursor-pointer"
                 title="Clear all saved movies"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -412,9 +413,9 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
       </header>
 
       {watchlist.length > 1 && (
-        <nav className="flex items-center gap-3 text-xs text-neutral-400 px-1" aria-label="Sorting">
+        <nav className="flex flex-wrap items-center gap-3 text-xs cv-text-muted px-1" aria-label="Sorting">
           <span>Sort By:</span>
-          <div className="flex items-center gap-1">
+          <div className="flex flex-wrap items-center gap-1">
             {[
               { id: 'added', label: 'Recently Added' },
               { id: 'rating', label: 'Top Rated' },
@@ -424,8 +425,9 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
               <button
                 key={opt.id}
                 onClick={() => setSortBy(opt.id as any)}
+                aria-pressed={sortBy === opt.id}
                 className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
-                  sortBy === opt.id ? 'bg-rose-600 text-white shadow-sm' : 'bg-white/5 hover:bg-white/10 text-neutral-300'
+                  sortBy === opt.id ? 'cv-btn-primary shadow-sm' : 'cv-btn-secondary'
                 }`}
               >
                 {opt.label}
@@ -450,13 +452,13 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
           ))}
         </div>
       ) : (
-        <div className="py-20 text-center flex flex-col items-center justify-center bg-[#0a0a0a]/50 border border-dashed border-white/10 rounded-3xl p-8 space-y-4">
-          <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-neutral-500">
-            <Film className="w-7 h-7 text-neutral-400" />
+        <div className="py-20 text-center flex flex-col items-center justify-center cv-card border border-dashed rounded-3xl p-8 space-y-4">
+          <div className="w-14 h-14 rounded-2xl cv-surface-muted border flex items-center justify-center cv-text-muted">
+            <Film className="w-7 h-7" />
           </div>
           <div className="space-y-1 max-w-sm">
-            <h2 className="text-lg font-bold text-neutral-200">Your watchlist is empty</h2>
-            <p className="text-xs text-neutral-400">
+            <h2 className="text-lg font-bold cv-text">Your watchlist is empty</h2>
+            <p className="text-xs cv-text-muted">
               Save films from the catalog for quick access, or import your saved watchlist from Letterboxd or CSV.
             </p>
           </div>
@@ -464,16 +466,16 @@ export const WatchlistView: React.FC<WatchlistViewProps> = ({
             {onExploreCatalog && (
               <button
                 onClick={onExploreCatalog}
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold shadow-md transition cursor-pointer"
+                className="px-4 py-2 cv-btn-primary rounded-xl text-xs font-bold shadow-md transition cursor-pointer"
               >
                 Explore Catalog
               </button>
             )}
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-1.5 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 border border-white/10 rounded-xl text-xs font-bold transition cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-2 cv-btn-secondary rounded-xl text-xs font-bold transition cursor-pointer"
             >
-              <Upload className="w-3.5 h-3.5 text-rose-400" />
+              <Upload className="w-3.5 h-3.5" style={{ color: 'var(--cv-accent-text)' }} />
               <span>Import Letterboxd / JSON Backup</span>
             </button>
           </div>

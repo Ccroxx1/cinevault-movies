@@ -14,7 +14,6 @@ import { DownloadSpeedEstimator } from './DownloadSpeedEstimator';
 import { BookmarkPlusIcon, BookmarkIcon, PlayIcon, CopyIcon } from './ActionIcons';
 import { getPosterCandidates, CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
 import { EztvMovieSection } from './EztvMovieSection';
-import { useTheme } from '../context/ThemeContext';
 import { ShareMovieModal } from './ShareMovieModal';
 
 interface MovieDetailPageProps {
@@ -50,10 +49,6 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
   onNavigateToSeries,
   onSelectSeries
 }) => {
-  const { colorMode } = useTheme();
-  const isWhite = colorMode === 'white';
-  const isBlueBlack = colorMode === 'blue-black';
-
   const [movie, setMovie] = useState<Movie>(initialMovie);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [suggestions, setSuggestions] = useState<Movie[]>([]);
@@ -234,14 +229,14 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
     <article className="w-full space-y-8 animate-in fade-in duration-300">
       
       {/* Top Breadcrumb Navigation */}
-      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-neutral-400 py-2 border-b border-white/5 overflow-x-auto whitespace-nowrap">
+      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs cv-text-muted py-2 border-b cv-border-subtle overflow-x-auto whitespace-nowrap">
         <a
           href="/"
           onClick={(e) => {
             e.preventDefault();
             onNavigateHome();
           }}
-          className="flex items-center gap-1 hover:text-white transition-colors"
+          className="flex items-center gap-1 hover:text-[var(--cv-text)] transition-colors"
         >
           <span>Home</span>
         </a>
@@ -256,7 +251,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
               onNavigateHome();
             }
           }}
-          className="hover:text-white transition-colors"
+          className="hover:text-[var(--cv-text)] transition-colors"
         >
           Movies
         </a>
@@ -265,14 +260,14 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
             <span aria-hidden="true">/</span>
             <button
               onClick={() => onSelectGenre(movie.genres[0])}
-              className="hover:text-rose-400 transition-colors cursor-pointer"
+              className="hover:text-[var(--cv-accent-text)] transition-colors cursor-pointer"
             >
               {movie.genres[0]}
             </button>
           </>
         )}
         <span aria-hidden="true">/</span>
-        <span className="text-neutral-200 font-semibold truncate max-w-xs sm:max-w-md">
+        <span className="cv-text font-semibold truncate max-w-xs sm:max-w-md">
           {movie.title} ({movie.year})
         </span>
       </nav>
@@ -325,8 +320,8 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                 onClick={() => onToggleWatchlist(movie)}
                 className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full border text-xs font-bold shadow-lg transition-colors cursor-pointer ${
                   isCurrentWatchlisted
-                    ? 'bg-rose-600 text-white border-rose-500 shadow-rose-900/40'
-                    : 'bg-black/75 hover:bg-black/90 text-neutral-200 hover:text-white border-white/10'
+                    ? 'cv-btn-primary border-white/25'
+                    : 'bg-black/75 hover:bg-black/90 text-neutral-200 hover:text-white border-white/15'
                 }`}
               >
                 {isCurrentWatchlisted ? <BookmarkIcon size={16} /> : <BookmarkPlusIcon size={16} />}
@@ -436,7 +431,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                 {movie.yt_trailer_code && (
                   <button
                     onClick={() => onPlayTrailer(movie.yt_trailer_code, movie.title)}
-                    className="px-4 sm:px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs sm:text-sm rounded-full shadow-lg shadow-rose-900/40 flex items-center gap-2 transition-all cursor-pointer"
+                    className="px-4 sm:px-5 py-2.5 cv-btn-playback font-bold text-xs sm:text-sm rounded-full shadow-lg flex items-center gap-2 transition-all cursor-pointer"
                   >
                     <PlayIcon size={16} />
                     <span>Watch Trailer</span>
@@ -447,7 +442,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                   <>
                     <button
                       onClick={(e) => handleDirectMagnetDownload(e, primaryTorrent)}
-                      className="px-4 sm:px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm rounded-full shadow-lg shadow-emerald-950/40 flex items-center gap-2 transition-all cursor-pointer"
+                      className="px-4 sm:px-5 py-2.5 cv-btn-magnet font-bold text-xs sm:text-sm rounded-full shadow-lg flex items-center gap-2 transition-all cursor-pointer"
                       title={`Launch ${primaryTorrent.quality} Magnet Download directly`}
                     >
                       <PlayIcon size={16} className="rotate-90" />
@@ -457,7 +452,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                     <button
                       onClick={() => handleDownloadMediaPack(primaryTorrent)}
                       disabled={packagingHash === (primaryTorrent.hash || 'primary')}
-                      className="px-4 sm:px-5 py-2.5 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-bold text-xs sm:text-sm rounded-full shadow-lg shadow-amber-950/50 flex items-center gap-2 transition-all cursor-pointer disabled:opacity-75"
+                      className="px-4 sm:px-5 py-2.5 bg-amber-700 hover:bg-amber-600 text-white font-bold text-xs sm:text-sm rounded-full shadow-lg flex items-center gap-2 transition-all cursor-pointer disabled:opacity-75"
                       title="Download complete folder with .Torrent file and Poster Photo"
                     >
                       {packagingHash === (primaryTorrent.hash || 'primary') ? (
@@ -527,11 +522,12 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
       <div className="space-y-6">
         
         {/* Tabs Navigation */}
-        <nav aria-label="Movie Details Navigation" className="flex items-center gap-2 border-b border-white/10 overflow-x-auto pb-2">
+        <nav aria-label="Movie Details Navigation" className="flex items-center gap-2 border-b cv-border overflow-x-auto pb-2">
           <button
             onClick={() => setActiveTab('torrents')}
+            aria-pressed={activeTab === 'torrents'}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === 'torrents' ? 'bg-rose-600 text-white shadow-lg' : 'text-neutral-400 hover:text-white hover:bg-white/5'
+              activeTab === 'torrents' ? 'cv-nav-pill-active shadow-lg' : 'cv-nav-pill'
             }`}
           >
             <span>Torrents & Magnets ({movie.torrents?.length || 0})</span>
@@ -540,8 +536,9 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
           {movie.cast && movie.cast.length > 0 && (
             <button
               onClick={() => setActiveTab('cast')}
+              aria-pressed={activeTab === 'cast'}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === 'cast' ? 'bg-rose-600 text-white shadow-lg' : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                activeTab === 'cast' ? 'cv-nav-pill-active shadow-lg' : 'cv-nav-pill'
               }`}
             >
               <span>Cast & Characters ({movie.cast.length})</span>
@@ -551,8 +548,9 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
           {screenshots.length > 0 && (
             <button
               onClick={() => setActiveTab('screenshots')}
+              aria-pressed={activeTab === 'screenshots'}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === 'screenshots' ? 'bg-rose-600 text-white shadow-lg' : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                activeTab === 'screenshots' ? 'cv-nav-pill-active shadow-lg' : 'cv-nav-pill'
               }`}
             >
               <span>Screenshots ({screenshots.length})</span>
@@ -562,8 +560,9 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
           {parentalGuides.length > 0 && (
             <button
               onClick={() => setActiveTab('guides')}
+              aria-pressed={activeTab === 'guides'}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === 'guides' ? 'bg-rose-600 text-white shadow-lg' : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                activeTab === 'guides' ? 'cv-nav-pill-active shadow-lg' : 'cv-nav-pill'
               }`}
             >
               <span>Parental Guide ({parentalGuides.length})</span>
@@ -576,19 +575,19 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <section className="lg:col-span-2 space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <h2 className="text-lg font-bold cv-text flex items-center gap-2">
                   <span>Available Download Formats</span>
-                  <span className="text-xs font-normal text-neutral-400 font-mono">
+                  <span className="text-xs font-normal cv-text-muted font-mono">
                     ({movie.torrents?.length || 0})
                   </span>
                 </h2>
                 {movie.torrents && movie.torrents.length > 1 && (
                   <button
                     onClick={() => setIsBatchModalOpen(true)}
-                    className="text-xs font-semibold text-neutral-300 hover:text-white bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 transition-colors flex items-center gap-1.5 cursor-pointer"
+                    className="text-xs font-semibold cv-btn-secondary px-3 py-1.5 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
                     title="Compare all resolutions and formats"
                   >
-                    <Layers className="w-3.5 h-3.5 text-emerald-400" />
+                    <Layers className="w-3.5 h-3.5" style={{ color: 'var(--cv-success-soft-fg)' }} />
                     <span>Compare Qualities</span>
                   </button>
                 )}
@@ -604,16 +603,8 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                         key={`${torrent.hash}-${idx}`}
                         className={`rounded-2xl border transition-all p-4 sm:p-5 flex flex-col justify-between gap-3.5 ${
                           is4k
-                            ? isWhite
-                              ? 'bg-amber-50/70 border-amber-300/80 shadow-xs'
-                              : isBlueBlack
-                              ? 'bg-gradient-to-r from-amber-950/20 via-[#0e1834] to-[#0b1328] border-amber-500/35 shadow-lg shadow-amber-950/10'
-                              : 'bg-gradient-to-r from-amber-950/20 via-[#111111] to-[#0e0e0e] border-amber-500/35 shadow-lg shadow-amber-950/10'
-                            : isWhite
-                            ? 'bg-white hover:border-slate-300 border-slate-200 shadow-xs'
-                            : isBlueBlack
-                            ? 'bg-[#0b1329] border-sky-900/40 hover:border-sky-800/60'
-                            : 'bg-[#0f0f0f] border-white/5 hover:border-white/15'
+                            ? 'cv-4k-card shadow-sm'
+                            : 'cv-card hover:border-[var(--cv-border-hover)] shadow-xs'
                         }`}
                       >
                         {/* Primary Format Bar: Technical Details & Action Toolbar */}
@@ -622,46 +613,32 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                           <div className="space-y-2">
                             <div className="flex flex-wrap items-center gap-2">
                               <span
-                                className={`px-2.5 py-1 text-xs font-black rounded-lg uppercase tracking-wider ${
+                                className={`px-2.5 py-1 text-xs font-black rounded-lg uppercase tracking-wider border ${
                                   is4k
-                                    ? 'bg-amber-500 text-black font-extrabold shadow-sm'
-                                    : isWhite
-                                    ? 'bg-slate-100 text-slate-800 border border-slate-300'
-                                    : 'bg-neutral-800 text-neutral-100 border border-white/10'
+                                    ? 'bg-amber-500 text-black border-amber-400 font-extrabold shadow-sm'
+                                    : 'cv-badge-neutral'
                                 }`}
                               >
                                 {torrent.quality}
                               </span>
-                              <span className={`text-xs font-semibold uppercase px-2.5 py-1 rounded-lg border ${
-                                isWhite
-                                  ? 'text-slate-700 bg-white/90 border-slate-200 shadow-2xs'
-                                  : 'text-neutral-300 bg-white/5 border-white/10'
-                              }`}>
+                              <span className="text-xs font-semibold uppercase px-2.5 py-1 rounded-lg cv-surface-muted border">
                                 {torrent.type || 'WEB'}
                               </span>
                               {torrent.video_codec && (
-                                <span className={`text-xs font-mono px-2 py-0.5 rounded border ${
-                                  isWhite
-                                    ? 'text-slate-600 bg-white/90 border-slate-200'
-                                    : 'text-neutral-400 bg-white/5 border-white/5'
-                                }`}>
+                                <span className="text-xs font-mono px-2 py-0.5 rounded cv-surface-muted border cv-text-muted">
                                   {torrent.video_codec}
                                 </span>
                               )}
-                              <span className={`text-xs font-mono font-bold px-2.5 py-1 rounded-lg border ${
-                                isWhite
-                                  ? 'text-slate-900 bg-white border-slate-200 shadow-2xs'
-                                  : 'text-neutral-100 bg-white/10 border-white/10'
-                              }`}>
+                              <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-lg cv-surface-muted border cv-text">
                                 {torrent.size}
                               </span>
                             </div>
 
                             <div className="flex flex-wrap items-center gap-2.5 pt-0.5">
                               <TorrentSwarmHealthBadge seeds={torrent.seeds} peers={torrent.peers} showDetails />
-                              <span className={`text-xs font-mono ${isWhite ? 'text-slate-600' : 'text-neutral-400'}`}>
-                                <span className="text-emerald-500 font-semibold">{torrent.seeds} Seeds</span>
-                                <span className={`mx-1.5 ${isWhite ? 'text-slate-300' : 'text-neutral-600'}`}>•</span>
+                              <span className="text-xs font-mono cv-text-muted">
+                                <span className="font-semibold" style={{ color: 'var(--cv-success-soft-fg)' }}>{torrent.seeds} Seeds</span>
+                                <span className="mx-1.5 cv-text-subtle">•</span>
                                 <span>{torrent.peers} Peers</span>
                               </span>
                             </div>
@@ -673,11 +650,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                             <button
                               onClick={() => handleDownloadMediaPack(torrent)}
                               disabled={packagingHash === torrent.hash}
-                              className={`px-3.5 py-2 rounded-xl text-xs font-bold border flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-60 whitespace-nowrap ${
-                                isWhite
-                                  ? 'bg-amber-100 hover:bg-amber-200/80 text-amber-900 border-amber-300 shadow-2xs'
-                                  : 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border-amber-500/30'
-                              }`}
+                              className="px-3.5 py-2 rounded-xl text-xs font-bold cv-rating-badge hover:opacity-90 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-60 whitespace-nowrap"
                               title="Download ZIP media package with cover art & specs"
                             >
                               <Archive className={`w-3.5 h-3.5 ${packagingHash === torrent.hash ? 'animate-spin' : ''}`} />
@@ -687,7 +660,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                             {/* 2. Magnet Download */}
                             <button
                               onClick={(e) => handleDirectMagnetDownload(e, torrent)}
-                              className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-950/30 flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap"
+                              className="px-4 py-2 rounded-xl text-xs font-bold cv-btn-magnet shadow-md flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap"
                               title="Launch BitTorrent client"
                             >
                               <Magnet className="w-3.5 h-3.5" />
@@ -699,10 +672,8 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                               onClick={() => handleCopyMagnet(torrent)}
                               className={`p-2 rounded-xl border transition-all cursor-pointer flex items-center justify-center ${
                                 isCopied
-                                  ? 'bg-rose-600 text-white border-rose-500'
-                                  : isWhite
-                                  ? 'bg-white hover:bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-900 shadow-2xs'
-                                  : 'bg-white/5 hover:bg-white/15 border-white/10 text-neutral-300 hover:text-white'
+                                  ? 'cv-btn-primary'
+                                  : 'cv-btn-secondary'
                               }`}
                               title={isCopied ? 'Copied to clipboard' : 'Copy raw magnet URI'}
                               aria-label="Copy Magnet URI"
@@ -717,11 +688,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                                 target="_blank"
                                 rel="noreferrer noopener"
                                 download
-                                className={`p-2 rounded-xl border transition-all flex items-center justify-center ${
-                                  isWhite
-                                    ? 'bg-white hover:bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-900 shadow-2xs'
-                                    : 'bg-white/5 hover:bg-white/15 border border-white/10 text-neutral-300 hover:text-white'
-                                }`}
+                                className="p-2 rounded-xl cv-btn-secondary transition-all flex items-center justify-center"
                                 title="Download .torrent file"
                                 aria-label="Download .torrent file"
                               >
@@ -732,7 +699,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                         </div>
 
                         {/* Bottom Row: Uniform Download Speed Estimator Strip */}
-                        <div className={`pt-2.5 border-t ${isWhite ? 'border-slate-200/80' : 'border-white/5'}`}>
+                        <div className="pt-2.5 border-t cv-border-subtle">
                           <DownloadSpeedEstimator
                             sizeBytes={torrent.size_bytes}
                             sizeFormatted={torrent.size}
@@ -745,7 +712,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                   })}
                 </div>
               ) : (
-                <p className="text-neutral-500 text-sm">No files indexed for this title.</p>
+                <p className="cv-text-muted text-sm">No files indexed for this title.</p>
               )}
             </section>
 
@@ -755,7 +722,7 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                 <EztvMovieSection
                   imdbCode={movie.imdb_code}
                   movieTitle={movie.title}
-                  onShowToast={(msg, type) => {
+                  onShowToast={(_msg, _type) => {
                     // Feedback handled within or passed
                   }}
                   onNavigateToSeries={onNavigateToSeries}
@@ -765,14 +732,14 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
             )}
 
             <section className="space-y-4">
-              <div className="p-5 rounded-2xl bg-[#0e0e0e] border border-white/10 space-y-3">
-                <h2 className="text-sm font-bold text-white uppercase tracking-wider">Synopsis</h2>
-                <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed">
+              <div className="p-5 rounded-2xl cv-card border space-y-3">
+                <h2 className="text-sm font-bold cv-text uppercase tracking-wider">Synopsis</h2>
+                <p className="text-xs sm:text-sm cv-text-secondary leading-relaxed">
                   {movie.description_full || movie.summary || movie.synopsis || 'No synopsis available.'}
                 </p>
                 {movie.imdb_code && (
-                  <div className="pt-3 border-t border-white/5">
-                    <a href={`https://www.imdb.com/title/${movie.imdb_code}`} target="_blank" rel="noopener noreferrer" className="text-xs text-amber-400 hover:underline font-semibold">
+                  <div className="pt-3 border-t cv-border-subtle">
+                    <a href={`https://www.imdb.com/title/${movie.imdb_code}`} target="_blank" rel="noopener noreferrer" className="text-xs cv-rating hover:underline font-semibold">
                       View on IMDb ({movie.imdb_code})
                     </a>
                   </div>
@@ -785,17 +752,17 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
         {/* Tab 2: Cast */}
         {activeTab === 'cast' && (
           <section className="space-y-4">
-            <h2 className="text-lg font-bold text-white">Full Cast & Billing</h2>
+            <h2 className="text-lg font-bold cv-text">Full Cast & Billing</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
               {movie.cast?.map((actor, i) => (
                 <button
                   key={i}
                   type="button"
                   onClick={() => onOpenFilmography && onOpenFilmography(actor.name, 'actor')}
-                  className="p-3 rounded-2xl bg-[#0e0e0e] hover:bg-[#161616] border border-white/5 hover:border-rose-500/40 flex flex-col items-center text-center gap-2 transition group cursor-pointer text-left w-full"
+                  className="p-3 rounded-2xl cv-card-interactive border flex flex-col items-center text-center gap-2 transition group cursor-pointer w-full"
                   title={`Explore filmography for ${actor.name}`}
                 >
-                  <div className="w-16 h-16 rounded-full overflow-hidden bg-neutral-900 border border-white/10 group-hover:border-rose-500/50 transition flex items-center justify-center">
+                  <div className="w-16 h-16 rounded-full overflow-hidden cv-surface-muted border group-hover:border-[var(--cv-border-hover)] transition flex items-center justify-center">
                     {actor.url_small_image && actor.url_small_image.trim().length > 0 ? (
                       <img
                         src={actor.url_small_image}
@@ -805,17 +772,17 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
                         onError={(e) => (e.currentTarget.style.display = 'none')}
                       />
                     ) : (
-                      <div className="w-full h-full bg-neutral-800 text-rose-400 font-bold text-lg flex items-center justify-center">
+                      <div className="w-full h-full cv-surface-muted cv-text-accent font-bold text-lg flex items-center justify-center">
                         {actor.name ? actor.name.charAt(0) : '?'}
                       </div>
                     )}
                   </div>
                   <div className="w-full">
-                    <h4 className="text-xs font-bold text-neutral-200 group-hover:text-rose-400 transition-colors truncate">
+                    <h4 className="text-xs font-bold cv-text cv-group-hover-accent transition-colors truncate">
                       {actor.name}
                     </h4>
-                    <p className="text-[10px] text-neutral-400 truncate">{actor.character_name || 'Cast'}</p>
-                    <span className="inline-block mt-1 text-[9px] text-rose-400/80 group-hover:text-rose-300 font-semibold underline">
+                    <p className="text-[10px] cv-text-muted truncate">{actor.character_name || 'Cast'}</p>
+                    <span className="inline-block mt-1 text-[9px] cv-text-accent font-semibold underline">
                       View Filmography
                     </span>
                   </div>
@@ -828,10 +795,10 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
         {/* Tab 3: Screenshots */}
         {activeTab === 'screenshots' && (
           <section className="space-y-4">
-            <h2 className="text-lg font-bold text-white">Movie Stills & Screenshots</h2>
+            <h2 className="text-lg font-bold cv-text">Movie Stills & Screenshots</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {screenshots.map((src, i) => (
-                <div key={i} onClick={() => setSelectedScreenshotIndex(i)} className="aspect-video rounded-2xl overflow-hidden bg-neutral-900 border border-white/10 cursor-pointer group">
+                <div key={i} onClick={() => setSelectedScreenshotIndex(i)} className="aspect-video rounded-2xl overflow-hidden cv-surface-muted border cursor-pointer group">
                   <img src={src} alt={`Screenshot ${i + 1}`} loading="eager" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                 </div>
               ))}
@@ -842,15 +809,15 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
         {/* Tab 4: Parental Guide */}
         {activeTab === 'guides' && (
           <section className="space-y-4">
-            <h2 className="text-lg font-bold text-white">Parental Advisory</h2>
+            <h2 className="text-lg font-bold cv-text">Parental Advisory</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {parentalGuides.map((guide, i) => (
-                <div key={i} className="p-4 rounded-2xl bg-[#0e0e0e] border border-white/5 space-y-1.5">
+                <div key={i} className="p-4 rounded-2xl cv-card border space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-white uppercase">{guide.type}</span>
-                    <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-neutral-800 text-neutral-300">{guide.severity}</span>
+                    <span className="text-xs font-bold cv-text uppercase">{guide.type}</span>
+                    <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded cv-badge-neutral border">{guide.severity}</span>
                   </div>
-                  <p className="text-xs text-neutral-400 leading-relaxed">{guide.parental_guide_text}</p>
+                  <p className="text-xs cv-text-muted leading-relaxed">{guide.parental_guide_text}</p>
                 </div>
               ))}
             </div>
@@ -860,8 +827,8 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
 
       {/* Suggestions Section */}
       {suggestions.length > 0 && (
-        <section className="pt-8 border-t border-white/10 space-y-4">
-          <h2 className="text-lg font-bold text-white">Recommended Movies</h2>
+        <section className="pt-8 border-t cv-border space-y-4">
+          <h2 className="text-lg font-bold cv-text">Recommended Movies</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {suggestions.slice(0, 5).map((sug) => (
               <MovieCard key={sug.id} movie={sug} onSelect={onSelectMovie} isWatchlisted={isWatchlisted(sug.id)} onToggleWatchlist={onToggleWatchlist} onPlayTrailer={onPlayTrailer} onCopyMagnet={onCopyMagnet} />
@@ -872,9 +839,15 @@ export const MovieDetailPage: React.FC<MovieDetailPageProps> = ({
 
       {/* Lightbox Screenshot Modal */}
       {selectedScreenshotIndex !== null && (
-        <div className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-4 animate-in fade-in duration-150" onClick={() => setSelectedScreenshotIndex(null)}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Screenshot preview"
+          className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-4 animate-in fade-in duration-150"
+          onClick={() => setSelectedScreenshotIndex(null)}
+        >
            <img src={screenshots[selectedScreenshotIndex]} alt="Full Screenshot" className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl" onClick={(e) => e.stopPropagation()} />
-           <button onClick={() => setSelectedScreenshotIndex(null)} className="mt-6 px-6 py-2 bg-rose-600 text-white font-bold rounded-full">Close Preview</button>
+           <button onClick={() => setSelectedScreenshotIndex(null)} className="mt-6 px-6 py-2 cv-btn-primary font-bold rounded-full cursor-pointer">Close Preview</button>
         </div>
       )}
 

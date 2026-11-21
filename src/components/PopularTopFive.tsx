@@ -64,9 +64,9 @@ const PopularCard: React.FC<PopularCardProps> = ({
           onSelectMovie(movie);
         }
       }}
-      className="group relative bg-[#0e0e0e] hover:bg-[#141414] border border-white/10 hover:border-rose-500/60 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-2xl hover:shadow-rose-950/30 flex flex-col text-inherit select-none"
+      className="group relative cv-card-interactive border rounded-2xl overflow-hidden cursor-pointer hover:shadow-2xl flex flex-col text-inherit select-none"
     >
-      <div className="relative aspect-[2/3] w-full overflow-hidden bg-[#050505]">
+      <div className="relative aspect-[2/3] w-full overflow-hidden bg-neutral-950">
         {!hasAllFailed ? (
           <img
             key={`pop-poster-${movie.id}-${candidateIndex}`}
@@ -80,8 +80,8 @@ const PopularCard: React.FC<PopularCardProps> = ({
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-108"
           />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center bg-neutral-900 text-neutral-500">
-            <span className="text-xs font-semibold text-neutral-300 line-clamp-2">{movie.title}</span>
+          <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center bg-neutral-900 text-neutral-300">
+            <span className="text-xs font-semibold text-neutral-200 line-clamp-2">{movie.title}</span>
           </div>
         )}
 
@@ -105,10 +105,10 @@ const PopularCard: React.FC<PopularCardProps> = ({
               e.stopPropagation();
               onToggleWatchlist(movie);
             }}
-            className={`p-1.5 rounded-full backdrop-blur-md border transition-all ${
+            className={`p-1.5 rounded-full backdrop-blur-md border transition-all cursor-pointer ${
               isWatch
-                ? 'bg-rose-600 text-white border-rose-500 shadow-md'
-                : 'bg-black/60 text-neutral-300 hover:text-white border-white/20 hover:bg-black/80'
+                ? 'cv-btn-primary shadow-md'
+                : 'bg-black/75 text-neutral-200 hover:text-white border-white/25 hover:bg-black/90'
             }`}
             title={isWatch ? 'Remove from Watchlist' : 'Add to Watchlist'}
             aria-label={isWatch ? 'Remove from Watchlist' : 'Add to Watchlist'}
@@ -117,12 +117,12 @@ const PopularCard: React.FC<PopularCardProps> = ({
           </button>
         </div>
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-2.5 sm:p-3 space-y-1.5 sm:space-y-2 z-10">
+        <div className="poster-badge absolute inset-0 bg-gradient-to-t from-black via-black/75 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-2.5 sm:p-3 space-y-1.5 sm:space-y-2 z-10">
           <div className="flex items-center justify-between text-xs font-bold">
-            <span className="flex items-center gap-1 text-amber-400">
+            <span className="flex items-center gap-1 cv-rating-overlay">
               {movie.rating ? movie.rating.toFixed(1) : '7.5'}
             </span>
-            <span className="text-neutral-300">{movie.year}</span>
+            <span className="text-neutral-200">{movie.year}</span>
           </div>
 
           <div className="grid grid-cols-2 gap-1.5 pt-1">
@@ -133,7 +133,7 @@ const PopularCard: React.FC<PopularCardProps> = ({
                   e.stopPropagation();
                   onPlayTrailer(movie.yt_trailer_code, movie.title);
                 }}
-                className="h-7 sm:h-7.5 px-1.5 sm:px-2 bg-white/15 hover:bg-white/25 text-white rounded-lg text-[10px] sm:text-[11px] font-bold flex items-center justify-center gap-1 backdrop-blur-md transition-colors"
+                className="cv-btn-playback h-7 sm:h-7.5 px-1.5 sm:px-2 rounded-lg text-[10px] sm:text-[11px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
                 title="Watch Trailer"
                 aria-label="Watch Trailer"
               >
@@ -144,7 +144,7 @@ const PopularCard: React.FC<PopularCardProps> = ({
               <button
                 type="button"
                 onClick={() => onSelectMovie(movie)}
-                className="h-7 sm:h-7.5 px-1.5 sm:px-2 bg-white/15 hover:bg-white/25 text-white rounded-lg text-[10px] sm:text-[11px] font-bold flex items-center justify-center gap-1 backdrop-blur-md transition-colors"
+                className="h-7 sm:h-7.5 px-1.5 sm:px-2 bg-black/75 hover:bg-black/90 text-white border border-white/25 rounded-lg text-[10px] sm:text-[11px] font-bold flex items-center justify-center gap-1 backdrop-blur-md transition-colors cursor-pointer"
               >
                 <span>Details</span>
               </button>
@@ -154,7 +154,7 @@ const PopularCard: React.FC<PopularCardProps> = ({
               <button
                 type="button"
                 onClick={(e) => handleCopyMagnet(e, movie)}
-                className="h-7 sm:h-7.5 px-1.5 sm:px-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] sm:text-[11px] font-bold flex items-center justify-center gap-1 transition-colors"
+                className="cv-btn-magnet h-7 sm:h-7.5 px-1.5 sm:px-2 rounded-lg text-[10px] sm:text-[11px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
                 title={`Copy Magnet URI (${primaryTorrent.quality})`}
                 aria-label={`Copy Magnet URI (${primaryTorrent.quality})`}
               >
@@ -168,7 +168,7 @@ const PopularCard: React.FC<PopularCardProps> = ({
 
       <div className="p-2.5 sm:p-3 flex-1 flex flex-col justify-between space-y-1">
         <h3
-          className="font-bold text-xs sm:text-sm text-neutral-100 line-clamp-1 group-hover:text-rose-400 transition-colors"
+          className="font-bold text-xs sm:text-sm cv-text cv-group-hover-accent line-clamp-1 transition-colors"
           title={movie.title}
         >
           <a
@@ -185,9 +185,9 @@ const PopularCard: React.FC<PopularCardProps> = ({
           </a>
         </h3>
 
-        <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-neutral-400">
+        <div className="flex items-center justify-between text-[10px] sm:text-[11px] cv-text-muted">
           <span>{movie.year}</span>
-          <span className="flex items-center gap-1 text-amber-400 font-semibold">
+          <span className="flex items-center gap-1 cv-rating font-semibold">
             {movie.rating ? movie.rating.toFixed(1) : '7.5'}
           </span>
         </div>
@@ -222,11 +222,11 @@ export const PopularTopFive: React.FC<PopularTopFiveProps> = ({
   };
 
   const rankBadges = [
-    { label: '#1 Top', bg: 'bg-amber-500 text-black shadow-amber-500/40' },
-    { label: '#2', bg: 'bg-slate-200 text-black shadow-slate-300/30' },
+    { label: '#1 Top', bg: 'bg-amber-400 text-slate-950 shadow-amber-500/40' },
+    { label: '#2', bg: 'bg-slate-200 text-slate-950 shadow-slate-300/30' },
     { label: '#3', bg: 'bg-amber-700 text-white shadow-amber-800/30' },
-    { label: '#4', bg: 'bg-rose-600 text-white shadow-rose-900/30' },
-    { label: '#5', bg: 'bg-rose-700 text-white shadow-rose-900/30' }
+    { label: '#4', bg: 'cv-btn-primary shadow-md' },
+    { label: '#5', bg: 'cv-btn-primary shadow-md' }
   ];
 
   if (!isLoading && topFive.length === 0) return null;
@@ -236,10 +236,10 @@ export const PopularTopFive: React.FC<PopularTopFiveProps> = ({
       <div className="flex items-center justify-between gap-3 mb-3.5">
         <div className="flex items-center gap-2.5">
           <div>
-            <h2 id="top-5-heading" className="text-lg sm:text-xl font-extrabold text-white tracking-tight">
+            <h2 id="top-5-heading" className="text-lg sm:text-xl font-extrabold cv-text tracking-tight">
               5 Latest Popular Movies ({currentYear})
             </h2>
-            <p className="text-xs text-neutral-400">
+            <p className="text-xs cv-text-muted">
               Top trending box office releases & highest-seeded torrents
             </p>
           </div>
@@ -251,10 +251,10 @@ export const PopularTopFive: React.FC<PopularTopFiveProps> = ({
           {Array.from({ length: 5 }).map((_, i) => (
             <div
               key={`pop-skeleton-${i}`}
-              className="aspect-[2/3] rounded-2xl bg-[#101010] border border-white/5 animate-pulse flex flex-col justify-end p-3 space-y-2"
+              className="aspect-[2/3] rounded-2xl cv-card border skeleton-shimmer flex flex-col justify-end p-3 space-y-2"
             >
-              <div className="h-4 bg-[#1e1e1e] rounded w-3/4" />
-              <div className="h-3 bg-[#1e1e1e]/60 rounded w-1/2" />
+              <div className="h-4 cv-surface-muted rounded w-3/4" />
+              <div className="h-3 cv-surface-muted rounded w-1/2" />
             </div>
           ))}
         </div>
@@ -264,7 +264,7 @@ export const PopularTopFive: React.FC<PopularTopFiveProps> = ({
             <PopularCard
               key={`pop-${movie.id}`}
               movie={movie}
-              rank={rankBadges[index] || { label: `#${index + 1}`, bg: 'bg-neutral-800 text-white' }}
+              rank={rankBadges[index] || { label: `#${index + 1}`, bg: 'cv-badge-neutral' }}
               isWatch={isWatchlisted(movie.id)}
               copiedId={copiedId}
               onSelectMovie={onSelectMovie}

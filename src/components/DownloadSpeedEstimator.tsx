@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Gauge, Clock, Wifi } from 'lucide-react';
 import { calculateEstimatedDownloadTime } from '../types';
-import { useTheme } from '../context/ThemeContext';
 
 interface DownloadSpeedEstimatorProps {
   sizeBytes?: number;
@@ -40,9 +39,6 @@ export const DownloadSpeedEstimator: React.FC<DownloadSpeedEstimatorProps> = ({
   selectedSpeed: controlledSpeed,
   onSpeedChange,
 }) => {
-  const { colorMode } = useTheme();
-  const isWhite = colorMode === 'white';
-
   const [internalSpeed, setInternalSpeed] = useState<number>(100); // default 100 Mbps
   const currentSpeed = controlledSpeed !== undefined ? controlledSpeed : internalSpeed;
 
@@ -62,24 +58,23 @@ export const DownloadSpeedEstimator: React.FC<DownloadSpeedEstimatorProps> = ({
   const activePreset = SPEED_PRESETS.find((p) => p.value === currentSpeed) || SPEED_PRESETS[2];
 
   return (
-    <div className={`p-2.5 sm:p-3 rounded-xl space-y-2 border transition-colors ${
-      isWhite
-        ? 'bg-slate-50/80 border-slate-200/80'
-        : 'bg-white/[0.03] border-white/5'
-    } ${className}`}>
+    <div className={`p-2.5 sm:p-3 rounded-xl space-y-2 border cv-surface-muted transition-colors ${className}`}>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
         {/* Left: Speed Indicator & Time Estimate */}
         <div className="flex items-center gap-2 flex-wrap">
-          <div className={`flex items-center gap-1.5 font-semibold ${isWhite ? 'text-slate-700' : 'text-neutral-300'}`}>
-            <Gauge className="w-3.5 h-3.5 text-rose-500" />
+          <div className="flex items-center gap-1.5 font-semibold cv-text-secondary">
+            <Gauge className="w-3.5 h-3.5 cv-text-accent" aria-hidden="true" />
             <span>Est. Download:</span>
           </div>
-          <div className={`flex items-center gap-1 font-mono font-bold ${isWhite ? 'text-emerald-600' : 'text-emerald-400'}`}>
-            <Clock className="w-3 h-3" />
+          <div
+            className="flex items-center gap-1 font-mono font-bold"
+            style={{ color: 'var(--cv-success-soft-fg)' }}
+          >
+            <Clock className="w-3 h-3" aria-hidden="true" />
             <span>~{estimatedTime}</span>
           </div>
           {sizeFormatted && (
-            <span className={`text-[11px] font-mono hidden md:inline ${isWhite ? 'text-slate-500' : 'text-neutral-500'}`}>
+            <span className="text-[11px] font-mono hidden md:inline cv-text-muted">
               ({sizeFormatted} @ {activePreset.name.split(' (')[0]})
             </span>
           )}
@@ -87,8 +82,8 @@ export const DownloadSpeedEstimator: React.FC<DownloadSpeedEstimatorProps> = ({
 
         {/* Right: Presets */}
         <div className="flex items-center gap-1.5 self-start sm:self-auto">
-          <span className={`text-[10px] font-mono flex items-center gap-1 ${isWhite ? 'text-slate-500' : 'text-neutral-400'}`}>
-            <Wifi className="w-3 h-3" /> Speed:
+          <span className="text-[10px] font-mono flex items-center gap-1 cv-text-muted">
+            <Wifi className="w-3 h-3" aria-hidden="true" /> Speed:
           </span>
           <div className="flex items-center gap-1">
             {SPEED_PRESETS.map((preset) => {
@@ -99,12 +94,9 @@ export const DownloadSpeedEstimator: React.FC<DownloadSpeedEstimatorProps> = ({
                   type="button"
                   onClick={() => handleSpeedSelect(preset.value)}
                   title={preset.name}
+                  aria-pressed={isActive}
                   className={`px-2 py-0.5 rounded text-[10px] font-mono font-semibold transition cursor-pointer ${
-                    isActive
-                      ? 'bg-rose-600 text-white shadow-2xs'
-                      : isWhite
-                      ? 'bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 border border-slate-200/90 shadow-2xs'
-                      : 'bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border border-white/5'
+                    isActive ? 'cv-btn-primary shadow-2xs' : 'cv-btn-secondary shadow-2xs'
                   }`}
                 >
                   {preset.label}

@@ -32,17 +32,23 @@ export const DownloadGuideModal: React.FC<DownloadGuideModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-60 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-150" role="dialog" aria-modal="true" aria-label="Download Guide">
-      <div className="modal-dialog-surface relative w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl p-6 sm:p-8 space-y-6">
+    <div
+      className="fixed inset-0 z-60 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-150"
+      style={{ backgroundColor: 'var(--cv-modal-backdrop)' }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Download Guide"
+    >
+      <div className="modal-dialog-surface cv-surface-elevated border relative w-full max-w-2xl rounded-3xl overflow-hidden p-6 sm:p-8 space-y-6">
         
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+        <div className="flex items-center justify-between border-b cv-border pb-4">
           <div className="flex items-center gap-3">
             <div>
-              <h3 className="text-lg font-display font-black text-white">
-                Magnet URIs & Download Methods
+              <h3 className="text-lg font-display font-black cv-text">
+                Magnet URIs &amp; Download Methods
               </h3>
-              <p className="text-xs text-neutral-400">
+              <p className="text-xs cv-text-muted">
                 Direct magnet downloads, raw magnet URIs, debrid cloud tools, and .torrent files
               </p>
             </div>
@@ -50,7 +56,7 @@ export const DownloadGuideModal: React.FC<DownloadGuideModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 text-neutral-400 hover:text-white hover:bg-white/10 rounded-full transition-colors cursor-pointer"
+            className="p-2 cv-btn-secondary rounded-full transition-colors cursor-pointer"
             aria-label="Close guide"
             title="Close"
           >
@@ -59,44 +65,44 @@ export const DownloadGuideModal: React.FC<DownloadGuideModalProps> = ({
         </div>
 
         {/* Steps */}
-        <div className="space-y-3.5 text-sm text-neutral-300">
+        <div className="space-y-3.5 text-sm cv-text-secondary">
           
-          <div className="flex items-start gap-3.5 p-4 bg-[#050505] rounded-2xl border border-white/10">
-            <div className="w-7 h-7 rounded-full bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-xs shrink-0">
+          <div className="flex items-start gap-3.5 p-4 cv-card rounded-2xl border">
+            <div className="w-7 h-7 rounded-full cv-badge-success border flex items-center justify-center font-bold text-xs shrink-0">
               1
             </div>
             <div>
-              <div className="font-bold text-white text-sm flex items-center gap-2">
-                <span>Direct "Magnet Download" (One-Click Launch)</span>
+              <div className="font-bold cv-text text-sm flex items-center gap-2">
+                <span>Direct &quot;Magnet Download&quot; (One-Click Launch)</span>
               </div>
-              <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
-                Clicking the green <strong>"Magnet Download"</strong> button invokes your device's registered <code>magnet:</code> protocol handler directly, immediately opening your torrent client (e.g. <strong>qBittorrent</strong>, <strong>Transmission</strong>, <strong>LibreTorrent</strong>, or <strong>Flud</strong>) without needing to download separate files.
+              <p className="text-xs cv-text-muted mt-1 leading-relaxed">
+                Clicking the green <strong className="cv-text">&quot;Magnet Download&quot;</strong> button invokes your device's registered <code>magnet:</code> protocol handler directly, immediately opening your torrent client (e.g. <strong>qBittorrent</strong>, <strong>Transmission</strong>, <strong>LibreTorrent</strong>, or <strong>Flud</strong>) without needing to download separate files.
               </p>
             </div>
           </div>
 
-          <div className="flex items-start gap-3.5 p-4 bg-[#050505] rounded-2xl border border-white/10">
-            <div className="w-7 h-7 rounded-full bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-xs shrink-0">
+          <div className="flex items-start gap-3.5 p-4 cv-card rounded-2xl border">
+            <div className="w-7 h-7 rounded-full cv-badge-success border flex items-center justify-center font-bold text-xs shrink-0">
               2
             </div>
             <div>
-              <div className="font-bold text-white text-sm flex items-center gap-2">
-                <span>Raw Magnet URIs for Cloud & Debrid Services</span>
+              <div className="font-bold cv-text text-sm flex items-center gap-2">
+                <span>Raw Magnet URIs for Cloud &amp; Debrid Services</span>
               </div>
-              <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
-                Click <strong>"Copy URI"</strong> or <strong>"URI Details"</strong> to copy the complete raw URI string (<code>magnet:?xt=urn:btih:...</code>). You can paste this directly into cloud downloaders like <strong>Real-Debrid</strong>, <strong>Seedr.cc</strong>, <strong>Put.io</strong>, or <strong>Offcloud</strong> for high-speed cloud caching and direct streaming.
+              <p className="text-xs cv-text-muted mt-1 leading-relaxed">
+                Click <strong className="cv-text">&quot;Copy URI&quot;</strong> or <strong className="cv-text">&quot;URI Details&quot;</strong> to copy the complete raw URI string (<code>magnet:?xt=urn:btih:...</code>). You can paste this directly into cloud downloaders like <strong>Real-Debrid</strong>, <strong>Seedr.cc</strong>, <strong>Put.io</strong>, or <strong>Offcloud</strong> for high-speed cloud caching and direct streaming.
               </p>
             </div>
           </div>
 
-          <div className="flex items-start gap-3.5 p-4 bg-[#050505] rounded-2xl border border-white/10">
-            <div className="w-7 h-7 rounded-full bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-xs shrink-0">
+          <div className="flex items-start gap-3.5 p-4 cv-card rounded-2xl border">
+            <div className="w-7 h-7 rounded-full cv-badge-success border flex items-center justify-center font-bold text-xs shrink-0">
               3
             </div>
             <div>
-              <div className="font-bold text-white text-sm">Direct .torrent Metadata Files</div>
-              <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
-                Click <strong>".Torrent"</strong> to save the standard metadata file locally on your disk, useful for offline archiving or media servers like Plex/Jellyfin.
+              <div className="font-bold cv-text text-sm">Direct .torrent Metadata Files</div>
+              <p className="text-xs cv-text-muted mt-1 leading-relaxed">
+                Click <strong className="cv-text">&quot;.Torrent&quot;</strong> to save the standard metadata file locally on your disk, useful for offline archiving or media servers like Plex/Jellyfin.
               </p>
             </div>
           </div>
@@ -104,32 +110,32 @@ export const DownloadGuideModal: React.FC<DownloadGuideModalProps> = ({
         </div>
 
         {/* Recommended Trackers Box */}
-        <div className="p-4 bg-[#050505] border border-white/10 rounded-2xl space-y-2.5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-neutral-300">
-              <Server className="w-4 h-4 text-emerald-400" />
+        <div className="p-4 cv-card border rounded-2xl space-y-2.5">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-1.5 text-xs font-bold cv-text-secondary">
+              <Server className="w-4 h-4" style={{ color: 'var(--cv-success-soft-fg)' }} />
               <span>Recommended Open BitTorrent Trackers ({RECOMMENDED_TRACKERS.length})</span>
             </div>
 
             <button
               onClick={handleCopyTrackers}
-              className="flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 font-semibold px-3 py-1 bg-emerald-600/10 rounded-full border border-emerald-500/20 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 text-xs cv-badge-success font-semibold px-3 py-1 rounded-full border transition-opacity hover:opacity-90 cursor-pointer"
             >
               {copiedTrackers ? (
                 <>
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  <Check className="w-3.5 h-3.5" />
                   <span>Copied All Trackers</span>
                 </>
               ) : (
                 <>
-                  <Copy className="w-3.5 h-3.5 text-emerald-400" />
+                  <Copy className="w-3.5 h-3.5" />
                   <span>Copy All Trackers</span>
                 </>
               )}
             </button>
           </div>
 
-          <div className="p-2.5 bg-[#0a0a0a] rounded-xl font-mono text-[11px] text-neutral-400 max-h-28 overflow-y-auto space-y-1 border border-white/5">
+          <div className="p-2.5 cv-surface-muted rounded-xl font-mono text-[11px] cv-text-muted max-h-28 overflow-y-auto space-y-1 border cv-border-subtle">
             {RECOMMENDED_TRACKERS.map((t, idx) => (
               <div key={idx} className="truncate">{t}</div>
             ))}
@@ -140,7 +146,7 @@ export const DownloadGuideModal: React.FC<DownloadGuideModalProps> = ({
         <div className="pt-2">
           <button
             onClick={onClose}
-            className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-full shadow-lg shadow-emerald-950/30 transition-colors cursor-pointer"
+            className="w-full py-3 cv-btn-magnet font-bold text-sm rounded-full shadow-lg transition-colors cursor-pointer"
           >
             Got it, Let's Explore Films
           </button>

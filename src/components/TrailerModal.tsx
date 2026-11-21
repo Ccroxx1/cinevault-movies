@@ -36,13 +36,20 @@ export const TrailerModal: React.FC<TrailerModalProps> = ({
     : `https://www.youtube.com/results?search_query=${encodeURIComponent(movieTitle + ' official trailer')}`;
 
   return (
-    <div data-trailer-modal="true" className="fixed inset-0 z-60 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-150" role="dialog" aria-modal="true" aria-label={`${movieTitle} Trailer`}>
-      <div className="modal-dialog-surface relative w-full max-w-4xl bg-[#0a0a0a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl flex flex-col">
+    <div
+      data-trailer-modal="true"
+      className="fixed inset-0 z-60 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-150"
+      style={{ backgroundColor: 'var(--cv-modal-backdrop)' }}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${movieTitle} Trailer`}
+    >
+      <div className="modal-dialog-surface cv-surface-elevated border relative w-full max-w-4xl rounded-3xl overflow-hidden flex flex-col">
         
         {/* Modal Top Bar */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#050505]">
+        <div className="flex items-center justify-between px-6 py-4 border-b cv-border cv-surface-muted">
           <div className="flex items-center gap-2">
-            <h3 className="text-sm sm:text-base font-bold text-white truncate max-w-md">
+            <h3 className="text-sm sm:text-base font-bold cv-text truncate max-w-md">
               {movieTitle} — Official Trailer
             </h3>
           </div>
@@ -52,7 +59,7 @@ export const TrailerModal: React.FC<TrailerModalProps> = ({
               href={externalUrl}
               target="_blank"
               rel="noreferrer noopener"
-              className="hidden sm:flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white transition-colors"
+              className="hidden sm:flex items-center gap-1.5 text-xs cv-text-muted hover:text-[var(--cv-accent-text)] transition-colors"
             >
               <span>Open on YouTube</span>
               <ExternalLink className="w-3.5 h-3.5" />
@@ -60,7 +67,7 @@ export const TrailerModal: React.FC<TrailerModalProps> = ({
 
             <button
               onClick={onClose}
-              className="p-2 text-neutral-400 hover:text-white hover:bg-white/10 rounded-full transition-colors cursor-pointer"
+              className="p-2 cv-btn-secondary rounded-full transition-colors cursor-pointer"
               aria-label="Close trailer"
               title="Close trailer"
             >
@@ -69,7 +76,7 @@ export const TrailerModal: React.FC<TrailerModalProps> = ({
           </div>
         </div>
 
-        {/* 16:9 Video Player Container */}
+        {/* 16:9 Video Player Container (Always Black Cinema Viewport) */}
         <div className="relative aspect-video w-full bg-black">
           <iframe
             src={embedUrl}

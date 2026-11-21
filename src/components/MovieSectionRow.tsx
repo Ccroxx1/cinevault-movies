@@ -179,15 +179,15 @@ const MovieSectionCard: React.FC<MovieSectionCardProps> = ({
           onSelectMovie(movie);
         }
       }}
-      className="movie-card-contain group relative shrink-0 w-36 sm:w-44 md:w-48 snap-start rounded-2xl overflow-hidden bg-[#0e0e0e] border border-white/10 hover:border-white/25 transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/80 flex flex-col cursor-pointer text-inherit select-none"
+      className="movie-card-contain group relative shrink-0 w-36 sm:w-44 md:w-48 snap-start rounded-2xl overflow-hidden cv-card-interactive border hover:-translate-y-1 hover:shadow-2xl flex flex-col cursor-pointer text-inherit select-none"
     >
-      <div className="relative aspect-[2/3] w-full overflow-hidden bg-neutral-900">
+      <div className="relative aspect-[2/3] w-full overflow-hidden bg-neutral-950">
         {!isLoaded && !hasAllFailed && (
           <div
             aria-hidden="true"
             className="absolute inset-0 skeleton-shimmer z-0 flex items-center justify-center pointer-events-none"
           >
-            <div className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-neutral-500/40">
+            <div className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center cv-text-muted">
               <Film className="w-4 h-4" />
             </div>
           </div>
@@ -215,20 +215,20 @@ const MovieSectionCard: React.FC<MovieSectionCardProps> = ({
             />
           ) : null
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center bg-neutral-900 text-neutral-500">
-            <span className="text-xs font-semibold text-neutral-300 line-clamp-2">{movie.title}</span>
+          <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center bg-neutral-900 text-neutral-300">
+            <span className="text-xs font-semibold text-neutral-200 line-clamp-2">{movie.title}</span>
           </div>
         )}
 
-        <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/85 border border-white/15 text-[11px] font-bold text-amber-400">
-          <span>{movie.rating ? movie.rating.toFixed(1) : '7.5'}</span>
+        <div className="poster-badge absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/85 border border-white/15 text-[11px] font-bold text-amber-400">
+          <span className="cv-rating-overlay">{movie.rating ? movie.rating.toFixed(1) : '7.5'}</span>
         </div>
 
-        <div className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-black/85 border border-white/15 text-[10px] font-semibold text-neutral-300">
+        <div className="poster-badge absolute top-2 right-2 px-2 py-0.5 rounded-md bg-black/85 border border-white/15 text-[10px] font-semibold text-neutral-200">
           {movie.year}
         </div>
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 space-y-2 z-10">
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/65 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 space-y-2 z-10">
           <div className="flex items-center gap-1.5">
             {movie.yt_trailer_code && (
               <button
@@ -238,7 +238,7 @@ const MovieSectionCard: React.FC<MovieSectionCardProps> = ({
                   e.stopPropagation();
                   onPlayTrailer(movie.yt_trailer_code, movie.title);
                 }}
-                className="flex-1 py-1.5 px-2 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer shadow-lg"
+                className="cv-btn-playback flex-1 py-1.5 px-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer shadow-lg"
                 aria-label="Watch Trailer"
               >
                 <PlayIcon size={14} />
@@ -252,8 +252,8 @@ const MovieSectionCard: React.FC<MovieSectionCardProps> = ({
                 onClick={handleCopy}
                 className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
                   copiedHash === torrent.hash
-                    ? 'bg-emerald-500 text-white border-emerald-400 scale-105 shadow-md shadow-emerald-950/60'
-                    : 'bg-[#6ac045]/20 hover:bg-[#6ac045]/30 border border-[#6ac045]/40 text-[#6ac045]'
+                    ? 'cv-btn-magnet scale-105 shadow-md'
+                    : 'bg-[#047857]/90 hover:bg-[#065f46] border-emerald-400/50 text-white'
                 }`}
                 title={copiedHash === torrent.hash ? 'Copied Magnet Link!' : 'Copy Magnet Link'}
                 aria-label={copiedHash === torrent.hash ? 'Copied Magnet Link!' : 'Copy Magnet Link'}
@@ -270,7 +270,7 @@ const MovieSectionCard: React.FC<MovieSectionCardProps> = ({
                 onToggleWatchlist(movie);
               }}
               className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
-                isSaved ? 'bg-rose-600 text-white border-rose-500' : 'bg-black/60 text-neutral-300 hover:text-white border-white/20'
+                isSaved ? 'cv-btn-primary' : 'bg-black/75 text-neutral-200 hover:text-white border-white/25'
               }`}
               title={isSaved ? 'Remove from Watchlist' : 'Add to Watchlist'}
               aria-label={isSaved ? 'Remove from Watchlist' : 'Add to Watchlist'}
@@ -282,7 +282,7 @@ const MovieSectionCard: React.FC<MovieSectionCardProps> = ({
       </div>
 
       <div className="p-2.5 flex-1 flex flex-col justify-between space-y-1">
-        <h3 className="text-xs sm:text-sm font-bold text-white line-clamp-1 group-hover:text-rose-400 transition-colors">
+        <h3 className="text-xs sm:text-sm font-bold cv-text cv-group-hover-accent line-clamp-1 transition-colors">
           <a
             href={getMoviePath(movie)}
             onClick={(e) => {
@@ -296,10 +296,10 @@ const MovieSectionCard: React.FC<MovieSectionCardProps> = ({
             {movie.title}
           </a>
         </h3>
-        <div className="flex items-center justify-between text-[10px] text-neutral-400">
+        <div className="flex items-center justify-between text-[10px] cv-text-muted">
           <span className="line-clamp-1">{movie.genres?.[0] || 'Feature'}</span>
           {torrent && (
-            <span className="font-mono px-1 py-0.2 rounded bg-neutral-800 text-neutral-300 font-semibold">
+            <span className="cv-badge-neutral border font-mono px-1.5 py-0.5 rounded font-semibold">
               {torrent.quality}
             </span>
           )}
@@ -370,10 +370,10 @@ export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
     <section ref={sectionVisRef} className="movie-section-contain space-y-3.5 my-8" aria-labelledby={`${section.id}-heading`}>
       <div className="flex items-center justify-between">
         <div>
-          <h2 id={`${section.id}-heading`} className="text-lg sm:text-xl font-bold text-white tracking-tight">
+          <h2 id={`${section.id}-heading`} className="text-lg sm:text-xl font-bold cv-text tracking-tight">
             {section.title}
           </h2>
-          <p className="text-xs text-neutral-400">
+          <p className="text-xs cv-text-muted">
             {section.subtitle}
           </p>
         </div>
@@ -381,25 +381,28 @@ export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
         <nav aria-label={`${section.title} controls`} className="flex items-center gap-1.5">
           {onViewAll && (
             <button
+              type="button"
               onClick={onViewAll}
-              className="text-xs font-semibold text-neutral-400 hover:text-white px-2.5 py-1.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer mr-1"
+              className="text-xs font-semibold cv-text-muted hover:text-[var(--cv-text)] px-2.5 py-1.5 rounded-lg hover:bg-[var(--cv-surface-muted)] transition-colors cursor-pointer mr-1"
             >
               Explore All
             </button>
           )}
           <button
+            type="button"
             onClick={() => scroll('left')}
             disabled={!canScrollLeft}
-            className="p-1.5 text-neutral-400 hover:text-white disabled:opacity-25 disabled:cursor-not-allowed rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+            className="p-1.5 cv-text-muted hover:text-[var(--cv-text)] disabled:opacity-35 disabled:cursor-not-allowed rounded-lg hover:bg-[var(--cv-surface-muted)] transition-colors cursor-pointer"
             aria-label="Scroll left"
             title="Scroll left"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button
+            type="button"
             onClick={() => scroll('right')}
             disabled={!canScrollRight}
-            className="p-1.5 text-neutral-400 hover:text-white disabled:opacity-25 disabled:cursor-not-allowed rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+            className="p-1.5 cv-text-muted hover:text-[var(--cv-text)] disabled:opacity-35 disabled:cursor-not-allowed rounded-lg hover:bg-[var(--cv-surface-muted)] transition-colors cursor-pointer"
             aria-label="Scroll right"
             title="Scroll right"
           >
@@ -417,9 +420,9 @@ export const MovieSectionRow: React.FC<MovieSectionRowProps> = ({
           Array.from({ length: 6 }).map((_, i) => (
             <div
               key={`skeleton-${section.id}-${i}`}
-              className="movie-card-contain shrink-0 w-36 sm:w-44 md:w-48 snap-start rounded-2xl overflow-hidden bg-[#0e0e0e] border border-white/10 flex flex-col select-none"
+              className="movie-card-contain shrink-0 w-36 sm:w-44 md:w-48 snap-start rounded-2xl overflow-hidden cv-card border flex flex-col select-none"
             >
-              <div className="aspect-[2/3] w-full bg-neutral-900 skeleton-shimmer" />
+              <div className="aspect-[2/3] w-full skeleton-shimmer" />
               <div className="p-2.5 space-y-1.5">
                 <div className="h-4 w-4/5 rounded skeleton-shimmer" />
                 <div className="flex items-center justify-between">

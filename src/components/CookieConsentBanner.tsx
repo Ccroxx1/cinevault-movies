@@ -54,38 +54,46 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ onOpen
   if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-md z-50 bg-[#121212]/95 border border-white/15 backdrop-blur-xl p-4 sm:p-5 rounded-2xl shadow-2xl animate-slideUp">
+    <div
+      role="dialog"
+      aria-label="Cookie and Privacy Consent"
+      className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-md z-50 cv-surface-elevated border backdrop-blur-xl p-4 sm:p-5 rounded-2xl animate-slideUp"
+    >
       <div className="flex items-start gap-3">
         <div className="space-y-2 flex-1">
-          <h4 className="text-xs sm:text-sm font-bold text-white flex items-center justify-between">
+          <h4 className="text-xs sm:text-sm font-bold cv-text flex items-center justify-between">
             <span>Cookie & Privacy Consent</span>
             <button
+              type="button"
               onClick={handleDecline}
-              className="text-neutral-400 hover:text-white p-1"
+              className="cv-text-muted hover:text-[var(--cv-text)] p-1 text-xs font-medium cursor-pointer rounded-md hover:bg-[var(--cv-surface-muted)] transition-colors"
               aria-label="Dismiss"
             >
               Dismiss
             </button>
           </h4>
-          <p className="text-[11px] text-neutral-300 leading-relaxed">
+          <p className="text-[11px] cv-text-secondary leading-relaxed">
             We use essential storage to maintain your watchlist and preferences. Optional advertising cookies are only enabled if you accept.
           </p>
           <div className="flex flex-wrap items-center gap-2 pt-1">
             <button
+              type="button"
               onClick={handleAccept}
-              className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-lg transition-colors shadow-md shadow-rose-900/30"
+              className="cv-btn-primary px-3.5 py-1.5 font-bold text-xs rounded-lg transition-colors shadow-md cursor-pointer"
             >
               Accept All
             </button>
             <button
+              type="button"
               onClick={handleDecline}
-              className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-neutral-300 font-semibold text-xs rounded-lg transition-colors"
+              className="cv-btn-secondary px-3 py-1.5 font-semibold text-xs rounded-lg transition-colors cursor-pointer"
             >
               Essential Only
             </button>
             <button
+              type="button"
               onClick={onOpenPrivacy}
-              className="text-[11px] text-neutral-400 hover:text-rose-400 underline transition-colors ml-auto"
+              className="text-[11px] cv-text-muted hover:text-[var(--cv-accent-text)] underline transition-colors ml-auto cursor-pointer"
             >
               Privacy Policy
             </button>

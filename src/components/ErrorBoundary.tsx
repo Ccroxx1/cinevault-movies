@@ -33,12 +33,12 @@ export class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-[#050505] text-neutral-100 flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-[#0e0e0e] border border-white/10 rounded-3xl p-8 text-center space-y-6 shadow-2xl">
+        <div className="min-h-screen cv-shell flex items-center justify-center p-4">
+          <div className="max-w-md w-full cv-surface-elevated border rounded-3xl p-8 text-center space-y-6">
 
             <div className="space-y-2">
-              <h2 className="text-xl font-bold text-white">Something went wrong</h2>
-              <p className="text-sm text-neutral-400 leading-relaxed">
+              <h2 className="text-xl font-bold cv-text">Something went wrong</h2>
+              <p className="text-sm cv-text-muted leading-relaxed">
                 An unexpected issue occurred while rendering the page. Don't worry, your saved bookmarks are intact.
               </p>
             </div>
@@ -47,7 +47,7 @@ export class ErrorBoundary extends Component<Props, State> {
               <button
                 type="button"
                 onClick={this.handleReload}
-                className="px-6 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-semibold text-sm rounded-full shadow-lg shadow-rose-900/30 transition-colors flex items-center gap-2 cursor-pointer"
+                className="px-6 py-2.5 cv-btn-primary font-semibold text-sm rounded-full shadow-lg transition-colors flex items-center gap-2 cursor-pointer"
               >
                 <Home className="w-4 h-4" />
                 <span>Return to Home</span>
@@ -55,7 +55,7 @@ export class ErrorBoundary extends Component<Props, State> {
               <button
                 type="button"
                 onClick={() => window.location.reload()}
-                className="px-5 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-neutral-300 font-semibold text-sm rounded-full transition-colors flex items-center gap-2 cursor-pointer"
+                className="px-5 py-2.5 cv-btn-secondary font-semibold text-sm rounded-full transition-colors flex items-center gap-2 cursor-pointer"
               >
                 <RefreshCw className="w-4 h-4" />
                 <span>Reload</span>

@@ -34,7 +34,6 @@ import {
 } from '../services/eztvApi';
 import { CopyIcon } from './ActionIcons';
 import { AdSenseSlot } from './AdSenseSlot';
-import { useTheme } from '../context/ThemeContext';
 import { getSeriesPosterCandidates, getPrimarySeriesPoster, CINEVAULT_POSTER_FALLBACK } from '../utils/imageFallback';
 import { useIntersectionLazyLoad } from '../hooks/useIntersectionLazyLoad';
 
@@ -133,10 +132,10 @@ const ReleaseGridCard: React.FC<ReleaseGridCardProps> = ({
       ref={cardRef}
       onClick={() => onSelectRelease(torrent)}
       style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 340px' }}
-      className="group rounded-2xl border border-white/10 bg-[#0f0f13] hover:border-rose-500/50 hover:bg-white/[0.04] transition-all duration-300 flex flex-col overflow-hidden cursor-pointer shadow-md hover:shadow-xl hover:shadow-rose-950/20 relative"
+      className="group rounded-2xl border cv-card-interactive transition-all duration-300 flex flex-col overflow-hidden cursor-pointer shadow-md hover:shadow-xl relative"
     >
       {/* Poster */}
-      <div className="aspect-[2/3] w-full bg-neutral-900 relative overflow-hidden">
+      <div className="aspect-[2/3] w-full cv-surface-muted relative overflow-hidden">
         {shouldRenderImage && (
           <img
             src={currentPosterSrc}
@@ -151,30 +150,29 @@ const ReleaseGridCard: React.FC<ReleaseGridCardProps> = ({
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
 
-        {/* Top Badges */}
+        {/* Top Badges (Dark poster overlays stay high-contrast white/emerald/rose) */}
         <div className="absolute top-2 left-2 right-2 flex items-center justify-between pointer-events-none">
-          <span className="px-2 py-0.5 rounded-md bg-black/75 backdrop-blur-xs text-rose-400 font-mono font-bold text-[10px] border border-rose-500/30">
+          <span className="poster-badge px-2 py-0.5 rounded-md bg-black/80 backdrop-blur-xs text-white font-mono font-bold text-[10px] border border-white/20">
             {episodeBadge}
           </span>
           {Number(torrent.seeds || 0) > 0 && (
-            <span className="px-1.5 py-0.5 rounded-md bg-emerald-950/80 backdrop-blur-xs text-emerald-400 font-mono font-bold text-[10px] border border-emerald-500/30 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              {torrent.seeds}
+            <span className="poster-badge px-1.5 py-0.5 rounded-md bg-black/80 backdrop-blur-xs text-emerald-400 font-mono font-bold text-[10px] border border-emerald-500/40 flex items-center gap-1">
+              <span>{torrent.seeds} seeds</span>
             </span>
           )}
         </div>
 
         {/* Bottom Poster Info */}
         <div className="absolute bottom-2 left-2 right-2 flex flex-wrap items-center gap-1">
-          <span className="poster-badge px-1.5 py-0.2 rounded bg-black/65 backdrop-blur-xs text-[10px] font-semibold text-neutral-100 border border-white/15">
+          <span className="poster-badge px-1.5 py-0.5 rounded bg-black/75 backdrop-blur-xs text-[10px] font-semibold text-white border border-white/15">
             {quality}
           </span>
           {isHevc && (
-            <span className="px-1.5 py-0.2 rounded bg-purple-500/30 backdrop-blur-xs text-[10px] font-semibold text-purple-300 border border-purple-500/30">
+            <span className="poster-badge px-1.5 py-0.5 rounded bg-black/75 backdrop-blur-xs text-[10px] font-semibold text-sky-300 border border-sky-400/40">
               x265
             </span>
           )}
-          <span className="ml-auto text-[10px] font-mono text-neutral-300 bg-black/60 px-1.5 py-0.2 rounded">
+          <span className="poster-badge ml-auto text-[10px] font-mono text-white bg-black/75 px-1.5 py-0.5 rounded border border-white/15">
             {formatEztvBytes(torrent.size_bytes)}
           </span>
         </div>
@@ -183,10 +181,10 @@ const ReleaseGridCard: React.FC<ReleaseGridCardProps> = ({
       {/* Content */}
       <div className="p-3 flex-1 flex flex-col justify-between gap-2">
         <div>
-          <h3 className="text-sm font-bold text-white group-hover:text-rose-400 transition-colors line-clamp-1 leading-snug">
+          <h3 className="text-sm font-bold cv-text cv-group-hover-accent transition-colors line-clamp-1 leading-snug">
             {cleanTitle}
           </h3>
-          <div className="flex items-center gap-1.5 text-xs text-neutral-400 mt-0.5 font-mono text-[11px]">
+          <div className="flex items-center gap-1.5 cv-text-muted mt-0.5 font-mono text-[11px]">
             <span>{episodeBadge}</span>
             <span>•</span>
             <span>{formatEztvDate(torrent.date_released_unix)}</span>
@@ -194,29 +192,30 @@ const ReleaseGridCard: React.FC<ReleaseGridCardProps> = ({
         </div>
 
         {/* Quick Magnet Action */}
-        <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-1.5">
+        <div className="pt-2 border-t cv-border-subtle flex items-center justify-between gap-1.5">
           <button
+            type="button"
             onClick={(e) => {
               e.stopPropagation();
               onLaunchMagnet(torrent);
             }}
-            className="flex-1 py-1.5 px-2.5 rounded-lg bg-rose-600/90 hover:bg-rose-500 text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+            className="flex-1 py-1.5 px-2.5 rounded-lg cv-btn-magnet text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
             title="Get Fast Magnet"
           >
             <Magnet size={13} />
             <span>Magnet</span>
           </button>
           <button
+            type="button"
             onClick={(e) => {
               e.stopPropagation();
               onCopyMagnet(torrent);
             }}
             className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
-              isCopied
-                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
-                : 'bg-white/5 hover:bg-white/10 text-neutral-300 border-white/10'
+              isCopied ? 'cv-badge-success' : 'cv-btn-secondary'
             }`}
             title="Copy magnet URL"
+            aria-label="Copy magnet URL"
           >
             {isCopied ? <Check size={14} /> : <CopyIcon className="w-3.5 h-3.5" />}
           </button>
@@ -279,11 +278,11 @@ const EztvReleaseRow: React.FC<EztvReleaseRowProps> = ({
     <div
       ref={rowRef}
       onClick={() => onSelectRelease(torrent)}
-      className="group p-3.5 sm:p-4 rounded-2xl border transition-all duration-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4 eztv-release-row shadow-xs cursor-pointer hover:border-rose-500/50 hover:bg-white/[0.03]"
+      className="group p-3.5 sm:p-4 rounded-2xl border cv-card-interactive transition-all duration-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-xs cursor-pointer"
     >
       <div className="flex items-start sm:items-center gap-3.5 flex-1 min-w-0">
         {/* Real Official Show Poster Thumbnail */}
-        <div className="w-12 h-16 sm:w-14 sm:h-20 bg-neutral-900 rounded-xl overflow-hidden shrink-0 border border-white/10 relative shadow-md">
+        <div className="w-12 h-16 sm:w-14 sm:h-20 cv-surface-muted rounded-xl overflow-hidden shrink-0 border cv-border relative shadow-md">
           {isRowVisible && (
             <img
               src={currentPosterSrc}
@@ -302,59 +301,58 @@ const EztvReleaseRow: React.FC<EztvReleaseRowProps> = ({
           <div className="flex flex-wrap items-center gap-2">
             {/* Season / Episode Badge */}
             {torrent.season && torrent.episode && (
-              <span className="px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-500 font-bold border border-rose-500/30 text-xs font-mono">
+              <span className="px-2 py-0.5 rounded-md cv-nav-soft-active font-bold text-xs font-mono">
                 S{String(torrent.season).padStart(2, '0')}E{String(torrent.episode).padStart(2, '0')}
               </span>
             )}
 
             {/* Quality Badge */}
-            <span className="px-2 py-0.5 rounded-md bg-white/10 text-neutral-300 text-xs font-semibold border border-white/10">
+            <span className="px-2 py-0.5 rounded-md cv-badge-neutral text-xs font-semibold border">
               {quality}
             </span>
 
             {/* HEVC Badge */}
             {isHevc && (
-              <span className="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-400 border border-purple-500/30 text-xs font-semibold">
+              <span className="px-2 py-0.5 rounded-md cv-badge-info border text-xs font-semibold">
                 x265 / HEVC
               </span>
             )}
 
             {/* Curated Genre Badge */}
             {torrent.genres && torrent.genres.length > 0 && (
-              <span className="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-300 border border-rose-500/25 text-xs font-semibold">
+              <span className="px-2 py-0.5 rounded-md cv-nav-soft-active text-xs font-semibold">
                 {torrent.genres.slice(0, 2).join(' • ')}
               </span>
             )}
 
             {/* Seeds / Peers */}
-            <span className="flex items-center gap-1 text-xs font-semibold text-emerald-500">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              {torrent.seeds || 0} seeds
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border cv-badge-success text-xs font-semibold">
+              <span>{torrent.seeds || 0} seeds</span>
             </span>
 
-            <span className="text-xs text-neutral-400 font-mono">
+            <span className="text-xs cv-text-muted font-mono">
               {torrent.peers || 0} peers
             </span>
 
-            <span className="text-[11px] text-rose-400 font-semibold group-hover:underline ml-auto hidden sm:inline-flex items-center gap-1">
+            <span className="text-[11px] cv-text-accent font-semibold group-hover:underline ml-auto hidden sm:inline-flex items-center gap-1">
               Series Details →
             </span>
           </div>
 
           {/* Torrent Title */}
-          <h3 className="text-sm font-semibold text-white group-hover:text-rose-400 transition-colors break-all leading-snug">
+          <h3 className="text-sm font-semibold cv-text cv-group-hover-accent transition-colors break-all leading-snug">
             {torrent.title}
           </h3>
 
           {/* Meta Specs Strip */}
-          <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-400 font-mono">
+          <div className="flex flex-wrap items-center gap-3 text-xs cv-text-muted font-mono">
             <span>{formatEztvBytes(torrent.size_bytes)}</span>
             <span>•</span>
             <span>{formatEztvDate(torrent.date_released_unix)}</span>
             {torrent.filename && (
               <>
                 <span>•</span>
-                <span className="text-neutral-500 truncate max-w-xs">{torrent.filename}</span>
+                <span className="cv-text-subtle truncate max-w-xs">{torrent.filename}</span>
               </>
             )}
           </div>
@@ -368,8 +366,9 @@ const EztvReleaseRow: React.FC<EztvReleaseRowProps> = ({
       >
         {/* View Details Button */}
         <button
+          type="button"
           onClick={() => onSelectRelease(torrent)}
-          className="px-3 py-2 rounded-xl text-xs font-semibold bg-white/10 hover:bg-rose-600 hover:text-white text-neutral-200 border border-white/10 flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap"
+          className="px-3 py-2 rounded-xl text-xs font-semibold cv-btn-secondary flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap"
           title="View full TV series detail page"
         >
           <Tv className="w-3.5 h-3.5" />
@@ -378,8 +377,9 @@ const EztvReleaseRow: React.FC<EztvReleaseRowProps> = ({
 
         {/* Magnet Download */}
         <button
+          type="button"
           onClick={() => onLaunchMagnet(torrent)}
-          className="px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-950/40 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap"
+          className="px-4 py-2.5 rounded-xl text-xs font-bold cv-btn-magnet shadow-md flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap"
           title="Launch BitTorrent client"
         >
           <Magnet className="w-4 h-4" />
@@ -388,16 +388,15 @@ const EztvReleaseRow: React.FC<EztvReleaseRowProps> = ({
 
         {/* Copy Magnet */}
         <button
+          type="button"
           onClick={() => onCopyMagnet(torrent)}
           className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-center ${
-            isCopied
-              ? 'bg-rose-600 text-white border-rose-500'
-              : 'bg-white/5 hover:bg-white/15 border-white/10 text-neutral-300 hover:text-white'
+            isCopied ? 'cv-btn-primary' : 'cv-btn-secondary'
           }`}
           title={isCopied ? 'Copied to clipboard' : 'Copy raw magnet URI'}
           aria-label="Copy Magnet URI"
         >
-          {isCopied ? <Check className="w-4 h-4 text-white" /> : <CopyIcon size={16} />}
+          {isCopied ? <Check className="w-4 h-4" /> : <CopyIcon size={16} />}
         </button>
       </div>
     </div>
@@ -405,22 +404,12 @@ const EztvReleaseRow: React.FC<EztvReleaseRowProps> = ({
 };
 
 export const EztvShowcaseSkeleton: React.FC = () => {
-  const { colorMode } = useTheme();
-  const isWhite = colorMode === 'white';
-  const isBlueBlack = colorMode === 'blue-black';
-
   return (
     <div
       aria-label="Loading series information..."
-      className={`relative overflow-hidden rounded-3xl p-5 sm:p-7 border shadow-xl flex flex-col md:flex-row gap-6 items-start animate-in fade-in duration-200 ${
-        isWhite
-          ? 'border-slate-200 bg-white'
-          : isBlueBlack
-          ? 'border-sky-900/40 bg-[#091124]'
-          : 'border-white/10 bg-[#0c0c12]/80'
-      }`}
+      className="relative overflow-hidden rounded-3xl p-5 sm:p-7 border cv-card shadow-xl flex flex-col md:flex-row gap-6 items-start animate-in fade-in duration-200"
     >
-      <div className="w-28 sm:w-36 aspect-[2/3] rounded-2xl overflow-hidden border border-white/10 shrink-0 skeleton-shimmer" />
+      <div className="w-28 sm:w-36 aspect-[2/3] rounded-2xl overflow-hidden border cv-border shrink-0 skeleton-shimmer" />
 
       <div className="flex-1 min-w-0 w-full space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -457,10 +446,6 @@ export const EztvShowcaseSkeleton: React.FC = () => {
 };
 
 export const EztvReleasesSkeleton: React.FC = () => {
-  const { colorMode } = useTheme();
-  const isWhite = colorMode === 'white';
-  const isBlueBlack = colorMode === 'blue-black';
-
   return (
     <div
       aria-label="Loading TV torrent releases..."
@@ -469,16 +454,10 @@ export const EztvReleasesSkeleton: React.FC = () => {
       {Array.from({ length: 7 }).map((_, i) => (
         <div
           key={`eztv-release-skel-${i}`}
-          className={`p-3.5 sm:p-4 rounded-2xl border flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3.5 shadow-xs ${
-            isWhite
-              ? 'border-slate-200 bg-white'
-              : isBlueBlack
-              ? 'border-sky-900/30 bg-[#0b1329]'
-              : 'border-white/10 bg-[#0d0d12]/70'
-          }`}
+          className="p-3.5 sm:p-4 rounded-2xl border cv-card flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3.5 shadow-xs"
         >
           <div className="flex items-start sm:items-center gap-3.5 flex-1 min-w-0 w-full">
-            <div className="w-10 h-14 sm:w-12 sm:h-16 rounded-xl shrink-0 border border-white/10 skeleton-shimmer" />
+            <div className="w-10 h-14 sm:w-12 sm:h-16 rounded-xl shrink-0 border cv-border skeleton-shimmer" />
 
             <div className="space-y-2 flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-2">
@@ -866,9 +845,9 @@ export const EztvView: React.FC<EztvViewProps> = ({
   return (
     <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6 sm:space-y-8 animate-in fade-in duration-200">
       {/* Hero Header */}
-      <div className="relative z-20 rounded-2xl sm:rounded-3xl p-4 sm:p-10 border eztv-hero-banner shadow-2xl">
+      <div className="relative z-20 rounded-2xl sm:rounded-3xl p-4 sm:p-10 border cv-card shadow-xl">
         <div className="relative z-10 space-y-4 max-w-3xl">
-          <h1 className="text-xl sm:text-4xl font-black text-white tracking-tight leading-tight eztv-hero-title">
+          <h1 className="text-xl sm:text-4xl font-black cv-text tracking-tight leading-tight">
             TV Series, Seasons & Episode Releases
           </h1>
 
@@ -876,7 +855,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
           <div className="relative pt-2">
             <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-2.5">
               <div className="relative flex-1">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 cv-text-muted pointer-events-none" />
                 <label htmlFor="eztv-series-search" className="sr-only">
                   Search TV series or IMDb ID
                 </label>
@@ -891,18 +870,19 @@ export const EztvView: React.FC<EztvViewProps> = ({
                     if (suggestions.length > 0) setIsSuggestionsOpen(true);
                   }}
                   placeholder="Search TV series (e.g. Dark, Loki, Stranger Things) or IMDb ID..."
-                  className="w-full pl-10 pr-10 py-3 text-sm rounded-2xl focus:outline-hidden focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition-all shadow-inner eztv-search-box"
+                  className="w-full pl-10 pr-10 py-3 text-sm rounded-2xl border cv-input focus:outline-hidden transition-all shadow-inner"
                 />
                 {searchInput && (
                   <button
                     type="button"
+                    aria-label="Clear TV series search"
                     onClick={() => {
                       setSearchInput('');
                       setSuggestions([]);
                       setIsSuggestionsOpen(false);
                       searchInputRef.current?.focus();
                     }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-neutral-400 hover:text-white rounded cursor-pointer"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 cv-text-muted hover:text-[var(--cv-text)] rounded cursor-pointer"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -912,23 +892,23 @@ export const EztvView: React.FC<EztvViewProps> = ({
                 {isSuggestionsOpen && suggestions.length > 0 && (
                   <div
                     ref={suggestionsRef}
-                    className="absolute top-full left-0 right-0 mt-2 bg-[#0d0d12] border border-white/20 rounded-2xl shadow-2xl shadow-black overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150 eztv-suggestions-menu"
+                    className="absolute top-full left-0 right-0 mt-2 cv-surface-elevated border rounded-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150"
                   >
-                    <div className="p-2.5 bg-neutral-900/90 border-b border-white/10 text-[11px] font-semibold text-neutral-400 flex items-center justify-between suggestion-header">
+                    <div className="p-2.5 cv-surface-muted border-b cv-border text-[11px] font-semibold cv-text-muted flex items-center justify-between">
                       <span className="flex items-center gap-1.5">
-                        <Tv className="w-3.5 h-3.5 text-rose-500" />
+                        <Tv className="w-3.5 h-3.5 cv-text-accent" />
                         Matching TV Series
                       </span>
-                      {isSearchingSuggestions && <span className="text-rose-400 animate-pulse">Searching...</span>}
+                      {isSearchingSuggestions && <span className="cv-text-accent animate-pulse">Searching...</span>}
                     </div>
-                    <div className="divide-y divide-white/5 max-h-80 overflow-y-auto">
+                    <div className="divide-y divide-[var(--cv-border-subtle)] max-h-80 overflow-y-auto">
                       {suggestions.map((show) => (
                         <button
                           key={show.imdb_code || show.id}
                           onClick={() => handleSelectSuggestion(show)}
-                          className="w-full text-left p-3 hover:bg-white/10 flex items-center gap-3 transition-colors cursor-pointer group"
+                          className="w-full text-left p-3 hover:bg-[var(--cv-surface-hover)] flex items-center gap-3 transition-colors cursor-pointer group"
                         >
-                          <div className="w-10 h-14 bg-neutral-800 rounded-lg overflow-hidden shrink-0 border border-white/10 relative">
+                          <div className="w-10 h-14 cv-surface-muted rounded-lg overflow-hidden shrink-0 border cv-border relative">
                             <img
                               src={show.image || `/api/poster?imdb=${show.imdb_code}&title=${encodeURIComponent(show.name)}&type=tv&size=small`}
                               alt={show.name}
@@ -945,33 +925,33 @@ export const EztvView: React.FC<EztvViewProps> = ({
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <h4 className="text-sm font-bold text-white truncate group-hover:text-rose-400 transition-colors">
+                              <h4 className="text-sm font-bold cv-text truncate cv-group-hover-accent transition-colors">
                                 {show.name}
                               </h4>
                               {show.year && (
-                                <span className="text-xs text-neutral-400 font-mono">({show.year})</span>
+                                <span className="text-xs cv-text-muted font-mono">({show.year})</span>
                               )}
                             </div>
-                            <div className="flex items-center gap-2 mt-1 text-[11px] text-neutral-400">
+                            <div className="flex items-center gap-2 mt-1 text-[11px] cv-text-muted">
                               {show.rating && (
-                                <span className="flex items-center gap-0.5 text-amber-400 font-semibold">
-                                  <Star className="w-3 h-3 fill-amber-400" />
+                                <span className="flex items-center gap-0.5 cv-rating font-semibold">
+                                  <Star className="w-3 h-3 fill-current" />
                                   {show.rating}
                                 </span>
                               )}
                               {show.network && (
-                                <span className="px-1.5 py-0.5 rounded bg-white/10 text-neutral-300 font-medium">
+                                <span className="px-1.5 py-0.5 rounded cv-badge-neutral border font-medium">
                                   {show.network}
                                 </span>
                               )}
                               {show.genres && show.genres.length > 0 && (
-                                <span className="truncate hidden sm:inline text-neutral-500">
+                                <span className="truncate hidden sm:inline cv-text-subtle">
                                   {show.genres.slice(0, 2).join(', ')}
                                 </span>
                               )}
                             </div>
                           </div>
-                          <div className="text-xs text-neutral-400 font-mono px-2 py-1 bg-white/5 rounded border border-white/10">
+                          <div className="text-xs cv-badge-neutral font-mono px-2 py-1 rounded border">
                             {show.imdb_code}
                           </div>
                         </button>
@@ -982,7 +962,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
               </div>
               <button
                 type="submit"
-                className="px-6 py-3 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm shadow-lg shadow-rose-950/40 flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap"
+                className="px-6 py-3 rounded-2xl cv-btn-primary font-bold text-sm shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap"
               >
                 <Search className="w-4 h-4" />
                 <span>Search Series</span>
@@ -991,7 +971,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
                 <button
                   type="button"
                   onClick={handleClearSearch}
-                  className="px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/15 text-neutral-300 hover:text-white font-semibold text-sm transition-all cursor-pointer"
+                  className="px-4 py-3 rounded-2xl cv-btn-secondary font-semibold text-sm transition-all cursor-pointer"
                 >
                   Clear
                 </button>
@@ -1001,7 +981,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
 
           {/* Popular Suggestions */}
           <div className="pt-1 flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar -mx-1 px-1 sm:mx-0 sm:px-0 sm:flex-wrap">
-            <span className="text-xs font-semibold text-neutral-400 shrink-0">
+            <span className="text-xs font-semibold cv-text-muted shrink-0">
               Popular Series:
             </span>
             {POPULAR_SHOWS.map((show) => {
@@ -1010,8 +990,9 @@ export const EztvView: React.FC<EztvViewProps> = ({
                 <button
                   key={show.imdb}
                   onClick={() => handleSelectPopularShow(show)}
-                  className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-all cursor-pointer whitespace-nowrap shrink-0 eztv-tag-btn ${
-                    isSelected ? 'is-active font-bold' : ''
+                  aria-pressed={isSelected}
+                  className={`px-2.5 py-1 text-xs rounded-lg transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                    isSelected ? 'cv-nav-pill-active font-bold shadow-xs' : 'cv-btn-secondary font-medium'
                   }`}
                 >
                   {show.name}
@@ -1022,17 +1003,17 @@ export const EztvView: React.FC<EztvViewProps> = ({
         </div>
 
         {/* Decorative background TV icon safely contained inside clipped wrapper */}
-        <div className="absolute inset-0 overflow-hidden rounded-3xl pointer-events-none">
+        <div className="absolute inset-0 overflow-hidden rounded-3xl pointer-events-none" aria-hidden="true">
           <div className="absolute right-0 bottom-0 translate-x-12 translate-y-12 opacity-5 pointer-events-none">
-            <Tv className="w-96 h-96 text-white" />
+            <Tv className="w-96 h-96 cv-text" />
           </div>
         </div>
       </div>
 
       {/* TV Show Metadata Card (When a show is active and resolved) */}
       {showMeta ? (
-        <div className="relative overflow-hidden rounded-3xl p-5 sm:p-7 border eztv-showcase-card shadow-xl flex flex-col md:flex-row gap-6 items-start">
-          <div className="w-28 sm:w-36 aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl border border-white/10 shrink-0 bg-neutral-900">
+        <div className="relative overflow-hidden rounded-3xl p-5 sm:p-7 border cv-card shadow-xl flex flex-col md:flex-row gap-6 items-start">
+          <div className="w-28 sm:w-36 aspect-[2/3] rounded-2xl overflow-hidden shadow-xl border cv-border shrink-0 cv-surface-muted">
             <img
               src={getPrimarySeriesPoster(showMeta)}
               alt={showMeta.name}
@@ -1048,11 +1029,11 @@ export const EztvView: React.FC<EztvViewProps> = ({
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2.5">
-                  <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                  <h2 className="text-xl sm:text-2xl font-black cv-text tracking-tight">
                     {showMeta.name}
                   </h2>
                   {showMeta.year && (
-                    <span className="text-sm font-semibold text-neutral-400 font-mono">
+                    <span className="text-sm font-semibold cv-text-muted font-mono">
                       ({showMeta.year})
                     </span>
                   )}
@@ -1060,14 +1041,14 @@ export const EztvView: React.FC<EztvViewProps> = ({
 
                 <div className="flex flex-wrap items-center gap-2 mt-1.5">
                   {showMeta.rating && (
-                    <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold">
-                      <Star className="w-3.5 h-3.5 fill-amber-400" />
+                    <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md cv-rating-badge text-xs font-bold">
+                      <Star className="w-3.5 h-3.5 fill-current" />
                       <span>{showMeta.rating} / 10</span>
                     </div>
                   )}
 
                   {showMeta.network && (
-                    <span className="px-2 py-0.5 rounded-md bg-white/10 text-neutral-200 text-xs font-semibold border border-white/10">
+                    <span className="px-2 py-0.5 rounded-md cv-badge-neutral text-xs font-semibold border">
                       {showMeta.network}
                     </span>
                   )}
@@ -1077,7 +1058,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
                       href={`https://www.imdb.com/title/${showMeta.imdb_code}/`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-300 border border-yellow-500/30 text-xs font-bold transition-colors"
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md cv-rating-badge hover:opacity-90 text-xs font-bold transition-opacity"
                     >
                       <span>IMDb {showMeta.imdb_code}</span>
                       <ExternalLink className="w-3 h-3" />
@@ -1087,7 +1068,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
                   {showMeta.genres?.map((g) => (
                     <span
                       key={g}
-                      className="px-2 py-0.5 rounded-md bg-neutral-800 text-neutral-300 text-xs border border-white/5"
+                      className="px-2 py-0.5 rounded-md cv-badge-neutral text-xs border"
                     >
                       {g}
                     </span>
@@ -1099,7 +1080,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
                 {onSelectSeries && (
                   <button
                     onClick={() => onSelectSeries({ imdb: showMeta.imdb_code, title: showMeta.name, show: showMeta })}
-                    className="px-3.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-md shadow-rose-950/40 flex items-center gap-1.5 transition-all cursor-pointer"
+                    className="px-3.5 py-1.5 rounded-lg cv-btn-primary font-bold text-xs shadow-md flex items-center gap-1.5 transition-all cursor-pointer"
                   >
                     <Tv className="w-3.5 h-3.5" />
                     <span>View Series Page →</span>
@@ -1108,7 +1089,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
 
                 <button
                   onClick={handleClearSearch}
-                  className="text-xs text-neutral-400 hover:text-white px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors flex items-center gap-1 cursor-pointer"
+                  className="text-xs cv-btn-secondary px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 cursor-pointer font-semibold"
                 >
                   <X className="w-3.5 h-3.5" />
                   <span>Show All Releases</span>
@@ -1117,7 +1098,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
             </div>
 
             {showMeta.summary && (
-              <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed max-w-4xl line-clamp-3">
+              <p className="text-xs sm:text-sm cv-text-secondary leading-relaxed max-w-4xl line-clamp-3">
                 {showMeta.summary}
               </p>
             )}
@@ -1125,26 +1106,29 @@ export const EztvView: React.FC<EztvViewProps> = ({
             {/* Quick Season Jumpers */}
             {availableSeasons.length > 0 && (
               <div className="pt-2 flex flex-wrap items-center gap-2">
-                <span className="text-xs font-bold text-neutral-400 flex items-center gap-1 uppercase tracking-wider">
+                <span className="text-xs font-bold cv-text-muted flex items-center gap-1 uppercase tracking-wider">
                   <Layers className="w-3.5 h-3.5" />
                   Seasons:
                 </span>
                 <button
                   onClick={() => setSelectedSeason('All')}
-                  className={`px-2.5 py-1 text-xs rounded-lg font-bold transition-all cursor-pointer eztv-tag-btn ${
-                    selectedSeason === 'All' ? 'is-active' : ''
+                  aria-pressed={selectedSeason === 'All'}
+                  className={`px-2.5 py-1 text-xs rounded-lg font-bold transition-all cursor-pointer ${
+                    selectedSeason === 'All' ? 'cv-nav-pill-active shadow-xs' : 'cv-btn-secondary'
                   }`}
                 >
                   All ({torrents.length})
                 </button>
                 {availableSeasons.map((s) => {
                   const seasonCount = torrents.filter((t) => String(t.season) === s).length;
+                  const isActive = selectedSeason === s;
                   return (
                     <button
                       key={s}
                       onClick={() => setSelectedSeason(s)}
-                      className={`px-2.5 py-1 text-xs rounded-lg font-bold transition-all cursor-pointer eztv-tag-btn ${
-                        selectedSeason === s ? 'is-active' : ''
+                      aria-pressed={isActive}
+                      className={`px-2.5 py-1 text-xs rounded-lg font-bold transition-all cursor-pointer ${
+                        isActive ? 'cv-nav-pill-active shadow-xs' : 'cv-btn-secondary'
                       }`}
                     >
                       Season {s} ({seasonCount})
@@ -1160,57 +1144,65 @@ export const EztvView: React.FC<EztvViewProps> = ({
       ) : null}
 
       {/* Filter & Sort Controls Bar */}
-      <div className="p-3.5 sm:p-4 rounded-2xl bg-[#0f0f13] border border-white/10 flex flex-col gap-3.5 backdrop-blur-sm">
+      <div className="p-3.5 sm:p-4 rounded-2xl cv-card border flex flex-col gap-3.5 backdrop-blur-sm">
         {/* Top Filters Group: Genre, Quality & Season */}
         <div className="flex flex-col lg:flex-row items-start lg:items-center gap-3 w-full">
           {/* Genre Filter */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2 w-full lg:w-auto">
-            <span className="text-[11px] sm:text-xs font-bold text-neutral-400 uppercase tracking-wider shrink-0">
+            <span className="text-[11px] sm:text-xs font-bold cv-text-muted uppercase tracking-wider shrink-0">
               Genre:
             </span>
             <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pb-0.5 sm:pb-0 sm:flex-wrap -mx-1 px-1 sm:mx-0 sm:px-0">
-              {GENRE_FILTERS.map((g) => (
-                <button
-                  key={g}
-                  onClick={() => {
-                    setSelectedGenre(g);
-                    setCurrentPage(1);
-                  }}
-                  className={`px-3 py-1.5 sm:px-2.5 sm:py-1 text-xs rounded-lg font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 eztv-tag-btn ${
-                    selectedGenre === g ? 'is-active font-bold' : ''
-                  }`}
-                >
-                  {g}
-                </button>
-              ))}
+              {GENRE_FILTERS.map((g) => {
+                const isActive = selectedGenre === g;
+                return (
+                  <button
+                    key={g}
+                    aria-pressed={isActive}
+                    onClick={() => {
+                      setSelectedGenre(g);
+                      setCurrentPage(1);
+                    }}
+                    className={`px-3 py-1.5 sm:px-2.5 sm:py-1 text-xs rounded-lg transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                      isActive ? 'cv-nav-pill-active font-bold shadow-xs' : 'cv-btn-secondary font-semibold'
+                    }`}
+                  >
+                    {g}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           {/* Quality Filter */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2 w-full lg:w-auto lg:border-l lg:border-white/10 lg:pl-3 pt-2 lg:pt-0 border-t border-white/5 lg:border-t-0">
-            <div className="flex items-center gap-1 text-neutral-400 shrink-0">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2 w-full lg:w-auto lg:border-l lg:border-[var(--cv-border)] lg:pl-3 pt-2 lg:pt-0 border-t border-[var(--cv-border-subtle)] lg:border-t-0">
+            <div className="flex items-center gap-1 cv-text-muted shrink-0">
               <SlidersHorizontal className="w-3.5 h-3.5" />
               <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider">Quality:</span>
             </div>
             <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pb-0.5 sm:pb-0 sm:flex-wrap -mx-1 px-1 sm:mx-0 sm:px-0">
-              {QUALITY_FILTERS.map((q) => (
-                <button
-                  key={q}
-                  onClick={() => setSelectedQuality(q)}
-                  className={`px-3 py-1.5 sm:px-2.5 sm:py-1 text-xs rounded-lg font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 eztv-tag-btn ${
-                    selectedQuality === q ? 'is-active font-bold' : ''
-                  }`}
-                >
-                  {q}
-                </button>
-              ))}
+              {QUALITY_FILTERS.map((q) => {
+                const isActive = selectedQuality === q;
+                return (
+                  <button
+                    key={q}
+                    aria-pressed={isActive}
+                    onClick={() => setSelectedQuality(q)}
+                    className={`px-3 py-1.5 sm:px-2.5 sm:py-1 text-xs rounded-lg transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                      isActive ? 'cv-nav-pill-active font-bold shadow-xs' : 'cv-btn-secondary font-semibold'
+                    }`}
+                  >
+                    {q}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           {/* Season Filter (if any) */}
           {availableSeasons.length > 0 && !showMeta && (
-            <div className="flex items-center justify-between sm:justify-start gap-2 w-full lg:w-auto lg:border-l lg:border-white/10 lg:pl-3 pt-2 lg:pt-0 border-t border-white/5 lg:border-t-0">
-              <label htmlFor="eztv-season-filter" className="flex items-center gap-1.5 text-neutral-400 shrink-0">
+            <div className="flex items-center justify-between sm:justify-start gap-2 w-full lg:w-auto lg:border-l lg:border-[var(--cv-border)] lg:pl-3 pt-2 lg:pt-0 border-t border-[var(--cv-border-subtle)] lg:border-t-0">
+              <label htmlFor="eztv-season-filter" className="flex items-center gap-1.5 cv-text-muted shrink-0">
                 <Layers className="w-3.5 h-3.5" />
                 <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider">Season:</span>
               </label>
@@ -1219,7 +1211,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
                 name="season"
                 value={selectedSeason}
                 onChange={(e) => setSelectedSeason(e.target.value)}
-                className="bg-[#18181c] border border-white/15 rounded-lg px-2.5 py-1 text-xs text-neutral-200 focus:outline-hidden focus:border-rose-500 cursor-pointer"
+                className="cv-select border rounded-lg px-2.5 py-1 text-xs focus:outline-hidden cursor-pointer"
               >
                 <option value="All">All Seasons</option>
                 {availableSeasons.map((s) => (
@@ -1233,16 +1225,17 @@ export const EztvView: React.FC<EztvViewProps> = ({
         </div>
 
         {/* Bottom Bar: View Mode, Release Count, Sort & Refresh */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 w-full pt-3 border-t border-white/10">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 w-full pt-3 border-t cv-border">
           <div className="flex items-center justify-between sm:justify-start gap-3">
             {/* View Mode Toggle */}
-            <div className="flex items-center p-0.5 rounded-xl bg-white/5 border border-white/10 flex-1 sm:flex-initial">
+            <div className="flex items-center p-0.5 rounded-xl cv-surface-muted border cv-border flex-1 sm:flex-initial">
               <button
                 onClick={() => setViewMode('grid')}
+                aria-pressed={viewMode === 'grid'}
                 className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   viewMode === 'grid'
-                    ? 'bg-rose-600 text-white shadow-xs'
-                    : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                    ? 'cv-nav-pill-active shadow-xs'
+                    : 'cv-text-muted hover:text-[var(--cv-text)]'
                 }`}
                 title="Browse as TV Series Cards"
               >
@@ -1251,10 +1244,11 @@ export const EztvView: React.FC<EztvViewProps> = ({
               </button>
               <button
                 onClick={() => setViewMode('feed')}
+                aria-pressed={viewMode === 'feed'}
                 className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   viewMode === 'feed'
-                    ? 'bg-rose-600 text-white shadow-xs'
-                    : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                    ? 'cv-nav-pill-active shadow-xs'
+                    : 'cv-text-muted hover:text-[var(--cv-text)]'
                 }`}
                 title="View Raw Torrent Feed"
               >
@@ -1264,8 +1258,8 @@ export const EztvView: React.FC<EztvViewProps> = ({
             </div>
 
             {/* Releases Count */}
-            <div className="flex items-center gap-1.5 text-xs text-neutral-400 font-mono shrink-0">
-              <HardDrive className="w-3.5 h-3.5 text-rose-500" />
+            <div className="flex items-center gap-1.5 text-xs cv-text-muted font-mono shrink-0">
+              <HardDrive className="w-3.5 h-3.5 cv-text-accent" />
               <span>{filteredTorrents.length} Releases</span>
             </div>
           </div>
@@ -1274,14 +1268,14 @@ export const EztvView: React.FC<EztvViewProps> = ({
           <div className="flex items-center justify-between sm:justify-end gap-2">
             <div className="flex items-center gap-1.5 flex-1 sm:flex-initial">
               <label htmlFor="eztv-sort-by" className="sr-only">Sort TV releases</label>
-              <ArrowUpDown className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+              <ArrowUpDown className="w-3.5 h-3.5 cv-text-muted shrink-0" />
               <select
                 id="eztv-sort-by"
                 name="sortBy"
                 aria-label="Sort TV releases"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="w-full sm:w-auto bg-[#18181c] border border-white/15 rounded-lg px-2.5 py-1.5 sm:py-1 text-xs text-neutral-200 focus:outline-hidden focus:border-rose-500 cursor-pointer"
+                className="w-full sm:w-auto cv-select border rounded-lg px-2.5 py-1.5 sm:py-1 text-xs focus:outline-hidden cursor-pointer"
               >
                 <option value="date">Newest Released</option>
                 <option value="seeds">Most Seeds (Fastest)</option>
@@ -1291,8 +1285,9 @@ export const EztvView: React.FC<EztvViewProps> = ({
 
             <button
               onClick={() => loadTorrents(currentPage, activeImdbId, activeQuery, selectedGenre)}
-              className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white transition-colors cursor-pointer shrink-0"
+              className="p-2 rounded-lg cv-btn-secondary transition-colors cursor-pointer shrink-0"
               title="Refresh EZTV torrents"
+              aria-label="Refresh EZTV torrents"
             >
               <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             </button>
@@ -1302,14 +1297,14 @@ export const EztvView: React.FC<EztvViewProps> = ({
 
       {/* Error Message */}
       {error && (
-        <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-300 flex items-center justify-between gap-3">
+        <div className="p-4 rounded-2xl cv-badge-error border flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-sm font-medium">
             <Info className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
           <button
             onClick={() => loadTorrents(currentPage, activeImdbId, activeQuery, selectedGenre)}
-            className="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-lg transition-colors cursor-pointer shrink-0"
+            className="px-3 py-1 cv-btn-primary text-xs font-bold rounded-lg transition-colors cursor-pointer shrink-0"
           >
             Retry
           </button>
@@ -1356,13 +1351,13 @@ export const EztvView: React.FC<EztvViewProps> = ({
 
       {/* Empty State */}
       {!isLoading && !error && filteredTorrents.length === 0 && (
-        <div className="text-center py-16 px-4 rounded-3xl bg-[#0f0f13] border border-white/10 space-y-4">
-          <Tv className="w-12 h-12 text-neutral-600 mx-auto" />
+        <div className="text-center py-16 px-4 rounded-3xl cv-card border space-y-4">
+          <Tv className="w-12 h-12 cv-text-muted opacity-50 mx-auto" />
           <div className="space-y-1">
-            <h3 className="text-base font-bold text-white">
+            <h3 className="text-base font-bold cv-text">
               {activeShowName ? `No Releases Found for "${activeShowName}"` : 'No EZTV Torrents Found'}
             </h3>
-            <p className="text-xs sm:text-sm text-neutral-400 max-w-md mx-auto">
+            <p className="text-xs sm:text-sm cv-text-muted max-w-md mx-auto">
               {activeShowName
                 ? `EZTV does not currently have torrent releases matching this query or season filter. Try selecting "All Seasons" or explore another popular TV series.`
                 : 'No releases match the current filters on EZTV. Try clearing your filters or searching for another TV title.'}
@@ -1372,7 +1367,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
           <div className="pt-2 flex flex-wrap items-center justify-center gap-2">
             <button
               onClick={handleClearSearch}
-              className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-all cursor-pointer shadow-md"
+              className="px-5 py-2.5 rounded-xl cv-btn-primary text-xs font-bold transition-all cursor-pointer shadow-md"
             >
               Browse Latest TV Releases
             </button>
@@ -1380,7 +1375,7 @@ export const EztvView: React.FC<EztvViewProps> = ({
               <button
                 key={s.imdb}
                 onClick={() => handleSelectPopularShow(s)}
-                className="px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer eztv-tag-btn"
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer cv-btn-secondary"
               >
                 {s.name}
               </button>
@@ -1391,25 +1386,25 @@ export const EztvView: React.FC<EztvViewProps> = ({
 
       {/* Pagination Controls */}
       {!isLoading && !error && totalPages > 1 && (
-        <div className="pt-4 flex items-center justify-between gap-2 border-t border-white/10">
+        <div className="pt-4 flex items-center justify-between gap-2 border-t cv-border">
           <button
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage <= 1}
-            className="px-3 sm:px-4 py-2 rounded-xl eztv-tag-btn text-xs font-bold flex items-center gap-1 sm:gap-1.5 transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none shrink-0"
+            className="px-3 sm:px-4 py-2 rounded-xl cv-btn-secondary text-xs font-bold flex items-center gap-1 sm:gap-1.5 transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none shrink-0"
           >
             <ChevronLeft className="w-4 h-4" />
             <span className="sm:hidden">Prev</span>
             <span className="hidden sm:inline">Previous Page</span>
           </button>
 
-          <span className="text-xs font-mono text-neutral-400 text-center">
-            Page <strong className="text-rose-500">{currentPage}</strong> of {totalPages}
+          <span className="text-xs font-mono cv-text-muted text-center">
+            Page <strong className="cv-text-accent">{currentPage}</strong> of {totalPages}
           </span>
 
           <button
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage >= totalPages}
-            className="px-3 sm:px-4 py-2 rounded-xl eztv-tag-btn text-xs font-bold flex items-center gap-1 sm:gap-1.5 transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none shrink-0"
+            className="px-3 sm:px-4 py-2 rounded-xl cv-btn-secondary text-xs font-bold flex items-center gap-1 sm:gap-1.5 transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none shrink-0"
           >
             <span className="sm:hidden">Next</span>
             <span className="hidden sm:inline">Next Page</span>
@@ -1422,14 +1417,14 @@ export const EztvView: React.FC<EztvViewProps> = ({
       <AdSenseSlot format="auto" responsive={true} className="my-6" />
 
       {/* Legal & Safety Helper Strip */}
-      <div className="p-4 rounded-2xl bg-[#0f0f13] border border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-neutral-400">
+      <div className="p-4 rounded-2xl cv-card border cv-border-subtle flex flex-col sm:flex-row items-center justify-between gap-3 text-xs cv-text-muted">
         <div className="flex items-center gap-2">
-          <Tv className="w-4 h-4 text-rose-500 shrink-0" />
+          <Tv className="w-4 h-4 cv-text-accent shrink-0" />
           <span>EZTV API integration • Live TV broadcasts, full seasons, and episode torrents</span>
         </div>
         <button
           onClick={onOpenGuide}
-          className="text-rose-400 hover:text-rose-300 font-semibold underline cursor-pointer"
+          className="cv-text-accent hover:opacity-80 font-semibold underline cursor-pointer"
         >
           How to download safely with VPN
         </button>

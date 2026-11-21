@@ -270,18 +270,8 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <header className={`sticky top-0 z-40 w-full transform-gpu border-b transition-[background-color,border-color,box-shadow] duration-200 ${
-        isScrolled
-          ? isWhite
-            ? 'bg-white/98 border-slate-200/90 shadow-md shadow-slate-900/5'
-            : isBlueBlack
-            ? 'bg-[#080e1e]/98 border-sky-400/20 shadow-lg shadow-black/60'
-            : 'bg-[#0a0a0a]/98 border-white/15 shadow-lg shadow-black/70'
-          : isWhite
-          ? 'bg-white/95 border-slate-200/60 shadow-none'
-          : isBlueBlack
-          ? 'bg-[#080e1e]/95 border-sky-400/10 shadow-none'
-          : 'bg-[#0a0a0a]/95 border-white/10 shadow-none'
+      <header className={`cv-header sticky top-0 z-40 w-full transform-gpu border-b transition-[box-shadow] duration-200 ${
+        isScrolled ? 'shadow-lg' : 'shadow-none'
       }`}>
         <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14 sm:h-16 md:h-20 gap-1.5 sm:gap-4">
@@ -290,7 +280,7 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
               <button
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="p-1.5 sm:p-2 -ml-1 text-neutral-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors cursor-pointer lg:hidden"
+                className="p-1.5 sm:p-2 -ml-1 cv-nav-pill rounded-xl transition-colors cursor-pointer lg:hidden"
                 aria-label="Open Navigation Menu"
               >
                 <div className="w-5 sm:w-6 h-0.5 bg-current mb-1"></div>
@@ -305,6 +295,14 @@ export const Header: React.FC<HeaderProps> = ({
                 }}
                 className="cursor-pointer group shrink-0"
                 role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onNavSelect('browse');
+                    setIsMobileMenuOpen(false);
+                  }
+                }}
                 aria-label="CineVault Home"
               >
                 <CineVaultLogo variant="header" size="md" />
@@ -315,7 +313,7 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="relative flex-1 min-w-0 max-w-xs sm:max-w-md lg:max-w-lg mx-0.5 sm:mx-2">
               <form onSubmit={handleFormSubmit} className="relative" role="search">
                 <div className="relative flex items-center">
-                  <Search className="absolute left-2.5 sm:left-3.5 w-3.5 sm:w-4 h-3.5 sm:h-4 text-neutral-400 pointer-events-none" />
+                  <Search className="absolute left-2.5 sm:left-3.5 w-3.5 sm:w-4 h-3.5 sm:h-4 cv-text-muted pointer-events-none" />
                   <label htmlFor="movie-search-input" className="sr-only">Search movies</label>
                   <input
                     id="movie-search-input"
@@ -326,7 +324,7 @@ export const Header: React.FC<HeaderProps> = ({
                     onChange={(e) => onSearchChange(e.target.value)}
                     onFocus={() => setIsSearchFocused(true)}
                     placeholder={currentNav === 'series' ? 'Search TV...' : 'Search...'}
-                    className="w-full min-w-0 pl-7 sm:pl-10 pr-7 sm:pr-14 py-1.5 sm:py-2.5 text-xs sm:text-sm bg-[#0f0f0f] hover:bg-[#141414] focus:bg-[#141414] border border-white/10 focus:border-rose-500/80 rounded-xl text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 transition-all"
+                    className="cv-input w-full min-w-0 pl-7 sm:pl-10 pr-7 sm:pr-14 py-1.5 sm:py-2.5 text-xs sm:text-sm border rounded-xl focus:outline-none transition-colors"
                   />
                   
                   {searchQuery ? (
@@ -337,7 +335,7 @@ export const Header: React.FC<HeaderProps> = ({
                           onSearchChange('');
                           searchInputRef.current?.focus();
                         }}
-                        className="p-1 text-neutral-400 hover:text-neutral-200 rounded cursor-pointer"
+                        className="p-1 cv-text-muted hover:text-[var(--cv-text)] rounded cursor-pointer"
                         title="Clear search"
                         aria-label="Clear search"
                       >
@@ -346,7 +344,7 @@ export const Header: React.FC<HeaderProps> = ({
                     </div>
                   ) : (
                     <div className="absolute right-2 sm:right-2.5 hidden sm:flex items-center pointer-events-none select-none">
-                      <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-medium text-neutral-400 bg-white/5 border border-white/10 rounded shadow-xs" title="Press 'S' or '/' to search">
+                      <kbd className="cv-kbd px-1.5 py-0.5 text-[10px] font-mono font-medium border rounded shadow-xs" title="Press 'S' or '/' to search">
                         S
                       </kbd>
                     </div>
@@ -358,18 +356,18 @@ export const Header: React.FC<HeaderProps> = ({
               {isSearchFocused && searchQuery.trim().length >= 2 && (
                 <div
                   ref={dropdownRef}
-                  className="fixed left-2.5 right-2.5 top-14 sm:absolute sm:top-full sm:left-0 sm:right-0 mt-1 sm:mt-2 bg-[#0c0c0c] border border-white/15 rounded-2xl shadow-2xl shadow-black overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150"
+                  className="cv-surface-elevated fixed left-2.5 right-2.5 top-14 sm:absolute sm:top-full sm:left-0 sm:right-0 mt-1 sm:mt-2 border rounded-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150"
                 >
-                  <div className="p-2.5 bg-neutral-900/80 border-b border-white/10 text-[11px] font-semibold text-neutral-400 flex items-center justify-between">
+                  <div className="cv-surface-muted p-2.5 border-b cv-border text-[11px] font-semibold cv-text-muted flex items-center justify-between">
                     <span>Quick Search Results</span>
-                    {isSearchingQuick && <span className="text-rose-500 animate-pulse">Searching...</span>}
+                    {isSearchingQuick && <span className="cv-text-accent animate-pulse">Searching...</span>}
                   </div>
 
-                  <div className="max-h-96 overflow-y-auto divide-y divide-white/5">
+                  <div className="max-h-96 overflow-y-auto divide-y divide-[var(--cv-border-subtle)]">
                     {/* If TV series are found */}
                     {quickTvResults.length > 0 && (
-                      <div className="p-1.5 bg-rose-950/20">
-                        <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-rose-400 flex items-center gap-1">
+                      <div className="p-1.5 bg-[var(--cv-nav-active-soft-bg)]/40">
+                        <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider cv-text-accent flex items-center gap-1">
                           <Tv className="w-3 h-3" />
                           <span>TV Series (EZTV)</span>
                         </div>
@@ -384,9 +382,9 @@ export const Header: React.FC<HeaderProps> = ({
                                 onNavSelect('series');
                               }
                             }}
-                            className="w-full flex items-center gap-2.5 p-2 hover:bg-white/10 rounded-xl cursor-pointer transition-colors text-left group"
+                            className="w-full flex items-center gap-2.5 p-2 hover:bg-[var(--cv-surface-hover)] rounded-xl cursor-pointer transition-colors text-left group"
                           >
-                            <div className="w-8 h-11 sm:w-9 sm:h-12 bg-neutral-800 rounded overflow-hidden shrink-0 border border-white/10">
+                            <div className="w-8 h-11 sm:w-9 sm:h-12 cv-surface-muted rounded overflow-hidden shrink-0 border cv-border">
                               {tvShow.image ? (
                                 <img
                                   src={tvShow.image}
@@ -395,29 +393,29 @@ export const Header: React.FC<HeaderProps> = ({
                                   referrerPolicy="no-referrer"
                                 />
                               ) : (
-                                <div className="w-full h-full flex items-center justify-center text-neutral-500">
+                                <div className="w-full h-full flex items-center justify-center cv-text-muted">
                                   <Tv className="w-4 h-4" />
                                 </div>
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-1.5">
-                                <h4 className="text-xs sm:text-sm font-semibold text-neutral-100 truncate group-hover:text-rose-400">
+                                <h4 className="text-xs sm:text-sm font-semibold cv-text truncate cv-group-hover-accent">
                                   {tvShow.name}
                                 </h4>
-                                <span className="px-1 py-0.2 rounded bg-rose-500/20 text-rose-300 text-[10px] font-bold">
+                                <span className="cv-badge-info px-1.5 py-0.2 rounded border text-[10px] font-bold">
                                   TV
                                 </span>
                               </div>
-                              <div className="flex items-center gap-2 text-[11px] text-neutral-400 mt-0.5">
+                              <div className="flex items-center gap-2 text-[11px] cv-text-muted mt-0.5">
                                 {tvShow.year && <span>{tvShow.year}</span>}
                                 {tvShow.rating && (
-                                  <span className="flex items-center gap-0.5 text-amber-400 font-semibold">
-                                    <Star className="w-3 h-3 fill-amber-400" />
+                                  <span className="cv-rating flex items-center gap-0.5 font-semibold">
+                                    <Star className="w-3 h-3 fill-current" />
                                     {tvShow.rating}
                                   </span>
                                 )}
-                                {tvShow.network && <span className="text-neutral-500">• {tvShow.network}</span>}
+                                {tvShow.network && <span className="cv-text-subtle">• {tvShow.network}</span>}
                               </div>
                             </div>
                           </button>
@@ -429,7 +427,7 @@ export const Header: React.FC<HeaderProps> = ({
                     {quickResults.length > 0 && (
                       <div className="p-1.5">
                         {quickTvResults.length > 0 && (
-                          <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                          <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider cv-text-muted">
                             Movies (YTS)
                           </div>
                         )}
@@ -440,7 +438,7 @@ export const Header: React.FC<HeaderProps> = ({
                               onSelectMovie(movie);
                               setIsSearchFocused(false);
                             }}
-                            className="w-full flex items-center gap-2.5 sm:gap-3 p-2 sm:p-2.5 hover:bg-white/5 rounded-xl cursor-pointer transition-colors text-left group"
+                            className="w-full flex items-center gap-2.5 sm:gap-3 p-2 sm:p-2.5 hover:bg-[var(--cv-surface-hover)] rounded-xl cursor-pointer transition-colors text-left group"
                           >
                             <img
                               src={getPrimaryMoviePoster(movie)}
@@ -448,20 +446,20 @@ export const Header: React.FC<HeaderProps> = ({
                               loading="eager"
                               width="40"
                               height="56"
-                              className="w-8 h-11 sm:w-10 sm:h-14 object-cover rounded bg-neutral-900 shrink-0"
+                              className="w-8 h-11 sm:w-10 sm:h-14 object-cover rounded cv-surface-muted shrink-0"
                               onError={(e) => {
                                 e.currentTarget.src = CINEVAULT_POSTER_FALLBACK;
                               }}
                             />
                             <div className="flex-1 min-w-0">
-                              <h4 className="text-xs sm:text-sm font-semibold text-neutral-100 truncate group-hover:text-rose-500">
+                              <h4 className="text-xs sm:text-sm font-semibold cv-text truncate cv-group-hover-accent">
                                 {movie.title}
                               </h4>
-                              <div className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-neutral-400 mt-0.5">
+                              <div className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs cv-text-muted mt-0.5">
                                 <span>{movie.year}</span>
                                 <span>•</span>
-                                <div className="flex items-center gap-0.5 text-amber-400 font-semibold">
-                                  <Star className="w-3 h-3 fill-amber-400" />
+                                <div className="cv-rating flex items-center gap-0.5 font-semibold">
+                                  <Star className="w-3 h-3 fill-current" />
                                   {movie.rating || '7.5'}
                                 </div>
                               </div>
@@ -477,7 +475,7 @@ export const Header: React.FC<HeaderProps> = ({
                         onSearchSubmit(searchQuery);
                         setIsSearchFocused(false);
                       }}
-                      className="w-full p-3 text-center text-xs text-rose-400 font-bold hover:bg-rose-500/10 cursor-pointer transition-colors"
+                      className="w-full p-3 text-center text-xs cv-text-accent font-bold hover:bg-[var(--cv-nav-active-soft-bg)] cursor-pointer transition-colors"
                     >
                       {currentNav === 'series'
                         ? `Search EZTV index for "${searchQuery}"`
@@ -486,7 +484,7 @@ export const Header: React.FC<HeaderProps> = ({
 
                     {/* No results message */}
                     {!isSearchingQuick && quickResults.length === 0 && quickTvResults.length === 0 && (
-                      <div className="p-5 text-center text-xs text-neutral-400">
+                      <div className="p-5 text-center text-xs cv-text-muted">
                         No movies or TV shows found matching "{searchQuery}".
                       </div>
                     )}
@@ -500,9 +498,7 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={() => onNavSelect('browse')}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  currentNav === 'browse'
-                    ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30 shadow-[0_0_12px_rgba(229,9,20,0.25)]'
-                    : 'text-neutral-300 hover:text-white hover:bg-white/5'
+                  currentNav === 'browse' ? 'cv-nav-soft-active shadow-xs' : 'cv-nav-pill'
                 }`}
               >
                 <span>Browse</span>
@@ -511,9 +507,7 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={() => onNavSelect('trending')}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  currentNav === 'trending'
-                    ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
-                    : 'text-neutral-300 hover:text-white hover:bg-white/5'
+                  currentNav === 'trending' ? 'cv-nav-soft-active shadow-xs' : 'cv-nav-pill'
                 }`}
               >
                 <span>Trending</span>
@@ -522,9 +516,7 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={() => onNavSelect('4k')}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  currentNav === '4k'
-                    ? 'bg-rose-600 text-white shadow-lg'
-                    : 'text-neutral-300 hover:text-white hover:bg-white/5'
+                  currentNav === '4k' ? 'cv-nav-pill-active shadow-md' : 'cv-nav-pill'
                 }`}
               >
                 <span>4K UHD</span>
@@ -533,9 +525,7 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={() => onNavSelect('top')}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  currentNav === 'top'
-                    ? 'bg-rose-600 text-white shadow-lg'
-                    : 'text-neutral-300 hover:text-white hover:bg-white/5'
+                  currentNav === 'top' ? 'cv-nav-pill-active shadow-md' : 'cv-nav-pill'
                 }`}
               >
                 <span>Top Rated</span>
@@ -544,9 +534,7 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={() => onNavSelect('series')}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  currentNav === 'series'
-                    ? 'bg-rose-600 text-white shadow-lg'
-                    : 'text-neutral-300 hover:text-white hover:bg-white/5'
+                  currentNav === 'series' ? 'cv-nav-pill-active shadow-md' : 'cv-nav-pill'
                 }`}
                 title="EZTV TV Series & Episode Releases"
               >
@@ -561,17 +549,15 @@ export const Header: React.FC<HeaderProps> = ({
                   aria-expanded={isGenreDropdownOpen}
                   aria-haspopup="true"
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    isGenreDropdownOpen
-                      ? 'bg-white/10 text-white'
-                      : 'text-neutral-300 hover:text-white hover:bg-white/5'
+                    isGenreDropdownOpen ? 'cv-nav-soft-active' : 'cv-nav-pill'
                   }`}
                 >
                   <span>Genres</span>
                 </button>
 
                 {isGenreDropdownOpen && (
-                  <div className="absolute top-full right-0 mt-2 w-72 p-3 bg-[#0c0c0c] border border-white/15 rounded-2xl shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150">
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 px-2 pb-2 mb-1 border-b border-white/10 flex items-center justify-between">
+                  <div className="cv-surface-elevated absolute top-full right-0 mt-2 w-72 p-3 border rounded-2xl z-50 animate-in fade-in zoom-in-95 duration-150">
+                    <div className="text-[10px] font-bold uppercase tracking-wider cv-text-muted px-2 pb-2 mb-1 border-b cv-border flex items-center justify-between">
                       <span>Explore by Genre</span>
                     </div>
 
@@ -580,7 +566,7 @@ export const Header: React.FC<HeaderProps> = ({
                         <button
                           key={g}
                           onClick={() => handleGenreClick(g)}
-                          className="px-2.5 py-1.5 text-left text-xs rounded-lg text-neutral-300 hover:text-white hover:bg-rose-500/20 hover:text-rose-300 transition-colors cursor-pointer"
+                          className="px-2.5 py-1.5 text-left text-xs rounded-lg cv-text-secondary hover:bg-[var(--cv-nav-active-soft-bg)] hover:text-[var(--cv-nav-active-soft-fg)] transition-colors cursor-pointer"
                         >
                           {g}
                         </button>
@@ -593,16 +579,18 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={() => onNavSelect('watchlist')}
                 className={`relative flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  currentNav === 'watchlist'
-                    ? 'bg-rose-600 text-white shadow-lg'
-                    : 'text-neutral-300 hover:text-white hover:bg-white/5'
+                  currentNav === 'watchlist' ? 'cv-nav-pill-active shadow-md' : 'cv-nav-pill'
                 }`}
                 title="My Saved Movies"
               >
                 <BookmarkIcon size={15} />
                 <span>Watchlist</span>
                 {watchlistCount > 0 && (
-                  <span className="ml-0.5 px-1.5 py-0.2 text-[10px] font-mono font-bold bg-white text-rose-600 rounded-full">
+                  <span className={`ml-0.5 px-1.5 py-0.2 text-[10px] font-mono font-bold rounded-full ${
+                    currentNav === 'watchlist'
+                      ? 'bg-white text-[var(--cv-nav-active-bg)]'
+                      : 'cv-nav-soft-active'
+                  }`}>
                     {watchlistCount}
                   </span>
                 )}
@@ -613,12 +601,12 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   id="header-roulette-btn"
                   onClick={onOpenSpinner}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-amber-300 hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-all cursor-pointer shadow-sm"
+                  className="cv-rating-badge flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer shadow-xs hover:brightness-110"
                   title="Surprise Me - Movie Night Roulette (Hot key: R)"
                 >
                   <Dices className="w-3.5 h-3.5" />
                   <span>Roulette</span>
-                  <kbd className="hidden sm:inline-flex items-center justify-center px-1 text-[9px] font-mono text-amber-400/90 bg-amber-400/10 border border-amber-400/20 rounded font-bold">
+                  <kbd className="hidden sm:inline-flex items-center justify-center px-1 text-[9px] font-mono border border-current/30 rounded font-bold">
                     R
                   </kbd>
                 </button>
@@ -633,13 +621,7 @@ export const Header: React.FC<HeaderProps> = ({
                   aria-expanded={isMoreMenuOpen}
                   aria-haspopup="true"
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    isMoreMenuOpen
-                      ? isWhite
-                        ? 'bg-slate-200 text-slate-900 border border-slate-300'
-                        : 'bg-white/15 text-white border border-white/20'
-                      : isWhite
-                      ? 'text-slate-700 hover:text-slate-950 hover:bg-slate-100 border border-transparent'
-                      : 'text-neutral-300 hover:text-white hover:bg-white/5 border border-transparent'
+                    isMoreMenuOpen ? 'cv-nav-soft-active' : 'cv-nav-pill'
                   }`}
                   title="More options & features"
                 >
@@ -651,15 +633,7 @@ export const Header: React.FC<HeaderProps> = ({
                 </button>
 
                 {isMoreMenuOpen && (
-                  <div
-                    className={`absolute top-full right-0 mt-2 w-64 p-2 rounded-2xl shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150 border ${
-                      isWhite
-                        ? 'bg-white border-slate-200 text-slate-800 shadow-slate-900/15'
-                        : isBlueBlack
-                        ? 'bg-[#0b142c] border-sky-400/20 text-slate-200 shadow-sky-950/50'
-                        : 'bg-[#0e0e12] border-white/15 text-neutral-200 shadow-black/80'
-                    }`}
-                  >
+                  <div className="cv-surface-elevated absolute top-full right-0 mt-2 w-64 p-2 rounded-2xl z-50 animate-in fade-in zoom-in-95 duration-150 border">
                     <div className="space-y-1">
                       {/* CineBot AI */}
                       {onOpenCineBot && (
@@ -669,23 +643,19 @@ export const Header: React.FC<HeaderProps> = ({
                             setIsMoreMenuOpen(false);
                             onOpenCineBot();
                           }}
-                          className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs text-left transition-colors cursor-pointer group ${
-                            isWhite
-                              ? 'hover:bg-rose-50 text-slate-800 hover:text-rose-600'
-                              : 'hover:bg-rose-500/15 text-neutral-200 hover:text-white'
-                          }`}
+                          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs text-left cv-text-secondary hover:bg-[var(--cv-nav-active-soft-bg)] hover:text-[var(--cv-nav-active-soft-fg)] transition-colors cursor-pointer group"
                         >
-                          <div className="w-7 h-7 rounded-lg bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 group-hover:bg-rose-600 group-hover:text-white transition-colors shrink-0">
+                          <div className="w-7 h-7 rounded-lg cv-nav-soft-active border flex items-center justify-center group-hover:bg-[var(--cv-nav-active-bg)] group-hover:text-white transition-colors shrink-0">
                             <Sparkles className="w-3.5 h-3.5" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between">
                               <span className="font-bold">CineBot AI</span>
-                              <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                              <span className="cv-nav-soft-active text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.2 rounded border">
                                 Gemini
                               </span>
                             </div>
-                            <div className={`text-[10px] truncate ${isWhite ? 'text-slate-500' : 'text-neutral-400'}`}>
+                            <div className="text-[10px] truncate cv-text-muted">
                               Film Concierge & Vibe Discovery
                             </div>
                           </div>
@@ -705,22 +675,14 @@ export const Header: React.FC<HeaderProps> = ({
                           setIsMoreMenuOpen(false);
                           onOpenGuide();
                         }}
-                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs text-left transition-colors cursor-pointer group ${
-                          isWhite
-                            ? 'hover:bg-slate-100 text-slate-800 hover:text-slate-950'
-                            : 'hover:bg-white/5 text-neutral-200 hover:text-white'
-                        }`}
+                        className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs text-left cv-text-secondary hover:bg-[var(--cv-surface-hover)] hover:text-[var(--cv-text)] transition-colors cursor-pointer group"
                       >
-                        <div className={`w-7 h-7 rounded-lg border flex items-center justify-center transition-colors shrink-0 ${
-                          isWhite
-                            ? 'bg-slate-100 border-slate-200 text-slate-600 group-hover:bg-slate-200'
-                            : 'bg-white/5 border-white/10 text-neutral-400 group-hover:bg-white/10 group-hover:text-white'
-                        }`}>
+                        <div className="w-7 h-7 rounded-lg border cv-surface-muted cv-border cv-text-muted flex items-center justify-center transition-colors shrink-0">
                           <HelpCircle className="w-3.5 h-3.5" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-bold">Download Guide</div>
-                          <div className={`text-[10px] truncate ${isWhite ? 'text-slate-500' : 'text-neutral-400'}`}>
+                          <div className="font-bold cv-text">Download Guide</div>
+                          <div className="text-[10px] truncate cv-text-muted">
                             Torrents, player & tips
                           </div>
                         </div>
@@ -734,27 +696,19 @@ export const Header: React.FC<HeaderProps> = ({
                             setIsMoreMenuOpen(false);
                             onOpenShortcuts();
                           }}
-                          className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs text-left transition-colors cursor-pointer group ${
-                            isWhite
-                              ? 'hover:bg-slate-100 text-slate-800 hover:text-slate-950'
-                              : 'hover:bg-white/5 text-neutral-200 hover:text-white'
-                          }`}
+                          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs text-left cv-text-secondary hover:bg-[var(--cv-surface-hover)] hover:text-[var(--cv-text)] transition-colors cursor-pointer group"
                         >
-                          <div className={`w-7 h-7 rounded-lg border flex items-center justify-center transition-colors shrink-0 ${
-                            isWhite
-                              ? 'bg-slate-100 border-slate-200 text-slate-600 group-hover:bg-slate-200'
-                              : 'bg-white/5 border-white/10 text-neutral-400 group-hover:bg-white/10 group-hover:text-white'
-                          }`}>
+                          <div className="w-7 h-7 rounded-lg border cv-surface-muted cv-border cv-text-muted flex items-center justify-center transition-colors shrink-0">
                             <Command className="w-3.5 h-3.5" />
                           </div>
                           <div className="flex-1 min-w-0 flex items-center justify-between">
                             <div>
-                              <div className="font-bold">Keyboard Shortcuts</div>
-                              <div className={`text-[10px] truncate ${isWhite ? 'text-slate-500' : 'text-neutral-400'}`}>
+                              <div className="font-bold cv-text">Keyboard Shortcuts</div>
+                              <div className="text-[10px] truncate cv-text-muted">
                                 Quick hotkeys & navigation
                               </div>
                             </div>
-                            <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-bold bg-white/10 rounded border border-white/15">
+                            <kbd className="cv-kbd px-1.5 py-0.5 text-[10px] font-mono font-bold rounded border">
                               ?
                             </kbd>
                           </div>
@@ -763,15 +717,13 @@ export const Header: React.FC<HeaderProps> = ({
                     </div>
 
                     {/* Theme / Color Mode Selector */}
-                    <div className={`pt-2 mt-1.5 border-t ${isWhite ? 'border-slate-100' : 'border-white/10'}`}>
+                    <div className="pt-2 mt-1.5 border-t cv-border-subtle">
                       <div className="px-2.5 pb-1.5 flex items-center justify-between">
-                        <span className={`text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${
-                          isWhite ? 'text-slate-500' : 'text-neutral-400'
-                        }`}>
-                          <Palette className="w-3 h-3 text-rose-500" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 cv-text-muted">
+                          <Palette className="w-3 h-3 cv-text-accent" />
                           <span>Theme</span>
                         </span>
-                        <span className="text-[10px] font-mono text-rose-500 font-bold capitalize">
+                        <span className="text-[10px] font-mono cv-text-accent font-bold capitalize">
                           {colorMode}
                         </span>
                       </div>
@@ -785,10 +737,8 @@ export const Header: React.FC<HeaderProps> = ({
                               onClick={() => setColorMode(mode.id)}
                               className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl border transition-colors cursor-pointer select-none text-center ${
                                 isActive
-                                  ? 'border-rose-500 bg-rose-500/15 text-rose-500 font-bold shadow-xs'
-                                  : isWhite
-                                  ? 'border-slate-200 hover:border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-700'
-                                  : 'border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10 text-neutral-300'
+                                  ? 'cv-nav-soft-active font-bold shadow-xs'
+                                  : 'cv-btn-secondary'
                               }`}
                               title={mode.tagline}
                             >
@@ -811,19 +761,19 @@ export const Header: React.FC<HeaderProps> = ({
               {onOpenCineBot && (
                 <button
                   onClick={onOpenCineBot}
-                  className="hidden sm:inline-flex p-2 text-rose-400 hover:text-rose-300 rounded-xl cursor-pointer relative"
+                  className="hidden sm:inline-flex p-2 cv-text-accent hover:bg-[var(--cv-nav-active-soft-bg)] rounded-xl cursor-pointer relative"
                   aria-label="CineBot AI Concierge"
                   title="CineBot AI Concierge"
                 >
                   <Sparkles className="w-4 h-4" />
-                  <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                  <span className="sr-only">AI Concierge Ready</span>
                 </button>
               )}
 
               {onOpenSpinner && (
                 <button
                   onClick={onOpenSpinner}
-                  className="p-1.5 sm:p-2 text-amber-400 hover:text-amber-300 rounded-xl cursor-pointer"
+                  className="p-1.5 sm:p-2 cv-rating hover:bg-[var(--cv-rating-soft-bg)] rounded-xl cursor-pointer"
                   aria-label="Movie Night Roulette"
                   title="Movie Night Roulette"
                 >
@@ -835,18 +785,20 @@ export const Header: React.FC<HeaderProps> = ({
 
               <button
                 onClick={() => onNavSelect('watchlist')}
-                className="p-1.5 sm:p-2 text-neutral-300 hover:text-white rounded-xl relative cursor-pointer"
+                className="p-1.5 sm:p-2 cv-nav-pill rounded-xl relative cursor-pointer"
                 aria-label={`Watchlist (${watchlistCount} items)`}
               >
                 <BookmarkIcon size={18} />
                 {watchlistCount > 0 && (
-                  <span className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-2 h-2 rounded-full bg-rose-600"></span>
+                  <span className="cv-nav-pill-active absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 text-[9px] font-mono font-bold rounded-full flex items-center justify-center">
+                    {watchlistCount > 99 ? '99+' : watchlistCount}
+                  </span>
                 )}
               </button>
 
               <button
                 onClick={onOpenGuide}
-                className="hidden sm:inline-flex p-2 text-neutral-400 hover:text-white rounded-xl cursor-pointer"
+                className="hidden sm:inline-flex p-2 cv-nav-pill rounded-xl cursor-pointer"
                 aria-label="Download Guide & FAQs"
                 title="Download Guide & FAQs"
               >
@@ -856,7 +808,7 @@ export const Header: React.FC<HeaderProps> = ({
               {onOpenShortcuts && (
                 <button
                   onClick={onOpenShortcuts}
-                  className="p-2 text-neutral-400 hover:text-white rounded-xl cursor-pointer hidden md:flex items-center justify-center"
+                  className="p-2 cv-nav-pill rounded-xl cursor-pointer hidden md:flex items-center justify-center"
                   aria-label="Keyboard Shortcuts"
                   title="Keyboard Shortcuts (?)"
                 >
@@ -873,21 +825,22 @@ export const Header: React.FC<HeaderProps> = ({
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
+            className="fixed inset-0 backdrop-blur-sm transition-opacity"
+            style={{ backgroundColor: 'var(--cv-modal-backdrop)' }}
             onClick={() => setIsMobileMenuOpen(false)}
           />
 
           <nav
             ref={drawerRef}
-            className="fixed inset-y-0 left-0 max-w-xs w-full bg-[#0d0d0d] border-r border-white/10 shadow-2xl p-5 flex flex-col justify-between overflow-y-auto z-50 animate-in slide-in-from-left duration-200"
+            className="cv-surface-elevated fixed inset-y-0 left-0 max-w-xs w-full border-r p-5 flex flex-col justify-between overflow-y-auto z-50 animate-in slide-in-from-left duration-200"
             aria-label="Mobile Navigation Menu"
           >
             <div className="space-y-6">
-              <div className="flex items-center justify-between pb-4 border-b border-white/10">
+              <div className="flex items-center justify-between pb-4 border-b cv-border">
                 <CineVaultLogo variant="header" size="sm" />
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="p-1.5 text-neutral-400 hover:text-white hover:bg-white/10 rounded-lg cursor-pointer"
+                  className="p-1.5 cv-nav-pill rounded-lg cursor-pointer"
                   aria-label="Close menu"
                 >
                   <span aria-hidden="true" className="text-xl">&times;</span>
@@ -897,51 +850,51 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="space-y-1">
                 <button
                   onClick={() => { onNavSelect('browse'); setIsMobileMenuOpen(false); }}
-                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold cursor-pointer ${currentNav === 'browse' ? 'bg-rose-600 text-white' : 'text-neutral-300 hover:bg-white/5'}`}
+                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold cursor-pointer ${currentNav === 'browse' ? 'cv-nav-pill-active' : 'cv-nav-pill'}`}
                 >
                   Browse Movies
                 </button>
                 <button
                   onClick={() => { onNavSelect('trending'); setIsMobileMenuOpen(false); }}
-                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold cursor-pointer ${currentNav === 'trending' ? 'bg-rose-600 text-white' : 'text-neutral-300 hover:bg-white/5'}`}
+                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold cursor-pointer ${currentNav === 'trending' ? 'cv-nav-pill-active' : 'cv-nav-pill'}`}
                 >
                   Trending Now
                 </button>
                 <button
                   onClick={() => { onNavSelect('4k'); setIsMobileMenuOpen(false); }}
-                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold cursor-pointer ${currentNav === '4k' ? 'bg-rose-600 text-white' : 'text-neutral-300 hover:bg-white/5'}`}
+                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold cursor-pointer ${currentNav === '4k' ? 'cv-nav-pill-active' : 'cv-nav-pill'}`}
                 >
                   4K Ultra HD
                 </button>
                 <button
                   onClick={() => { onNavSelect('top'); setIsMobileMenuOpen(false); }}
-                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold cursor-pointer ${currentNav === 'top' ? 'bg-rose-600 text-white' : 'text-neutral-300 hover:bg-white/5'}`}
+                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold cursor-pointer ${currentNav === 'top' ? 'cv-nav-pill-active' : 'cv-nav-pill'}`}
                 >
                   Top Rated
                 </button>
                 <button
                   onClick={() => { onNavSelect('series'); setIsMobileMenuOpen(false); }}
-                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 cursor-pointer ${currentNav === 'series' ? 'bg-rose-600 text-white' : 'text-neutral-300 hover:bg-white/5'}`}
+                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 cursor-pointer ${currentNav === 'series' ? 'cv-nav-pill-active' : 'cv-nav-pill'}`}
                 >
-                  <Tv className="w-4 h-4 text-rose-400" />
+                  <Tv className="w-4 h-4" />
                   <span>TV Series (EZTV)</span>
                 </button>
                 <button
                   onClick={() => { onNavSelect('watchlist'); setIsMobileMenuOpen(false); }}
-                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold cursor-pointer ${currentNav === 'watchlist' ? 'bg-rose-600 text-white' : 'text-neutral-300 hover:bg-white/5'}`}
+                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold cursor-pointer ${currentNav === 'watchlist' ? 'cv-nav-pill-active' : 'cv-nav-pill'}`}
                 >
                   My Watchlist ({watchlistCount})
                 </button>
                 {onOpenCineBot && (
                   <button
                     onClick={() => { setIsMobileMenuOpen(false); onOpenCineBot(); }}
-                    className="w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold text-rose-300 bg-rose-500/10 border border-rose-500/25 hover:bg-rose-500/20 flex items-center justify-between cursor-pointer"
+                    className="cv-nav-soft-active w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold border flex items-center justify-between cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-rose-400" />
+                      <Sparkles className="w-4 h-4" />
                       <span>CineBot AI Concierge</span>
                     </div>
-                    <span className="text-[9px] uppercase font-mono font-bold px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300">
+                    <span className="text-[9px] uppercase font-mono font-bold px-1.5 py-0.5 rounded border border-current/25">
                       Gemini
                     </span>
                   </button>
@@ -949,22 +902,22 @@ export const Header: React.FC<HeaderProps> = ({
                 {onOpenSpinner && (
                   <button
                     onClick={() => { setIsMobileMenuOpen(false); onOpenSpinner(); }}
-                    className="w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 flex items-center gap-2 cursor-pointer"
+                    className="cv-rating-badge w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold border flex items-center gap-2 cursor-pointer"
                   >
-                    <Dices className="w-4 h-4 text-amber-400" />
+                    <Dices className="w-4 h-4" />
                     <span>Movie Night Roulette</span>
                   </button>
                 )}
                 {onOpenShortcuts && (
                   <button
                     onClick={() => { setIsMobileMenuOpen(false); onOpenShortcuts(); }}
-                    className="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between text-neutral-300 hover:bg-white/5 cursor-pointer"
+                    className="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between cv-nav-pill cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
-                      <Command className="w-4 h-4 text-neutral-400" />
+                      <Command className="w-4 h-4 cv-text-muted" />
                       <span>Keyboard Shortcuts</span>
                     </div>
-                    <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-bold bg-white/10 rounded border border-white/15">
+                    <kbd className="cv-kbd px-1.5 py-0.5 text-[10px] font-mono font-bold rounded border">
                       ?
                     </kbd>
                   </button>
@@ -976,30 +929,30 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
 
               <div className="space-y-2">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 px-3">Genres</div>
+                <div className="text-[10px] font-bold uppercase tracking-wider cv-text-muted px-3">Genres</div>
                 <div className="grid grid-cols-2 gap-1.5">
                   {popularGenres.map((g) => (
-                    <button key={g} onClick={() => handleGenreClick(g)} className="px-3 py-2 text-left rounded-xl bg-neutral-900 border border-white/5 text-xs text-neutral-200 hover:text-white transition-colors cursor-pointer">
+                    <button key={g} onClick={() => handleGenreClick(g)} className="cv-card-interactive px-3 py-2 text-left rounded-xl border text-xs cursor-pointer">
                       {g}
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-white/10">
+              <div className="pt-2 border-t cv-border">
                 <ColorModeSelector variant="inline" />
               </div>
 
-              <div className="space-y-1 pt-2 border-t border-white/5">
-                <button onClick={() => { setIsMobileMenuOpen(false); onOpenGuide(); }} className="w-full text-left px-3 py-2 rounded-xl text-xs text-neutral-400 hover:text-white cursor-pointer">
+              <div className="space-y-1 pt-2 border-t cv-border-subtle">
+                <button onClick={() => { setIsMobileMenuOpen(false); onOpenGuide(); }} className="w-full text-left px-3 py-2 rounded-xl text-xs cv-nav-pill cursor-pointer">
                   Download Guide
                 </button>
                 {onOpenPolicy && (
                   <>
-                    <button onClick={() => { setIsMobileMenuOpen(false); onOpenPolicy('privacy'); }} className="w-full text-left px-3 py-2 rounded-xl text-xs text-neutral-400 hover:text-white cursor-pointer">
+                    <button onClick={() => { setIsMobileMenuOpen(false); onOpenPolicy('privacy'); }} className="w-full text-left px-3 py-2 rounded-xl text-xs cv-nav-pill cursor-pointer">
                       Privacy & Cookies
                     </button>
-                    <button onClick={() => { setIsMobileMenuOpen(false); onOpenPolicy('dmca'); }} className="w-full text-left px-3 py-2 rounded-xl text-xs text-neutral-400 hover:text-white cursor-pointer">
+                    <button onClick={() => { setIsMobileMenuOpen(false); onOpenPolicy('dmca'); }} className="w-full text-left px-3 py-2 rounded-xl text-xs cv-nav-pill cursor-pointer">
                       Legal Disclaimer
                     </button>
                   </>
@@ -1007,10 +960,10 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
 
-            <div className="pt-4 border-t border-white/10 space-y-3">
+            <div className="pt-4 border-t cv-border space-y-3">
               <VisitorCountBadge variant="compact" />
-              <div className="text-[10px] text-neutral-500">
-                <p className="font-semibold text-neutral-400">CineVault Cinema Portal</p>
+              <div className="text-[10px] cv-text-muted">
+                <p className="font-semibold cv-text-secondary">CineVault Cinema Portal</p>
                 <p>© 2026 Sasuu. All media from public APIs.</p>
               </div>
             </div>

@@ -86,18 +86,19 @@ export const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsPr
     <section className="space-y-4 pt-2">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg sm:text-xl font-display font-black text-white">
+          <h2 className="text-lg sm:text-xl font-display font-black cv-text">
             Personalized Recommendations
           </h2>
-          <p className="text-xs text-neutral-400">
+          <p className="text-xs cv-text-muted">
             {recommendationBasis}
           </p>
         </div>
 
         <button
+          type="button"
           onClick={computeAndFetchRecommendations}
           disabled={isLoading}
-          className="flex items-center gap-1.5 text-xs font-semibold text-neutral-300 hover:text-white bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 transition-colors cursor-pointer disabled:opacity-50"
+          className="cv-btn-secondary flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
           title="Refresh recommendations"
         >
           <Shuffle className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
@@ -110,9 +111,9 @@ export const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsPr
           {[...Array(5)].map((_, i) => (
             <div
               key={i}
-              className="rounded-2xl bg-[#0a0a0a] border border-white/5 overflow-hidden flex flex-col select-none"
+              className="rounded-2xl cv-card border overflow-hidden flex flex-col select-none"
             >
-              <div className="aspect-[2/3] w-full bg-[#050505] skeleton-shimmer" />
+              <div className="aspect-[2/3] w-full skeleton-shimmer" />
               <div className="p-3.5 min-h-[112px] flex-1 flex flex-col justify-between gap-2">
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
@@ -122,7 +123,7 @@ export const PersonalizedRecommendations: React.FC<PersonalizedRecommendationsPr
                   <div className="h-4 w-4/5 rounded skeleton-shimmer" />
                   <div className="h-3 w-1/2 rounded skeleton-shimmer" />
                 </div>
-                <div className="pt-2.5 border-t border-white/5 flex items-center justify-between">
+                <div className="pt-2.5 border-t cv-border-subtle flex items-center justify-between">
                   <div className="h-3 w-20 rounded skeleton-shimmer" />
                   <div className="h-3 w-12 rounded skeleton-shimmer" />
                 </div>

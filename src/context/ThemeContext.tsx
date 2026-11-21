@@ -19,23 +19,23 @@ export const COLOR_MODES: {
   {
     id: 'black',
     name: 'Black',
-    tagline: 'OLED / Deep Cinema Black',
+    tagline: 'Signature OLED Cinema Black',
     accentHex: '#E50914',
     bgHex: '#050505',
-    dotColor: 'bg-black border border-white/40'
+    dotColor: 'bg-[#050505] border border-white/50'
   },
   {
     id: 'white',
     name: 'White',
-    tagline: 'High-Contrast Bright Light',
+    tagline: 'Clean Slate & Deep Rose',
     accentHex: '#E11D48',
     bgHex: '#F8FAFC',
-    dotColor: 'bg-white border border-neutral-300 shadow-sm'
+    dotColor: 'bg-white border border-slate-400 shadow-xs'
   },
   {
     id: 'blue-black',
     name: 'Blue-Black',
-    tagline: 'Midnight Navy Atmosphere',
+    tagline: 'Midnight Navy & Electric Blue',
     accentHex: '#38BDF8',
     bgHex: '#060B17',
     dotColor: 'bg-[#060B17] border border-sky-400'
@@ -86,7 +86,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const metaThemeColor = document.querySelector('meta[name="theme-color"]');
       if (metaThemeColor) {
         if (colorMode === 'white') {
-          metaThemeColor.setAttribute('content', '#ffffff');
+          metaThemeColor.setAttribute('content', '#F8FAFC');
         } else if (colorMode === 'blue-black') {
           metaThemeColor.setAttribute('content', '#060B17');
         } else {

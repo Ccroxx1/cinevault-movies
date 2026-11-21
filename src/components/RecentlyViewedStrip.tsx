@@ -47,16 +47,16 @@ const RecentlyViewedCard: React.FC<{
   return (
     <article
       ref={cardRef}
-      className="group shrink-0 w-36 sm:w-44 snap-start bg-[#141414] hover:bg-[#1a1a1a] border border-white/10 hover:border-rose-500/40 rounded-xl overflow-hidden transition-all duration-200 cursor-pointer flex flex-col justify-between"
+      className="group shrink-0 w-36 sm:w-44 snap-start cv-card-interactive border rounded-xl overflow-hidden cursor-pointer flex flex-col justify-between"
       onClick={() => onSelectMovie(movie)}
     >
-      <div className="relative aspect-[2/3] w-full overflow-hidden bg-neutral-900">
+      <div className="relative aspect-[2/3] w-full overflow-hidden bg-neutral-950">
         {!isLoaded && (
           <div
             aria-hidden="true"
             className="absolute inset-0 skeleton-shimmer z-0 flex items-center justify-center pointer-events-none"
           >
-            <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-neutral-500/40">
+            <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center cv-text-muted">
               <Film className="w-4 h-4" />
             </div>
           </div>
@@ -83,11 +83,11 @@ const RecentlyViewedCard: React.FC<{
           />
         ) : null}
         
-        <div className="absolute top-2 left-2 bg-black/80 backdrop-blur-md px-1.5 py-0.5 rounded text-[10px] font-bold text-amber-400 border border-white/10">
+        <div className="poster-badge absolute top-2 left-2 bg-black/85 backdrop-blur-md px-1.5 py-0.5 rounded text-[10px] font-bold cv-rating-overlay border border-white/15">
           {movie.rating?.toFixed(1) || 'N/A'}
         </div>
 
-        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
+        <div className="absolute inset-0 bg-black/65 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
           {movie.yt_trailer_code && (
             <button
               type="button"
@@ -95,7 +95,7 @@ const RecentlyViewedCard: React.FC<{
                 e.stopPropagation();
                 onPlayTrailer(movie.yt_trailer_code, movie.title);
               }}
-              className="p-2 rounded-full bg-rose-600 hover:bg-rose-500 text-white shadow-lg transition-transform hover:scale-110"
+              className="cv-btn-playback p-2 rounded-full shadow-lg transition-transform hover:scale-110 cursor-pointer"
               title="Play Trailer"
               aria-label="Play Trailer"
             >
@@ -110,7 +110,7 @@ const RecentlyViewedCard: React.FC<{
                 e.stopPropagation();
                 onCopyMagnet(magnetUrl, `${movie.title} (${primaryTorrent?.quality})`);
               }}
-              className="p-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg transition-transform hover:scale-110"
+              className="cv-btn-magnet p-2 rounded-full shadow-lg transition-transform hover:scale-110 cursor-pointer"
               title="Copy Magnet Link"
               aria-label="Copy Magnet Link"
             >
@@ -121,10 +121,10 @@ const RecentlyViewedCard: React.FC<{
       </div>
 
       <div className="p-2.5">
-        <h3 className="text-xs font-bold text-neutral-100 truncate group-hover:text-rose-400 transition-colors">
+        <h3 className="text-xs font-bold cv-text cv-group-hover-accent truncate transition-colors">
           {movie.title}
         </h3>
-        <div className="flex items-center justify-between text-[10px] text-neutral-400 mt-1">
+        <div className="flex items-center justify-between text-[10px] cv-text-muted mt-1">
           <span>{movie.year}</span>
           <span className="truncate max-w-[70px]">{movie.genres?.[0] || 'Movie'}</span>
         </div>
@@ -143,18 +143,19 @@ export const RecentlyViewedStrip: React.FC<RecentlyViewedStripProps> = ({
   if (!recentMovies || recentMovies.length === 0) return null;
 
   return (
-    <section className="bg-[#0c0c0c] border border-white/10 rounded-2xl p-4 sm:p-5 space-y-3" aria-labelledby="recent-view-heading">
+    <section className="cv-card border rounded-2xl p-4 sm:p-5 space-y-3" aria-labelledby="recent-view-heading">
       <div className="flex items-center justify-between">
-        <h2 id="recent-view-heading" className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+        <h2 id="recent-view-heading" className="text-sm sm:text-base font-bold cv-text flex items-center gap-2">
           <span>Recently Inspected Titles</span>
-          <span className="text-xs font-normal text-neutral-400 font-mono">
+          <span className="text-xs font-normal cv-text-muted font-mono">
             ({recentMovies.length})
           </span>
         </h2>
 
         <button
+          type="button"
           onClick={onClearRecent}
-          className="text-xs text-neutral-400 hover:text-rose-400 px-2.5 py-1 rounded-lg hover:bg-white/5 cursor-pointer transition-colors"
+          className="text-xs cv-text-muted hover:text-[var(--cv-accent-text)] px-2.5 py-1 rounded-lg hover:bg-[var(--cv-surface-muted)] cursor-pointer transition-colors"
           aria-label="Clear recent browsing history"
         >
           Clear History

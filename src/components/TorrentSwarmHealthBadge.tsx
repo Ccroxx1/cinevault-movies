@@ -28,9 +28,9 @@ export const TorrentSwarmHealthBadge: React.FC<TorrentSwarmHealthBadgeProps> = (
       return (
         <span
           title={tooltipText}
-          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] font-mono font-bold whitespace-nowrap shrink-0 transition-colors ${className}`}
+          className={`cv-badge-success inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md border text-[10px] font-mono font-bold whitespace-nowrap shrink-0 transition-colors ${className}`}
         >
-          <Zap className="w-2.5 h-2.5 fill-emerald-400 shrink-0" />
+          <Zap className="w-2.5 h-2.5 fill-current shrink-0" aria-hidden="true" />
           <span>{safeSeeds >= 100 ? 'Fast' : `${safeSeeds}s`}</span>
         </span>
       );
@@ -40,9 +40,9 @@ export const TorrentSwarmHealthBadge: React.FC<TorrentSwarmHealthBadgeProps> = (
       return (
         <span
           title={tooltipText}
-          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono whitespace-nowrap shrink-0 transition-colors ${className}`}
+          className={`cv-badge-success inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md border text-[10px] font-mono font-semibold whitespace-nowrap shrink-0 transition-colors ${className}`}
         >
-          <Activity className="w-2.5 h-2.5 text-emerald-400 shrink-0" />
+          <Activity className="w-2.5 h-2.5 shrink-0" aria-hidden="true" />
           <span>{safeSeeds}s</span>
         </span>
       );
@@ -52,9 +52,9 @@ export const TorrentSwarmHealthBadge: React.FC<TorrentSwarmHealthBadgeProps> = (
       return (
         <span
           title={tooltipText}
-          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 text-[10px] font-mono whitespace-nowrap shrink-0 transition-colors ${className}`}
+          className={`cv-badge-info inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md border text-[10px] font-mono font-semibold whitespace-nowrap shrink-0 transition-colors ${className}`}
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0" />
+          <Activity className="w-2.5 h-2.5 shrink-0" aria-hidden="true" />
           <span>{safeSeeds > 0 ? `${safeSeeds}s` : 'Active'}</span>
         </span>
       );
@@ -63,9 +63,9 @@ export const TorrentSwarmHealthBadge: React.FC<TorrentSwarmHealthBadgeProps> = (
     return (
       <span
         title={tooltipText}
-        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-white/[0.04] text-neutral-300 border border-white/10 text-[10px] font-mono whitespace-nowrap shrink-0 transition-colors ${className}`}
+        className={`cv-badge-neutral inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md border text-[10px] font-mono whitespace-nowrap shrink-0 transition-colors ${className}`}
       >
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/80 shrink-0" />
+        <Radio className="w-2.5 h-2.5 shrink-0" aria-hidden="true" />
         <span>{safeSeeds > 0 ? `${safeSeeds}s` : 'Active'}</span>
       </span>
     );
@@ -74,14 +74,13 @@ export const TorrentSwarmHealthBadge: React.FC<TorrentSwarmHealthBadgeProps> = (
   const getIcon = () => {
     switch (health.status) {
       case 'blazing':
-        return <Zap className="w-3 h-3 text-emerald-400 fill-emerald-400/30 shrink-0" />;
+        return <Zap className="w-3 h-3 fill-current shrink-0" aria-hidden="true" />;
       case 'healthy':
-        return <Activity className="w-3 h-3 text-emerald-400 shrink-0" />;
       case 'moderate':
-        return <Activity className="w-3 h-3 text-cyan-400 shrink-0" />;
+        return <Activity className="w-3 h-3 shrink-0" aria-hidden="true" />;
       case 'low':
       default:
-        return <Radio className="w-3 h-3 text-neutral-400 shrink-0" />;
+        return <Radio className="w-3 h-3 shrink-0" aria-hidden="true" />;
     }
   };
 
@@ -93,7 +92,7 @@ export const TorrentSwarmHealthBadge: React.FC<TorrentSwarmHealthBadgeProps> = (
       <span className="shrink-0">{getIcon()}</span>
       <span className="tracking-tight">{health.label}</span>
       {showDetails && (
-        <span className="text-[10px] opacity-75 ml-1">
+        <span className="text-[10px] opacity-85 ml-1">
           ({safeSeeds}S / {safePeers}L)
         </span>
       )}

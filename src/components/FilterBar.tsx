@@ -83,11 +83,11 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
   return (
     <div id="movie-search-filters" className="w-full space-y-3 mb-8">
-      <div className="bg-[#101010] border border-white/10 rounded-2xl p-4 sm:p-5 shadow-2xl backdrop-blur-xl transition-all">
+      <div className="cv-card border rounded-2xl p-4 sm:p-5 shadow-xl transition-colors">
         {/* Search Header Row */}
         <div className="flex items-center justify-between gap-2 mb-3">
-          <label htmlFor="main-search-input" className="text-sm sm:text-base font-bold text-neutral-300">
-            Search & Filter <span className="text-white font-extrabold">CineVault Catalog</span>
+          <label htmlFor="main-search-input" className="text-sm sm:text-base font-bold cv-text-secondary">
+            Search & Filter <span className="cv-text font-extrabold">CineVault Catalog</span>
           </label>
           <div className="flex items-center gap-2">
             <button
@@ -95,8 +95,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               onClick={() => setShowAdvanced(!showAdvanced)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition cursor-pointer ${
                 showAdvanced || activeFilterCount > 0
-                  ? 'bg-rose-600/20 text-rose-300 border-rose-500/40'
-                  : 'bg-white/5 text-neutral-400 hover:text-white border-white/10 hover:bg-white/10'
+                  ? 'cv-nav-soft-active'
+                  : 'cv-btn-secondary'
               }`}
               aria-expanded={showAdvanced}
               aria-controls="advanced-filters-drawer"
@@ -104,17 +104,17 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               <SlidersHorizontal className="w-3.5 h-3.5" />
               <span>{showAdvanced ? 'Hide Filters' : 'Filters & Sorting'}</span>
               {activeFilterCount > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full bg-rose-600 text-white font-bold text-[10px]">
+                <span className="cv-btn-primary px-1.5 py-0.2 rounded-full font-bold text-[10px]">
                   {activeFilterCount}
                 </span>
               )}
-              {showAdvanced ? <ChevronUp className="w-3 h-3 text-neutral-400" /> : <ChevronDown className="w-3 h-3 text-neutral-400" />}
+              {showAdvanced ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             </button>
 
             {activeFilterCount > 0 && (
               <button
                 onClick={onReset}
-                className="flex items-center gap-1 text-xs font-semibold text-rose-400 hover:text-rose-300 bg-rose-500/10 px-2.5 py-1.5 rounded-lg border border-rose-500/20 transition cursor-pointer"
+                className="cv-nav-soft-active flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg border transition cursor-pointer"
                 title="Reset all filters to default"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -127,7 +127,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         {/* Search Input Bar */}
         <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-2.5 mb-3.5" role="search">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
+            <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 cv-text-muted pointer-events-none" />
             <label htmlFor="main-search-input" className="sr-only">Search movies</label>
             <input
               id="main-search-input"
@@ -136,7 +136,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search movie title, IMDb code, actor, director..."
-              className="w-full h-11 bg-[#1a1a1a] border border-neutral-700/60 focus:border-rose-500 rounded-xl pl-11 pr-4 text-xs sm:text-sm text-neutral-100 transition-all outline-none"
+              className="cv-input w-full h-11 border rounded-xl pl-11 pr-10 text-xs sm:text-sm transition-colors outline-none"
             />
             {searchTerm && (
               <button
@@ -145,7 +145,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                   setSearchTerm('');
                   onFilterChange({ query_term: '', page: 1 });
                 }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white p-1 rounded-full hover:bg-neutral-800"
+                className="absolute right-3 top-1/2 -translate-y-1/2 cv-text-muted hover:text-[var(--cv-text)] p-1 rounded-full hover:bg-[var(--cv-surface-hover)]"
                 aria-label="Clear search term"
               >
                 <X className="w-3.5 h-3.5" />
@@ -154,7 +154,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           </div>
           <button
             type="submit"
-            className="h-11 px-7 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-rose-950/40 transition cursor-pointer shrink-0"
+            className="cv-btn-primary h-11 px-7 font-bold text-xs sm:text-sm rounded-xl shadow-md transition cursor-pointer shrink-0"
           >
             Search
           </button>
@@ -189,10 +189,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                     onFilterChange({ genre: filters.genre === item.value ? 'All' : (item.value as string), page: 1 });
                   }
                 }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer shrink-0 border ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer shrink-0 border ${
                   isSelected
-                    ? 'bg-rose-600 text-white border-rose-500 shadow-md shadow-rose-950/40'
-                    : 'bg-white/[0.04] text-neutral-300 hover:text-white border-white/10 hover:bg-white/10'
+                    ? 'cv-btn-primary shadow-sm'
+                    : 'cv-btn-secondary'
                 }`}
               >
                 {item.label}
@@ -203,8 +203,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
         {/* Active Filter Dismissal Bar (When filters are active) */}
         {activeFilterCount > 0 && (
-          <div className="mt-3 pt-3 border-t border-white/5 flex flex-wrap items-center gap-1.5 text-xs">
-            <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider mr-1">Active:</span>
+          <div className="mt-3 pt-3 border-t cv-border-subtle flex flex-wrap items-center gap-1.5 text-xs">
+            <span className="text-[11px] font-bold cv-text-muted uppercase tracking-wider mr-1">Active:</span>
 
             {filters.query_term && (
               <button
@@ -213,10 +213,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                   setSearchTerm('');
                   onFilterChange({ query_term: '', page: 1 });
                 }}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/15 text-white text-xs border border-white/20 transition cursor-pointer"
+                className="cv-badge-neutral inline-flex items-center gap-1 px-2.5 py-1 rounded-md border text-xs font-semibold transition cursor-pointer"
               >
                 <span>Query: "{filters.query_term}"</span>
-                <X className="w-3 h-3 text-neutral-400 hover:text-white" />
+                <X className="w-3 h-3" />
               </button>
             )}
 
@@ -224,10 +224,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               <button
                 type="button"
                 onClick={() => onFilterChange({ genre: 'All', page: 1 })}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 text-xs border border-rose-500/40 transition cursor-pointer"
+                className="cv-nav-soft-active inline-flex items-center gap-1 px-2.5 py-1 rounded-md border text-xs font-semibold transition cursor-pointer"
               >
                 <span>Genre: {filters.genre}</span>
-                <X className="w-3 h-3 text-rose-300" />
+                <X className="w-3 h-3" />
               </button>
             )}
 
@@ -235,10 +235,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               <button
                 type="button"
                 onClick={() => onFilterChange({ quality: 'All', page: 1 })}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 text-xs border border-sky-500/40 transition cursor-pointer"
+                className="cv-badge-info inline-flex items-center gap-1 px-2.5 py-1 rounded-md border text-xs font-semibold transition cursor-pointer"
               >
                 <span>Quality: {filters.quality}</span>
-                <X className="w-3 h-3 text-sky-300" />
+                <X className="w-3 h-3" />
               </button>
             )}
 
@@ -246,10 +246,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               <button
                 type="button"
                 onClick={() => onFilterChange({ minimum_rating: 0, page: 1 })}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs border border-amber-500/40 transition cursor-pointer"
+                className="cv-rating-badge inline-flex items-center gap-1 px-2.5 py-1 rounded-md border text-xs font-semibold transition cursor-pointer"
               >
                 <span>Rating: ★ {filters.minimum_rating}+</span>
-                <X className="w-3 h-3 text-amber-300" />
+                <X className="w-3 h-3" />
               </button>
             )}
 
@@ -257,10 +257,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               <button
                 type="button"
                 onClick={() => onFilterChange({ year: 'All', page: 1 })}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/15 text-white text-xs border border-white/20 transition cursor-pointer"
+                className="cv-badge-neutral inline-flex items-center gap-1 px-2.5 py-1 rounded-md border text-xs font-semibold transition cursor-pointer"
               >
                 <span>Year: {filters.year}</span>
-                <X className="w-3 h-3 text-neutral-400" />
+                <X className="w-3 h-3" />
               </button>
             )}
 
@@ -268,17 +268,17 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               <button
                 type="button"
                 onClick={() => onFilterChange({ language: 'All', page: 1 })}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/15 text-white text-xs border border-white/20 transition cursor-pointer"
+                className="cv-badge-neutral inline-flex items-center gap-1 px-2.5 py-1 rounded-md border text-xs font-semibold transition cursor-pointer"
               >
                 <span>Language: {filters.language}</span>
-                <X className="w-3 h-3 text-neutral-400" />
+                <X className="w-3 h-3" />
               </button>
             )}
 
             <button
               type="button"
               onClick={onReset}
-              className="text-[11px] text-neutral-400 hover:text-white underline cursor-pointer ml-1"
+              className="text-[11px] cv-text-muted hover:text-[var(--cv-text)] underline cursor-pointer ml-1"
             >
               Clear All
             </button>
@@ -287,7 +287,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
         {/* Collapsible Filters & Sorting Matrix Drawer */}
         {showAdvanced && (
-          <div id="advanced-filters-drawer" className="mt-4 pt-4 border-t border-white/10 space-y-4 animate-in fade-in duration-200">
+          <div id="advanced-filters-drawer" className="mt-4 pt-4 border-t cv-border space-y-4 animate-in fade-in duration-200">
             {/* Primary Dropdown Matrix */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               {[
@@ -303,7 +303,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                 { label: 'Language', value: filters.language || 'All', key: 'language', options: LANGUAGE_OPTIONS },
               ].map((field) => (
                 <div key={field.key} className="space-y-1.5">
-                  <label htmlFor={`filter-${field.key}`} className="block text-xs font-semibold text-neutral-400">{field.label}:</label>
+                  <label htmlFor={`filter-${field.key}`} className="block text-xs font-semibold cv-text-muted">{field.label}:</label>
                   <select
                     id={`filter-${field.key}`}
                     name={field.key}
@@ -314,7 +314,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                         page: 1,
                       })
                     }
-                    className="w-full bg-[#1c1c1c] border border-neutral-700/60 rounded-lg px-3 py-2 text-xs text-neutral-200 focus:border-rose-500 cursor-pointer"
+                    className="cv-select w-full border rounded-lg px-3 py-2 text-xs focus:border-[var(--cv-input-border-focus)] cursor-pointer"
                   >
                     {field.options.map((opt: any) => (
                       <option
@@ -329,13 +329,13 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               ))}
 
               <div className="space-y-1.5">
-                <label htmlFor="filter-order-by" className="block text-xs font-semibold text-neutral-400">Order By:</label>
+                <label htmlFor="filter-order-by" className="block text-xs font-semibold cv-text-muted">Order By:</label>
                 <select
                   id="filter-order-by"
                   name="orderBy"
                   value={currentSortKey}
                   onChange={handleSortChange}
-                  className="w-full bg-[#1c1c1c] border border-neutral-700/60 rounded-lg px-3 py-2 text-xs text-neutral-200 focus:border-rose-500 cursor-pointer"
+                  className="cv-select w-full border rounded-lg px-3 py-2 text-xs focus:border-[var(--cv-input-border-focus)] cursor-pointer"
                 >
                   {MOVIE_SORT_OPTIONS.map((s) => (
                     <option key={s.key} value={s.key}>
@@ -346,21 +346,21 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               </div>
             </div>
             {/* Decade & Year Range Dual Slider */}
-            <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/5 space-y-3">
+            <div className="cv-surface-muted p-3.5 rounded-xl border space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <label className="text-xs font-bold text-neutral-300 flex items-center gap-1.5">
-                  <CalendarRange className="w-3.5 h-3.5 text-amber-400" />
+                <label className="text-xs font-bold cv-text-secondary flex items-center gap-1.5">
+                  <CalendarRange className="w-3.5 h-3.5 cv-rating" />
                   <span>Decade & Year Range:</span>
                 </label>
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
+                  <span className="cv-rating-badge font-mono text-xs font-bold px-2 py-0.5 rounded border">
                     {filters.min_year || 1950} — {filters.max_year || 2026}
                   </span>
                   {(filters.min_year || filters.max_year) && (
                     <button
                       type="button"
                       onClick={() => onFilterChange({ min_year: undefined, max_year: undefined, decade: 'All', page: 1 })}
-                      className="text-[10px] text-neutral-400 hover:text-white underline cursor-pointer"
+                      className="text-[10px] cv-text-muted hover:text-[var(--cv-text)] underline cursor-pointer"
                     >
                       Clear Range
                     </button>
@@ -371,9 +371,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               {/* Dual Range Sliders */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                 <div className="space-y-1">
-                  <div className="flex justify-between text-[11px] text-neutral-400">
+                  <div className="flex justify-between text-[11px] cv-text-muted">
                     <label htmlFor="filter-min-year">From Year:</label>
-                    <span className="font-mono font-bold text-white">{filters.min_year || 1950}</span>
+                    <span className="font-mono font-bold cv-text">{filters.min_year || 1950}</span>
                   </div>
                   <input
                     id="filter-min-year"
@@ -392,14 +392,14 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                         page: 1,
                       });
                     }}
-                    className="w-full accent-amber-500 cursor-pointer h-1.5 bg-neutral-800 rounded-lg appearance-none"
+                    className="w-full accent-[var(--cv-nav-active-bg)] cursor-pointer h-1.5 bg-[var(--cv-border)] rounded-lg appearance-none"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <div className="flex justify-between text-[11px] text-neutral-400">
+                  <div className="flex justify-between text-[11px] cv-text-muted">
                     <label htmlFor="filter-max-year">To Year:</label>
-                    <span className="font-mono font-bold text-white">{filters.max_year || 2026}</span>
+                    <span className="font-mono font-bold cv-text">{filters.max_year || 2026}</span>
                   </div>
                   <input
                     id="filter-max-year"
@@ -418,14 +418,14 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                         page: 1,
                       });
                     }}
-                    className="w-full accent-amber-500 cursor-pointer h-1.5 bg-neutral-800 rounded-lg appearance-none"
+                    className="w-full accent-[var(--cv-nav-active-bg)] cursor-pointer h-1.5 bg-[var(--cv-border)] rounded-lg appearance-none"
                   />
                 </div>
               </div>
 
               {/* Quick Era Presets */}
               <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                <span className="text-[10px] uppercase font-bold text-neutral-500 mr-1">Presets:</span>
+                <span className="text-[10px] uppercase font-bold cv-text-muted mr-1">Presets:</span>
                 {[
                   { label: 'Classic Cinema (1970–1999)', min: 1970, max: 1999 },
                   { label: 'Modern Era (2000–2019)', min: 2000, max: 2019 },
@@ -440,8 +440,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                       onClick={() => onFilterChange({ min_year: preset.min, max_year: preset.max, decade: 'All', page: 1 })}
                       className={`text-[11px] px-2.5 py-1 rounded-lg border font-medium transition cursor-pointer ${
                         isActive
-                          ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                          : 'bg-white/5 text-neutral-400 hover:text-white border-white/5 hover:bg-white/10'
+                          ? 'cv-rating-badge font-bold'
+                          : 'cv-btn-secondary'
                       }`}
                     >
                       {preset.label}
@@ -454,9 +454,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             {/* Runtime & Codec Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {/* Runtime Filter */}
-              <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5 space-y-2">
-                <label className="block text-xs font-bold text-neutral-300 flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-rose-400" />
+              <div className="cv-surface-muted p-3 rounded-xl border space-y-2">
+                <label className="block text-xs font-bold cv-text-secondary flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 cv-text-accent" />
                   <span>Runtime Length:</span>
                 </label>
                 <div className="grid grid-cols-2 gap-1.5">
@@ -469,8 +469,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                         onClick={() => onFilterChange({ runtime_bracket: rt.value, page: 1 })}
                         className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold text-left transition cursor-pointer border ${
                           isActive
-                            ? 'bg-rose-600/20 text-rose-300 border-rose-500/40'
-                            : 'bg-neutral-900/60 text-neutral-400 hover:text-white border-white/5 hover:bg-white/5'
+                            ? 'cv-nav-soft-active'
+                            : 'cv-btn-secondary'
                         }`}
                       >
                         {rt.label}
@@ -481,9 +481,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               </div>
 
               {/* Codec & Surround Sound Filter */}
-              <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5 space-y-2">
-                <label className="block text-xs font-bold text-neutral-300 flex items-center gap-1.5">
-                  <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
+              <div className="cv-surface-muted p-3 rounded-xl border space-y-2">
+                <label className="block text-xs font-bold cv-text-secondary flex items-center gap-1.5">
+                  <Volume2 className="w-3.5 h-3.5 text-[var(--cv-success-soft-fg)]" />
                   <span>Audio & Codec Filter:</span>
                 </label>
                 <div className="grid grid-cols-2 gap-1.5">
@@ -496,8 +496,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                         onClick={() => onFilterChange({ codec: ca.value, page: 1 })}
                         className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold text-left transition cursor-pointer border ${
                           isActive
-                            ? 'bg-emerald-600/20 text-emerald-300 border-emerald-500/40'
-                            : 'bg-neutral-900/60 text-neutral-400 hover:text-white border-white/5 hover:bg-white/5'
+                            ? 'cv-badge-success'
+                            : 'cv-btn-secondary'
                         }`}
                       >
                         {ca.label}
@@ -510,17 +510,17 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           </div>
         )}
 
-        <div className="mt-4 pt-3 border-t border-white/5 flex flex-wrap items-center justify-between gap-2 text-xs text-neutral-400">
+        <div className="mt-4 pt-3 border-t cv-border-subtle flex flex-wrap items-center justify-between gap-2 text-xs cv-text-muted">
           <span>
             Results:{' '}
             {isLoading ? (
-              <span className="text-rose-400 animate-pulse">Loading...</span>
+              <span className="cv-text-accent animate-pulse">Loading...</span>
             ) : (
-              <span className="text-white font-bold">{totalResults.toLocaleString()} titles</span>
+              <span className="cv-text font-bold">{totalResults.toLocaleString()} titles</span>
             )}
           </span>
           {activeFilterCount > 0 && (
-            <span className="text-[11px] text-amber-400 font-mono">
+            <span className="text-[11px] cv-rating font-mono font-semibold">
               {activeFilterCount} active {activeFilterCount === 1 ? 'filter' : 'filters'}
             </span>
           )}
@@ -530,15 +530,15 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       {/* Quick Filter Pills */}
       <nav className="space-y-2" aria-label="Quick filters">
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar scroll-smooth">
-          <span className="text-[11px] font-bold text-neutral-500 uppercase shrink-0 mr-1">Genre:</span>
+          <span className="text-[11px] font-bold cv-text-muted uppercase shrink-0 mr-1">Genre:</span>
           {GENRES.map((g) => (
             <button
               key={g}
               onClick={() => onFilterChange({ genre: g, page: 1 })}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all shrink-0 cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors shrink-0 cursor-pointer border ${
                 filters.genre.toLowerCase() === g.toLowerCase()
-                  ? 'bg-rose-600 text-white shadow-md'
-                  : 'bg-[#101010] text-neutral-400 border border-white/10 hover:text-white'
+                  ? 'cv-btn-primary shadow-sm'
+                  : 'cv-btn-secondary'
               }`}
             >
               {g}
@@ -547,7 +547,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         </div>
 
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar scroll-smooth">
-          <span className="text-[11px] font-bold text-neutral-500 uppercase shrink-0 mr-1">Era:</span>
+          <span className="text-[11px] font-bold cv-text-muted uppercase shrink-0 mr-1">Era:</span>
           {[
             { label: 'All', value: 'All' },
             { label: '2026', value: '2026' },
@@ -561,10 +561,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             <button
               key={era.label}
               onClick={() => onFilterChange({ year: era.value, page: 1 })}
-              className={`px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-all shrink-0 cursor-pointer ${
+              className={`px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 cursor-pointer border ${
                 (filters.year || 'All') === era.value
-                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                  : 'bg-[#0d0d0d] text-neutral-400 border border-white/5 hover:text-white'
+                  ? 'cv-rating-badge font-bold'
+                  : 'cv-btn-secondary'
               }`}
             >
               {era.label}

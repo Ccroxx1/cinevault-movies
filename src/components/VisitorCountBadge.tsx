@@ -28,11 +28,11 @@ export const VisitorCountBadge: React.FC<VisitorCountBadgeProps> = ({
       return (
         <div
           id="visitor-count-badge-compact"
-          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-neutral-900/60 border border-neutral-800 text-xs text-neutral-400 ${className}`}
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full cv-surface-muted border text-xs cv-text-muted ${className}`}
           title={tooltip}
         >
-          <AlertCircle className="w-3 h-3 text-neutral-500 shrink-0" aria-hidden="true" />
-          <span className="text-[11px] text-neutral-400">Unavailable</span>
+          <AlertCircle className="w-3 h-3 cv-text-subtle shrink-0" aria-hidden="true" />
+          <span className="text-[11px] cv-text-muted">Unavailable</span>
         </div>
       );
     }
@@ -40,23 +40,29 @@ export const VisitorCountBadge: React.FC<VisitorCountBadgeProps> = ({
     return (
       <div
         id="visitor-count-badge-compact"
-        className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs text-neutral-300 ${className}`}
+        className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-full cv-surface-muted border text-xs cv-text-secondary ${className}`}
         title={tooltip}
       >
         <span className="relative flex h-2 w-2" aria-hidden="true">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          <span
+            className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+            style={{ backgroundColor: 'var(--cv-success-soft-fg)' }}
+          />
+          <span
+            className="relative inline-flex rounded-full h-2 w-2"
+            style={{ backgroundColor: 'var(--cv-success-soft-fg)' }}
+          />
         </span>
-        <Users className="w-3.5 h-3.5 text-neutral-400 shrink-0" aria-hidden="true" />
+        <Users className="w-3.5 h-3.5 cv-text-muted shrink-0" aria-hidden="true" />
         <div className="flex items-center gap-1 font-mono">
           {isLoading ? (
-            <span className="w-6 h-3 bg-white/10 animate-pulse rounded"></span>
+            <span className="w-6 h-3 skeleton-shimmer rounded" />
           ) : (
-            <span className="font-bold text-white tracking-tight">
+            <span className="font-bold cv-text tracking-tight">
               {count !== null ? count.toLocaleString() : '—'}
             </span>
           )}
-          <span className="font-sans text-[11px] text-neutral-400">
+          <span className="font-sans text-[11px] cv-text-muted">
             {count === 1 ? 'visitor' : 'visitors'}
           </span>
         </div>
@@ -72,11 +78,11 @@ export const VisitorCountBadge: React.FC<VisitorCountBadgeProps> = ({
       >
         <div
           id="visitor-count-pill"
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-neutral-900/60 border border-neutral-800 text-neutral-400 transition-colors"
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full cv-surface-muted border cv-text-muted transition-colors"
           title={tooltip}
         >
-          <AlertCircle className="w-3.5 h-3.5 text-neutral-500 shrink-0" aria-hidden="true" />
-          <span className="font-sans text-xs text-neutral-400">
+          <AlertCircle className="w-3.5 h-3.5 cv-text-subtle shrink-0" aria-hidden="true" />
+          <span className="font-sans text-xs cv-text-muted">
             Visitor count unavailable
           </span>
         </div>
@@ -91,23 +97,29 @@ export const VisitorCountBadge: React.FC<VisitorCountBadgeProps> = ({
     >
       <div
         id="visitor-count-pill"
-        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] hover:bg-white/[0.07] border border-white/10 transition-colors"
+        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full cv-surface-muted border hover:border-[var(--cv-border-hover)] transition-colors"
         title={tooltip}
       >
         <span className="relative flex h-2 w-2" aria-hidden="true">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          <span
+            className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+            style={{ backgroundColor: 'var(--cv-success-soft-fg)' }}
+          />
+          <span
+            className="relative inline-flex rounded-full h-2 w-2"
+            style={{ backgroundColor: 'var(--cv-success-soft-fg)' }}
+          />
         </span>
-        <Users className="w-3.5 h-3.5 text-neutral-400 shrink-0" aria-hidden="true" />
+        <Users className="w-3.5 h-3.5 cv-text-muted shrink-0" aria-hidden="true" />
         <div className="flex items-center gap-1.5 font-mono text-xs">
           {isLoading ? (
-            <span className="w-8 h-3.5 bg-white/10 animate-pulse rounded"></span>
+            <span className="w-8 h-3.5 skeleton-shimmer rounded" />
           ) : (
-            <span id="visitor-count-number" className="font-bold text-white tracking-tight">
+            <span id="visitor-count-number" className="font-bold cv-text tracking-tight">
               {count !== null ? count.toLocaleString() : '—'}
             </span>
           )}
-          <span className="font-sans text-[11px] text-neutral-400 font-normal">
+          <span className="font-sans text-[11px] cv-text-muted font-normal">
             {count === 1 ? 'visitor' : 'visitors'}
           </span>
         </div>

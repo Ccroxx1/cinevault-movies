@@ -66,7 +66,7 @@ export const Pagination: React.FC<PaginationProps> = ({
       <button
         onClick={() => handlePageClick(1)}
         disabled={currentPage === 1}
-        className="p-2 sm:px-3 sm:py-2 bg-[#0a0a0a] hover:bg-[#151515] disabled:opacity-30 disabled:hover:bg-[#0a0a0a] text-neutral-300 hover:text-white rounded-full border border-white/10 transition-colors text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer disabled:cursor-not-allowed"
+        className="cv-card-interactive p-2 sm:px-3 sm:py-2 disabled:opacity-40 rounded-full border text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer disabled:cursor-not-allowed"
         aria-label="First page"
         title="First page"
       >
@@ -78,7 +78,7 @@ export const Pagination: React.FC<PaginationProps> = ({
       <button
         onClick={() => handlePageClick(currentPage - 1)}
         disabled={currentPage === 1}
-        className="p-2 sm:px-3 sm:py-2 bg-[#0a0a0a] hover:bg-[#151515] disabled:opacity-30 disabled:hover:bg-[#0a0a0a] text-neutral-300 hover:text-white rounded-full border border-white/10 transition-colors text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer disabled:cursor-not-allowed"
+        className="cv-card-interactive p-2 sm:px-3 sm:py-2 disabled:opacity-40 rounded-full border text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer disabled:cursor-not-allowed"
         aria-label="Previous page"
         title="Previous page"
       >
@@ -90,7 +90,7 @@ export const Pagination: React.FC<PaginationProps> = ({
       {getPageNumbers().map((p, idx) => {
         if (p === '...') {
           return (
-            <span key={`dots-${idx}`} className="px-2 text-neutral-600 font-mono text-sm">
+            <span key={`dots-${idx}`} className="px-2 cv-text-muted font-mono text-sm">
               ...
             </span>
           );
@@ -103,10 +103,11 @@ export const Pagination: React.FC<PaginationProps> = ({
           <button
             key={pageNum}
             onClick={() => handlePageClick(pageNum)}
-            className={`min-w-9 h-9 px-3 rounded-full text-xs font-bold font-mono transition-all cursor-pointer ${
+            aria-current={isActive ? 'page' : undefined}
+            className={`min-w-9 h-9 px-3 rounded-full text-xs font-bold font-mono transition-colors cursor-pointer ${
               isActive
-                ? 'bg-rose-600 text-white shadow-lg shadow-rose-900/30'
-                : 'bg-[#0a0a0a] hover:bg-[#151515] text-neutral-300 border border-white/10'
+                ? 'cv-btn-primary shadow-md'
+                : 'cv-card-interactive border'
             }`}
           >
             {pageNum}
@@ -118,7 +119,7 @@ export const Pagination: React.FC<PaginationProps> = ({
       <button
         onClick={() => handlePageClick(currentPage + 1)}
         disabled={currentPage >= totalPages}
-        className="p-2 sm:px-3 sm:py-2 bg-[#0a0a0a] hover:bg-[#151515] disabled:opacity-30 disabled:hover:bg-[#0a0a0a] text-neutral-300 hover:text-white rounded-full border border-white/10 transition-colors text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer disabled:cursor-not-allowed"
+        className="cv-card-interactive p-2 sm:px-3 sm:py-2 disabled:opacity-40 rounded-full border text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer disabled:cursor-not-allowed"
         aria-label="Next page"
         title="Next page"
       >
@@ -130,7 +131,7 @@ export const Pagination: React.FC<PaginationProps> = ({
       <button
         onClick={() => handlePageClick(totalPages)}
         disabled={currentPage >= totalPages}
-        className="p-2 sm:px-3 sm:py-2 bg-[#0a0a0a] hover:bg-[#151515] disabled:opacity-30 disabled:hover:bg-[#0a0a0a] text-neutral-300 hover:text-white rounded-full border border-white/10 transition-colors text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer disabled:cursor-not-allowed"
+        className="cv-card-interactive p-2 sm:px-3 sm:py-2 disabled:opacity-40 rounded-full border text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer disabled:cursor-not-allowed"
         aria-label="Last page"
         title={`Last page (${totalPages})`}
       >

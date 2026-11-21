@@ -35,7 +35,6 @@ import {
   Radio,
   FileText
 } from 'lucide-react';
-import { useTheme } from '../context/ThemeContext';
 import { TvShowDetails, TvShowInfo, EztvTorrent, EztvApiResponse, Movie } from '../types';
 import {
   fetchTvShowDetails,
@@ -171,12 +170,8 @@ const POPULAR_RECOMMENDED_SHOWS = [
 ];
 
 export const SeriesDetailTorrentsSkeleton: React.FC<{
-  isWhite?: boolean;
-  isBlueBlack?: boolean;
   hideToolbar?: boolean;
 }> = ({
-  isWhite,
-  isBlueBlack,
   hideToolbar = false
 }) => {
   return (
@@ -186,9 +181,7 @@ export const SeriesDetailTorrentsSkeleton: React.FC<{
     >
       {/* Filter Toolbar Skeleton */}
       {!hideToolbar && (
-        <div className={`p-4 rounded-2xl border space-y-3 ${
-          isWhite ? 'bg-white border-slate-200' : isBlueBlack ? 'bg-[#091124] border-sky-900/40' : 'bg-[#0e0e0e] border-white/10'
-        }`}>
+        <div className="p-4 rounded-2xl border cv-card space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <div className="h-6 w-6 rounded-lg skeleton-shimmer" />
@@ -212,13 +205,7 @@ export const SeriesDetailTorrentsSkeleton: React.FC<{
         {Array.from({ length: 6 }).map((_, i) => (
           <div
             key={`series-torrent-skel-${i}`}
-            className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 shadow-xs ${
-              isWhite
-                ? 'bg-white border-slate-200'
-                : isBlueBlack
-                ? 'bg-[#0b1329] border-sky-900/30'
-                : 'bg-[#0e0e0e] border-white/10'
-            }`}
+            className="p-4 rounded-2xl border cv-card flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 shadow-xs"
           >
             <div className="space-y-2 flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-2">
@@ -249,16 +236,13 @@ export const SeriesDetailTorrentsSkeleton: React.FC<{
   );
 };
 
-export const SeriesDetailEpisodesSkeleton: React.FC<{ isWhite?: boolean; isBlueBlack?: boolean }> = ({
-  isWhite,
-  isBlueBlack
-}) => {
+export const SeriesDetailEpisodesSkeleton: React.FC = () => {
   return (
     <div
       aria-label="Loading episodes..."
       className="space-y-4 animate-in fade-in duration-200"
     >
-      <div className="flex items-center gap-2 pb-3 border-b border-white/10">
+      <div className="flex items-center gap-2 pb-3 border-b cv-border-subtle">
         <div className="h-4 w-16 rounded skeleton-shimmer" />
         <div className="h-8 w-24 rounded-xl skeleton-shimmer" />
         <div className="h-8 w-24 rounded-xl skeleton-shimmer" />
@@ -269,9 +253,7 @@ export const SeriesDetailEpisodesSkeleton: React.FC<{ isWhite?: boolean; isBlueB
         {Array.from({ length: 6 }).map((_, i) => (
           <div
             key={`ep-skel-${i}`}
-            className={`p-4 rounded-2xl border flex flex-col sm:flex-row gap-4 ${
-              isWhite ? 'bg-white border-slate-200' : isBlueBlack ? 'bg-[#0b1329] border-sky-900/40' : 'bg-[#0e0e0e] border-white/10'
-            }`}
+            className="p-4 rounded-2xl border cv-card flex flex-col sm:flex-row gap-4"
           >
             <div className="sm:w-36 aspect-video rounded-xl skeleton-shimmer shrink-0" />
             <div className="flex-1 space-y-2">
@@ -290,10 +272,7 @@ export const SeriesDetailEpisodesSkeleton: React.FC<{ isWhite?: boolean; isBlueB
   );
 };
 
-export const SeriesDetailCastSkeleton: React.FC<{ isWhite?: boolean; isBlueBlack?: boolean }> = ({
-  isWhite,
-  isBlueBlack
-}) => {
+export const SeriesDetailCastSkeleton: React.FC = () => {
   return (
     <div
       aria-label="Loading cast members..."
@@ -302,11 +281,9 @@ export const SeriesDetailCastSkeleton: React.FC<{ isWhite?: boolean; isBlueBlack
       {Array.from({ length: 12 }).map((_, i) => (
         <div
           key={`cast-skel-${i}`}
-          className={`p-3 rounded-2xl border text-center space-y-2.5 ${
-            isWhite ? 'bg-white border-slate-200' : isBlueBlack ? 'bg-[#0b1329] border-sky-900/40' : 'bg-[#0e0e0e] border-white/10'
-          }`}
+          className="p-3 rounded-2xl border cv-card text-center space-y-2.5"
         >
-          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full mx-auto skeleton-shimmer border border-white/10" />
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full mx-auto skeleton-shimmer border cv-border" />
           <div className="space-y-1">
             <div className="h-4 w-20 mx-auto rounded skeleton-shimmer" />
             <div className="h-3 w-16 mx-auto rounded skeleton-shimmer" />
@@ -318,14 +295,10 @@ export const SeriesDetailCastSkeleton: React.FC<{ isWhite?: boolean; isBlueBlack
 };
 
 export const SeriesDetailHeroSkeleton: React.FC<{
-  isWhite?: boolean;
-  isBlueBlack?: boolean;
   onBack?: () => void;
   onNavigateHome: () => void;
   onNavigateToSeries: () => void;
 }> = ({
-  isWhite,
-  isBlueBlack,
   onBack,
   onNavigateHome,
   onNavigateToSeries
@@ -333,14 +306,14 @@ export const SeriesDetailHeroSkeleton: React.FC<{
   return (
     <article className="w-full space-y-8 animate-in fade-in duration-300" aria-label="Loading television series details...">
       {/* Top Breadcrumb Navigation Skeleton */}
-      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-neutral-400 py-2 border-b border-white/5 overflow-x-auto whitespace-nowrap">
+      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs cv-text-muted py-2 border-b cv-border-subtle overflow-x-auto whitespace-nowrap">
         <a
           href="/"
           onClick={(e) => {
             e.preventDefault();
             onNavigateHome();
           }}
-          className="flex items-center gap-1 hover:text-white transition-colors"
+          className="flex items-center gap-1 hover:text-[var(--cv-text)] transition-colors"
         >
           <span>Home</span>
         </a>
@@ -351,7 +324,7 @@ export const SeriesDetailHeroSkeleton: React.FC<{
             e.preventDefault();
             onNavigateToSeries();
           }}
-          className="hover:text-white transition-colors"
+          className="hover:text-[var(--cv-text)] transition-colors"
         >
           TV Series
         </a>
@@ -359,10 +332,8 @@ export const SeriesDetailHeroSkeleton: React.FC<{
         <div className="h-4 w-32 rounded-md skeleton-shimmer inline-block" />
       </nav>
 
-      {/* Hero Series Presentation Header Skeleton */}
-      <header className={`movie-detail-hero hero-cinema-container relative rounded-3xl overflow-hidden border shadow-2xl ${
-        isWhite ? 'border-slate-200 bg-white' : isBlueBlack ? 'border-sky-900/40 bg-[#070d1e]' : 'border-white/10 bg-[#0a0a0a]'
-      }`}>
+      {/* Hero Series Presentation Header Skeleton (Dark Cinema Stage) */}
+      <header className="movie-detail-hero hero-cinema-container relative rounded-3xl overflow-hidden border shadow-2xl">
         <div className="relative h-72 sm:h-96 md:h-[420px] w-full overflow-hidden bg-[#050505]">
           <div className="w-full h-full skeleton-shimmer opacity-25" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/70 to-transparent" />
@@ -372,7 +343,7 @@ export const SeriesDetailHeroSkeleton: React.FC<{
           <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-20">
             <button
               onClick={onBack}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-black/60 text-neutral-200 rounded-full border border-white/10 text-xs font-semibold shadow-lg cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-black/70 text-neutral-100 rounded-full border border-white/15 text-xs font-semibold shadow-lg cursor-pointer"
             >
               <ArrowLeft size={15} />
               <span>Back</span>
@@ -386,7 +357,6 @@ export const SeriesDetailHeroSkeleton: React.FC<{
         {/* Hero Content Section */}
         <div className="relative px-4 sm:px-8 md:px-10 pb-8 sm:pb-10 -mt-36 sm:-mt-52 md:-mt-64 z-20">
           <div className="flex flex-col md:flex-row gap-6 md:gap-10 items-start">
-            
             {/* Poster Card */}
             <div className="w-40 sm:w-56 md:w-64 aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl border border-white/15 shrink-0 bg-neutral-900 skeleton-shimmer" />
 
@@ -423,20 +393,19 @@ export const SeriesDetailHeroSkeleton: React.FC<{
               {/* Tech Specs Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-white/10 max-w-3xl">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="space-y-1.5 p-2.5 rounded-xl bg-white/5 border border-white/5">
+                  <div key={i} className="space-y-1.5 p-2.5 rounded-xl bg-white/5 border border-white/10">
                     <div className="h-3 w-14 rounded skeleton-shimmer" />
                     <div className="h-4 w-20 rounded-md skeleton-shimmer" />
                   </div>
                 ))}
               </div>
             </div>
-
           </div>
         </div>
       </header>
 
       {/* Tabs Row Skeleton */}
-      <div className="flex items-center gap-2 border-b border-white/10 pb-3">
+      <div className="flex items-center gap-2 border-b cv-border-subtle pb-3">
         <div className="h-10 w-36 rounded-xl skeleton-shimmer" />
         <div className="h-10 w-32 rounded-xl skeleton-shimmer" />
         <div className="h-10 w-28 rounded-xl skeleton-shimmer" />
@@ -444,7 +413,7 @@ export const SeriesDetailHeroSkeleton: React.FC<{
       </div>
 
       {/* Release List Content Skeleton */}
-      <SeriesDetailTorrentsSkeleton isWhite={isWhite} isBlueBlack={isBlueBlack} />
+      <SeriesDetailTorrentsSkeleton />
     </article>
   );
 };
@@ -535,10 +504,6 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
   });
   const [isLoadingTorrents, setIsLoadingTorrents] = useState<boolean>(!initialTorrent);
   const [error, setError] = useState<string | null>(null);
-
-  const { colorMode } = useTheme();
-  const isWhite = colorMode === 'white';
-  const isBlueBlack = colorMode === 'blue-black';
 
   // Tab state
   const [activeTab, setActiveTab] = useState<'torrents' | 'episodes' | 'cast' | 'overview'>('torrents');
@@ -1083,8 +1048,6 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
   if (isLoadingDetails && !show) {
     return (
       <SeriesDetailHeroSkeleton
-        isWhite={isWhite}
-        isBlueBlack={isBlueBlack}
         onBack={onBack}
         onNavigateHome={onNavigateHome}
         onNavigateToSeries={onNavigateToSeries}
@@ -1096,14 +1059,14 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
     <article className="w-full space-y-8 animate-in fade-in duration-300">
       
       {/* Top Breadcrumb Navigation */}
-      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-neutral-400 py-2 border-b border-white/5 overflow-x-auto whitespace-nowrap">
+      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs cv-text-muted py-2 border-b cv-border-subtle overflow-x-auto whitespace-nowrap">
         <a
           href="/"
           onClick={(e) => {
             e.preventDefault();
             onNavigateHome();
           }}
-          className="flex items-center gap-1 hover:text-white transition-colors"
+          className="flex items-center gap-1 hover:text-[var(--cv-text)] transition-colors"
         >
           <span>Home</span>
         </a>
@@ -1114,7 +1077,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
             e.preventDefault();
             onNavigateToSeries();
           }}
-          className="hover:text-white transition-colors"
+          className="hover:text-[var(--cv-text)] transition-colors"
         >
           TV Series
         </a>
@@ -1123,14 +1086,14 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
             <span aria-hidden="true">/</span>
             <button
               onClick={() => onSelectGenre && onSelectGenre(show.genres![0])}
-              className="hover:text-rose-400 transition-colors cursor-pointer"
+              className="hover:text-[var(--cv-accent-text)] transition-colors cursor-pointer"
             >
               {show.genres[0]}
             </button>
           </>
         )}
         <span aria-hidden="true">/</span>
-        <span className="text-neutral-200 font-semibold truncate max-w-xs sm:max-w-md">
+        <span className="cv-text font-semibold truncate max-w-xs sm:max-w-md">
           {show ? `${show.name} (${show.year || 'Series'})` : 'Loading...'}
         </span>
       </nav>
@@ -1161,7 +1124,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
           <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-20">
             <button
               onClick={onBack || (() => onNavigateToSeries())}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-black/75 hover:bg-black/90 text-neutral-200 hover:text-white rounded-full border border-white/10 text-xs font-semibold shadow-lg transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-black/75 hover:bg-black/90 text-neutral-100 hover:text-white rounded-full border border-white/15 text-xs font-semibold shadow-lg transition-colors cursor-pointer"
               aria-label="Go back"
             >
               <ArrowLeft size={15} />
@@ -1171,7 +1134,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
             <div className="flex items-center gap-2">
               <button
                 onClick={handleSharePage}
-                className="flex items-center gap-1.5 px-3 py-2 bg-black/75 hover:bg-black/90 text-neutral-200 hover:text-white rounded-full border border-white/10 text-xs font-semibold shadow-lg transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-2 bg-black/75 hover:bg-black/90 text-neutral-100 hover:text-white rounded-full border border-white/15 text-xs font-semibold shadow-lg transition-colors cursor-pointer"
                 title="Share this series URL"
                 aria-label="Share series link"
               >
@@ -1193,8 +1156,8 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                   onClick={() => onToggleWatchlist(show)}
                   className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full border text-xs font-bold shadow-lg transition-colors cursor-pointer ${
                     isCurrentWatchlisted
-                      ? 'bg-rose-600 text-white border-rose-500 shadow-rose-900/40'
-                      : 'bg-black/75 hover:bg-black/90 text-neutral-200 hover:text-white border-white/10'
+                      ? 'cv-btn-playback'
+                      : 'bg-black/75 hover:bg-black/90 text-neutral-100 hover:text-white border-white/15'
                   }`}
                 >
                   {isCurrentWatchlisted ? <BookmarkIcon size={16} /> : <BookmarkPlusIcon size={16} />}
@@ -1233,12 +1196,12 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
             <div className="flex-1 space-y-4 text-center md:text-left">
               
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
-                <span className="movie-hero-badge px-2.5 py-1 text-xs font-black uppercase tracking-wider bg-rose-600 text-white rounded-lg shadow-md shadow-rose-900/30">
+                <span className="movie-hero-badge px-2.5 py-1 text-xs font-black uppercase tracking-wider cv-btn-primary rounded-lg shadow-md">
                   {show?.year || 'Series'}
                 </span>
 
                 {show?.network && (
-                  <span className="movie-hero-badge px-2.5 py-1 text-xs font-bold tracking-wider bg-neutral-800 text-neutral-200 border border-white/10 rounded-lg">
+                  <span className="movie-hero-badge px-2.5 py-1 text-xs font-bold tracking-wider bg-neutral-800/90 text-neutral-100 border border-white/15 rounded-lg">
                     {show.network}
                   </span>
                 )}
@@ -1246,16 +1209,16 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                 {show?.status && (
                   <span className={`movie-hero-badge px-2.5 py-1 text-xs font-bold tracking-wider rounded-lg border inline-flex items-center gap-1.5 ${
                     show.status.toLowerCase() === 'running'
-                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                      ? 'bg-emerald-950/80 text-emerald-200 border-emerald-500/40'
                       : show.status.toLowerCase() === 'ended'
-                      ? 'bg-neutral-800/90 text-neutral-300 border-white/10'
-                      : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                      ? 'bg-neutral-800/90 text-neutral-200 border-white/15'
+                      : 'bg-amber-950/80 text-amber-200 border-amber-500/40'
                   }`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${
                       show.status.toLowerCase() === 'running'
                         ? 'bg-emerald-400 animate-pulse'
                         : show.status.toLowerCase() === 'ended'
-                        ? 'bg-neutral-500'
+                        ? 'bg-neutral-400'
                         : 'bg-amber-400'
                     }`} />
                     <span>
@@ -1271,13 +1234,13 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                 )}
 
                 {torrents.some(t => parseQualityFromEztv(t.title, t.filename).is4k) && (
-                  <span className="movie-hero-badge px-2 py-1 text-xs font-extrabold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-lg">
+                  <span className="movie-hero-badge px-2 py-1 text-xs font-extrabold uppercase tracking-wider bg-amber-950/80 text-amber-200 border border-amber-500/40 rounded-lg">
                     4K Ultra HD
                   </span>
                 )}
 
                 {torrents.some(t => parseQualityFromEztv(t.title, t.filename).isHevc) && (
-                  <span className="movie-hero-badge px-2 py-1 text-xs font-bold uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-lg">
+                  <span className="movie-hero-badge px-2 py-1 text-xs font-bold uppercase tracking-wider bg-indigo-950/80 text-indigo-200 border border-indigo-400/40 rounded-lg">
                     x265 / HEVC
                   </span>
                 )}
@@ -1288,13 +1251,13 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                   {show?.name || 'Loading Series...'}
                 </h1>
                 {show?.language && (
-                  <p className="movie-hero-subtitle text-sm text-neutral-300 font-medium mt-1">
+                  <p className="movie-hero-subtitle text-sm text-neutral-200 font-medium mt-1">
                     Language: {show.language} {show.type ? `• ${show.type}` : ''}
                   </p>
                 )}
               </div>
 
-              <div className="movie-hero-meta-row flex flex-wrap items-center justify-center md:justify-start gap-4 sm:gap-6 py-2 text-xs sm:text-sm text-neutral-200">
+              <div className="movie-hero-meta-row flex flex-wrap items-center justify-center md:justify-start gap-4 sm:gap-6 py-2 text-xs sm:text-sm text-neutral-100">
                 <div className="movie-imdb-badge flex items-center gap-1.5 bg-amber-500/20 border border-amber-500/35 px-3 py-1.5 rounded-xl text-amber-300 font-bold">
                   <span className="text-base font-extrabold">
                     {show?.rating ? show.rating.toFixed(1) : (torrents.length > 0 ? '7.9' : 'NR')}
@@ -1304,7 +1267,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
 
                 {show?.averageRuntime && (
                   <div className="movie-meta-pill flex items-center gap-1.5 text-neutral-100 bg-white/10 border border-white/15 px-3 py-1.5 rounded-xl backdrop-blur-sm">
-                    <Clock size={14} className="text-neutral-300" />
+                    <Clock size={14} className="text-neutral-200" />
                     <span>~{show.averageRuntime} min / episode</span>
                   </div>
                 )}
@@ -1326,7 +1289,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                     <button
                       key={genre}
                       onClick={() => onSelectGenre && onSelectGenre(genre)}
-                      className="movie-genre-chip px-3 py-1 text-xs font-semibold text-neutral-200 bg-white/10 hover:bg-rose-600/30 hover:text-white hover:border-rose-500/40 rounded-full border border-white/15 transition-colors cursor-pointer backdrop-blur-sm"
+                      className="movie-genre-chip px-3 py-1 text-xs font-semibold text-neutral-100 bg-white/10 hover:bg-rose-600/40 hover:text-white hover:border-rose-500/50 rounded-full border border-white/15 transition-colors cursor-pointer backdrop-blur-sm"
                     >
                       {genre}
                     </button>
@@ -1339,7 +1302,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                 {onPlayTrailer && (
                   <button
                     onClick={() => onPlayTrailer('', `${show?.name || cleanInitialTitle} Official Trailer`)}
-                    className="movie-trailer-btn px-4 sm:px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs sm:text-sm rounded-full shadow-lg shadow-rose-950/50 flex items-center gap-2 transition-all cursor-pointer"
+                    className="movie-trailer-btn px-4 sm:px-5 py-2.5 cv-btn-playback font-bold text-xs sm:text-sm rounded-full shadow-lg flex items-center gap-2 transition-all cursor-pointer"
                     title="Watch Official Trailer"
                   >
                     <PlayIcon size={16} />
@@ -1351,7 +1314,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                   <>
                     <button
                       onClick={(e) => handleDirectDownload(e, primaryTorrent)}
-                      className="px-4 sm:px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm rounded-full shadow-lg shadow-emerald-950/40 flex items-center gap-2 transition-all cursor-pointer"
+                      className="px-4 sm:px-5 py-2.5 cv-btn-magnet font-bold text-xs sm:text-sm rounded-full shadow-lg flex items-center gap-2 transition-all cursor-pointer"
                       title={`Launch ${primaryTorrent.title} Magnet Download directly`}
                     >
                       <Magnet size={16} />
@@ -1360,7 +1323,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
 
                     <button
                       onClick={() => handleCopyMagnetLink(primaryTorrent)}
-                      className="px-4 py-2.5 bg-white text-black hover:bg-neutral-200 font-bold text-xs sm:text-sm rounded-full shadow-lg flex items-center gap-2 transition-all cursor-pointer"
+                      className="px-4 py-2.5 bg-white text-slate-900 hover:bg-neutral-200 font-bold text-xs sm:text-sm rounded-full shadow-lg flex items-center gap-2 transition-all cursor-pointer"
                       title="Copy complete Magnet URI"
                     >
                       <CopyIcon size={16} />
@@ -1375,7 +1338,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
 
                 <button
                   onClick={onOpenGuide}
-                  className="movie-action-pill px-4 py-2.5 bg-white/10 hover:bg-white/20 text-neutral-100 hover:text-white font-semibold text-xs sm:text-sm rounded-full border border-white/15 transition-colors flex items-center gap-1.5 cursor-pointer backdrop-blur-sm"
+                  className="movie-action-pill px-4 py-2.5 bg-white/15 hover:bg-white/25 text-white font-semibold text-xs sm:text-sm rounded-full border border-white/20 transition-colors flex items-center gap-1.5 cursor-pointer backdrop-blur-sm"
                 >
                   <Info size={14} />
                   <span>How to Download</span>
@@ -1384,7 +1347,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                 {onAskCineBot && show && (
                   <button
                     onClick={() => onAskCineBot(`Tell me about the television series "${show.name}" (${show.year || ''}) and recommend 3 similar binge-worthy shows.`)}
-                    className="px-4 py-2.5 bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 hover:text-white font-bold text-xs sm:text-sm rounded-full border border-rose-500/35 transition-all flex items-center cursor-pointer shadow-sm shadow-rose-950/30"
+                    className="px-4 py-2.5 cv-nav-soft-active font-bold text-xs sm:text-sm rounded-full transition-all flex items-center cursor-pointer shadow-sm"
                     title="Ask CineBot AI about this series"
                   >
                     <span>Ask CineBot AI</span>
@@ -1403,11 +1366,17 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
       <div className="space-y-6">
         
         {/* Navigation Tabs Bar */}
-        <nav aria-label="Series Navigation Tabs" className="flex items-center gap-2 border-b border-white/10 overflow-x-auto pb-2">
+        <nav
+          aria-label="Series Navigation Tabs"
+          role="tablist"
+          className="flex items-center gap-2 border-b cv-border overflow-x-auto pb-2"
+        >
           <button
+            role="tab"
+            aria-selected={activeTab === 'torrents'}
             onClick={() => setActiveTab('torrents')}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === 'torrents' ? 'bg-rose-600 text-white shadow-lg' : 'text-neutral-400 hover:text-white hover:bg-white/5'
+              activeTab === 'torrents' ? 'cv-nav-pill-active shadow-md' : 'cv-nav-pill'
             }`}
           >
             <Magnet className="w-4 h-4" />
@@ -1416,9 +1385,11 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
 
           {show?.episodes && show.episodes.length > 0 && (
             <button
+              role="tab"
+              aria-selected={activeTab === 'episodes'}
               onClick={() => setActiveTab('episodes')}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === 'episodes' ? 'bg-rose-600 text-white shadow-lg' : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                activeTab === 'episodes' ? 'cv-nav-pill-active shadow-md' : 'cv-nav-pill'
               }`}
             >
               <Calendar className="w-4 h-4" />
@@ -1428,9 +1399,11 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
 
           {show?.cast && show.cast.length > 0 && (
             <button
+              role="tab"
+              aria-selected={activeTab === 'cast'}
               onClick={() => setActiveTab('cast')}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === 'cast' ? 'bg-rose-600 text-white shadow-lg' : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                activeTab === 'cast' ? 'cv-nav-pill-active shadow-md' : 'cv-nav-pill'
               }`}
             >
               <User className="w-4 h-4" />
@@ -1439,9 +1412,11 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
           )}
 
           <button
+            role="tab"
+            aria-selected={activeTab === 'overview'}
             onClick={() => setActiveTab('overview')}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === 'overview' ? 'bg-rose-600 text-white shadow-lg' : 'text-neutral-400 hover:text-white hover:bg-white/5'
+              activeTab === 'overview' ? 'cv-nav-pill-active shadow-md' : 'cv-nav-pill'
             }`}
           >
             <Info className="w-4 h-4" />
@@ -1453,20 +1428,21 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
         {show?.episodes && show.episodes.length > 0 && (
           <div className="space-y-3.5">
             {/* Overall Progress Bar */}
-            <div className={`p-3.5 sm:px-5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-              isWhite ? 'bg-white border-slate-200 shadow-xs' : 'bg-[#0e0e12] border-white/10'
-            }`}>
+            <div className="p-3.5 sm:px-5 rounded-2xl border cv-card shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="space-y-1.5 flex-1 min-w-0">
                 <div className="flex items-center justify-between text-xs">
-                  <span className={`font-bold ${isWhite ? 'text-slate-800' : 'text-neutral-200'}`}>
+                  <span className="font-bold cv-text">
                     Series Watch Progress: {totalWatchedCount} of {show.episodes.length} episodes watched
                   </span>
-                  <span className="font-mono font-bold text-rose-500">{overallWatchPercent}%</span>
+                  <span className="font-mono font-bold cv-text-accent">{overallWatchPercent}%</span>
                 </div>
-                <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden">
+                <div className="w-full h-2 rounded-full cv-surface-muted border cv-border-subtle overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-rose-500 to-amber-500 rounded-full transition-all duration-300"
-                    style={{ width: `${overallWatchPercent}%` }}
+                    className="h-full rounded-full transition-all duration-300"
+                    style={{
+                      width: `${overallWatchPercent}%`,
+                      background: 'linear-gradient(90deg, var(--cv-nav-active-bg), var(--cv-rating-text))'
+                    }}
                   />
                 </div>
               </div>
@@ -1481,7 +1457,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                       } catch {}
                     }
                   }}
-                  className="text-[11px] text-neutral-400 hover:text-rose-400 underline cursor-pointer shrink-0"
+                  className="text-[11px] cv-text-muted hover:text-[var(--cv-accent-text)] underline cursor-pointer shrink-0"
                 >
                   Reset Progress
                 </button>
@@ -1490,41 +1466,41 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
 
             {/* Next Up to Watch Card */}
             {nextUpEpisode ? (
-              <div className="p-4 sm:p-5 rounded-2xl border border-rose-500/30 bg-gradient-to-r from-rose-950/20 via-black/40 to-black/30 backdrop-blur-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-lg shadow-rose-950/20">
+              <div className="p-4 sm:p-5 rounded-2xl border border-[var(--cv-nav-active-border)] cv-surface-elevated flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex items-start sm:items-center gap-4 flex-1 min-w-0">
-                  <div className="w-20 h-14 sm:w-28 sm:h-18 rounded-xl overflow-hidden bg-black/50 shrink-0 border border-white/10 relative">
+                  <div className="w-20 h-14 sm:w-28 sm:h-18 rounded-xl overflow-hidden cv-surface-muted shrink-0 border cv-border relative">
                     <img
                       src={nextUpEpisode.ep.image?.medium || currentPosterSrc}
                       alt={nextUpEpisode.ep.name}
                       className="w-full h-full object-cover"
                       loading="eager"
                     />
-                    <span className="absolute bottom-1 left-1 px-1.5 py-0.2 rounded bg-black/80 font-mono font-bold text-[10px] text-rose-400">
+                    <span className="absolute bottom-1 left-1 px-1.5 py-0.2 rounded bg-black/85 font-mono font-bold text-[10px] text-white">
                       {nextUpEpisode.tag}
                     </span>
                   </div>
 
                   <div className="space-y-1 min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-bold uppercase tracking-wider">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="px-2 py-0.5 rounded-md cv-nav-soft-active text-[10px] font-bold uppercase tracking-wider">
                         Next Up
                       </span>
                       {nextUpEpisode.ep.airdate && (
-                        <span className="text-[11px] text-neutral-400">
+                        <span className="text-[11px] cv-text-muted">
                           Aired: {nextUpEpisode.ep.airdate}
                         </span>
                       )}
                       {nextUpEpisode.ep.runtime && (
-                        <span className="text-[11px] text-neutral-400 font-mono">
+                        <span className="text-[11px] cv-text-muted font-mono">
                           • {nextUpEpisode.ep.runtime} min
                         </span>
                       )}
                     </div>
-                    <h3 className="text-sm sm:text-base font-bold text-white truncate">
+                    <h3 className="text-sm sm:text-base font-bold cv-text truncate">
                       {nextUpEpisode.ep.number}. {nextUpEpisode.ep.name}
                     </h3>
                     {nextUpEpisode.ep.summary && (
-                      <p className="text-xs text-neutral-300 line-clamp-1 max-w-2xl">
+                      <p className="text-xs cv-text-secondary line-clamp-1 max-w-2xl">
                         {nextUpEpisode.ep.summary.replace(/<[^>]*>?/gm, '')}
                       </p>
                     )}
@@ -1540,7 +1516,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                           window.location.href = nextUpEpisode.matchingTorrent.magnet_url;
                         }
                       }}
-                      className="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-rose-950/40 cursor-pointer transition-colors"
+                      className="px-3.5 py-2 rounded-xl cv-btn-playback font-bold text-xs flex items-center gap-1.5 shadow-md cursor-pointer transition-colors"
                       title="Launch magnet in torrent client"
                     >
                       <Magnet size={14} />
@@ -1553,7 +1529,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                         setReleaseSearch(nextUpEpisode.tag);
                         setActiveTab('torrents');
                       }}
-                      className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-xs flex items-center gap-1.5 cursor-pointer"
+                      className="px-3 py-1.5 rounded-xl cv-btn-secondary font-semibold text-xs flex items-center gap-1.5 cursor-pointer"
                     >
                       <Search size={13} />
                       <span>Find Torrents</span>
@@ -1562,7 +1538,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
 
                   <button
                     onClick={() => toggleEpisodeWatched(nextUpEpisode.tag)}
-                    className="px-3 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
+                    className="px-3 py-2 rounded-xl cv-badge-success border text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-opacity hover:opacity-90"
                     title="Mark this episode as watched"
                   >
                     <CheckCircle2 size={14} />
@@ -1572,8 +1548,9 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                   {onAskCineBot && (
                     <button
                       onClick={() => onAskCineBot(`Tell me about episode ${nextUpEpisode.tag} of "${show.name}" titled "${nextUpEpisode.ep.name}". Give me a spoiler-free vibe check and themes!`)}
-                      className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 text-xs cursor-pointer"
+                      className="p-2 rounded-xl cv-btn-secondary text-xs cursor-pointer"
                       title="Ask CineBot about this episode"
+                      aria-label="Ask CineBot about this episode"
                     >
                       <Bot size={15} />
                     </button>
@@ -1581,9 +1558,9 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                 </div>
               </div>
             ) : totalWatchedCount > 0 && totalWatchedCount === show.episodes.length ? (
-              <div className="p-4 rounded-2xl border border-emerald-500/30 bg-emerald-950/20 text-emerald-300 flex items-center justify-between gap-3">
+              <div className="p-4 rounded-2xl border cv-badge-success flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5 text-xs sm:text-sm font-bold">
-                  <CheckCircle2 size={18} className="text-emerald-400 shrink-0" />
+                  <CheckCircle2 size={18} className="shrink-0" />
                   <span>You're all caught up! You've watched every episode of {show.name}.</span>
                 </div>
               </div>
@@ -1597,28 +1574,18 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
             <section className="lg:col-span-2 space-y-4">
               
               {/* Filter Controls Header */}
-              <div className={`p-4 sm:p-5 rounded-2xl border space-y-3.5 transition-all ${
-                isWhite
-                  ? 'bg-white border-slate-200 shadow-sm'
-                  : isBlueBlack
-                  ? 'bg-[#0b1329] border-sky-900/40'
-                  : 'bg-[#0e0e0e] border-white/10'
-              }`}>
+              <div className="p-4 sm:p-5 rounded-2xl border cv-card space-y-3.5 transition-all">
                 {/* Top Row: Title, Quick Actions & Search */}
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-rose-600/15 border border-rose-500/30 flex items-center justify-center">
-                      <Filter className="w-3.5 h-3.5 text-rose-500" />
+                    <div className="w-7 h-7 rounded-lg cv-nav-soft-active flex items-center justify-center">
+                      <Filter className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <h3 className={`text-xs font-black uppercase tracking-wider ${
-                        isWhite ? 'text-slate-900' : 'text-white'
-                      }`}>
+                      <h3 className="text-xs font-black uppercase tracking-wider cv-text">
                         Release Filters
                       </h3>
-                      <p className={`text-[11px] ${
-                        isWhite ? 'text-slate-500' : 'text-neutral-400'
-                      }`}>
+                      <p className="text-[11px] cv-text-muted">
                         Filter by season, resolution, and release tags
                       </p>
                     </div>
@@ -1626,9 +1593,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
 
                   {/* Search inside releases with clear button */}
                   <div className="relative min-w-[220px] flex-1 sm:flex-initial">
-                    <Search className={`w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none ${
-                      isWhite ? 'text-slate-400' : 'text-neutral-400'
-                    }`} />
+                    <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none cv-text-muted" />
                     <label htmlFor="series-release-search" className="sr-only">Search releases</label>
                     <input
                       id="series-release-search"
@@ -1637,20 +1602,13 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                       value={releaseSearch}
                       onChange={(e) => setReleaseSearch(e.target.value)}
                       placeholder="Search releases (e.g. S01E01, 1080p)..."
-                      className={`w-full pl-8.5 pr-8 py-2 text-xs rounded-xl font-medium transition-all focus:outline-none focus:ring-2 focus:ring-rose-500/30 ${
-                        isWhite
-                          ? 'bg-slate-50 border border-slate-300 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-rose-500'
-                          : isBlueBlack
-                          ? 'bg-[#070d1e] border border-sky-800/40 text-white placeholder-sky-400/50 focus:border-rose-500'
-                          : 'bg-black/50 border border-white/10 text-white placeholder-neutral-500 focus:border-rose-500'
-                      }`}
+                      className="w-full pl-8.5 pr-8 py-2 text-xs rounded-xl font-medium border cv-input transition-all focus:outline-none"
                     />
                     {releaseSearch && (
                       <button
+                        aria-label="Clear release search"
                         onClick={() => setReleaseSearch('')}
-                        className={`absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full hover:bg-white/10 cursor-pointer ${
-                          isWhite ? 'text-slate-400 hover:text-slate-700' : 'text-neutral-400 hover:text-white'
-                        }`}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full cv-text-muted hover:text-[var(--cv-text)] cursor-pointer"
                         title="Clear search"
                       >
                         <X size={13} />
@@ -1659,18 +1617,16 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                   </div>
                 </div>
 
-                {/* Season Filter Pills (Wrap smoothly with real release counts - NO ugly horizontal scrollbar) */}
+                {/* Season Filter Pills */}
                 <div className="space-y-1.5 pt-1">
                   <div className="flex items-center justify-between">
-                    <span className={`text-xs font-bold ${
-                      isWhite ? 'text-slate-700' : 'text-neutral-300'
-                    }`}>
+                    <span className="text-xs font-bold cv-text-secondary">
                       Season:
                     </span>
                     {seasonStats.seasonsWithoutReleases.length > 0 && (
                       <button
                         onClick={() => setShowAllGuideSeasons(!showAllGuideSeasons)}
-                        className="text-[11px] font-semibold text-rose-500 hover:text-rose-400 cursor-pointer transition-colors"
+                        className="text-[11px] font-semibold cv-text-accent hover:opacity-80 cursor-pointer transition-opacity"
                       >
                         {showAllGuideSeasons
                           ? 'Hide Unreleased Seasons'
@@ -1683,23 +1639,14 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                     {/* All Seasons */}
                     <button
                       onClick={() => setSelectedSeason('All')}
+                      aria-pressed={selectedSeason === 'All'}
                       className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
-                        selectedSeason === 'All'
-                          ? 'bg-rose-600 text-white shadow-md shadow-rose-950/40 ring-1 ring-rose-500'
-                          : isWhite
-                          ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
-                          : isBlueBlack
-                          ? 'bg-sky-950/40 hover:bg-sky-900/50 text-sky-200 border border-sky-800/40'
-                          : 'bg-white/5 hover:bg-white/10 text-neutral-300 border border-white/5'
+                        selectedSeason === 'All' ? 'cv-nav-pill-active shadow-sm' : 'cv-btn-secondary'
                       }`}
                     >
                       <span>All Seasons</span>
                       <span className={`text-[10px] px-1.5 py-0.2 rounded-md font-mono ${
-                        selectedSeason === 'All'
-                          ? 'bg-black/30 text-white'
-                          : isWhite
-                          ? 'bg-slate-200 text-slate-800'
-                          : 'bg-white/10 text-neutral-300'
+                        selectedSeason === 'All' ? 'bg-black/25 text-white' : 'cv-badge-neutral border'
                       }`}>
                         {torrents.length}
                       </span>
@@ -1712,24 +1659,15 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                       return (
                         <button
                           key={`season-${s}`}
+                          aria-pressed={isSelected}
                           onClick={() => setSelectedSeason(String(s))}
                           className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
-                            isSelected
-                              ? 'bg-rose-600 text-white shadow-md shadow-rose-950/40 ring-1 ring-rose-500'
-                              : isWhite
-                              ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
-                              : isBlueBlack
-                              ? 'bg-sky-950/40 hover:bg-sky-900/50 text-sky-200 border border-sky-800/40'
-                              : 'bg-white/5 hover:bg-white/10 text-neutral-300 border border-white/5'
+                            isSelected ? 'cv-nav-pill-active shadow-sm' : 'cv-btn-secondary'
                           }`}
                         >
                           <span>Season {s}</span>
                           <span className={`text-[10px] px-1.5 py-0.2 rounded-md font-mono ${
-                            isSelected
-                              ? 'bg-black/30 text-white'
-                              : isWhite
-                              ? 'bg-slate-200 text-slate-800'
-                              : 'bg-white/10 text-neutral-300'
+                            isSelected ? 'bg-black/25 text-white' : 'cv-badge-neutral border'
                           }`}>
                             {count}
                           </span>
@@ -1741,17 +1679,16 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                     {seasonStats.packsCount > 0 && (
                       <button
                         onClick={() => setSelectedSeason('Packs')}
+                        aria-pressed={selectedSeason === 'Packs'}
                         className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
-                          selectedSeason === 'Packs'
-                            ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40 ring-1 ring-indigo-500'
-                            : isWhite
-                            ? 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200'
-                            : 'bg-indigo-950/30 hover:bg-indigo-900/40 text-indigo-300 border border-indigo-500/20'
+                          selectedSeason === 'Packs' ? 'cv-nav-pill-active shadow-sm' : 'cv-nav-soft-active'
                         }`}
                       >
                         <FolderArchive className="w-3.5 h-3.5" />
                         <span>Season Packs</span>
-                        <span className="text-[10px] px-1.5 py-0.2 rounded-md font-mono bg-black/30 text-white">
+                        <span className={`text-[10px] px-1.5 py-0.2 rounded-md font-mono ${
+                          selectedSeason === 'Packs' ? 'bg-black/25 text-white' : 'cv-badge-neutral border'
+                        }`}>
                           {seasonStats.packsCount}
                         </span>
                       </button>
@@ -1763,29 +1700,26 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                       return (
                         <button
                           key={`guide-season-${s}`}
+                          aria-pressed={isSelected}
                           onClick={() => setSelectedSeason(String(s))}
-                          className={`px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer inline-flex items-center gap-1.5 border border-dashed ${
+                          className={`px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer inline-flex items-center gap-1.5 border ${
                             isSelected
-                              ? 'bg-rose-600 text-white border-solid'
-                              : isWhite
-                              ? 'bg-slate-50 text-slate-500 border-slate-300 hover:text-slate-800 hover:bg-slate-100'
-                              : 'bg-white/5 text-neutral-400 border-white/20 hover:text-white hover:bg-white/10'
+                              ? 'cv-nav-pill-active border-solid'
+                              : 'cv-btn-secondary border-dashed opacity-75'
                           }`}
                           title={`Season ${s} is listed in Episode Guide (0 torrents indexed currently)`}
                         >
                           <span>Season {s}</span>
-                          <span className="text-[10px] opacity-70 font-mono">0</span>
+                          <span className="text-[10px] opacity-80 font-mono">0</span>
                         </button>
                       );
                     })}
                   </div>
                 </div>
 
-                {/* Quality Filter Pills (Wrap smoothly with live torrent counts) */}
+                {/* Quality Filter Pills */}
                 <div className="space-y-1.5 pt-1">
-                  <span className={`text-xs font-bold ${
-                    isWhite ? 'text-slate-700' : 'text-neutral-300'
-                  }`}>
+                  <span className="text-xs font-bold cv-text-secondary">
                     Quality:
                   </span>
 
@@ -1804,28 +1738,19 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                       return (
                         <button
                           key={key}
+                          aria-pressed={isSelected}
                           onClick={() => setSelectedQuality(key)}
                           className={`px-2.5 py-1.2 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
                             isSelected
-                              ? 'bg-rose-600 text-white shadow-md shadow-rose-950/40 ring-1 ring-rose-500'
+                              ? 'cv-nav-pill-active shadow-sm'
                               : !hasTorrents
-                              ? isWhite
-                                ? 'bg-slate-50 text-slate-400 border border-slate-200 opacity-60'
-                                : 'bg-white/5 text-neutral-500 border border-white/5 opacity-50'
-                              : isWhite
-                              ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
-                              : isBlueBlack
-                              ? 'bg-sky-950/30 hover:bg-sky-900/40 text-sky-200 border border-sky-800/30'
-                              : 'bg-white/5 hover:bg-white/10 text-neutral-300 border border-white/5'
+                              ? 'cv-btn-secondary opacity-60'
+                              : 'cv-btn-secondary'
                           }`}
                         >
                           <span>{label}</span>
                           <span className={`text-[10px] px-1.5 py-0.2 rounded-md font-mono ${
-                            isSelected
-                              ? 'bg-black/30 text-white'
-                              : isWhite
-                              ? 'bg-slate-200 text-slate-600'
-                              : 'bg-white/10 text-neutral-400'
+                            isSelected ? 'bg-black/25 text-white' : 'cv-badge-neutral border'
                           }`}>
                             {count}
                           </span>
@@ -1836,13 +1761,11 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                 </div>
 
                 {/* Sort By & View Layout Bar */}
-                <div className={`pt-3 border-t flex flex-wrap items-center justify-between gap-3 ${
-                  isWhite ? 'border-slate-200' : 'border-white/10'
-                }`}>
+                <div className="pt-3 border-t cv-border flex flex-wrap items-center justify-between gap-3">
                   {/* Sort selector */}
                   <div className="flex items-center gap-2">
-                    <ArrowUpDown className={`w-3.5 h-3.5 ${isWhite ? 'text-slate-500' : 'text-neutral-400'}`} />
-                    <label htmlFor="series-release-sort" className={`text-xs font-medium ${isWhite ? 'text-slate-600' : 'text-neutral-400'}`}>
+                    <ArrowUpDown className="w-3.5 h-3.5 cv-text-muted" />
+                    <label htmlFor="series-release-sort" className="text-xs font-medium cv-text-muted">
                       Sort:
                     </label>
                     <select
@@ -1851,13 +1774,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value as any)}
                       aria-label="Sort releases by"
-                      className={`text-xs font-semibold py-1 px-2.5 rounded-lg border cursor-pointer focus:outline-none focus:ring-1 focus:ring-rose-500 ${
-                        isWhite
-                          ? 'bg-slate-100 border-slate-300 text-slate-800'
-                          : isBlueBlack
-                          ? 'bg-[#070d1e] border-sky-800/40 text-sky-200'
-                          : 'bg-[#141414] border-white/10 text-neutral-200'
-                      }`}
+                      className="text-xs font-semibold py-1 px-2.5 rounded-lg border cv-select cursor-pointer focus:outline-none"
                     >
                       <option value="latest">Latest Release Date</option>
                       <option value="seeds">Most Seeders (Fastest)</option>
@@ -1869,17 +1786,14 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
 
                   {/* View layout mode (Flat vs Grouped by Season) */}
                   <div className="flex items-center gap-1">
-                    <span className={`text-xs font-medium mr-1 ${isWhite ? 'text-slate-600' : 'text-neutral-400'}`}>
+                    <span className="text-xs font-medium mr-1 cv-text-muted">
                       View:
                     </span>
                     <button
+                      aria-pressed={viewMode === 'flat'}
                       onClick={() => setViewMode('flat')}
                       className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all inline-flex items-center gap-1 cursor-pointer ${
-                        viewMode === 'flat'
-                          ? 'bg-rose-600 text-white shadow-xs'
-                          : isWhite
-                          ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                          : 'bg-white/5 text-neutral-400 hover:bg-white/10'
+                        viewMode === 'flat' ? 'cv-nav-pill-active shadow-xs' : 'cv-btn-secondary'
                       }`}
                       title="View all releases in a continuous list"
                     >
@@ -1887,13 +1801,10 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                       <span>List</span>
                     </button>
                     <button
+                      aria-pressed={viewMode === 'grouped'}
                       onClick={() => setViewMode('grouped')}
                       className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all inline-flex items-center gap-1 cursor-pointer ${
-                        viewMode === 'grouped'
-                          ? 'bg-rose-600 text-white shadow-xs'
-                          : isWhite
-                          ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                          : 'bg-white/5 text-neutral-400 hover:bg-white/10'
+                        viewMode === 'grouped' ? 'cv-nav-pill-active shadow-xs' : 'cv-btn-secondary'
                       }`}
                       title="Group releases by Season headers"
                     >
@@ -1907,34 +1818,34 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
               {/* Active Filter Badges & Results Count Summary */}
               <div className="flex flex-wrap items-center justify-between gap-2 px-1 text-xs">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className={isWhite ? 'text-slate-700' : 'text-neutral-400'}>
-                    Showing <strong className={isWhite ? 'text-slate-900 font-black' : 'text-white font-bold'}>{filteredTorrents.length}</strong> of{' '}
-                    <strong className={isWhite ? 'text-slate-900 font-black' : 'text-white font-bold'}>{torrents.length}</strong> releases
+                  <span className="cv-text-muted">
+                    Showing <strong className="cv-text font-bold">{filteredTorrents.length}</strong> of{' '}
+                    <strong className="cv-text font-bold">{torrents.length}</strong> releases
                   </span>
 
                   {/* Active Filter Chips */}
                   {selectedSeason !== 'All' && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-400 border border-rose-500/30 text-[11px] font-bold">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md cv-nav-soft-active text-[11px] font-bold">
                       <span>Season {selectedSeason}</span>
-                      <button onClick={() => setSelectedSeason('All')} className="hover:text-white cursor-pointer">
+                      <button aria-label="Remove season filter" onClick={() => setSelectedSeason('All')} className="hover:opacity-75 cursor-pointer">
                         <X size={11} />
                       </button>
                     </span>
                   )}
 
                   {selectedQuality !== 'All' && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-500/15 text-sky-400 border border-sky-500/30 text-[11px] font-bold">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md cv-badge-info border text-[11px] font-bold">
                       <span>{selectedQuality}</span>
-                      <button onClick={() => setSelectedQuality('All')} className="hover:text-white cursor-pointer">
+                      <button aria-label="Remove quality filter" onClick={() => setSelectedQuality('All')} className="hover:opacity-75 cursor-pointer">
                         <X size={11} />
                       </button>
                     </span>
                   )}
 
                   {releaseSearch && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400 border border-amber-500/30 text-[11px] font-bold">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md cv-badge-warning border text-[11px] font-bold">
                       <span>"{releaseSearch}"</span>
-                      <button onClick={() => setReleaseSearch('')} className="hover:text-white cursor-pointer">
+                      <button aria-label="Remove search filter" onClick={() => setReleaseSearch('')} className="hover:opacity-75 cursor-pointer">
                         <X size={11} />
                       </button>
                     </span>
@@ -1949,7 +1860,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                       setReleaseSearch('');
                       setSortBy('latest');
                     }}
-                    className="text-rose-500 hover:text-rose-400 font-bold underline cursor-pointer text-xs transition-colors"
+                    className="cv-text-accent hover:opacity-80 font-bold underline cursor-pointer text-xs transition-opacity"
                   >
                     Reset All Filters
                   </button>
@@ -1959,7 +1870,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
               {/* Releases List */}
               {isLoadingTorrents ? (
                 <div className="py-2">
-                  <SeriesDetailTorrentsSkeleton isWhite={isWhite} isBlueBlack={isBlueBlack} hideToolbar={true} />
+                  <SeriesDetailTorrentsSkeleton hideToolbar={true} />
                 </div>
               ) : filteredTorrents.length > 0 ? (
                 viewMode === 'grouped' ? (
@@ -1970,39 +1881,26 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                       return (
                         <div
                           key={groupKey}
-                          className={`rounded-2xl border overflow-hidden transition-all ${
-                            isWhite
-                              ? 'bg-white border-slate-200 shadow-xs'
-                              : isBlueBlack
-                              ? 'bg-[#0b1329] border-sky-900/40'
-                              : 'bg-[#0e0e0e] border-white/10'
-                          }`}
+                          className="rounded-2xl cv-card border overflow-hidden transition-all"
                         >
                           {/* Season Group Header */}
                           <div
                             onClick={() => {
                               setCollapsedSeasons(prev => ({ ...prev, [groupKey]: !prev[groupKey] }));
                             }}
-                            className={`p-3.5 sm:px-4.5 flex items-center justify-between gap-3 cursor-pointer select-none transition-colors ${
-                              isWhite
-                                ? 'bg-slate-50 hover:bg-slate-100 border-b border-slate-200'
-                                : 'bg-white/5 hover:bg-white/10 border-b border-white/5'
-                            }`}
+                            className="p-3.5 sm:px-4.5 flex items-center justify-between gap-3 cursor-pointer select-none transition-colors cv-surface-muted border-b cv-border"
                           >
                             <div className="flex items-center gap-2.5">
-                              <span className={`w-2 h-2 rounded-full ${
-                                group.seasonNum ? 'bg-rose-500' : 'bg-indigo-500'
-                              }`} />
-                              <h4 className={`text-sm font-black tracking-wide ${
-                                isWhite ? 'text-slate-900' : 'text-white'
-                              }`}>
+                              <span
+                                className="w-2 h-2 rounded-full"
+                                style={{
+                                  backgroundColor: group.seasonNum ? 'var(--cv-playback-bg)' : 'var(--cv-info-soft-fg)',
+                                }}
+                              />
+                              <h4 className="text-sm font-black tracking-wide cv-text">
                                 {group.seasonLabel}
                               </h4>
-                              <span className={`text-xs px-2 py-0.5 rounded-md font-mono font-bold ${
-                                isWhite
-                                  ? 'bg-slate-200 text-slate-800'
-                                  : 'bg-white/10 text-neutral-300'
-                              }`}>
+                              <span className="text-xs px-2 py-0.5 rounded-md font-mono font-bold border cv-badge-neutral">
                                 {group.torrents.length} {group.torrents.length === 1 ? 'Release' : 'Releases'}
                               </span>
                             </div>
@@ -2010,29 +1908,33 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                             <div className="flex items-center gap-2.5">
                               {group.seasonNum && (
                                 <button
+                                  type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleCopySeasonMagnets(group.seasonNum!);
                                   }}
-                                  className="px-2.5 py-1 rounded-lg bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/30 text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-xs"
+                                  className="px-2.5 py-1 rounded-lg cv-btn-playback-soft hover:brightness-110 text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-xs"
                                   title={`Copy all magnet links for ${group.seasonLabel}`}
                                 >
                                   <Magnet size={13} />
                                   <span className="hidden sm:inline">Copy All Magnets</span>
                                 </button>
                               )}
-                              <span className={`text-xs font-mono hidden md:inline-block ${
-                                isWhite ? 'text-slate-500' : 'text-neutral-400'
-                              }`}>
-                                Total: {formatEztvBytes(group.totalBytes)} • Peak Seeds: <span className="text-emerald-500 font-bold">{group.maxSeeds}</span>
+                              <span className="text-xs font-mono hidden md:inline-block cv-text-muted">
+                                Total: {formatEztvBytes(group.totalBytes)} • Peak Seeds:{' '}
+                                <span className="font-bold" style={{ color: 'var(--cv-success-soft-fg)' }}>{group.maxSeeds}</span>
                               </span>
-                              {isCollapsed ? <ChevronDown size={16} className="text-neutral-400" /> : <ChevronUp size={16} className="text-neutral-400" />}
+                              {isCollapsed ? (
+                                <ChevronDown size={16} className="cv-text-muted" />
+                              ) : (
+                                <ChevronUp size={16} className="cv-text-muted" />
+                              )}
                             </div>
                           </div>
 
                           {/* Group Releases */}
                           {!isCollapsed && (
-                            <div className="divide-y divide-white/5 p-2 space-y-2">
+                            <div className="p-2 space-y-2">
                               {group.torrents.map((torrent) => {
                                 const q = parseQualityFromEztv(torrent.title, torrent.filename);
                                 const meta = parseReleaseMeta(torrent);
@@ -2045,62 +1947,50 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                                     key={torrent.id || torrent.hash}
                                     className={`p-3 sm:p-3.5 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
                                       isSelectedInitial
-                                        ? 'bg-rose-950/30 border-rose-500/70 shadow-md shadow-rose-950/20 ring-1 ring-rose-500/60'
-                                        : isWhite
-                                        ? 'bg-white hover:bg-slate-50 border-slate-200'
-                                        : isBlueBlack
-                                        ? 'bg-[#080f24] hover:bg-[#0c1634] border-sky-900/30'
-                                        : 'bg-[#111111] hover:bg-[#161616] border-white/5'
+                                        ? 'cv-nav-soft-active ring-1'
+                                        : 'cv-surface-elevated cv-border-subtle'
                                     }`}
                                   >
                                     <div className="space-y-1.5 flex-1 min-w-0">
                                       <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                                         {epTag && (
-                                          <span className="px-2 py-0.5 rounded-md bg-rose-600/20 text-rose-400 border border-rose-500/30 text-xs font-mono font-bold">
+                                          <span className="px-2 py-0.5 rounded-md cv-btn-playback-soft text-xs font-mono font-bold">
                                             {epTag}
                                           </span>
                                         )}
-                                        <span className={`px-2 py-0.5 rounded-md text-xs font-bold ${
-                                          q.is4k
-                                            ? 'bg-amber-500 text-black font-extrabold'
-                                            : q.is1080p
-                                            ? isWhite
-                                              ? 'bg-slate-800 text-white'
-                                              : 'bg-neutral-800 text-white border border-white/10'
-                                            : isWhite
-                                            ? 'bg-slate-100 text-slate-700'
-                                            : 'bg-white/5 text-neutral-300'
-                                        }`}>
+                                        <span
+                                          className={`px-2 py-0.5 rounded-md text-xs font-bold border ${
+                                            q.is4k
+                                              ? 'cv-rating-badge font-extrabold'
+                                              : q.is1080p
+                                              ? 'cv-nav-pill-active'
+                                              : 'cv-badge-neutral'
+                                          }`}
+                                        >
                                           {q.quality}
                                         </span>
                                         {q.isHevc && (
-                                          <span className="px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 text-[11px] font-bold">
+                                          <span className="px-2 py-0.5 rounded-md border cv-badge-info text-[11px] font-bold">
                                             x265
                                           </span>
                                         )}
-                                        <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded border ${
-                                          isWhite
-                                            ? 'bg-slate-100 text-slate-800 border-slate-200'
-                                            : 'bg-white/10 text-neutral-200 border-white/10'
-                                        }`}>
+                                        <span className="text-xs font-mono font-bold px-2 py-0.5 rounded border cv-badge-neutral">
                                           {formatEztvBytes(torrent.size_bytes)}
                                         </span>
-                                        <span className={`text-xs ${isWhite ? 'text-slate-500' : 'text-neutral-400'}`}>
+                                        <span className="text-xs cv-text-muted">
                                           {formatEztvDate(torrent.date_released_unix)}
                                         </span>
                                       </div>
 
-                                      <h3 className={`text-xs sm:text-sm font-semibold truncate ${
-                                        isWhite ? 'text-slate-900' : 'text-white'
-                                      }`} title={torrent.title}>
+                                      <h3 className="text-xs sm:text-sm font-semibold truncate cv-text" title={torrent.title}>
                                         {torrent.title}
                                       </h3>
 
                                       <div className="flex items-center gap-2 pt-0.5">
                                         <TorrentSwarmHealthBadge seeds={torrent.seeds} peers={torrent.peers} showDetails />
-                                        <span className="text-xs font-mono text-neutral-400">
-                                          <span className="text-emerald-500 font-semibold">{torrent.seeds} Seeds</span>
-                                          <span className="mx-1 text-neutral-600">•</span>
+                                        <span className="text-xs font-mono cv-text-muted">
+                                          <span className="font-semibold" style={{ color: 'var(--cv-success-soft-fg)' }}>{torrent.seeds} Seeds</span>
+                                          <span className="mx-1 cv-text-subtle">•</span>
                                           <span>{torrent.peers} Peers</span>
                                         </span>
                                       </div>
@@ -2109,8 +1999,9 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                                     {/* Action Buttons */}
                                     <div className="flex items-center gap-2 shrink-0 self-start sm:self-center pt-1 sm:pt-0">
                                       <button
+                                        type="button"
                                         onClick={(e) => handleDirectDownload(e, torrent)}
-                                        className="px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-950/30 flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap"
+                                        className="px-3.5 py-2 rounded-xl text-xs font-bold cv-btn-magnet shadow-md flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap"
                                         title="Direct BitTorrent Client Magnet Download"
                                       >
                                         <Magnet className="w-3.5 h-3.5" />
@@ -2118,16 +2009,17 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                                       </button>
 
                                       <button
+                                        type="button"
                                         onClick={() => handleCopyMagnetLink(torrent)}
-                                        className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                                          isWhite
-                                            ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200'
-                                            : 'bg-white/10 hover:bg-white/20 text-neutral-200 hover:text-white border border-white/10'
-                                        }`}
+                                        className="px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer cv-btn-secondary"
                                         title="Copy Magnet URI link"
                                       >
                                         <CopyIcon size={14} />
-                                        {isCopied ? <span className="text-emerald-500 font-bold">Copied!</span> : <span>URI</span>}
+                                        {isCopied ? (
+                                          <span className="font-bold" style={{ color: 'var(--cv-success-soft-fg)' }}>Copied!</span>
+                                        ) : (
+                                          <span>URI</span>
+                                        )}
                                       </button>
 
                                       {getSafeExternalUrl(torrent.torrent_url) && (
@@ -2135,11 +2027,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                                           href={getSafeExternalUrl(torrent.torrent_url)!}
                                           target="_blank"
                                           rel="noopener noreferrer"
-                                          className={`px-2.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1 transition-all ${
-                                            isWhite
-                                              ? 'bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200'
-                                              : 'bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border border-white/10'
-                                          }`}
+                                          className="px-2.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1 transition-all cv-btn-secondary"
                                           title="Download .torrent file mirror"
                                         >
                                           <FileDown className="w-3.5 h-3.5" />
@@ -2170,77 +2058,63 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                           key={torrent.id || torrent.hash}
                           className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 ${
                             isSelectedInitial
-                              ? 'bg-rose-950/30 border-rose-500/70 shadow-lg shadow-rose-950/20 ring-2 ring-rose-500/60'
+                              ? 'cv-nav-soft-active shadow-lg ring-2'
                               : q.is4k
-                              ? isWhite
-                                ? 'bg-amber-50/60 border-amber-400/40 shadow-xs'
-                                : 'bg-gradient-to-r from-amber-950/20 via-[#111111] to-[#0e0e0e] border-amber-500/35 shadow-lg shadow-amber-950/10'
-                              : isWhite
-                              ? 'bg-white hover:border-slate-300 border-slate-200 shadow-xs'
-                              : isBlueBlack
-                              ? 'bg-[#0b1329] border-sky-900/40 hover:border-sky-800/60'
-                              : 'bg-[#0e0e0e] border-white/10 hover:border-white/20'
+                              ? 'cv-4k-card shadow-md'
+                              : 'cv-card'
                           }`}
                         >
                           {/* Left: Metadata and Title */}
                           <div className="space-y-1.5 flex-1 min-w-0">
                             <div className="flex flex-wrap items-center gap-2">
                               {isSelectedInitial && (
-                                <span className="px-2 py-0.5 rounded-md bg-rose-600 text-white font-extrabold text-[11px] shadow-xs animate-pulse tracking-wide">
+                                <span className="px-2 py-0.5 rounded-md cv-btn-playback font-extrabold text-[11px] shadow-xs animate-pulse tracking-wide">
                                   Selected File
                                 </span>
                               )}
 
                               {epTag && (
-                                <span className="px-2 py-0.5 rounded-md bg-rose-600/20 text-rose-400 border border-rose-500/30 text-xs font-mono font-bold">
+                                <span className="px-2 py-0.5 rounded-md cv-btn-playback-soft text-xs font-mono font-bold">
                                   {epTag}
                                 </span>
                               )}
 
-                              <span className={`px-2 py-0.5 rounded-md text-xs font-bold ${
-                                q.is4k
-                                  ? 'bg-amber-500 text-black font-extrabold'
-                                  : q.is1080p
-                                  ? isWhite
-                                    ? 'bg-slate-800 text-white'
-                                    : 'bg-neutral-800 text-white border border-white/10'
-                                  : isWhite
-                                  ? 'bg-slate-100 text-slate-700'
-                                  : 'bg-white/5 text-neutral-300 border border-white/5'
-                              }`}>
+                              <span
+                                className={`px-2 py-0.5 rounded-md text-xs font-bold border ${
+                                  q.is4k
+                                    ? 'cv-rating-badge font-extrabold'
+                                    : q.is1080p
+                                    ? 'cv-nav-pill-active'
+                                    : 'cv-badge-neutral'
+                                }`}
+                              >
                                 {q.quality}
                               </span>
 
                               {q.isHevc && (
-                                <span className="px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 text-[11px] font-bold">
+                                <span className="px-2 py-0.5 rounded-md border cv-badge-info text-[11px] font-bold">
                                   x265
                                 </span>
                               )}
 
-                              <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded border ${
-                                isWhite
-                                  ? 'bg-slate-100 text-slate-800 border-slate-200'
-                                  : 'bg-white/10 text-neutral-200 border border-white/10'
-                              }`}>
+                              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded border cv-badge-neutral">
                                 {formatEztvBytes(torrent.size_bytes)}
                               </span>
 
-                              <span className={`text-xs ${isWhite ? 'text-slate-500' : 'text-neutral-400'}`}>
+                              <span className="text-xs cv-text-muted">
                                 {formatEztvDate(torrent.date_released_unix)}
                               </span>
                             </div>
 
-                            <h3 className={`text-xs sm:text-sm font-semibold truncate ${
-                              isWhite ? 'text-slate-900' : 'text-white'
-                            }`} title={torrent.title}>
+                            <h3 className="text-xs sm:text-sm font-semibold truncate cv-text" title={torrent.title}>
                               {torrent.title}
                             </h3>
 
                             <div className="flex items-center gap-2 pt-0.5">
                               <TorrentSwarmHealthBadge seeds={torrent.seeds} peers={torrent.peers} showDetails />
-                              <span className={`text-xs font-mono ${isWhite ? 'text-slate-500' : 'text-neutral-400'}`}>
-                                <span className="text-emerald-500 font-semibold">{torrent.seeds} Seeds</span>
-                                <span className="mx-1 text-neutral-500">•</span>
+                              <span className="text-xs font-mono cv-text-muted">
+                                <span className="font-semibold" style={{ color: 'var(--cv-success-soft-fg)' }}>{torrent.seeds} Seeds</span>
+                                <span className="mx-1 cv-text-subtle">•</span>
                                 <span>{torrent.peers} Peers</span>
                               </span>
                             </div>
@@ -2249,8 +2123,9 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                           {/* Right: Actions Toolbar */}
                           <div className="flex items-center gap-2 shrink-0 self-start sm:self-center">
                             <button
+                              type="button"
                               onClick={(e) => handleDirectDownload(e, torrent)}
-                              className="px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-950/30 flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap"
+                              className="px-3.5 py-2 rounded-xl text-xs font-bold cv-btn-magnet shadow-md flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap"
                               title="Direct BitTorrent Client Magnet Download"
                             >
                               <Magnet className="w-3.5 h-3.5" />
@@ -2258,16 +2133,17 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                             </button>
 
                             <button
+                              type="button"
                               onClick={() => handleCopyMagnetLink(torrent)}
-                              className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                                isWhite
-                                  ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200'
-                                  : 'bg-white/10 hover:bg-white/20 text-neutral-200 hover:text-white border border-white/10'
-                              }`}
+                              className="px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer cv-btn-secondary"
                               title="Copy Magnet URI link"
                             >
                               <CopyIcon size={14} />
-                              {isCopied ? <span className="text-emerald-500 font-bold">Copied!</span> : <span>URI</span>}
+                              {isCopied ? (
+                                <span className="font-bold" style={{ color: 'var(--cv-success-soft-fg)' }}>Copied!</span>
+                              ) : (
+                                <span>URI</span>
+                              )}
                             </button>
 
                             {getSafeExternalUrl(torrent.torrent_url) && (
@@ -2275,11 +2151,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                                 href={getSafeExternalUrl(torrent.torrent_url)!}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className={`px-2.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1 transition-all ${
-                                  isWhite
-                                    ? 'bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200'
-                                    : 'bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border border-white/10'
-                                }`}
+                                className="px-2.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1 transition-all cv-btn-secondary"
                                 title="Download .torrent file mirror"
                               >
                                 <FileDown className="w-3.5 h-3.5" />
@@ -2293,24 +2165,18 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                 )
               ) : (
                 /* Empty Filter State with helpful recovery actions */
-                <div className={`text-center py-12 px-6 rounded-3xl border space-y-4 ${
-                  isWhite
-                    ? 'bg-white border-slate-200 shadow-sm'
-                    : isBlueBlack
-                    ? 'bg-[#0b1329] border-sky-900/40'
-                    : 'bg-[#0e0e0e] border-white/10'
-                }`}>
-                  <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mx-auto text-rose-500">
+                <div className="text-center py-12 px-6 rounded-3xl border cv-card space-y-4">
+                  <div className="w-12 h-12 rounded-2xl cv-btn-playback-soft flex items-center justify-center mx-auto">
                     <Tv className="w-6 h-6" />
                   </div>
                   
                   <div className="space-y-1.5 max-w-md mx-auto">
-                    <h3 className={`text-base font-bold ${isWhite ? 'text-slate-900' : 'text-white'}`}>
+                    <h3 className="text-base font-bold cv-text">
                       {selectedSeason !== 'All' && !isNaN(parseInt(selectedSeason, 10))
                         ? `No torrents indexed for Season ${selectedSeason}`
                         : 'No matching releases found'}
                     </h3>
-                    <p className={`text-xs leading-relaxed ${isWhite ? 'text-slate-500' : 'text-neutral-400'}`}>
+                    <p className="text-xs leading-relaxed cv-text-muted">
                       {selectedSeason !== 'All' && !isNaN(parseInt(selectedSeason, 10))
                         ? `This tracker does not currently list verified releases tagged specifically under Season ${selectedSeason}. You can search for alternative naming or browse the episode guide.`
                         : 'No releases matched your active season, quality, or title keyword filters.'}
@@ -2321,9 +2187,10 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                     {selectedSeason !== 'All' && !isNaN(parseInt(selectedSeason, 10)) && (
                       <>
                         <button
+                          type="button"
                           onClick={() => handleSearchAlternativeSeason(parseInt(selectedSeason, 10))}
                           disabled={isSearchingSeason}
-                          className="px-4 py-2.5 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-md shadow-rose-950/30 flex items-center gap-1.5"
+                          className="px-4 py-2.5 cv-btn-primary disabled:opacity-50 text-xs font-bold rounded-xl transition-all cursor-pointer shadow-md flex items-center gap-1.5"
                         >
                           {isSearchingSeason ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
                           <span>Search Tracker for Season {selectedSeason}</span>
@@ -2331,15 +2198,12 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
 
                         {show?.episodes && show.episodes.length > 0 && (
                           <button
+                            type="button"
                             onClick={() => {
                               setGuideSeason(parseInt(selectedSeason, 10));
                               setActiveTab('episodes');
                             }}
-                            className={`px-4 py-2.5 text-xs font-bold rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 ${
-                              isWhite
-                                ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300'
-                                : 'bg-white/10 hover:bg-white/20 text-white border-white/10'
-                            }`}
+                            className="px-4 py-2.5 text-xs font-bold rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 cv-btn-secondary"
                           >
                             <Calendar className="w-3.5 h-3.5" />
                             <span>Browse Season {selectedSeason} in Episode Guide</span>
@@ -2349,6 +2213,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                     )}
 
                     <button
+                      type="button"
                       onClick={() => {
                         setSelectedSeason('All');
                         setSelectedQuality('All');
@@ -2357,10 +2222,8 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                       }}
                       className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                         selectedSeason === 'All'
-                          ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-md'
-                          : isWhite
-                          ? 'bg-slate-200 hover:bg-slate-300 text-slate-800'
-                          : 'bg-white/10 hover:bg-white/20 text-white'
+                          ? 'cv-btn-primary shadow-md'
+                          : 'cv-btn-secondary'
                       }`}
                     >
                       View All Releases ({torrents.length})
@@ -2374,21 +2237,21 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
             <aside className="space-y-6">
               
               {/* Synopsis Card */}
-              <div className="p-5 rounded-2xl bg-[#0e0e0e] border border-white/10 space-y-3">
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <Film className="w-4 h-4 text-rose-500" />
+              <div className="p-5 rounded-2xl cv-card border space-y-3">
+                <h3 className="text-sm font-bold cv-text flex items-center gap-2">
+                  <Film className="w-4 h-4 cv-text-accent" />
                   <span>Series Synopsis</span>
                 </h3>
-                <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed">
+                <p className="text-xs sm:text-sm cv-text-secondary leading-relaxed">
                   {show?.summary || 'No overview synopsis currently recorded for this television series.'}
                 </p>
                 {getSafeExternalUrl(show?.officialSite) && (
-                  <div className="pt-2 border-t border-white/5">
+                  <div className="pt-2 border-t cv-border-subtle">
                     <a
                       href={getSafeExternalUrl(show?.officialSite)!}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-xs text-rose-400 hover:text-rose-300 font-semibold"
+                      className="inline-flex items-center gap-1.5 text-xs cv-text-accent hover:underline font-semibold"
                     >
                       <span>Visit Official Broadcast Site</span>
                       <ExternalLink size={12} />
@@ -2399,12 +2262,12 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
 
               {/* Download Speed Estimator */}
               {primaryTorrent && (
-                <div className="p-5 rounded-2xl bg-[#0e0e0e] border border-white/10 space-y-3">
-                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-emerald-400" />
+                <div className="p-5 rounded-2xl cv-card border space-y-3">
+                  <h3 className="text-sm font-bold cv-text flex items-center gap-2">
+                    <Clock className="w-4 h-4" style={{ color: 'var(--cv-success-soft-fg)' }} />
                     <span>Download Time Estimator</span>
                   </h3>
-                  <p className="text-xs text-neutral-400">
+                  <p className="text-xs cv-text-muted">
                     Calculated for standard episode size ({formatEztvBytes(primaryTorrent.size_bytes)}):
                   </p>
                   <DownloadSpeedEstimator sizeBytes={Number(primaryTorrent.size_bytes) || 1400000000} />
@@ -2412,31 +2275,31 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
               )}
 
               {/* Quick Tech Specs */}
-              <div className="p-5 rounded-2xl bg-[#0e0e0e] border border-white/10 space-y-3 text-xs">
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <Info className="w-4 h-4 text-neutral-400" />
+              <div className="p-5 rounded-2xl cv-card border space-y-3 text-xs">
+                <h3 className="text-sm font-bold cv-text flex items-center gap-2">
+                  <Info className="w-4 h-4 cv-text-muted" />
                   <span>Technical Overview</span>
                 </h3>
-                <div className="space-y-2 text-neutral-300">
-                  <div className="flex justify-between py-1 border-b border-white/5">
-                    <span className="text-neutral-400">Network / Stream:</span>
-                    <span className="font-semibold text-white">{show?.network || 'Broadcasting'}</span>
+                <div className="space-y-2 cv-text-secondary">
+                  <div className="flex justify-between py-1 border-b cv-border-subtle">
+                    <span className="cv-text-muted">Network / Stream:</span>
+                    <span className="font-semibold cv-text">{show?.network || 'Broadcasting'}</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-white/5">
-                    <span className="text-neutral-400">Premiered:</span>
-                    <span className="font-semibold text-white">{show?.premiered || show?.year || 'Unknown'}</span>
+                  <div className="flex justify-between py-1 border-b cv-border-subtle">
+                    <span className="cv-text-muted">Premiered:</span>
+                    <span className="font-semibold cv-text">{show?.premiered || show?.year || 'Unknown'}</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-white/5">
-                    <span className="text-neutral-400">Status:</span>
-                    <span className="font-semibold text-white">{show?.status || 'Unknown'}</span>
+                  <div className="flex justify-between py-1 border-b cv-border-subtle">
+                    <span className="cv-text-muted">Status:</span>
+                    <span className="font-semibold cv-text">{show?.status || 'Unknown'}</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-white/5">
-                    <span className="text-neutral-400">IMDb Reference:</span>
-                    <span className="font-mono text-rose-400 font-semibold">{show?.imdb_code || 'N/A'}</span>
+                  <div className="flex justify-between py-1 border-b cv-border-subtle">
+                    <span className="cv-text-muted">IMDb Reference:</span>
+                    <span className="font-mono cv-text-accent font-semibold">{show?.imdb_code || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between py-1">
-                    <span className="text-neutral-400">Indexer Source:</span>
-                    <span className="font-semibold text-white">EZTV API / BitTorrent</span>
+                    <span className="cv-text-muted">Indexer Source:</span>
+                    <span className="font-semibold cv-text">EZTV API / BitTorrent</span>
                   </div>
                 </div>
               </div>
@@ -2447,17 +2310,13 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
         {/* Tab 2: Episode Guide */}
         {activeTab === 'episodes' && (
           isLoadingDetails && (!show?.episodes || show.episodes.length === 0) ? (
-            <SeriesDetailEpisodesSkeleton isWhite={isWhite} isBlueBlack={isBlueBlack} />
+            <SeriesDetailEpisodesSkeleton />
           ) : show?.episodes && show.episodes.length > 0 ? (
             <div className="space-y-4">
               
               {/* Season Filter for Guide (Wrap smoothly - NO ugly horizontal scrollbar) */}
-              <div className={`flex flex-wrap items-center gap-2 pb-3 border-b ${
-                isWhite ? 'border-slate-200' : 'border-white/10'
-              }`}>
-                <span className={`text-xs font-bold uppercase tracking-wider mr-1 ${
-                  isWhite ? 'text-slate-600' : 'text-neutral-400'
-                }`}>
+              <div className="flex flex-wrap items-center gap-2 pb-3 border-b cv-border">
+                <span className="text-xs font-bold uppercase tracking-wider mr-1 cv-text-muted">
                   Season:
                 </span>
                 {(seasonStats.allKnownSeasons.length > 0 ? seasonStats.allKnownSeasons : [1]).map((sNum) => {
@@ -2465,26 +2324,24 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                   const isSelected = guideSeason === sNum;
                   return (
                     <button
+                      type="button"
                       key={`guide-season-tab-${sNum}`}
                       onClick={() => setGuideSeason(sNum)}
+                      aria-pressed={isSelected}
                       className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
                         isSelected
-                          ? 'bg-rose-600 text-white shadow-md shadow-rose-950/40 ring-1 ring-rose-500'
-                          : isWhite
-                          ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
-                          : isBlueBlack
-                          ? 'bg-[#0b1329] hover:bg-sky-900/40 text-sky-200 border border-sky-900/40'
-                          : 'bg-[#0e0e0e] text-neutral-300 hover:bg-white/10 border border-white/10'
+                          ? 'cv-nav-pill-active shadow-md'
+                          : 'cv-btn-secondary'
                       }`}
                     >
                       <span>Season {sNum}</span>
-                      <span className={`text-[10px] px-1.5 py-0.2 rounded-md font-mono ${
-                        isSelected
-                          ? 'bg-black/30 text-white'
-                          : isWhite
-                          ? 'bg-slate-200 text-slate-700'
-                          : 'bg-white/10 text-neutral-400'
-                      }`}>
+                      <span
+                        className={`text-[10px] px-1.5 py-0.2 rounded-md font-mono ${
+                          isSelected
+                            ? 'bg-black/25 text-white'
+                            : 'cv-badge-neutral'
+                        }`}
+                      >
                         {epCount} eps
                       </span>
                     </button>
@@ -2502,21 +2359,22 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                 const seasonPercent = seasonEps.length > 0 ? Math.round((watchedInSeason / seasonEps.length) * 100) : 0;
 
                 return (
-                  <div className={`p-3.5 sm:px-4.5 rounded-2xl border flex flex-col md:flex-row md:items-center justify-between gap-3 ${
-                    isWhite ? 'bg-slate-50 border-slate-200' : 'bg-white/[0.03] border-white/10'
-                  }`}>
+                  <div className="p-3.5 sm:px-4.5 rounded-2xl border cv-surface-muted cv-border flex flex-col md:flex-row md:items-center justify-between gap-3">
                     {/* Season Progress */}
                     <div className="space-y-1 flex-1 min-w-0">
                       <div className="flex items-center justify-between text-xs">
-                        <span className={`font-bold ${isWhite ? 'text-slate-800' : 'text-neutral-200'}`}>
+                        <span className="font-bold cv-text">
                           Season {guideSeason}: {watchedInSeason} of {seasonEps.length} watched
                         </span>
-                        <span className="font-mono font-bold text-rose-500">{seasonPercent}%</span>
+                        <span className="font-mono font-bold cv-text-accent">{seasonPercent}%</span>
                       </div>
-                      <div className="w-full h-1.5 rounded-full bg-white/10 overflow-hidden">
+                      <div className="w-full h-1.5 rounded-full cv-surface-elevated border cv-border-subtle overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-rose-500 to-emerald-500 rounded-full transition-all duration-300"
-                          style={{ width: `${seasonPercent}%` }}
+                          className="h-full rounded-full transition-all duration-300"
+                          style={{
+                            width: `${seasonPercent}%`,
+                            background: 'linear-gradient(90deg, var(--cv-playback-bg), var(--cv-success-soft-fg))',
+                          }}
                         />
                       </div>
                     </div>
@@ -2524,8 +2382,9 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                     {/* Season Action Buttons */}
                     <div className="flex flex-wrap items-center gap-2 shrink-0">
                       <button
+                        type="button"
                         onClick={() => markSeasonWatched(guideSeason, watchedInSeason < seasonEps.length)}
-                        className="px-2.5 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
+                        className="px-2.5 py-1.5 rounded-lg border cv-badge-success hover:brightness-110 text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
                         title={watchedInSeason < seasonEps.length ? `Mark all ${seasonEps.length} episodes in Season ${guideSeason} as watched` : `Reset watch status for Season ${guideSeason}`}
                       >
                         <CheckCircle2 size={13} />
@@ -2533,8 +2392,9 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                       </button>
 
                       <button
+                        type="button"
                         onClick={() => handleCopySeasonMagnets(guideSeason)}
-                        className="px-2.5 py-1.5 rounded-lg bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/30 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
+                        className="px-2.5 py-1.5 rounded-lg cv-btn-playback-soft hover:brightness-110 text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
                         title={`Copy all magnet links for Season ${guideSeason}`}
                       >
                         <Magnet size={13} />
@@ -2543,8 +2403,9 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
 
                       {guideSeason > 1 && onAskCineBot && (
                         <button
+                          type="button"
                           onClick={() => onAskCineBot(`Can you give me a punchy, spoiler-free recap of Season ${guideSeason - 1} of "${show.name}" so I am caught up for Season ${guideSeason}?`)}
-                          className="px-2.5 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
+                          className="px-2.5 py-1.5 rounded-lg border cv-badge-warning hover:brightness-110 text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
                           title={`Spoiler-free recap of previous seasons before watching Season ${guideSeason}`}
                         >
                           <Bot size={13} />
@@ -2584,21 +2445,12 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                     return (
                       <div
                         key={ep.id}
-                        className={`p-4 rounded-2xl border transition-all flex flex-col gap-3.5 ${
-                          isEpWatched
-                            ? isWhite
-                              ? 'bg-emerald-50/50 border-emerald-300 shadow-xs'
-                              : 'bg-emerald-950/15 border-emerald-500/40 shadow-xs'
-                            : isWhite
-                            ? 'bg-white border-slate-200 shadow-xs hover:border-slate-300'
-                            : isBlueBlack
-                            ? 'bg-[#0b1329] border-sky-900/40 hover:border-sky-800/60'
-                            : 'bg-[#0e0e0e] border-white/10 hover:border-white/20'
-                        }`}
+                        className="p-4 rounded-2xl border cv-card transition-all flex flex-col gap-3.5"
+                        style={isEpWatched ? { borderColor: 'var(--cv-success-border)' } : undefined}
                       >
                         <div className="flex flex-col sm:flex-row gap-4">
                           {/* Thumbnail Still */}
-                          <div className="sm:w-36 aspect-video rounded-xl overflow-hidden bg-black/40 shrink-0 relative">
+                          <div className="sm:w-36 aspect-video rounded-xl overflow-hidden cv-surface-muted shrink-0 relative">
                             {ep.image?.medium || ep.image?.original ? (
                               <img
                                 src={ep.image.medium || ep.image.original!}
@@ -2607,17 +2459,15 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                                 loading="eager"
                               />
                             ) : (
-                              <div className={`w-full h-full flex items-center justify-center ${
-                                isWhite ? 'bg-slate-100 text-slate-400' : 'bg-white/5 text-neutral-600'
-                              }`}>
+                              <div className="w-full h-full flex items-center justify-center cv-surface-muted cv-text-subtle">
                                 <Tv size={24} />
                               </div>
                             )}
-                            <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/80 backdrop-blur-xs text-[10px] font-mono font-bold text-white border border-white/10">
+                            <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/85 backdrop-blur-xs text-[10px] font-mono font-bold text-white border border-white/15">
                               {epTag}
                             </span>
                             {isEpWatched && (
-                              <span className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-emerald-500 text-black font-bold text-[10px] flex items-center gap-0.5 shadow-md">
+                              <span className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md cv-btn-magnet font-bold text-[10px] flex items-center gap-0.5 shadow-md">
                                 <Check size={11} className="stroke-[3]" />
                                 <span>Watched</span>
                               </span>
@@ -2627,19 +2477,19 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                           {/* Episode Content */}
                           <div className="flex-1 min-w-0 space-y-1.5">
                             <div className="flex items-start justify-between gap-2">
-                              <h4 className={`text-sm font-bold truncate flex-1 ${
-                                isWhite ? 'text-slate-900' : 'text-white'
-                              }`}>
+                              <h4 className="text-sm font-bold truncate flex-1 cv-text">
                                 {ep.number}. {ep.name}
                               </h4>
 
                               {/* Toggle Watched Button */}
                               <button
+                                type="button"
                                 onClick={() => toggleEpisodeWatched(epTag)}
+                                aria-pressed={isEpWatched}
                                 className={`p-1.5 rounded-lg border transition-all cursor-pointer shrink-0 ${
                                   isEpWatched
-                                    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40 hover:bg-emerald-500/30'
-                                    : 'bg-white/5 text-neutral-400 border-white/10 hover:text-white hover:bg-white/10'
+                                    ? 'cv-badge-success hover:brightness-110'
+                                    : 'cv-btn-secondary'
                                 }`}
                                 title={isEpWatched ? 'Mark as unwatched' : 'Mark as watched'}
                               >
@@ -2647,28 +2497,27 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                               </button>
                             </div>
 
-                            <div className="flex items-center gap-2 text-[11px] text-neutral-400">
+                            <div className="flex items-center gap-2 text-[11px] cv-text-muted">
                               {ep.airdate && <span>Aired: {ep.airdate}</span>}
                               {ep.runtime && <span>• {ep.runtime} min</span>}
                             </div>
 
-                            <p className={`text-xs line-clamp-2 leading-relaxed ${
-                              isWhite ? 'text-slate-600' : 'text-neutral-300'
-                            }`}>
+                            <p className="text-xs line-clamp-2 leading-relaxed cv-text-secondary">
                               {ep.summary ? ep.summary.replace(/<[^>]*>?/gm, '') : 'No detailed episode synopsis available.'}
                             </p>
                           </div>
                         </div>
 
                         {/* Multi-Quality Downloads & Action Strip */}
-                        <div className="pt-2 border-t border-white/5 flex flex-wrap items-center justify-between gap-2">
+                        <div className="pt-2 border-t cv-border-subtle flex flex-wrap items-center justify-between gap-2">
                           {qualityOptions.length > 0 ? (
                             <div className="flex flex-wrap items-center gap-1.5">
-                              <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mr-0.5">
+                              <span className="text-[10px] font-bold cv-text-muted uppercase tracking-wider mr-0.5">
                                 Torrents:
                               </span>
                               {qualityOptions.map(([label, t]) => (
                                 <button
+                                  type="button"
                                   key={label}
                                   onClick={() => {
                                     if (t.magnet_url) {
@@ -2676,23 +2525,24 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                                       window.location.href = t.magnet_url;
                                     }
                                   }}
-                                  className="px-2 py-0.5 rounded-md bg-white/10 hover:bg-rose-600 text-neutral-200 hover:text-white border border-white/10 text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer"
+                                  className="px-2 py-0.5 rounded-md cv-btn-secondary text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer"
                                   title={`Download ${label} (${formatEztvBytes(t.size_bytes)} • ${t.seeds || 0} seeds)`}
                                 >
-                                  <Magnet size={11} className="text-rose-400" />
+                                  <Magnet size={11} className="cv-text-accent" />
                                   <span>{label}</span>
-                                  <span className="text-[10px] text-neutral-400 font-mono">({formatEztvBytes(t.size_bytes)})</span>
+                                  <span className="text-[10px] cv-text-muted font-mono">({formatEztvBytes(t.size_bytes)})</span>
                                 </button>
                               ))}
                             </div>
                           ) : (
                             <button
+                              type="button"
                               onClick={() => {
                                 setSelectedSeason(String(ep.season));
                                 setReleaseSearch(epTag);
                                 setActiveTab('torrents');
                               }}
-                              className="text-xs text-rose-500 hover:text-rose-400 font-bold inline-flex items-center gap-1 cursor-pointer transition-colors"
+                              className="text-xs cv-text-accent hover:underline font-bold inline-flex items-center gap-1 cursor-pointer transition-colors"
                             >
                               <span>Search Torrents for {epTag}</span>
                               <ChevronRight size={13} />
@@ -2702,12 +2552,13 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                           {/* Quick Tools: Subtitles & CineBot */}
                           <div className="flex items-center gap-1.5 ml-auto">
                             <button
+                              type="button"
                               onClick={() => {
                                 const subQuery = `${show.name} ${epTag} subtitles`;
                                 navigator.clipboard.writeText(subQuery);
                                 onShowToast(`Copied subtitle search query: "${subQuery}"`, 'info');
                               }}
-                              className="px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 text-[10px] font-semibold flex items-center gap-1 cursor-pointer"
+                              className="px-2 py-0.5 rounded-md cv-btn-secondary text-[10px] font-semibold flex items-center gap-1 cursor-pointer"
                               title="Copy subtitle search term"
                             >
                               <FileText size={11} />
@@ -2716,8 +2567,9 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
 
                             {onAskCineBot && (
                               <button
+                                type="button"
                                 onClick={() => onAskCineBot(`Tell me about episode ${epTag} of "${show.name}" titled "${ep.name}". Give me a spoiler-free review and what to look out for!`)}
-                                className="p-1 rounded-md bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 text-xs cursor-pointer"
+                                className="p-1 rounded-md cv-btn-secondary text-xs cursor-pointer"
                                 title="Ask CineBot about this episode"
                               >
                                 <Bot size={13} />
@@ -2731,10 +2583,8 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
               </div>
             </div>
           ) : (
-            <div className={`p-12 text-center rounded-2xl border ${
-              isWhite ? 'bg-white border-slate-200' : isBlueBlack ? 'bg-[#091124] border-sky-900/40' : 'bg-[#0e0e0e] border-white/10'
-            }`}>
-              <p className="text-sm text-neutral-400">No episode guide details available for this series.</p>
+            <div className="p-12 text-center rounded-2xl border cv-card">
+              <p className="text-sm cv-text-muted">No episode guide details available for this series.</p>
             </div>
           )
         )}
@@ -2742,22 +2592,17 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
         {/* Tab 3: Cast & Characters */}
         {activeTab === 'cast' && (
           isLoadingDetails && (!show?.cast || show.cast.length === 0) ? (
-            <SeriesDetailCastSkeleton isWhite={isWhite} isBlueBlack={isBlueBlack} />
+            <SeriesDetailCastSkeleton />
           ) : show?.cast && show.cast.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {show.cast.map((c) => (
-                <div
+                <button
+                  type="button"
                   key={c.person.id}
                   onClick={() => onOpenFilmography && onOpenFilmography(c.person.name, 'actor')}
-                  className={`group p-3 rounded-2xl border transition-all text-center space-y-2.5 cursor-pointer ${
-                    isWhite
-                      ? 'bg-white border-slate-200 hover:border-rose-500/40'
-                      : isBlueBlack
-                      ? 'bg-[#0b1329] border-sky-900/40 hover:border-sky-500/50'
-                      : 'bg-[#0e0e0e] border-white/10 hover:border-rose-500/40'
-                  }`}
+                  className="group p-3 rounded-2xl border cv-card-interactive transition-all text-center space-y-2.5 cursor-pointer"
                 >
-                  <div className="aspect-[3/4] rounded-xl overflow-hidden bg-black/40 relative">
+                  <div className="aspect-[3/4] rounded-xl overflow-hidden cv-surface-muted relative">
                     {c.person.image?.medium || c.person.image?.original ? (
                       <img
                         src={c.person.image.medium || c.person.image.original!}
@@ -2766,32 +2611,28 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                         loading="eager"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-white/5 text-neutral-600">
+                      <div className="w-full h-full flex items-center justify-center cv-surface-muted cv-text-subtle">
                         <User size={32} />
                       </div>
                     )}
                   </div>
 
                   <div>
-                    <h4 className={`text-xs font-bold transition-colors truncate ${
-                      isWhite ? 'text-slate-900 group-hover:text-rose-600' : 'text-white group-hover:text-rose-400'
-                    }`}>
+                    <h4 className="text-xs font-bold transition-colors truncate cv-text cv-group-hover-accent">
                       {c.person.name}
                     </h4>
                     {c.character?.name && (
-                      <p className={`text-[11px] truncate ${isWhite ? 'text-slate-500' : 'text-neutral-400'}`}>
+                      <p className="text-[11px] truncate cv-text-muted">
                         as {c.character.name}
                       </p>
                     )}
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           ) : (
-            <div className={`p-12 text-center rounded-2xl border ${
-              isWhite ? 'bg-white border-slate-200' : isBlueBlack ? 'bg-[#091124] border-sky-900/40' : 'bg-[#0e0e0e] border-white/10'
-            }`}>
-              <p className="text-sm text-neutral-400">No cast information available for this series.</p>
+            <div className="p-12 text-center rounded-2xl border cv-card">
+              <p className="text-sm cv-text-muted">No cast information available for this series.</p>
             </div>
           )
         )}
@@ -2799,12 +2640,12 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
         {/* Tab 4: Overview */}
         {activeTab === 'overview' && (
           <div className="max-w-3xl space-y-6">
-            <div className="p-6 rounded-3xl bg-[#0e0e0e] border border-white/10 space-y-4">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <Info className="w-5 h-5 text-rose-500" />
+            <div className="p-6 rounded-3xl cv-card border space-y-4">
+              <h3 className="text-lg font-bold cv-text flex items-center gap-2">
+                <Info className="w-5 h-5 cv-text-accent" />
                 <span>About {show?.name}</span>
               </h3>
-              <p className="text-sm text-neutral-300 leading-relaxed">
+              <p className="text-sm cv-text-secondary leading-relaxed">
                 {show?.summary || 'No synopsis recorded.'}
               </p>
               {getSafeExternalUrl(show?.officialSite) && (
@@ -2813,7 +2654,7 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                     href={getSafeExternalUrl(show?.officialSite)!}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-xs text-rose-400 hover:text-rose-300 font-semibold"
+                    className="inline-flex items-center gap-1.5 text-xs cv-text-accent hover:underline font-semibold"
                   >
                     <span>Visit Official Website</span>
                     <ExternalLink size={13} />
@@ -2826,15 +2667,16 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
       </div>
 
       {/* Recommended & Acclaimed TV Series Row */}
-      <section className="space-y-4 pt-8 border-t border-white/10">
+      <section className="space-y-4 pt-8 border-t cv-border">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold text-white">Popular Television Series</h2>
-            <p className="text-xs text-neutral-400">Explore other acclaimed shows available on CineVault</p>
+            <h2 className="text-lg font-bold cv-text">Popular Television Series</h2>
+            <p className="text-xs cv-text-muted">Explore other acclaimed shows available on CineVault</p>
           </div>
           <button
+            type="button"
             onClick={() => onNavigateToSeries && onNavigateToSeries()}
-            className="text-xs text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1 cursor-pointer"
+            className="text-xs cv-text-accent hover:underline font-semibold flex items-center gap-1 cursor-pointer"
           >
             <span>Browse All Series</span>
             <ChevronRight size={14} />
@@ -2844,11 +2686,12 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
           {POPULAR_RECOMMENDED_SHOWS.map((pop) => (
             <button
+              type="button"
               key={pop.imdb}
               onClick={() => onSelectSeries && onSelectSeries({ imdb: pop.imdb, title: pop.name })}
-              className="p-2.5 sm:p-3 rounded-2xl bg-[#0e0e0e] border border-white/10 hover:border-rose-500/40 hover:bg-white/5 transition-all text-left space-y-2.5 cursor-pointer group shadow-sm hover:shadow-xl"
+              className="p-2.5 sm:p-3 rounded-2xl cv-card-interactive border transition-all text-left space-y-2.5 cursor-pointer group shadow-sm hover:shadow-xl"
             >
-              <div className="aspect-[2/3] rounded-xl bg-neutral-900 overflow-hidden relative border border-white/5">
+              <div className="aspect-[2/3] rounded-xl cv-surface-muted overflow-hidden relative border cv-border-subtle">
                 <img
                   src={getPrimarySeriesPoster(pop)}
                   alt={pop.name}
@@ -2859,24 +2702,24 @@ export const SeriesDetailPage: React.FC<SeriesDetailPageProps> = ({
                     e.currentTarget.src = CINEVAULT_POSTER_FALLBACK;
                   }}
                 />
-                <div className="tv-fallback-box hidden absolute inset-0 flex flex-col items-center justify-center bg-neutral-900 text-neutral-500 p-2 text-center">
-                  <Tv size={28} className="text-rose-500/60 mb-1" />
-                  <span className="text-[10px] font-bold text-neutral-300 line-clamp-1">{pop.name}</span>
+                <div className="tv-fallback-box hidden absolute inset-0 flex flex-col items-center justify-center cv-surface-muted cv-text-muted p-2 text-center">
+                  <Tv size={28} className="cv-text-accent mb-1 opacity-70" />
+                  <span className="text-[10px] font-bold cv-text line-clamp-1">{pop.name}</span>
                 </div>
-                <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-md bg-black/80 backdrop-blur-xs text-[10px] font-bold text-amber-400 flex items-center gap-0.5 border border-white/10 shadow-xs">
-                  <span>★</span>
-                  <span>{pop.rating}</span>
+                <div className="poster-badge absolute top-2 right-2 px-1.5 py-0.5 rounded-md bg-black/85 backdrop-blur-xs text-[10px] font-bold text-amber-400 flex items-center gap-0.5 border border-white/15 shadow-xs">
+                  <span className="cv-rating-overlay">★</span>
+                  <span className="cv-rating-overlay">{pop.rating}</span>
                 </div>
-                <div className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded bg-black/75 backdrop-blur-xs text-[9px] font-bold text-neutral-300 border border-white/10">
+                <div className="poster-badge absolute bottom-2 left-2 px-1.5 py-0.5 rounded bg-black/80 backdrop-blur-xs text-[9px] font-bold text-white border border-white/15">
                   {pop.genre}
                 </div>
               </div>
 
               <div className="space-y-0.5">
-                <h4 className="text-xs font-bold text-neutral-200 group-hover:text-rose-400 transition-colors truncate">
+                <h4 className="text-xs font-bold cv-text cv-group-hover-accent transition-colors truncate">
                   {pop.name}
                 </h4>
-                <p className="text-[11px] text-neutral-400">
+                <p className="text-[11px] cv-text-muted">
                   {pop.year} • {pop.genre}
                 </p>
               </div>

@@ -28,7 +28,6 @@ import { refreshEzoicAds } from './utils/ezoic';
 import { ensureConsentGatedGlobalAds, onConsentChange } from './utils/consent';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 import { MovieSortDropdown } from './components/MovieSortDropdown';
-import { useTheme } from './context/ThemeContext';
 import { useMovieComparison } from './context/MovieComparisonContext';
 
 // Code-split route pages and heavy modals to keep initial browse bundle small
@@ -47,13 +46,13 @@ const KeyboardShortcutsModal = lazy(() => import('./components/KeyboardShortcuts
 
 const RouteSuspenseFallback = () => (
   <div className="space-y-6 animate-pulse py-8">
-    <div className="h-8 bg-neutral-900 rounded-lg w-1/3" />
-    <div className="h-80 bg-neutral-900 rounded-3xl border border-white/5" />
+    <div className="h-8 rounded-lg w-1/3 skeleton-shimmer" />
+    <div className="h-80 cv-card rounded-3xl border skeleton-shimmer" />
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-      <div className="aspect-[2/3] bg-neutral-900 rounded-2xl" />
-      <div className="aspect-[2/3] bg-neutral-900 rounded-2xl" />
-      <div className="aspect-[2/3] bg-neutral-900 rounded-2xl hidden sm:block" />
-      <div className="aspect-[2/3] bg-neutral-900 rounded-2xl hidden sm:block" />
+      <div className="aspect-[2/3] rounded-2xl skeleton-shimmer" />
+      <div className="aspect-[2/3] rounded-2xl skeleton-shimmer" />
+      <div className="aspect-[2/3] rounded-2xl skeleton-shimmer hidden sm:block" />
+      <div className="aspect-[2/3] rounded-2xl skeleton-shimmer hidden sm:block" />
     </div>
   </div>
 );
@@ -159,8 +158,6 @@ function parseCurrentUrl(): {
 }
 
 export default function App() {
-  const { colorMode } = useTheme();
-  const isWhite = colorMode === 'white';
   const [initialUrlState] = useState(() => parseCurrentUrl());
   const [filters, setFilters] = useState<FilterParams>(() => ({
     ...DEFAULT_FILTERS,
@@ -913,7 +910,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#050505] text-neutral-100 selection:bg-rose-600 selection:text-white overflow-x-clip">
+    <div className="min-h-screen flex flex-col cv-shell selection:bg-[var(--cv-nav-active-bg)] selection:text-white overflow-x-clip">
       
       <Header
         searchQuery={filters.query_term}
@@ -1040,24 +1037,24 @@ export default function App() {
           <div>
             {isMovieSlugLoading ? (
               <div className="space-y-6 animate-pulse py-8">
-                <div className="h-8 bg-neutral-900 rounded-lg w-1/3" />
-                <div className="h-96 bg-neutral-900 rounded-3xl border border-white/5" />
+                <div className="h-8 rounded-lg w-1/3 skeleton-shimmer" />
+                <div className="h-96 cv-card rounded-3xl border skeleton-shimmer" />
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="lg:col-span-2 h-64 bg-neutral-900 rounded-2xl" />
-                  <div className="h-64 bg-neutral-900 rounded-2xl" />
+                  <div className="lg:col-span-2 h-64 rounded-2xl skeleton-shimmer" />
+                  <div className="h-64 rounded-2xl skeleton-shimmer" />
                 </div>
               </div>
             ) : movieSlugError ? (
-              <div className="py-20 text-center flex flex-col items-center justify-center bg-[#0a0a0a] border border-white/10 rounded-3xl p-8 space-y-4 my-8">
+              <div className="py-20 text-center flex flex-col items-center justify-center cv-card border rounded-3xl p-8 space-y-4 my-8">
                 <div className="space-y-1 max-w-md">
-                  <h3 className="text-xl font-bold text-white">Movie Not Found</h3>
-                  <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+                  <h3 className="text-xl font-bold cv-text">Movie Not Found</h3>
+                  <p className="text-xs sm:text-sm cv-text-muted leading-relaxed">
                     {movieSlugError}
                   </p>
                 </div>
                 <button
                   onClick={handleBack}
-                  className="px-6 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs sm:text-sm rounded-full shadow-lg shadow-rose-900/30 transition-colors flex items-center gap-2 cursor-pointer"
+                  className="px-6 py-2.5 cv-btn-primary font-bold text-xs sm:text-sm rounded-full shadow-lg transition-colors flex items-center gap-2 cursor-pointer"
                 >
                   <span>Back</span>
                 </button>
@@ -1163,9 +1160,7 @@ export default function App() {
             <div id="movie-catalog-section" className="space-y-4 my-8 [contain:layout_style]">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <h1 className={`text-xl sm:text-2xl font-black font-display flex items-center gap-2.5 ${
-                    isWhite ? 'text-slate-900' : 'text-white'
-                  }`}>
+                  <h1 className="text-xl sm:text-2xl font-black font-display flex items-center gap-2.5 cv-text">
                     <span>
                       {filters.query_term
                         ? `Search: "${filters.query_term}"`
@@ -1182,7 +1177,7 @@ export default function App() {
                         : 'Explore Films'}
                     </span>
                   </h1>
-                  <p className={`text-xs sm:text-sm mt-0.5 ${isWhite ? 'text-slate-600' : 'text-neutral-400'}`}>
+                  <p className="text-xs sm:text-sm mt-0.5 cv-text-muted">
                     {filters.query_term
                       ? 'Displaying matching titles across all years from the full cinematic archive'
                       : 'Stream trailers, view metadata, and download high-quality files with magnet links'}
@@ -1212,35 +1207,29 @@ export default function App() {
               />
 
               {/* Results Count & Quick Sort Status Toolbar */}
-              <div className={`p-3.5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 transition-colors shadow-xs ${
-                isWhite
-                  ? 'bg-white border-slate-200'
-                  : colorMode === 'blue-black'
-                  ? 'bg-[#091124] border-sky-900/40'
-                  : 'bg-[#101010] border-white/10'
-              }`}>
+              <div className="p-3.5 rounded-2xl cv-card border flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 transition-colors shadow-xs">
                 <div className="flex flex-wrap items-center gap-2 text-xs">
-                  <span className={isWhite ? 'text-slate-700' : 'text-neutral-300'}>
-                    Showing <strong className={isWhite ? 'text-slate-900 font-black' : 'text-white font-bold'}>{movies.length}</strong> of{' '}
-                    <strong className={isWhite ? 'text-slate-900 font-black' : 'text-white font-bold'}>{totalCount.toLocaleString()}</strong> titles
+                  <span className="cv-text-secondary">
+                    Showing <strong className="cv-text font-extrabold">{movies.length}</strong> of{' '}
+                    <strong className="cv-text font-extrabold">{totalCount.toLocaleString()}</strong> titles
                   </span>
                   {filters.genre && filters.genre !== 'All' && (
-                    <span className="px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-400 border border-rose-500/30 text-[11px] font-bold">
+                    <span className="px-2 py-0.5 rounded-md cv-nav-soft-active text-[11px] font-bold">
                       {filters.genre}
                     </span>
                   )}
                   {filters.quality && filters.quality !== 'All' && (
-                    <span className="px-2 py-0.5 rounded-md bg-sky-500/15 text-sky-400 border border-sky-500/30 text-[11px] font-bold">
+                    <span className="px-2 py-0.5 rounded-md cv-badge-info border text-[11px] font-bold">
                       {filters.quality}
                     </span>
                   )}
                   {filters.minimum_rating > 0 && (
-                    <span className="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400 border border-amber-500/30 text-[11px] font-bold">
+                    <span className="px-2 py-0.5 rounded-md cv-rating-badge text-[11px] font-bold">
                       ★ {filters.minimum_rating}+
                     </span>
                   )}
                   {filters.year && filters.year !== 'All' && (
-                    <span className="px-2 py-0.5 rounded-md bg-purple-500/15 text-purple-400 border border-purple-500/30 text-[11px] font-bold">
+                    <span className="px-2 py-0.5 rounded-md cv-badge-neutral border text-[11px] font-bold">
                       Year: {filters.year}
                     </span>
                   )}
@@ -1254,13 +1243,14 @@ export default function App() {
                       title="Auto-refreshes every 5 minutes or on tab return. Click to check for new movies now."
                       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-semibold transition cursor-pointer select-none ${
                         isRefreshingSilently
-                          ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 shadow-xs'
-                          : isWhite
-                          ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
-                          : 'bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border-white/10'
+                          ? 'cv-badge-success shadow-xs'
+                          : 'cv-btn-secondary'
                       }`}
                     >
-                      <RefreshCw className={`w-3 h-3 ${isRefreshingSilently ? 'animate-spin text-emerald-400' : 'text-emerald-500'}`} />
+                      <RefreshCw
+                        className={`w-3 h-3 ${isRefreshingSilently ? 'animate-spin' : ''}`}
+                        style={{ color: 'var(--cv-success-soft-fg)' }}
+                      />
                       <span>{isRefreshingSilently ? 'Updating...' : 'Live Catalog'}</span>
                     </button>
                   </div>
@@ -1268,25 +1258,18 @@ export default function App() {
 
                 <div className="flex items-center gap-2 self-start sm:self-center">
                   {/* Per-Page Selector */}
-                  <div className={`hidden sm:flex items-center gap-1 px-1.5 py-1 rounded-xl border text-xs font-semibold ${
-                    isWhite
-                      ? 'bg-slate-100 border-slate-200 text-slate-700'
-                      : colorMode === 'blue-black'
-                      ? 'bg-sky-950/40 border-sky-900/40 text-neutral-300'
-                      : 'bg-white/5 border-white/10 text-neutral-300'
-                  }`}>
-                    <span className="text-[11px] text-neutral-400 px-1">Per page:</span>
+                  <div className="hidden sm:flex items-center gap-1 px-1.5 py-1 rounded-xl cv-surface-muted border text-xs font-semibold">
+                    <span className="text-[11px] cv-text-muted px-1">Per page:</span>
                     {[20, 30, 50].map((pageSize) => (
                       <button
                         key={pageSize}
                         type="button"
                         onClick={() => handleFilterChange({ limit: pageSize, page: 1 })}
+                        aria-pressed={filters.limit === pageSize}
                         className={`px-2 py-0.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                           filters.limit === pageSize
-                            ? 'bg-rose-600 text-white shadow-xs'
-                            : isWhite
-                            ? 'hover:bg-slate-200 text-slate-600'
-                            : 'hover:bg-white/10 text-neutral-400 hover:text-white'
+                            ? 'cv-btn-primary shadow-xs'
+                            : 'cv-text-muted hover:text-[var(--cv-text)] hover:bg-[var(--cv-surface-hover)]'
                         }`}
                       >
                         {pageSize}
@@ -1308,13 +1291,13 @@ export default function App() {
             </div>
 
             {error && (
-              <div className="my-6 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-300 flex items-center justify-between gap-3">
+              <div role="alert" className="my-6 p-4 rounded-2xl cv-badge-error border flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
                   <span className="text-sm font-medium">{error}</span>
                 </div>
                 <button
                   onClick={() => loadMovies()}
-                  className="px-3.5 py-1.5 bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 text-xs font-semibold rounded-full border border-rose-500/30 transition-colors flex items-center gap-1.5 cursor-pointer"
+                  className="px-3.5 py-1.5 cv-btn-primary text-xs font-semibold rounded-full transition-colors flex items-center gap-1.5 cursor-pointer"
                 >
                   <span>Retry</span>
                 </button>
@@ -1326,9 +1309,9 @@ export default function App() {
                 {Array.from({ length: filters.limit || 20 }).map((_, i) => (
                   <div
                     key={`skeleton-${i}`}
-                    className="movie-card-contain rounded-2xl bg-[#0a0a0a] border border-white/5 overflow-hidden flex flex-col select-none"
+                    className="movie-card-contain rounded-2xl cv-card border overflow-hidden flex flex-col select-none"
                   >
-                    <div className="relative aspect-[2/3] w-full bg-[#050505] skeleton-shimmer" />
+                    <div className="relative aspect-[2/3] w-full skeleton-shimmer" />
                     <div className="p-3.5 min-h-[112px] flex-1 flex flex-col justify-between gap-2">
                       <div className="space-y-1.5">
                         <div className="flex items-center justify-between">
@@ -1338,7 +1321,7 @@ export default function App() {
                         <div className="h-4 w-4/5 rounded skeleton-shimmer" />
                         <div className="h-3 w-1/2 rounded skeleton-shimmer" />
                       </div>
-                      <div className="pt-2.5 border-t border-white/5 flex items-center justify-between">
+                      <div className="pt-2.5 border-t cv-border-subtle flex items-center justify-between">
                         <div className="h-3 w-20 rounded skeleton-shimmer" />
                         <div className="h-3 w-12 rounded skeleton-shimmer" />
                       </div>
@@ -1363,16 +1346,16 @@ export default function App() {
               </div>
             ) : (
               !error && (
-                <div className="py-20 text-center flex flex-col items-center justify-center bg-[#0a0a0a]/40 border border-dashed border-white/10 rounded-3xl p-8 space-y-4 my-8">
+                <div className="py-20 text-center flex flex-col items-center justify-center cv-card border border-dashed rounded-3xl p-8 space-y-4 my-8">
                   <div className="space-y-1 max-w-sm">
-                    <h3 className="text-lg font-bold text-neutral-200">No movies found</h3>
-                    <p className="text-xs text-neutral-400 leading-relaxed">
+                    <h3 className="text-lg font-bold cv-text">No movies found</h3>
+                    <p className="text-xs cv-text-muted leading-relaxed">
                       We couldn't find any films matching your active search or filters. Try adjusting your query or resetting filters.
                     </p>
                   </div>
                   <button
                     onClick={handleResetFilters}
-                    className="px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-full shadow-lg shadow-rose-900/30 transition-colors cursor-pointer"
+                    className="px-5 py-2.5 cv-btn-primary font-bold text-xs rounded-full shadow-lg transition-colors cursor-pointer"
                   >
                     Reset All Filters
                   </button>
@@ -1394,12 +1377,12 @@ export default function App() {
             )}
 
             {/* Well-spaced Adsterra banner below main catalog */}
-            <div className="my-10 py-3 border-y border-white/5 flex justify-center overflow-hidden [contain:layout_style]">
+            <div className="my-10 py-3 border-y cv-border-subtle flex justify-center overflow-hidden [contain:layout_style]">
               <AdsterraBanner />
             </div>
 
             {currentNav === 'browse' && !filters.query_term && (watchlist.length > 0 || recentlyViewed.length > 0) && (
-              <div className="my-10 pt-8 border-t border-white/5 min-h-[420px] [contain:layout_style]">
+              <div className="my-10 pt-8 border-t cv-border-subtle min-h-[420px] [contain:layout_style]">
                 <PersonalizedRecommendations
                   watchlist={watchlist}
                   recentlyViewed={recentlyViewed}
@@ -1413,10 +1396,10 @@ export default function App() {
             )}
 
             {currentNav === 'browse' && !filters.query_term && filters.page === 1 && filters.genre === 'All' && filters.quality === 'All' && (
-              <div className="space-y-6 my-10 border-t border-white/5 pt-8 [contain:layout_style]">
+              <div className="space-y-6 my-10 border-t cv-border-subtle pt-8 [contain:layout_style]">
                 <div>
-                  <h2 className="text-xl font-bold text-white tracking-tight">Curated Film Collections</h2>
-                  <p className="text-xs text-neutral-400">Explore cinematic worlds categorized by prestigious themes and genres</p>
+                  <h2 className="text-xl font-bold cv-text tracking-tight">Curated Film Collections</h2>
+                  <p className="text-xs cv-text-muted">Explore cinematic worlds categorized by prestigious themes and genres</p>
                 </div>
 
                 {CURATED_SECTIONS.map((section) => (
@@ -1445,7 +1428,7 @@ export default function App() {
             )}
 
             {currentNav === 'browse' && !filters.query_term && filters.page === 1 && (
-              <div className="my-10 border-t border-white/5 pt-8 [contain:layout_style]">
+              <div className="my-10 border-t cv-border-subtle pt-8 [contain:layout_style]">
                 <CuratedCollections
                   activeCollectionId={activeCollectionId}
                   onSelectCollection={(filterParams) => {
